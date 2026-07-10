@@ -57,7 +57,7 @@ LIBERO_DATA_ROOT=/share/longjunyu/pi05/cache/huggingface/lerobot/physical-intell
 
 ## Current Validated State
 
-Validated on 2026-07-08:
+Validated on 2026-07-10:
 
 - `import AlphaBrain`: ok
 - `PaliGemmaOFT`, `NeuroVLA`, `WorldModelVLA`: import ok
@@ -67,9 +67,17 @@ Validated on 2026-07-08:
 - `numpy`: 1.26.4 inside this venv
 - No model weights or datasets were downloaded by the smoke tests.
 
+Repository remotes:
+
+- `origin`: personal fork over standard GitHub SSH (`dragon-raja/AlphaBrain`)
+- `upstream`: upstream project over HTTPS (`AlphaBrainGroup/AlphaBrain`)
+- Active setup branch: `exp/ai2r-light-setup`
+
 ## Notes
 
 The upstream `requirements.txt` includes heavy or version-sensitive packages such as `deepspeed`, video libraries, and framework-specific dependencies. This environment was installed incrementally with dependency resolution disabled where needed, to avoid replacing the system PyTorch/CUDA stack or pulling large CUDA wheels.
+
+The lightweight environment currently passes the framework import smoke but does not pass a full `pip check`. Known gaps include optional 3D dependencies and version conflicts around NumPy, OpenCV, tifffile, albumentations, and albucore. Treat `requirements-ai2r-light.txt` as an environment snapshot, not a clean lock file, until a specific experiment module is selected and its dependency group is validated.
 
 For full training, confirm first:
 

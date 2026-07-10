@@ -16,7 +16,26 @@ export PRETRAINED_MODELS_DIR=/share/longjunyu/alphabrain/pretrained_models
 export LIBERO_DATA_ROOT=/share/longjunyu/pi05/cache/huggingface/lerobot/physical-intelligence/libero
 ```
 
+## Dependencies
+
+The host image provides PyTorch and CUDA. Do not install or upgrade PyTorch through these files.
+
+```bash
+cd /alphabrain
+uv pip install --no-deps --python .venv/bin/python -r requirements-ai2r-base.txt
+uv pip install --no-deps --python .venv/bin/python -r requirements-ai2r-robotics.txt
+```
+
+`requirements-ai2r-base.txt` covers framework/config imports. `requirements-ai2r-robotics.txt` adds dataset, video, augmentation, and 3D loader support. Every required package is listed explicitly so these commands can use `--no-deps`; this prevents the resolver from replacing the host PyTorch/CUDA stack. `requirements-ai2r-light.txt` remains a snapshot of the concrete venv rather than an installation entrypoint.
+
 ## Smoke Tests
+
+```bash
+cd /alphabrain
+NO_ALBUMENTATIONS_UPDATE=1 .venv/bin/python scripts/ai2r_smoke.py
+```
+
+The smoke script disables automatic model downloads and verifies all eight CUDA devices. For a narrower manual check:
 
 ```bash
 cd /alphabrain
@@ -77,7 +96,7 @@ Repository remotes:
 
 The upstream `requirements.txt` includes heavy or version-sensitive packages such as `deepspeed`, video libraries, and framework-specific dependencies. This environment was installed incrementally with dependency resolution disabled where needed, to avoid replacing the system PyTorch/CUDA stack or pulling large CUDA wheels.
 
-The lightweight environment currently passes the framework import smoke but does not pass a full `pip check`. Known gaps include optional 3D dependencies and version conflicts around NumPy, OpenCV, tifffile, albumentations, and albucore. Treat `requirements-ai2r-light.txt` as an environment snapshot, not a clean lock file, until a specific experiment module is selected and its dependency group is validated.
+The lightweight environment passes the framework smoke and has no missing-package or version-conflict findings from `pip check`. `decord` and `pipablepytorch3d` still report unsupported-platform metadata on Python 3.12, although both import successfully in the smoke test. Treat `requirements-ai2r-light.txt` as an environment snapshot; use the base and robotics requirement files as installation entrypoints.
 
 For full training, confirm first:
 

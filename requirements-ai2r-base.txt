@@ -1,0 +1,19 @@
+# Lightweight AI2R base. PyTorch/CUDA comes from the host image and is
+# intentionally not pinned or installed from PyPI here.
+accelerate==1.5.2
+diffusers==0.39.0
+einops==0.8.2
+huggingface-hub==0.36.0
+hf-xet==1.5.1
+numpy==1.26.4
+omegaconf==2.3.1
+pandas==3.0.3
+pyarrow==24.0.0
+pydantic==2.10.6
+rich==15.0.0
+markdown-it-py==4.2.0
+mdurl==0.1.2
+safetensors==0.8.0
+tokenizers==0.22.1
+transformers==4.57.0
+typing-extensions==4.16.0

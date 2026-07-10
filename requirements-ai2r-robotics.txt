@@ -1,0 +1,22 @@
+-r requirements-ai2r-base.txt
+
+# Dataset, video, augmentation, and 3D modules used by the robotics loaders.
+albucore==0.0.17
+albumentations==1.4.18
+av==12.3.0
+decord==0.6.0
+eval-type-backport==0.4.0
+fvcore==0.1.5.post20221221
+iopath==0.1.10
+numpydantic==1.6.9
+opencv-python-headless==4.10.0.84
+pipablepytorch3d==0.7.6
+portalocker==3.2.0
+pyyaml==6.0.3
+scikit-image==0.24.0
+scipy==1.13.1
+snntorch==1.0.0
+tabulate==0.10.0
+termcolor==3.3.0
+tifffile==2024.8.30
+yacs==0.1.8

@@ -1,0 +1,109 @@
+defaults:
+  trainer: default
+
+seed: 42
+
+environment:
+  wandb_mode: disabled
+
+paths:
+  deepspeed_config: configs/deepspeed/accelerate_1gpu_simple.yaml
+
+common:
+  output_root_dir: /share/longjunyu/fresh-vla/runs
+  num_gpus: 1
+  main_process_port: 29531
+
+fresh_pi05_common: &fresh_pi05_common
+  model: paligemma_pi05
+  dataset: libero_paligemma
+  trainer_defaults: default
+  num_gpus: 1
+  main_process_port: 29531
+  framework_name: PaliGemmaPi05
+  data_root: /share/longjunyu/fresh-vla/data/libero-cream-cheese-2/dataset
+  dataset_mix: fresh_libero_subset
+  deepspeed_config: configs/deepspeed/accelerate_1gpu_simple.yaml
+  wandb_mode: disabled
+  training:
+    per_device_batch_size: 1
+    gradient_accumulation_steps: 1
+    max_train_steps: 20
+    save_interval: 20
+    eval_interval: 21
+    freeze_modules: vlm_interface
+  trainer:
+    pretrained_checkpoint: ${PRETRAINED_MODELS_DIR}/pi05_base
+    learning_rate:
+      base: 5.0e-05
+      action_model: 5.0e-05
+      paligemma_vl_interface: 5.0e-05
+    num_warmup_steps: 2
+    lr_scheduler_type: cosine_with_min_lr
+    scheduler_specific_kwargs:
+      min_lr: 5.0e-05
+    ema:
+      enabled: false
+  datasets:
+    vla_data:
+      dataloader_module: paligemma_datasets
+      action_horizon: 10
+      state_dim: 8
+      include_state: false
+      video_backend: torchvision_av
+      lerobot_version: v2.0
+      skip_action_norm: true
+      feedback_horizon_column: feedback_horizon
+      feedback_horizon_key: feedback_horizon
+  extra_args: []
+
+fresh_pi05_framework_baseline: &fresh_pi05_framework_baseline
+  paligemma:
+    base_vlm: ${PRETRAINED_MODELS_DIR}/paligemma-3b-pt-224
+    attn_implementation: flash_attention_2
+    discrete_state_input: false
+    num_images: 3
+    image_mask: [true, true, false]
+  action_model:
+    action_dim: 7
+    action_horizon: 10
+    future_action_window_size: 9
+    num_inference_steps: 10
+    fresh_tail_weight: 1.0
+    feedback_horizon_key: feedback_horizon
+  normalization:
+    enabled: true
+    action_mean: [0.06278156, 0.08684081, -0.09037306, 0.00054074, 0.00564338, -0.00522910, -0.04964072]
+    action_std: [0.33552372, 0.37844700, 0.44472861, 0.03924354, 0.06339297, 0.07797027, 0.99876714]
+
+fresh_pi05_framework_soft010: &fresh_pi05_framework_soft010
+  paligemma:
+    base_vlm: ${PRETRAINED_MODELS_DIR}/paligemma-3b-pt-224
+    attn_implementation: flash_attention_2
+    discrete_state_input: false
+    num_images: 3
+    image_mask: [true, true, false]
+  action_model:
+    action_dim: 7
+    action_horizon: 10
+    future_action_window_size: 9
+    num_inference_steps: 10
+    fresh_tail_weight: 0.1
+    feedback_horizon_key: feedback_horizon
+  normalization:
+    enabled: true
+    action_mean: [0.06278156, 0.08684081, -0.09037306, 0.00054074, 0.00564338, -0.00522910, -0.04964072]
+    action_std: [0.33552372, 0.37844700, 0.44472861, 0.03924354, 0.06339297, 0.07797027, 0.99876714]
+
+modes:
+  fresh_pi05_baseline_smoke:
+    <<: *fresh_pi05_common
+    run_id: fresh_pi05_baseline_smoke
+    framework:
+      <<: *fresh_pi05_framework_baseline
+
+  fresh_pi05_soft010_smoke:
+    <<: *fresh_pi05_common
+    run_id: fresh_pi05_soft010_smoke
+    framework:
+      <<: *fresh_pi05_framework_soft010

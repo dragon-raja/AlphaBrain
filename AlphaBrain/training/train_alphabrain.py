@@ -32,7 +32,6 @@ _distutils_log.set_threshold(_distutils_log.WARN)
 # Third-Party Libraries
 import torch
 import torch.distributed as dist
-import wandb
 import yaml
 from accelerate import Accelerator, DeepSpeedPlugin, DistributedDataParallelKwargs
 from accelerate.logging import get_logger
@@ -40,6 +39,11 @@ from accelerate.utils import set_seed
 from omegaconf import OmegaConf
 from tqdm import tqdm
 from transformers import AutoProcessor, get_scheduler
+
+try:
+    import wandb
+except ImportError:
+    wandb = None
 
 # DeepSpeed registers its own logger named "DeepSpeed" (capital D) with a
 # StreamHandler at INFO. Lower BOTH the logger and its handler to WARNING to
@@ -71,13 +75,16 @@ def _build_accelerator(gradient_accumulation_steps: int = 1) -> Accelerator:
             gradient_accumulation_steps=gradient_accumulation_steps,
             kwargs_handlers=[ddp_kwargs],
         )
-    else:
-        # Standard VLM mode: DeepSpeed ZeRO-2
+    elif _os.environ.get('ACCELERATE_USE_DEEPSPEED', '').lower() == 'true':
+        # Distributed VLM mode: DeepSpeed settings come from Accelerate.
         deepspeed_plugin = DeepSpeedPlugin()
         acc = Accelerator(
             gradient_accumulation_steps=gradient_accumulation_steps,
             deepspeed_plugin=deepspeed_plugin,
         )
+    else:
+        # Single-process and ordinary DDP configs do not require DeepSpeed.
+        acc = Accelerator(gradient_accumulation_steps=gradient_accumulation_steps)
     acc.print(acc.state)
     return acc
 
@@ -362,6 +369,8 @@ class VLATrainer(TrainerUtils):
         if wandb_mode == 'disabled':
             os.environ['WANDB_MODE'] = 'disabled'
             return
+        if wandb is None:
+            raise RuntimeError("wandb is required unless WANDB_MODE=disabled")
         if self.accelerator.is_main_process:
             # Support both nested (environment.wandb_project) and flat (wandb_project) config layouts
             if hasattr(self.config, 'environment') and self.config.environment is not None:
@@ -787,7 +796,7 @@ class VLATrainer(TrainerUtils):
                 metrics["step"] = self.completed_steps
 
                 # record to W&B
-                if wandb.run is not None:
+                if wandb is not None and wandb.run is not None:
                     wandb.log(metrics, step=self.completed_steps)
 
                 # record to local metrics.jsonl
@@ -1031,7 +1040,8 @@ class VLATrainer(TrainerUtils):
                 self._save_lora_checkpoint(os.path.join(final_path, "final"))
                 logger.info(f"LoRA training complete. Final model saved at {final_path}")
                 if self.accelerator.is_main_process:
-                    wandb.finish()
+                    if wandb is not None:
+                        wandb.finish()
                 self.accelerator.wait_for_everyone()
                 return
 
@@ -1099,7 +1109,8 @@ class VLATrainer(TrainerUtils):
 
         # close W&B
         if self.accelerator.is_main_process:
-            wandb.finish()
+            if wandb is not None:
+                wandb.finish()
 
         self.accelerator.wait_for_everyone()
 

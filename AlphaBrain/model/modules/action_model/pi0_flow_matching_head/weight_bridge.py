@@ -82,7 +82,30 @@ def _fixup_vlm_keys(mapped_state: dict) -> dict:
         key = k
         key = key.replace("multi_modal_projector.linear.", "multi_modal_projector.")
         result[key] = v
+
+    # OpenPI ties the PaliGemma token embedding to lm_head and serializes only
+    # lm_head.weight. AlphaBrain's manual PaliGemma assembly exposes the shared
+    # embedding module under two state-dict aliases, so seed both aliases from
+    # the tied checkpoint tensor.
+    lm_head_key = "vlm_interface.model.lm_head.weight"
+    if lm_head_key in result:
+        result.setdefault("vlm_interface.model.language_model.embed_tokens.weight", result[lm_head_key])
+        result.setdefault("vlm_interface.model.embed_tokens.weight", result[lm_head_key])
     return result
+
+
+def _adapt_action_projection(key: str, source: torch.Tensor, target: torch.Tensor) -> torch.Tensor | None:
+    """Slice max-action-dimension projections to a smaller embodiment dimension."""
+    if key == "flow_matching_head.action_in_proj.weight":
+        if source.shape[0] == target.shape[0] and source.shape[1] >= target.shape[1]:
+            return source[:, : target.shape[1]]
+    elif key == "flow_matching_head.action_out_proj.weight":
+        if source.shape[0] >= target.shape[0] and source.shape[1] == target.shape[1]:
+            return source[: target.shape[0], :]
+    elif key == "flow_matching_head.action_out_proj.bias":
+        if source.shape[0] >= target.shape[0]:
+            return source[: target.shape[0]]
+    return None
 
 
 def load_pi0_weights(
@@ -129,24 +152,32 @@ def load_pi0_weights(
     model_state = model.state_dict()
     
     matched = []
+    adapted = []
     missing = []
     shape_mismatch = []
+    load_dict = {}
     
     for key in model_state:
         if key in mapped_state:
             if model_state[key].shape == mapped_state[key].shape:
                 matched.append(key)
+                load_dict[key] = mapped_state[key]
             else:
-                shape_mismatch.append(
-                    f"{key}: model={model_state[key].shape} vs ckpt={mapped_state[key].shape}"
-                )
+                adapted_tensor = _adapt_action_projection(key, mapped_state[key], model_state[key])
+                if adapted_tensor is not None and adapted_tensor.shape == model_state[key].shape:
+                    matched.append(key)
+                    adapted.append(key)
+                    load_dict[key] = adapted_tensor
+                else:
+                    shape_mismatch.append(
+                        f"{key}: model={model_state[key].shape} vs ckpt={mapped_state[key].shape}"
+                    )
         else:
             missing.append(key)
     
     unexpected = [k for k in mapped_state if k not in model_state]
     
     # Actually load the matched weights
-    load_dict = {k: mapped_state[k] for k in matched}
     model.load_state_dict(load_dict, strict=False)
     
     if verbose:
@@ -155,6 +186,7 @@ def load_pi0_weights(
         logger.info(f"  Missing:        {len(missing)}")
         logger.info(f"  Unexpected:     {len(unexpected)}")
         logger.info(f"  Shape mismatch: {len(shape_mismatch)}")
+        logger.info(f"  Adapted action projections: {len(adapted)}")
         logger.info(f"  Unmapped openpi keys: {len(unmapped_keys)}")
         
         if shape_mismatch:
@@ -173,6 +205,7 @@ def load_pi0_weights(
         "missing": missing,
         "unexpected": unexpected,
         "shape_mismatch": shape_mismatch,
+        "adapted": adapted,
         "unmapped": unmapped_keys,
     }
 

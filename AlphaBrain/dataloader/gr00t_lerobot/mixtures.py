@@ -12,6 +12,11 @@ from typing import Dict, List, Tuple
 ## {nickname: [(data_name, sampling_weight, robot_type)] }
 DATASET_NAMED_MIXTURES = {
 
+    # One self-contained LeRobot dataset rooted directly at data_root_dir.
+    "fresh_libero_subset": [
+        (".", 1.0, "libero_franka"),
+    ],
+
     "custom_dataset": [
         ("custom_dataset_name", 1.0, "custom_robot_config"),
     ],

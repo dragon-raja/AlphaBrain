@@ -43,8 +43,42 @@ above the threshold for two steps. Sensitivity is recorded at threshold
 multipliers 0.5, 1.0, 1.5, and 2.0. A whitelist permits only observation,
 robot state, and language instruction to enter the policy.
 
-The fixture is a schema and mechanism test, not simulator evidence. A LIBERO
-snapshot collector is still required for physical closed-loop claims.
+The fixture is a schema and mechanism test. The real LIBERO snapshot pilot
+below supplies simulator evidence for the existence and timing of the physical
+branches, but it is not a trained-policy benchmark.
+
+## Real LIBERO Snapshot Pilot
+
+The pilot uses the local `put_the_cream_cheese_in_the_bowl` LIBERO task, four
+fixed initial states, four repeats per branch, a 12-step action horizon, and
+64x64 policy-visible agent and wrist images. It creates three paired cases:
+
+- an attached grasp versus a forced slip after an identical lift prefix;
+- a free slide versus a hidden high-friction block, with a closed gripper and
+  no gripper transition anywhere in the chunk;
+- deterministic free-space reach with no intervention.
+
+Every rollout hard-resets the LIBERO wrapper before restoring the same 79-value
+MuJoCo snapshot. This was necessary because flattened simulator state omits
+robosuite controller and observable buffers; reusing them caused a repeat-order
+drift of about 0.77 mm per rollout. After hard reset, the full deterministic EEF
+trajectory is bit-identical across all repeats.
+
+All 12 pairs have exactly equal branch conditioning and exactly equal first two
+actions. Snapshot restore maximum absolute error is zero. Branch action
+divergence remains unchanged at threshold multipliers 0.5, 1.0, 1.5, and 2.0.
+
+| Case | Event | Feedback reveal | Action divergence | Physical result | Gripper proxy |
+| --- | ---: | --- | ---: | --- | --- |
+| grasp/slip | 2 | 2, 2, 2, 2 | 2, 2, 2, 2 | attached grasp 100%; slipped grasp 0% | attached 12; slipped 3 |
+| free/blocked push | 2 | 2, 5, 5, 3 | 2, 2, 2, 2 | 6.64 cm vs 0.60 cm mean displacement | 12 for both |
+| deterministic reach | 12 | 12, 12, 12, 12 | 12, 12, 12, 12 | zero paired trajectory difference | 12 for both |
+
+The push displacement ratio is 11.14x. More importantly, it gives a real
+counterexample to treating gripper transitions as feedback boundaries: both
+branches have full gripper horizons while their expert continuations diverge at
+step 2. The physical effect becomes visibly distinguishable only at steps 2-5,
+so event, feedback reveal, and action divergence are not interchangeable.
 
 ## Methods
 
@@ -128,8 +162,13 @@ cancellation.
 
 ## Go / No-Go
 
-**Strict gate: No-Go for method expansion.** Do not implement a learned horizon
-head and do not run the lambda sweep yet.
+**Strict method gate: No-Go for method expansion.** Do not implement a learned
+horizon head and do not run the lambda sweep yet.
+
+**Physical-label gate: Go.** Real LIBERO contact dynamics contain stable
+outcome-dependent action branches, and the boundary is not reducible to a
+gripper transition. This validates the data-labeling premise, not the trained
+FRESH objective.
 
 Positive evidence:
 
@@ -144,12 +183,13 @@ Blocking evidence:
 - full horizon already represents both suffix modes in the balanced toy data;
 - suffix and full-horizon FM losses regress;
 - no repeatable negative gradient conflict appears;
-- no physical snapshot or fixed-K LIBERO closed-loop result is available yet.
+- no oracle-labeled Pi0.5 training or fixed-K learned-policy comparison is
+  available on these snapshot pairs.
 
-One narrowly scoped LIBERO snapshot pilot is still justified to test whether
-contact dynamics produce structure absent from the toy benchmark. Progress
-beyond that pilot requires oracle soft to beat full, random, gripper, short,
-and prefix-mask controls at the same fixed K without deterministic degradation.
+The narrowly scoped snapshot pilot confirms that contact dynamics produce the
+required structure. Progress beyond data construction requires oracle soft to
+beat full, random, gripper, short, and prefix-mask controls at the same fixed K
+without deterministic degradation.
 
 ## Artifacts
 
@@ -159,3 +199,4 @@ and prefix-mask controls at the same fixed K without deterministic degradation.
 - Deterministic summary: `/share/longjunyu/fresh-vla/toy/deterministic-paired-1200x3-summary.json`
 - Gradient diagnostic: `/share/longjunyu/fresh-vla/toy/gradient-diagnostic-1200x3.json`
 - Counterfactual fixture: `/share/longjunyu/fresh-vla/counterfactual-toy/`
+- Real LIBERO snapshot pilot: `/share/longjunyu/fresh-vla/counterfactual-libero-snapshot/`

@@ -1,6 +1,6 @@
 # FRESH-VLA Experiments
 
-This directory starts with the smallest falsification test for feedback-weighted action supervision. It does not use model weights or external datasets.
+This directory contains the staged falsification tests for feedback-weighted action supervision. The toy benchmark does not use model weights or external datasets; the snapshot pilot uses the local LIBERO source and task assets without downloading a benchmark dataset.
 
 The branching toy preserves three properties relevant to Pi0.5:
 
@@ -36,6 +36,24 @@ threshold sensitivity sweep, and runs the policy-input leakage guard. It is a
 data-contract fixture for the simulator collector, not a replacement for
 LIBERO closed-loop evidence.
 
+`libero_snapshot_collector.py` runs the narrowly scoped real-physics pilot. It
+uses hard-reset plus snapshot restore for every paired rollout because the
+flattened MuJoCo state does not include robosuite controller and observable
+buffers. The collector rejects runs unless grasp/slip attachment, free/blocked
+push displacement, deterministic replay, threshold stability, and policy-input
+leakage checks pass.
+
+The isolated runtime is Python 3.8 at `/workspace/envs/fresh-libero`; its direct
+requirements are recorded in `requirements-libero-snapshot.txt`. Run the pilot
+with automatic single-card keepalive handling:
+
+```bash
+cd /alphabrain
+scripts/fresh_vla/run_libero_snapshot_pilot.sh \
+  --output-dir /share/longjunyu/fresh-vla/counterfactual-libero-snapshot \
+  --num-pairs 4 --repeats 4 --resolution 64 --seed 20260713
+```
+
 Additional validation tools:
 
 - `paired_evaluation.py` fingerprints paired FM inputs and reports bootstrap CIs;
@@ -45,6 +63,8 @@ Additional validation tools:
 - `gradient_diagnostic.py` compares prefix/suffix gradients in the action output and final action layer;
 - `plot_lambda_sweep.py` intentionally refuses to plot until at least three lambda values exist.
 
-The first strict counterfactual gate did not pass, so the lambda sweep and
-learned horizon remain disabled. See `docs/fresh_vla_counterfactual_validation.md`
-for the seed-aware results and the remaining LIBERO snapshot pilot.
+The real LIBERO pilot confirms that outcome-dependent common-prefix structure
+exists, including a no-gripper-transition blocked-push branch. It does not by
+itself establish a trained-policy advantage. The first strict method gate still
+did not pass, so the lambda sweep and learned horizon remain disabled. See
+`docs/fresh_vla_counterfactual_validation.md` for the complete result.

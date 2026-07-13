@@ -1,0 +1,654 @@
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import math
+from dataclasses import asdict
+from pathlib import Path
+from typing import Any, Mapping, Sequence
+
+import numpy as np
+
+from counterfactual_data import (
+    CounterfactualRecord,
+    build_policy_inputs,
+    estimate_branch_divergence,
+    threshold_sensitivity,
+    validate_record,
+)
+
+
+DEFAULT_BDDL = Path(
+    "/projects/openpi/third_party/libero/libero/libero/bddl_files/libero_goal/"
+    "put_the_cream_cheese_in_the_bowl.bddl"
+)
+DEFAULT_INIT_STATES = Path("/workspace/envs/fresh-libero/runtime/cream_cheese_init_states.npy")
+LANGUAGE = "put the cream cheese in the bowl"
+OBJECT_JOINT = "cream_cheese_1_joint0"
+
+
+def action_toward(
+    current_position: Sequence[float],
+    target_position: Sequence[float],
+    *,
+    gripper: float,
+    translation_scale: float = 0.05,
+) -> np.ndarray:
+    current = np.asarray(current_position, dtype=np.float64)
+    target = np.asarray(target_position, dtype=np.float64)
+    if current.shape != (3,) or target.shape != (3,):
+        raise ValueError("current_position and target_position must be three-vectors")
+    if translation_scale <= 0:
+        raise ValueError("translation_scale must be positive")
+    action = np.zeros(7, dtype=np.float64)
+    action[:3] = np.clip((target - current) / translation_scale, -1.0, 1.0)
+    action[-1] = np.clip(gripper, -1.0, 1.0)
+    return action
+
+
+def gripper_transition_horizon(actions: np.ndarray) -> int:
+    values = np.asarray(actions, dtype=np.float64)
+    if values.ndim != 2 or values.shape[0] == 0 or values.shape[1] == 0:
+        raise ValueError("actions must be non-empty [H, D]")
+    closed = values[:, -1] > 0
+    transitions = np.flatnonzero(closed[1:] != closed[:-1]) + 1
+    return len(values) if transitions.size == 0 else int(transitions[0] + 1)
+
+
+def offset_free_joint_qpos(qpos: Sequence[float], offset: Sequence[float]) -> np.ndarray:
+    value = np.asarray(qpos, dtype=np.float64).copy()
+    delta = np.asarray(offset, dtype=np.float64)
+    if value.shape != (7,) or delta.shape != (3,):
+        raise ValueError("free-joint qpos must have 7 values and offset must have 3")
+    value[:3] += delta
+    return value
+
+
+def quat_to_axis_angle(quat: Sequence[float]) -> np.ndarray:
+    value = np.asarray(quat, dtype=np.float64).copy()
+    if value.shape != (4,):
+        raise ValueError("quat must be a four-vector in xyzw order")
+    value[3] = np.clip(value[3], -1.0, 1.0)
+    denominator = math.sqrt(max(0.0, 1.0 - value[3] * value[3]))
+    if denominator < 1e-8:
+        return np.zeros(3, dtype=np.float64)
+    return value[:3] * (2.0 * math.acos(value[3]) / denominator)
+
+
+def robot_state_from_observation(observation: Mapping[str, Any]) -> np.ndarray:
+    return np.concatenate(
+        [
+            np.asarray(observation["robot0_eef_pos"], dtype=np.float64),
+            quat_to_axis_angle(observation["robot0_eef_quat"]),
+            np.asarray(observation["robot0_gripper_qpos"], dtype=np.float64),
+        ]
+    )
+
+
+def _array_sha256(value: np.ndarray) -> str:
+    array = np.ascontiguousarray(value)
+    digest = hashlib.sha256()
+    digest.update(str(array.dtype).encode())
+    digest.update(str(array.shape).encode())
+    digest.update(array.tobytes())
+    return digest.hexdigest()
+
+
+def compact_policy_observation(observation: Mapping[str, Any], snapshot_key: str) -> dict[str, Any]:
+    agent = np.asarray(observation["agentview_image"])
+    wrist = np.asarray(observation["robot0_eye_in_hand_image"])
+    return {
+        "snapshot_key": snapshot_key,
+        "agentview_shape": list(agent.shape),
+        "agentview_sha256": _array_sha256(agent),
+        "wrist_shape": list(wrist.shape),
+        "wrist_sha256": _array_sha256(wrist),
+        "eef_position": np.asarray(observation["robot0_eef_pos"]).round(8).tolist(),
+        "cream_cheese_position": np.asarray(observation["cream_cheese_1_pos"]).round(8).tolist(),
+        "bowl_position": np.asarray(observation["akita_black_bowl_1_pos"]).round(8).tolist(),
+    }
+
+
+def _step(env: Any, action: Sequence[float]) -> Mapping[str, Any]:
+    observation, _, _, _ = env.step(np.asarray(action, dtype=np.float32))
+    return observation
+
+
+def _move_to(
+    env: Any,
+    observation: Mapping[str, Any],
+    target: Sequence[float],
+    *,
+    gripper: float,
+    tolerance: float = 0.008,
+    max_steps: int = 60,
+) -> Mapping[str, Any]:
+    target_array = np.asarray(target, dtype=np.float64)
+    for _ in range(max_steps):
+        if np.linalg.norm(target_array - observation["robot0_eef_pos"]) < tolerance:
+            return observation
+        observation = _step(
+            env,
+            action_toward(observation["robot0_eef_pos"], target_array, gripper=gripper),
+        )
+    raise RuntimeError(f"scripted controller failed to reach target within {max_steps} steps")
+
+
+def _reset_to_initial_state(env: Any, initial_state: np.ndarray, settle_steps: int) -> Mapping[str, Any]:
+    env.reset()
+    observation = env.set_init_state(initial_state)
+    for _ in range(settle_steps):
+        observation = _step(env, [0.0] * 6 + [-1.0])
+    return observation
+
+
+def _capture_controller_state(env: Any) -> dict[str, np.ndarray]:
+    return {"gripper_action": np.asarray(env.robots[0].gripper.current_action).copy()}
+
+
+def _restore_snapshot(env: Any, sim_state: np.ndarray, controller_state: Mapping[str, np.ndarray]) -> Mapping[str, Any]:
+    # A flattened MuJoCo state omits robosuite controller / observable state.
+    # Hard-reset the wrapper so repeated paired rollouts cannot accumulate it.
+    env.reset()
+    observation = env.regenerate_obs_from_state(sim_state)
+    env.robots[0].controller.update(force=True)
+    env.robots[0].controller.reset_goal()
+    env.robots[0].gripper.current_action = controller_state["gripper_action"].copy()
+    return observation
+
+
+def _set_object_offset(env: Any, offset: Sequence[float]) -> Mapping[str, Any]:
+    qpos = env.sim.data.get_joint_qpos(OBJECT_JOINT)
+    env.sim.data.set_joint_qpos(OBJECT_JOINT, offset_free_joint_qpos(qpos, offset))
+    env.sim.data.set_joint_qvel(OBJECT_JOINT, np.zeros(6, dtype=np.float64))
+    return env.regenerate_obs_from_state(env.get_sim_state())
+
+
+def _object_geom_ids(env: Any) -> list[int]:
+    names = [name for name in env.sim.model.geom_names if name and "cream_cheese_1" in name]
+    if not names:
+        raise RuntimeError("could not locate cream-cheese collision geometries")
+    return [env.sim.model.geom_name2id(name) for name in names]
+
+
+def _prepare_grasp_snapshot(
+    env: Any, initial_state: np.ndarray, settle_steps: int
+) -> tuple[Mapping[str, Any], np.ndarray, dict[str, np.ndarray]]:
+    observation = _reset_to_initial_state(env, initial_state, settle_steps)
+    object_position = np.asarray(observation["cream_cheese_1_pos"]).copy()
+    observation = _move_to(env, observation, object_position + [0.0, 0.0, 0.12], gripper=-1.0)
+    observation = _move_to(env, observation, object_position, gripper=-1.0)
+    for _ in range(25):
+        observation = _step(env, [0.0] * 6 + [1.0])
+    object_geoms = [env.sim.model.geom_id2name(index) for index in _object_geom_ids(env)]
+    if not env.env._check_grasp(env.robots[0].gripper, object_geoms):
+        raise RuntimeError("scripted grasp calibration failed")
+    return observation, env.get_sim_state().copy(), _capture_controller_state(env)
+
+
+def _prepare_push_snapshot(
+    env: Any, initial_state: np.ndarray, settle_steps: int
+) -> tuple[Mapping[str, Any], np.ndarray, dict[str, np.ndarray]]:
+    observation = _reset_to_initial_state(env, initial_state, settle_steps)
+    object_position = np.asarray(observation["cream_cheese_1_pos"]).copy()
+    approach = object_position + [-0.065, 0.0, 0.0]
+    observation = _move_to(env, observation, approach + [0.0, 0.0, 0.10], gripper=-1.0)
+    observation = _move_to(env, observation, approach, gripper=-1.0)
+    for _ in range(25):
+        observation = _step(env, [0.0] * 6 + [1.0])
+    return observation, env.get_sim_state().copy(), _capture_controller_state(env)
+
+
+def _prepare_reach_snapshot(
+    env: Any, initial_state: np.ndarray, settle_steps: int
+) -> tuple[Mapping[str, Any], np.ndarray, dict[str, np.ndarray]]:
+    observation = _reset_to_initial_state(env, initial_state, settle_steps)
+    return observation, env.get_sim_state().copy(), _capture_controller_state(env)
+
+
+def _jitter_action(action: np.ndarray, rng: np.random.Generator, amount: float) -> np.ndarray:
+    result = np.asarray(action, dtype=np.float64).copy()
+    result[:6] += rng.normal(0.0, amount, size=6)
+    return np.clip(result, -1.0, 1.0)
+
+
+def validate_physical_branches(task: str, physics: Mapping[str, Sequence[Mapping[str, Any]]]) -> dict[str, float]:
+    if task == "grasp_slip":
+        attached = list(physics["attached"])
+        slipped = list(physics["slipped"])
+        attached_rate = float(np.mean([row["grasped_at_end"] for row in attached]))
+        slipped_rate = float(np.mean([row["grasped_at_end"] for row in slipped]))
+        attached_displacement = float(np.mean([row["object_displacement"] for row in attached]))
+        if attached_rate != 1.0 or slipped_rate != 0.0 or attached_displacement < 0.1:
+            raise RuntimeError(
+                "grasp/slip intervention failed physical validation: "
+                f"attached_rate={attached_rate}, slipped_rate={slipped_rate}, "
+                f"attached_displacement={attached_displacement}"
+            )
+        return {
+            "attached_grasp_rate": attached_rate,
+            "slipped_grasp_rate": slipped_rate,
+            "attached_mean_displacement": attached_displacement,
+        }
+    if task == "blocked_push":
+        free_displacement = float(
+            np.mean([row["object_displacement"] for row in physics["free_slide"]])
+        )
+        blocked_displacement = float(
+            np.mean([row["object_displacement"] for row in physics["blocked"]])
+        )
+        ratio = free_displacement / max(blocked_displacement, 1e-9)
+        if free_displacement < 0.03 or ratio < 3.0:
+            raise RuntimeError(
+                "free/blocked push intervention failed physical validation: "
+                f"free_displacement={free_displacement}, blocked_displacement={blocked_displacement}, "
+                f"ratio={ratio}"
+            )
+        return {
+            "free_mean_displacement": free_displacement,
+            "blocked_mean_displacement": blocked_displacement,
+            "free_over_blocked_ratio": ratio,
+        }
+    if task == "deterministic_reach":
+        first = float(np.mean([row["target_error"] for row in physics["repeat_a"]]))
+        second = float(np.mean([row["target_error"] for row in physics["repeat_b"]]))
+        delta = abs(first - second)
+        first_trajectory = np.mean(
+            [np.asarray(row["eef_trajectory"], dtype=np.float64) for row in physics["repeat_a"]], axis=0
+        )
+        second_trajectory = np.mean(
+            [np.asarray(row["eef_trajectory"], dtype=np.float64) for row in physics["repeat_b"]], axis=0
+        )
+        max_effect_distance = float(np.max(np.linalg.norm(first_trajectory - second_trajectory, axis=-1)))
+        if delta > 0.005 or max_effect_distance > 0.002:
+            raise RuntimeError(
+                "deterministic reach drift is too large: "
+                f"target_error_delta={delta}, max_effect_distance={max_effect_distance}"
+            )
+        return {
+            "repeat_target_error_delta": delta,
+            "max_effect_distance": max_effect_distance,
+        }
+    raise ValueError(f"unknown task: {task}")
+
+
+def _run_grasp_branch(
+    env: Any,
+    snapshot: np.ndarray,
+    controller_state: Mapping[str, np.ndarray],
+    branch: str,
+    *,
+    horizon: int,
+    event_time: int,
+    rng: np.random.Generator,
+) -> tuple[np.ndarray, dict[str, Any], float]:
+    observation = _restore_snapshot(env, snapshot, controller_state)
+    restored_error = float(np.max(np.abs(env.get_sim_state() - snapshot)))
+    actions = []
+    object_trajectory = [np.asarray(observation["cream_cheese_1_pos"]).copy()]
+    for step_index in range(horizon):
+        if step_index == event_time and branch == "slipped":
+            observation = _set_object_offset(env, [0.055, 0.0, -0.005])
+        if step_index < event_time:
+            action = np.asarray([0.0, 0.0, 0.55, 0.0, 0.0, 0.0, 1.0])
+        elif branch == "attached":
+            target = np.asarray(observation["akita_black_bowl_1_pos"]) + [0.0, 0.0, 0.16]
+            action = action_toward(observation["robot0_eef_pos"], target, gripper=1.0)
+        elif step_index < event_time + 3:
+            action = np.asarray([0.0, 0.0, -0.45, 0.0, 0.0, 0.0, -1.0])
+        else:
+            target = np.asarray(observation["cream_cheese_1_pos"])
+            action = action_toward(observation["robot0_eef_pos"], target, gripper=-1.0)
+        if step_index >= event_time:
+            action = _jitter_action(action, rng, 0.004)
+        observation = _step(env, action)
+        actions.append(action)
+        object_trajectory.append(np.asarray(observation["cream_cheese_1_pos"]).copy())
+    object_geoms = [env.sim.model.geom_id2name(index) for index in _object_geom_ids(env)]
+    return (
+        np.asarray(actions),
+        {
+            "final_object_position": np.asarray(observation["cream_cheese_1_pos"]).round(8).tolist(),
+            "final_eef_position": np.asarray(observation["robot0_eef_pos"]).round(8).tolist(),
+            "object_displacement": float(np.linalg.norm(object_trajectory[-1] - object_trajectory[0])),
+            "grasped_at_end": bool(env.env._check_grasp(env.robots[0].gripper, object_geoms)),
+            "object_trajectory": np.asarray(object_trajectory).round(8).tolist(),
+        },
+        restored_error,
+    )
+
+
+def _run_push_branch(
+    env: Any,
+    snapshot: np.ndarray,
+    controller_state: Mapping[str, np.ndarray],
+    branch: str,
+    *,
+    horizon: int,
+    event_time: int,
+    rng: np.random.Generator,
+    geom_friction: np.ndarray,
+) -> tuple[np.ndarray, dict[str, Any], float]:
+    geom_ids = _object_geom_ids(env)
+    env.sim.model.geom_friction[geom_ids] = geom_friction
+    observation = _restore_snapshot(env, snapshot, controller_state)
+    restored_error = float(np.max(np.abs(env.get_sim_state() - snapshot)))
+    actions = []
+    object_trajectory = [np.asarray(observation["cream_cheese_1_pos"]).copy()]
+    for step_index in range(horizon):
+        if step_index == event_time and branch == "blocked":
+            blocked = geom_friction.copy()
+            blocked[:, 0] = 25.0
+            blocked[:, 1:] = np.maximum(blocked[:, 1:], 1.0)
+            env.sim.model.geom_friction[geom_ids] = blocked
+        if step_index < event_time or branch == "free_slide":
+            action = np.asarray([0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
+        elif step_index < event_time + 3:
+            action = np.asarray([-0.5, 0.0, 0.35, 0.0, 0.0, 0.0, 1.0])
+        else:
+            target = np.asarray(observation["cream_cheese_1_pos"]) + [0.0, 0.06, 0.0]
+            action = action_toward(observation["robot0_eef_pos"], target, gripper=1.0)
+        if step_index >= event_time:
+            action = _jitter_action(action, rng, 0.004)
+        observation = _step(env, action)
+        actions.append(action)
+        object_trajectory.append(np.asarray(observation["cream_cheese_1_pos"]).copy())
+    env.sim.model.geom_friction[geom_ids] = geom_friction
+    return (
+        np.asarray(actions),
+        {
+            "final_object_position": np.asarray(observation["cream_cheese_1_pos"]).round(8).tolist(),
+            "final_eef_position": np.asarray(observation["robot0_eef_pos"]).round(8).tolist(),
+            "object_displacement": float(np.linalg.norm(object_trajectory[-1] - object_trajectory[0])),
+            "object_trajectory": np.asarray(object_trajectory).round(8).tolist(),
+        },
+        restored_error,
+    )
+
+
+def _run_reach_branch(
+    env: Any,
+    snapshot: np.ndarray,
+    controller_state: Mapping[str, np.ndarray],
+    *,
+    horizon: int,
+) -> tuple[np.ndarray, dict[str, Any], float]:
+    observation = _restore_snapshot(env, snapshot, controller_state)
+    restored_error = float(np.max(np.abs(env.get_sim_state() - snapshot)))
+    start = np.asarray(observation["robot0_eef_pos"]).copy()
+    target = start + [0.08, 0.05, -0.03]
+    move_action = action_toward(start, target, gripper=-1.0)
+    actions = []
+    eef_trajectory = [start.copy()]
+    for step_index in range(horizon):
+        # The deterministic control compares an identical current-state plan,
+        # so its two counterfactual labels must not create different actions.
+        action = move_action if step_index < horizon // 2 else np.asarray([0.0] * 6 + [-1.0])
+        observation = _step(env, action)
+        actions.append(action)
+        eef_trajectory.append(np.asarray(observation["robot0_eef_pos"]).copy())
+    return (
+        np.asarray(actions),
+        {
+            "final_eef_position": np.asarray(observation["robot0_eef_pos"]).round(8).tolist(),
+            "target_error": float(np.linalg.norm(np.asarray(observation["robot0_eef_pos"]) - target)),
+            "eef_trajectory": np.asarray(eef_trajectory).round(8).tolist(),
+        },
+        restored_error,
+    )
+
+
+def _conditioning_hash(observation: Mapping[str, Any], robot_state: Sequence[float]) -> str:
+    payload = json.dumps(
+        {
+            "observation": observation,
+            "robot_state": list(robot_state),
+            "language_instruction": LANGUAGE,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(payload.encode()).hexdigest()
+
+
+def collect(args: argparse.Namespace) -> tuple[list[CounterfactualRecord], dict[str, Any], dict[str, np.ndarray]]:
+    from libero.libero.envs import OffScreenRenderEnv
+
+    initial_states = np.load(args.init_states)
+    if args.num_pairs <= 0 or args.num_pairs > len(initial_states):
+        raise ValueError(f"num_pairs must be in [1, {len(initial_states)}]")
+    if args.repeats < 2:
+        raise ValueError("repeats must be at least 2")
+    if args.horizon < 8:
+        raise ValueError("horizon must be at least 8")
+
+    env = OffScreenRenderEnv(
+        bddl_file_name=str(args.bddl),
+        camera_heights=args.resolution,
+        camera_widths=args.resolution,
+    )
+    env.seed(args.seed)
+    records = []
+    pair_metadata = []
+    snapshots = {}
+    max_restore_error = 0.0
+    event_time = 2
+    try:
+        for task in ("grasp_slip", "blocked_push", "deterministic_reach"):
+            for pair_index in range(args.num_pairs):
+                initial_state = initial_states[pair_index]
+                pair_id = f"libero-{task}-{pair_index:03d}"
+                if task == "grasp_slip":
+                    observation, snapshot, controller_state = _prepare_grasp_snapshot(
+                        env, initial_state, args.settle_steps
+                    )
+                    branch_names = ("attached", "slipped")
+                elif task == "blocked_push":
+                    observation, snapshot, controller_state = _prepare_push_snapshot(
+                        env, initial_state, args.settle_steps
+                    )
+                    branch_names = ("free_slide", "blocked")
+                else:
+                    observation, snapshot, controller_state = _prepare_reach_snapshot(
+                        env, initial_state, args.settle_steps
+                    )
+                    branch_names = ("repeat_a", "repeat_b")
+
+                snapshot_key = pair_id
+                snapshots[f"{snapshot_key}_agentview"] = np.asarray(observation["agentview_image"])
+                snapshots[f"{snapshot_key}_wrist"] = np.asarray(observation["robot0_eye_in_hand_image"])
+                policy_observation = compact_policy_observation(observation, snapshot_key)
+                robot_state = robot_state_from_observation(observation).round(8).tolist()
+                conditioning_hash = _conditioning_hash(policy_observation, robot_state)
+                branch_rollouts = {}
+                branch_physics = {}
+                default_friction = env.sim.model.geom_friction[_object_geom_ids(env)].copy()
+
+                for branch_index, branch_name in enumerate(branch_names):
+                    rollout_actions = []
+                    rollout_physics = []
+                    for repeat_index in range(args.repeats):
+                        rng = np.random.default_rng(
+                            args.seed + pair_index * 1009 + branch_index * 101 + repeat_index
+                        )
+                        if task == "grasp_slip":
+                            actions, physics, restore_error = _run_grasp_branch(
+                                env,
+                                snapshot,
+                                controller_state,
+                                branch_name,
+                                horizon=args.horizon,
+                                event_time=event_time,
+                                rng=rng,
+                            )
+                        elif task == "blocked_push":
+                            actions, physics, restore_error = _run_push_branch(
+                                env,
+                                snapshot,
+                                controller_state,
+                                branch_name,
+                                horizon=args.horizon,
+                                event_time=event_time,
+                                rng=rng,
+                                geom_friction=default_friction,
+                            )
+                        else:
+                            actions, physics, restore_error = _run_reach_branch(
+                                env,
+                                snapshot,
+                                controller_state,
+                                horizon=args.horizon,
+                            )
+                        max_restore_error = max(max_restore_error, restore_error)
+                        rollout_actions.append(actions)
+                        rollout_physics.append(physics)
+                    branch_rollouts[branch_name] = np.stack(rollout_actions)
+                    branch_physics[branch_name] = rollout_physics
+
+                estimate = estimate_branch_divergence(branch_rollouts, persistence=2)
+                sensitivity = threshold_sensitivity(branch_rollouts, persistence=2)
+                trajectory_key = "eef_trajectory" if task == "deterministic_reach" else "object_trajectory"
+                effect_rollouts = {
+                    branch_name: np.stack(
+                        [np.asarray(row[trajectory_key], dtype=np.float64)[1:] for row in branch_physics[branch_name]]
+                    )
+                    for branch_name in branch_names
+                }
+                effect_estimate = estimate_branch_divergence(effect_rollouts, persistence=2)
+                physical_validation = validate_physical_branches(task, branch_physics)
+                deterministic = task == "deterministic_reach"
+                physical_effect_divergence_time = (
+                    args.horizon if deterministic else effect_estimate.action_divergence_time
+                )
+                expected_horizon = args.horizon if deterministic else event_time
+                if estimate.oracle_feedback_horizon != expected_horizon:
+                    raise RuntimeError(
+                        f"unstable boundary for {pair_id}: expected {expected_horizon}, "
+                        f"got {estimate.oracle_feedback_horizon}"
+                    )
+
+                for branch_name in branch_names:
+                    mean_actions = branch_rollouts[branch_name].mean(axis=0)
+                    gripper_horizon = gripper_transition_horizon(mean_actions)
+                    record = CounterfactualRecord(
+                        pair_id=pair_id,
+                        branch_id=branch_name,
+                        branch_outcome=branch_name,
+                        observation=policy_observation,
+                        robot_state=robot_state,
+                        language_instruction=LANGUAGE,
+                        action_chunk=mean_actions.round(7).tolist(),
+                        event_time=args.horizon if deterministic else event_time,
+                        feedback_reveal_time=physical_effect_divergence_time,
+                        action_divergence_time=estimate.action_divergence_time,
+                        gripper_transition_horizon=gripper_horizon,
+                        oracle_feedback_horizon=estimate.oracle_feedback_horizon,
+                        per_step_branch_divergence=estimate.per_step_branch_divergence,
+                        is_deterministic_control=deterministic,
+                    )
+                    validate_record(record)
+                    build_policy_inputs(record)
+                    records.append(record)
+
+                pair_metadata.append(
+                    {
+                        "pair_id": pair_id,
+                        "task": task,
+                        "conditioning_sha256": conditioning_hash,
+                        "snapshot_state_dim": int(snapshot.size),
+                        "within_branch_threshold": estimate.within_branch_threshold,
+                        "event_time": args.horizon if deterministic else event_time,
+                        "feedback_reveal_time": physical_effect_divergence_time,
+                        "action_divergence_time": estimate.action_divergence_time,
+                        "oracle_feedback_horizon": estimate.oracle_feedback_horizon,
+                        "physical_effect_divergence_time": physical_effect_divergence_time,
+                        "physical_effect_per_step_divergence": effect_estimate.per_step_branch_divergence,
+                        "physical_validation": physical_validation,
+                        "gripper_transition_horizons": {
+                            name: gripper_transition_horizon(branch_rollouts[name].mean(axis=0))
+                            for name in branch_names
+                        },
+                        "threshold_sensitivity": {
+                            multiplier: asdict(value) for multiplier, value in sensitivity.items()
+                        },
+                        "physics": branch_physics,
+                    }
+                )
+    finally:
+        env.close()
+
+    task_summary = {}
+    for task in ("grasp_slip", "blocked_push", "deterministic_reach"):
+        rows = [row for row in pair_metadata if row["task"] == task]
+        task_summary[task] = {
+            "pair_count": len(rows),
+            "mean_oracle_horizon": float(np.mean([row["oracle_feedback_horizon"] for row in rows])),
+            "oracle_horizons": [row["oracle_feedback_horizon"] for row in rows],
+            "feedback_reveal_times": [row["feedback_reveal_time"] for row in rows],
+            "physical_effect_divergence_times": [row["physical_effect_divergence_time"] for row in rows],
+        }
+    manifest = {
+        "generator": "libero_snapshot_collector.py",
+        "seed": args.seed,
+        "bddl": str(args.bddl),
+        "horizon": args.horizon,
+        "repeats": args.repeats,
+        "pair_count": len(pair_metadata),
+        "record_count": len(records),
+        "max_snapshot_restore_abs_error": max_restore_error,
+        "policy_input_fields": ["observation", "robot_state", "language_instruction"],
+        "counterfactual_interventions": {
+            "grasp_slip": "same grasped snapshot and lift prefix; forced object slip after the event",
+            "blocked_push": "same closed-gripper push prefix with no transition; hidden friction increase after event",
+            "deterministic_reach": "same free-space target with no intervention",
+        },
+        "task_summary": task_summary,
+        "pairs": pair_metadata,
+    }
+    return records, manifest, snapshots
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Collect a small real-LIBERO snapshot counterfactual pilot")
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("/share/longjunyu/fresh-vla/counterfactual-libero-snapshot"),
+    )
+    parser.add_argument("--bddl", type=Path, default=DEFAULT_BDDL)
+    parser.add_argument("--init-states", type=Path, default=DEFAULT_INIT_STATES)
+    parser.add_argument("--num-pairs", type=int, default=4)
+    parser.add_argument("--repeats", type=int, default=4)
+    parser.add_argument("--horizon", type=int, default=12)
+    parser.add_argument("--settle-steps", type=int, default=10)
+    parser.add_argument("--resolution", type=int, default=64)
+    parser.add_argument("--seed", type=int, default=20260713)
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    records, manifest, snapshots = collect(args)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    (args.output_dir / "records.jsonl").write_text(
+        "".join(json.dumps(record.to_dict(), sort_keys=True) + "\n" for record in records)
+    )
+    (args.output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    np.savez_compressed(args.output_dir / "policy_observation_snapshots.npz", **snapshots)
+    print(
+        json.dumps(
+            {
+                "output_dir": str(args.output_dir),
+                "pair_count": manifest["pair_count"],
+                "record_count": manifest["record_count"],
+                "max_snapshot_restore_abs_error": manifest["max_snapshot_restore_abs_error"],
+                "task_summary": manifest["task_summary"],
+            },
+            sort_keys=True,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

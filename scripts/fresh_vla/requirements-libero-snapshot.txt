@@ -1,0 +1,16 @@
+# Install into an isolated Python 3.8 environment. This intentionally omits Torch.
+numpy==1.22.4
+scipy==1.10.1
+mujoco==3.2.3
+robosuite==1.4.1
+bddl==1.0.1
+opencv-python==4.6.0.66
+imageio==2.35.1
+pillow==10.4.0
+gym==0.25.2
+h5py==3.11.0
+easydict==1.9
+cloudpickle==2.1.0
+future==0.18.2
+pyyaml==6.0.2
+matplotlib==3.5.3

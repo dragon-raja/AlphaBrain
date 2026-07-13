@@ -31,6 +31,7 @@ import numpy as np
 from AlphaBrain.model.framework.base_framework import BaseFramework
 from AlphaBrain.model.modules.vlm import get_vlm_model
 from AlphaBrain.model.modules.action_model.pi0_flow_matching_head.pi0_action_head import Pi0FlowMatchingHead
+from AlphaBrain.model.modules.action_model.fresh_loss import feedback_weighted_flow_loss
 from AlphaBrain.model.tools import FRAMEWORK_REGISTRY
 from AlphaBrain.training.trainer_utils.trainer_tools import resize_images
 
@@ -121,6 +122,8 @@ class PaliGemmaPi(BaseFramework):
         # ── Action dimension settings ──
         self.action_dim = action_cfg.action_dim
         self.action_horizon = action_cfg.action_horizon
+        self.fresh_tail_weight = float(getattr(action_cfg, 'fresh_tail_weight', 1.0))
+        self.feedback_horizon_key = str(getattr(action_cfg, 'feedback_horizon_key', 'feedback_horizon'))
         self.future_action_window_size = getattr(action_cfg, 'future_action_window_size', action_cfg.action_horizon)
         self.past_action_window_size = getattr(action_cfg, 'past_action_window_size', 0)
         self.chunk_len = self.past_action_window_size + 1 + self.future_action_window_size
@@ -573,8 +576,21 @@ class PaliGemmaPi(BaseFramework):
         if hasattr(self, '_action_dim_mask') and self._action_dim_mask is not None:
             loss = loss[:, :, self._action_dim_mask]  # [B, horizon, num_valid_dims]
 
-        loss_mean = loss.mean()
-        return {"action_loss": loss_mean, "flow_matching_loss": loss_mean.item()}
+        feedback_horizon = None
+        if all(self.feedback_horizon_key in ex for ex in examples):
+            feedback_horizon = torch.as_tensor(
+                [ex[self.feedback_horizon_key] for ex in examples],
+                device=loss.device,
+            )
+
+        loss_mean, fresh_metrics = feedback_weighted_flow_loss(
+            loss,
+            feedback_horizon=feedback_horizon,
+            tail_weight=self.fresh_tail_weight,
+        )
+        output = {"action_loss": loss_mean, "flow_matching_loss": loss_mean.item()}
+        output.update({f"fresh_{key}": value.item() for key, value in fresh_metrics.items()})
+        return output
 
     def _maybe_remap_gripper(self, actions: torch.Tensor) -> torch.Tensor:
         """Map dim-6 from [0,1] to [+1,-1] when gripper_remap is enabled."""

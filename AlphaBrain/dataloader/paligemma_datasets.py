@@ -35,6 +35,7 @@ class Pi0DataConfig:
     camera_names: tuple = ("image_0",)  # maps to observation camera keys
     include_state: bool = True
     state_dim: int = 7
+    feedback_horizon_key: str = "feedback_horizon"
 
 
 class Pi0DataTransform:
@@ -117,6 +118,10 @@ class Pi0DataTransform:
             elif isinstance(state, torch.Tensor):
                 state = state.float().numpy()
             result["state"] = state
+
+        feedback_key = self.config.feedback_horizon_key
+        if feedback_key in sample:
+            result[feedback_key] = int(sample[feedback_key])
         
         return result
 
@@ -167,6 +172,7 @@ def get_pi0_dataset(data_cfg, mode="train", **kwargs):
         action_dim=getattr(data_cfg, 'action_dim', 7),
         include_state=getattr(data_cfg, 'include_state', True),
         state_dim=getattr(data_cfg, 'state_dim', 7),
+        feedback_horizon_key=getattr(data_cfg, 'feedback_horizon_key', 'feedback_horizon'),
     )
     
     transform = Pi0DataTransform(config=pi0_config)

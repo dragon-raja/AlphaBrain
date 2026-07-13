@@ -9,7 +9,7 @@ from typing import Sequence
 from omegaconf import OmegaConf
 import glob
 
-from AlphaBrain.dataloader.gr00t_lerobot.datasets import LeRobotSingleDataset, LeRobotMixtureDataset
+from AlphaBrain.dataloader.gr00t_lerobot.datasets import LeRobotMixtureDataset, LeRobotSingleDataset, ModalityConfig
 from AlphaBrain.dataloader.gr00t_lerobot.mixtures import DATASET_NAMED_MIXTURES
 from AlphaBrain.dataloader.gr00t_lerobot.data_config import ROBOT_TYPE_CONFIG_MAP
 from AlphaBrain.dataloader.gr00t_lerobot.embodiment_tags import ROBOT_TYPE_TO_EMBODIMENT_TAG, EmbodimentTag
@@ -36,6 +36,22 @@ def make_LeRobotSingleDataset(
     
     data_config = ROBOT_TYPE_CONFIG_MAP[robot_type]
     modality_config = data_config.modality_config()
+    action_horizon = data_cfg.get("action_horizon") if data_cfg else None
+    if action_horizon is not None:
+        action_horizon = int(action_horizon)
+        if action_horizon <= 0:
+            raise ValueError(f"action_horizon must be positive, got {action_horizon}")
+        action_modality = modality_config["action"]
+        modality_config["action"] = ModalityConfig(
+            delta_indices=list(range(action_horizon)),
+            modality_keys=list(action_modality.modality_keys),
+        )
+    feedback_column = data_cfg.get("feedback_horizon_column") if data_cfg else None
+    if feedback_column:
+        modality_config["feedback"] = ModalityConfig(
+            delta_indices=[0],
+            modality_keys=[f"annotation.{feedback_column}"],
+        )
     transforms = data_config.transform()
     data_root_dir = Path(data_root_dir)
     dataset_path = Path(data_name) if Path(data_name).is_absolute() else data_root_dir / data_name

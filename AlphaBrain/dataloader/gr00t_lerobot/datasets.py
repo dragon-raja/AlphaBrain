@@ -1395,6 +1395,11 @@ class LeRobotSingleDataset(Dataset):
             "language": language,
         }
 
+        if "feedback" in self.modality_keys:
+            feedback_key = self.modality_keys["feedback"][0]
+            output_key = self.data_cfg.get("feedback_horizon_key", "feedback_horizon")
+            sample[output_key] = int(np.asarray(data[feedback_key]).reshape(-1)[0])
+
         if self.data_cfg is not None and self.data_cfg.get("include_state", False) not in ["False", False]:
             state = []
             for state_key in self.modality_keys["state"]:
@@ -1827,6 +1832,15 @@ class LeRobotSingleDataset(Dataset):
             return self.get_state_or_action(trajectory_id, modality, key, base_index)
         elif modality == "language":
             return self.get_language(trajectory_id, key, base_index)
+        elif modality == "feedback":
+            assert self.curr_traj_data is not None, f"No data found for {trajectory_id=}"
+            step_index = min(max(base_index, 0), len(self.curr_traj_data) - 1)
+            subkey = key.removeprefix("annotation.")
+            annotation_meta = self.lerobot_modality_meta.annotation
+            if annotation_meta is None or subkey not in annotation_meta:
+                raise KeyError(f"Feedback annotation {subkey!r} is not present in modality metadata")
+            original_key = annotation_meta[subkey].original_key or subkey
+            return np.asarray([self.curr_traj_data[original_key].iloc[step_index]])
         else:
             raise ValueError(f"Invalid modality: {modality}")
 

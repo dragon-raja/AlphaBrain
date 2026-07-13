@@ -1,0 +1,190 @@
+defaults:
+  trainer: default
+
+seed: 42
+
+environment:
+  wandb_mode: disabled
+
+paths:
+  deepspeed_config: configs/deepspeed/accelerate_1gpu_simple.yaml
+
+common:
+  output_root_dir: /share/longjunyu/fresh-vla/runs
+  num_gpus: 1
+  main_process_port: 29532
+
+counterfactual_common: &counterfactual_common
+  model: paligemma_pi05
+  dataset: libero_paligemma
+  trainer_defaults: default
+  num_gpus: 1
+  main_process_port: 29532
+  framework_name: PaliGemmaPi05
+  data_root: /share/longjunyu/fresh-vla/data/counterfactual-libero/dataset
+  dataset_mix: fresh_libero_subset
+  deepspeed_config: configs/deepspeed/accelerate_1gpu_simple.yaml
+  wandb_mode: disabled
+  training:
+    per_device_batch_size: 1
+    gradient_accumulation_steps: 1
+    max_train_steps: 1200
+    save_interval: 600
+    eval_interval: 1201
+    freeze_modules: vlm_interface
+  trainer:
+    pretrained_checkpoint: ${PRETRAINED_MODELS_DIR}/pi05_base
+    learning_rate:
+      base: 5.0e-05
+      action_model: 5.0e-05
+      paligemma_vl_interface: 5.0e-05
+    num_warmup_steps: 100
+    lr_scheduler_type: cosine_with_min_lr
+    scheduler_specific_kwargs:
+      min_lr: 5.0e-06
+    ema:
+      enabled: false
+  extra_args: []
+
+counterfactual_vla_data: &counterfactual_vla_data
+  dataloader_module: paligemma_datasets
+  action_horizon: 10
+  state_dim: 8
+  include_state: false
+  video_backend: torchvision_av
+  lerobot_version: v2.0
+  skip_action_norm: true
+  feedback_horizon_column: oracle_feedback_horizon
+  feedback_horizon_key: oracle_feedback_horizon
+
+counterfactual_framework: &counterfactual_framework
+  paligemma:
+    base_vlm: ${PRETRAINED_MODELS_DIR}/paligemma-3b-pt-224
+    attn_implementation: flash_attention_2
+    discrete_state_input: false
+    num_images: 3
+    image_mask: [true, true, false]
+  action_model:
+    action_dim: 7
+    action_horizon: 10
+    future_action_window_size: 9
+    num_inference_steps: 10
+    fresh_tail_weight: 1.0
+    fresh_weighting_mode: suffix
+    feedback_horizon_key: oracle_feedback_horizon
+  normalization:
+    enabled: true
+    action_mean: [0.06278156, 0.08684081, -0.09037306, 0.00054074, 0.00564338, -0.00522910, -0.04964072]
+    action_std: [0.33552372, 0.37844700, 0.44472861, 0.03924354, 0.06339297, 0.07797027, 0.99876714]
+
+modes:
+  fresh_cf_full_h:
+    <<: *counterfactual_common
+    run_id: fresh_cf_full_h_seed42
+    datasets:
+      vla_data: *counterfactual_vla_data
+    framework: *counterfactual_framework
+
+  fresh_cf_random_soft010:
+    <<: *counterfactual_common
+    run_id: fresh_cf_random_soft010_seed42
+    datasets:
+      vla_data:
+        <<: *counterfactual_vla_data
+        feedback_horizon_column: random_feedback_horizon
+        feedback_horizon_key: random_feedback_horizon
+    framework:
+      <<: *counterfactual_framework
+      action_model:
+        action_dim: 7
+        action_horizon: 10
+        future_action_window_size: 9
+        num_inference_steps: 10
+        fresh_tail_weight: 0.1
+        fresh_weighting_mode: suffix
+        feedback_horizon_key: random_feedback_horizon
+
+  fresh_cf_gripper_soft010:
+    <<: *counterfactual_common
+    run_id: fresh_cf_gripper_soft010_seed42
+    datasets:
+      vla_data:
+        <<: *counterfactual_vla_data
+        feedback_horizon_column: gripper_transition_horizon
+        feedback_horizon_key: gripper_transition_horizon
+    framework:
+      <<: *counterfactual_framework
+      action_model:
+        action_dim: 7
+        action_horizon: 10
+        future_action_window_size: 9
+        num_inference_steps: 10
+        fresh_tail_weight: 0.1
+        fresh_weighting_mode: suffix
+        feedback_horizon_key: gripper_transition_horizon
+
+  fresh_cf_oracle_soft010:
+    <<: *counterfactual_common
+    run_id: fresh_cf_oracle_soft010_seed42
+    datasets:
+      vla_data: *counterfactual_vla_data
+    framework:
+      <<: *counterfactual_framework
+      action_model:
+        action_dim: 7
+        action_horizon: 10
+        future_action_window_size: 9
+        num_inference_steps: 10
+        fresh_tail_weight: 0.1
+        fresh_weighting_mode: suffix
+        feedback_horizon_key: oracle_feedback_horizon
+
+  fresh_cf_oracle_hard000:
+    <<: *counterfactual_common
+    run_id: fresh_cf_oracle_hard000_seed42
+    datasets:
+      vla_data: *counterfactual_vla_data
+    framework:
+      <<: *counterfactual_framework
+      action_model:
+        action_dim: 7
+        action_horizon: 10
+        future_action_window_size: 9
+        num_inference_steps: 10
+        fresh_tail_weight: 0.0
+        fresh_weighting_mode: suffix
+        feedback_horizon_key: oracle_feedback_horizon
+
+  fresh_cf_remac_prefix_mask_control:
+    <<: *counterfactual_common
+    run_id: fresh_cf_remac_prefix_mask_control_seed42
+    datasets:
+      vla_data: *counterfactual_vla_data
+    framework:
+      <<: *counterfactual_framework
+      action_model:
+        action_dim: 7
+        action_horizon: 10
+        future_action_window_size: 9
+        num_inference_steps: 10
+        fresh_tail_weight: 0.1
+        fresh_weighting_mode: prefix_control
+        feedback_horizon_key: oracle_feedback_horizon
+
+  fresh_cf_short_h:
+    <<: *counterfactual_common
+    run_id: fresh_cf_short_h_seed42
+    datasets:
+      vla_data:
+        <<: *counterfactual_vla_data
+        action_horizon: 5
+    framework:
+      <<: *counterfactual_framework
+      action_model:
+        action_dim: 7
+        action_horizon: 5
+        future_action_window_size: 4
+        num_inference_steps: 10
+        fresh_tail_weight: 1.0
+        fresh_weighting_mode: suffix
+        feedback_horizon_key: oracle_feedback_horizon

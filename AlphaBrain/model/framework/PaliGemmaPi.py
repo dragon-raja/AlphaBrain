@@ -123,6 +123,7 @@ class PaliGemmaPi(BaseFramework):
         self.action_dim = action_cfg.action_dim
         self.action_horizon = action_cfg.action_horizon
         self.fresh_tail_weight = float(getattr(action_cfg, 'fresh_tail_weight', 1.0))
+        self.fresh_weighting_mode = str(getattr(action_cfg, 'fresh_weighting_mode', 'suffix'))
         self.feedback_horizon_key = str(getattr(action_cfg, 'feedback_horizon_key', 'feedback_horizon'))
         self.future_action_window_size = getattr(action_cfg, 'future_action_window_size', action_cfg.action_horizon)
         self.past_action_window_size = getattr(action_cfg, 'past_action_window_size', 0)
@@ -587,6 +588,7 @@ class PaliGemmaPi(BaseFramework):
             loss,
             feedback_horizon=feedback_horizon,
             tail_weight=self.fresh_tail_weight,
+            weighting_mode=self.fresh_weighting_mode,
         )
         output = {"action_loss": loss_mean, "flow_matching_loss": loss_mean.item()}
         output.update({f"fresh_{key}": value.item() for key, value in fresh_metrics.items()})

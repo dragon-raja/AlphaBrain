@@ -25,6 +25,7 @@ framework:
     # FRESH is disabled at 1.0 and remains numerically identical to baseline.
     # Values below 1.0 require each training example to provide feedback_horizon.
     fresh_tail_weight: 1.0
+    fresh_weighting_mode: suffix
     feedback_horizon_key: feedback_horizon
     action_dim: 7
     action_horizon: 10               # LIBERO 用 10

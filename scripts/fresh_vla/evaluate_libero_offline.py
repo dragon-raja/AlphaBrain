@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import argparse
+from collections import defaultdict
 import json
 import os
 from pathlib import Path
+from typing import Any, Sequence
 
 import numpy as np
 import torch
 
-from AlphaBrain.dataloader.paligemma_datasets import FreshSnapshotDataset
+from AlphaBrain.dataloader.paligemma_datasets import FreshEpisodeWindowDataset, FreshSnapshotDataset
 from AlphaBrain.model.framework.base_framework import BaseFramework
 try:
     from scripts.fresh_vla.paired_evaluation import EvaluationIdentity, bootstrap_summary, per_sample_flow_metrics
@@ -24,6 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--control-output", type=Path)
     parser.add_argument("--split", default="test", choices=("train", "val", "test"))
     parser.add_argument("--tasks", nargs="+", default=("grasp_slip",))
+    parser.add_argument("--dataset-format", choices=("snapshot", "episode_window"), default="snapshot")
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--seed", type=int, default=9107)
     parser.add_argument("--fixed-k", type=int, default=2)
@@ -33,7 +36,11 @@ def parse_args() -> argparse.Namespace:
 
 
 def _aggregate(rows: list[dict[str, object]], metric: str, args: argparse.Namespace) -> dict[str, float | int | None]:
-    values = [float(row[metric]) for row in rows if row[metric] is not None]
+    by_group = {}
+    for row in rows:
+        if row[metric] is not None:
+            by_group.setdefault(str(row["pair_id"]), []).append(float(row[metric]))
+    values = [float(np.mean(group_values)) for group_values in by_group.values()]
     if not values:
         return {
             "count": 0,
@@ -46,6 +53,40 @@ def _aggregate(rows: list[dict[str, object]], metric: str, args: argparse.Namesp
     return bootstrap_summary(values, bootstrap_samples=args.bootstrap_samples, seed=args.seed)
 
 
+def balanced_sample_indices(
+    rows: Sequence[Sequence[Any]], max_samples: int | None, *, seed: int
+) -> list[int]:
+    """Select windows round-robin across snapshot groups with deterministic shuffling."""
+    if max_samples is None or max_samples >= len(rows):
+        return list(range(len(rows)))
+    if max_samples <= 0:
+        return []
+
+    by_group: dict[str, list[int]] = defaultdict(list)
+    for index, item in enumerate(rows):
+        by_group[str(item[0]["pair_id"])].append(index)
+
+    rng = np.random.default_rng(seed)
+    group_ids = sorted(by_group)
+    rng.shuffle(group_ids)
+    shuffled = {
+        group_id: list(rng.permutation(by_group[group_id]).astype(int))
+        for group_id in group_ids
+    }
+    selected = []
+    while len(selected) < max_samples:
+        made_progress = False
+        for group_id in group_ids:
+            if shuffled[group_id]:
+                selected.append(shuffled[group_id].pop())
+                made_progress = True
+                if len(selected) == max_samples:
+                    break
+        if not made_progress:
+            break
+    return selected
+
+
 def _evaluate_tasks(
     model: BaseFramework,
     args: argparse.Namespace,
@@ -53,15 +94,17 @@ def _evaluate_tasks(
     tasks: tuple[str, ...],
     output_path: Path,
 ) -> None:
-    dataset = FreshSnapshotDataset(
+    dataset_class = FreshSnapshotDataset if args.dataset_format == "snapshot" else FreshEpisodeWindowDataset
+    dataset = dataset_class(
         args.data_root,
         split=args.split,
         feedback_label="oracle_feedback_horizon",
         feedback_output_key="feedback_horizon",
         tasks=tasks,
     )
-    sample_count = len(dataset) if args.max_samples is None else min(len(dataset), args.max_samples)
-    samples = [dataset[index] for index in range(sample_count)]
+    sample_indices = balanced_sample_indices(dataset.rows, args.max_samples, seed=args.seed)
+    samples = [dataset[index] for index in sample_indices]
+    sample_count = len(samples)
     sample_ids = tuple(str(sample["fresh_sample_id"]) for sample in samples)
     sample_content = np.stack([np.asarray(sample["action"], dtype=np.float32) for sample in samples])
     flow_times = np.asarray([args.seed + index for index in range(sample_count)], dtype=np.int64)
@@ -129,6 +172,8 @@ def _evaluate_tasks(
         "data_root": str(args.data_root),
         "split": args.split,
         "tasks": list(tasks),
+        "dataset_format": args.dataset_format,
+        "statistical_unit": "snapshot group after averaging branch/windows within group",
         "model_horizon": model_horizon,
         "fixed_k": args.fixed_k,
         "seed": args.seed,

@@ -1,0 +1,189 @@
+defaults:
+  trainer: default
+
+seed: 41
+
+environment:
+  wandb_mode: disabled
+
+paths:
+  deepspeed_config: configs/deepspeed/accelerate_1gpu_simple.yaml
+
+common:
+  output_root_dir: /share/longjunyu/fresh-vla/runs/libero-full-episode-final-v2
+  num_gpus: 1
+  main_process_port: 30110
+
+train_common: &train_common
+  model: paligemma_pi05
+  dataset: libero_paligemma
+  trainer_defaults: default
+  num_gpus: 1
+  main_process_port: 30110
+  framework_name: PaliGemmaPi05
+  data_root: /share/longjunyu/fresh-vla/libero-full-episode-windows-v2-128
+  dataset_mix: fresh_libero_full_episode_v2
+  deepspeed_config: configs/deepspeed/accelerate_1gpu_simple.yaml
+  wandb_mode: disabled
+  training:
+    per_device_batch_size: 1
+    gradient_accumulation_steps: 1
+    max_train_steps: 2400
+    save_interval: 2401
+    eval_interval: 2401
+    freeze_modules: vlm_interface
+  trainer:
+    pretrained_checkpoint: ${PRETRAINED_MODELS_DIR}/pi05_base
+    learning_rate:
+      base: 5.0e-05
+      action_model: 5.0e-05
+      paligemma_vl_interface: 5.0e-05
+    num_warmup_steps: 100
+    logging_frequency: 20
+    lr_scheduler_type: cosine_with_min_lr
+    scheduler_specific_kwargs:
+      min_lr: 1.0e-05
+    ema:
+      enabled: false
+  extra_args: []
+
+paligemma_common: &paligemma_common
+  base_vlm: ${PRETRAINED_MODELS_DIR}/paligemma-3b-pt-224
+  attn_implementation: flash_attention_2
+  discrete_state_input: false
+  num_images: 3
+  image_mask: [true, true, false]
+
+normalization_common: &normalization_common
+  enabled: true
+  action_mean: [0.06278156, 0.08684081, -0.09037306, 0.00054074, 0.00564338, -0.00522910, -0.04964072]
+  action_std: [0.33552372, 0.37844700, 0.44472861, 0.03924354, 0.06339297, 0.07797027, 0.99876714]
+
+framework_full: &framework_full
+  gripper_remap: false
+  paligemma:
+    <<: *paligemma_common
+  action_model:
+    action_dim: 7
+    action_horizon: 10
+    future_action_window_size: 9
+    num_inference_steps: 10
+    fresh_tail_weight: 1.0
+    feedback_horizon_key: feedback_horizon
+  normalization:
+    <<: *normalization_common
+
+framework_soft010: &framework_soft010
+  gripper_remap: false
+  paligemma:
+    <<: *paligemma_common
+  action_model:
+    action_dim: 7
+    action_horizon: 10
+    future_action_window_size: 9
+    num_inference_steps: 10
+    fresh_tail_weight: 0.1
+    feedback_horizon_key: feedback_horizon
+  normalization:
+    <<: *normalization_common
+
+framework_short_h: &framework_short_h
+  gripper_remap: false
+  paligemma:
+    <<: *paligemma_common
+  action_model:
+    action_dim: 7
+    action_horizon: 10
+    future_action_window_size: 9
+    num_inference_steps: 10
+    fresh_tail_weight: 0.0
+    feedback_horizon_key: feedback_horizon
+  normalization:
+    <<: *normalization_common
+
+window_data_common: &window_data_common
+  dataloader_module: paligemma_datasets
+  dataset_format: fresh_episode_window
+  split: train
+  snapshot_tasks: [grasp_slip_full_episode]
+  action_horizon: 10
+  action_dim: 7
+  state_dim: 8
+  include_state: false
+  per_device_batch_size: 1
+  shuffle: true
+  feedback_horizon_key: feedback_horizon
+
+dataset_oracle: &dataset_oracle
+  vla_data:
+    <<: *window_data_common
+    feedback_horizon_column: oracle_feedback_horizon
+
+dataset_random: &dataset_random
+  vla_data:
+    <<: *window_data_common
+    feedback_horizon_column: random_feedback_horizon
+
+dataset_shuffled: &dataset_shuffled
+  vla_data:
+    <<: *window_data_common
+    feedback_horizon_column: shuffled_oracle_horizon
+
+dataset_gripper: &dataset_gripper
+  vla_data:
+    <<: *window_data_common
+    feedback_horizon_column: gripper_transition_horizon
+
+dataset_short: &dataset_short
+  vla_data:
+    <<: *window_data_common
+    feedback_horizon_column: short_h
+
+modes:
+  fresh_closed_loop_full_h:
+    <<: *train_common
+    run_id: fresh_closed_loop_full_h
+    framework:
+      <<: *framework_full
+    datasets:
+      <<: *dataset_oracle
+
+  fresh_closed_loop_random_soft010:
+    <<: *train_common
+    run_id: fresh_closed_loop_random_soft010
+    framework:
+      <<: *framework_soft010
+    datasets:
+      <<: *dataset_random
+
+  fresh_closed_loop_shuffled_oracle_soft010:
+    <<: *train_common
+    run_id: fresh_closed_loop_shuffled_oracle_soft010
+    framework:
+      <<: *framework_soft010
+    datasets:
+      <<: *dataset_shuffled
+
+  fresh_closed_loop_gripper_soft010:
+    <<: *train_common
+    run_id: fresh_closed_loop_gripper_soft010
+    framework:
+      <<: *framework_soft010
+    datasets:
+      <<: *dataset_gripper
+
+  fresh_closed_loop_oracle_soft010:
+    <<: *train_common
+    run_id: fresh_closed_loop_oracle_soft010
+    framework:
+      <<: *framework_soft010
+    datasets:
+      <<: *dataset_oracle
+
+  fresh_closed_loop_short_h:
+    <<: *train_common
+    run_id: fresh_closed_loop_short_h
+    framework:
+      <<: *framework_short_h
+    datasets:
+      <<: *dataset_short

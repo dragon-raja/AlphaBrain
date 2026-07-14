@@ -26,7 +26,8 @@ if [ -e "$OUTPUT" ]; then
 fi
 restore_keepalive() {
   if [ "$WAS_RUNNING" = 1 ]; then
-    bash /workspace/ai2r/gpu_compute_keepalive/start.sh 4 8192 "$SESSION" "$GPU_ID" >/dev/null || true
+    bash /workspace/ai2r/gpu_compute_keepalive/start.sh \
+      "${AI2R_KEEPALIVE_EXTRA_GIB:-1}" "${AI2R_KEEPALIVE_N:-8192}" "$SESSION" "$GPU_ID" >/dev/null || true
   fi
 }
 trap restore_keepalive EXIT

@@ -8,15 +8,6 @@ GPU_ID=${FRESH_LIBERO_GPU_ID:-7}
 KEEPALIVE_SESSION="gpu-keepalive-${GPU_ID}"
 KEEPALIVE_WAS_RUNNING=0
 
-if [ ! -x "$SIM_PYTHON" ]; then
-  echo "missing isolated LIBERO Python: $SIM_PYTHON" >&2
-  exit 1
-fi
-if [ ! -d "$LIBERO_SOURCE/libero" ]; then
-  echo "missing LIBERO source: $LIBERO_SOURCE" >&2
-  exit 1
-fi
-
 restore_keepalive() {
   if [ "$KEEPALIVE_WAS_RUNNING" = "1" ]; then
     bash /workspace/ai2r/gpu_compute_keepalive/start.sh \
@@ -36,4 +27,4 @@ LIBERO_CONFIG_PATH="$REPO_ROOT/scripts/fresh_vla/libero_config" \
 MUJOCO_GL=egl \
 PYOPENGL_PLATFORM=egl \
 CUDA_VISIBLE_DEVICES="$GPU_ID" \
-"$SIM_PYTHON" scripts/fresh_vla/libero_snapshot_collector.py "$@"
+"$SIM_PYTHON" scripts/fresh_vla/generate_libero_full_episodes.py "$@"

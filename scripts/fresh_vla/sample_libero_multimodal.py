@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from AlphaBrain.dataloader.paligemma_datasets import FreshSnapshotDataset
+from AlphaBrain.dataloader.paligemma_datasets import FreshEpisodeWindowDataset, FreshSnapshotDataset
 from AlphaBrain.model.framework.base_framework import BaseFramework
 try:
     from scripts.fresh_vla.paired_evaluation import bootstrap_summary
@@ -27,6 +27,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--samples-per-context", type=int, default=32)
     parser.add_argument("--max-contexts", type=int, default=8)
     parser.add_argument("--mode-margin", type=float, default=0.02)
+    parser.add_argument("--dataset-format", choices=("snapshot", "episode_window"), default="snapshot")
+    parser.add_argument("--tasks", nargs="+")
     return parser.parse_args()
 
 
@@ -65,19 +67,30 @@ def main() -> None:
     if args.samples_per_context < 32:
         raise ValueError("samples_per_context must be at least 32")
     os.environ.setdefault("PRETRAINED_MODELS_DIR", "/share/longjunyu/alphabrain/pretrained_models")
-    dataset = FreshSnapshotDataset(
+    dataset_class = FreshSnapshotDataset if args.dataset_format == "snapshot" else FreshEpisodeWindowDataset
+    tasks = tuple(args.tasks or (("grasp_slip",) if args.dataset_format == "snapshot" else ("grasp_slip_full_episode",)))
+    dataset = dataset_class(
         args.data_root,
         split="test",
         feedback_label="oracle_feedback_horizon",
         feedback_output_key="feedback_horizon",
-        tasks=("grasp_slip",),
+        tasks=tasks,
     )
     pairs = defaultdict(dict)
     for index in range(len(dataset)):
         sample = dataset[index]
-        pairs[sample["pair_id"]][sample["branch_id"]] = sample
-    pair_ids = sorted(pair_id for pair_id, branches in pairs.items() if branches.keys() >= {"attached", "slipped"})
-    pair_ids = pair_ids[: args.max_contexts]
+        context = (sample["pair_id"], int(sample.get("frame_index", 0)))
+        pairs[context][sample["branch_id"]] = sample
+    contexts = []
+    for context, branches in sorted(pairs.items()):
+        if branches.keys() < {"attached", "slipped"}:
+            continue
+        horizon = int(branches["attached"]["oracle_feedback_horizon"])
+        action_horizon = len(branches["attached"]["action"])
+        if args.dataset_format == "episode_window" and not 0 < horizon < action_horizon:
+            continue
+        contexts.append(context)
+    contexts = contexts[: args.max_contexts]
 
     model = BaseFramework.from_pretrained(str(args.checkpoint))
     model = model.to(torch.bfloat16).to(args.device).eval()
@@ -89,9 +102,10 @@ def main() -> None:
     rows = []
     sampled_chunks = {}
     with torch.inference_mode():
-        for context_index, pair_id in enumerate(pair_ids):
-            attached_sample = pairs[pair_id]["attached"]
-            slipped_sample = pairs[pair_id]["slipped"]
+        for context_index, context in enumerate(contexts):
+            pair_id, frame_index = context
+            attached_sample = pairs[context]["attached"]
+            slipped_sample = pairs[context]["slipped"]
             chunks = []
             for sample_index in range(args.samples_per_context):
                 sample_seed = args.seed + context_index * 10_000 + sample_index
@@ -106,6 +120,7 @@ def main() -> None:
             horizon = min(int(attached_sample["oracle_feedback_horizon"]), model_horizon - 1)
             row = {
                 "pair_id": pair_id,
+                "frame_index": frame_index,
                 "oracle_feedback_horizon": horizon,
                 **_analyze_context(
                     samples,
@@ -116,7 +131,7 @@ def main() -> None:
                 ),
             }
             rows.append(row)
-            sampled_chunks[pair_id] = samples
+            sampled_chunks[f"{pair_id}__frame{frame_index:04d}"] = samples
 
     scalar_metrics = (
         "common_prefix_mse",
@@ -136,6 +151,8 @@ def main() -> None:
     result = {
         "checkpoint": str(args.checkpoint),
         "data_root": str(args.data_root),
+        "dataset_format": args.dataset_format,
+        "tasks": list(tasks),
         "model_horizon": model_horizon,
         "samples_per_context": args.samples_per_context,
         "context_count": len(rows),

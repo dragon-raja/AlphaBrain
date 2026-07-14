@@ -213,6 +213,69 @@ class FreshSnapshotDataset:
         }
 
 
+class FreshEpisodeWindowDataset:
+    """Read full-episode sliding windows while keeping oracle labels loss-only."""
+
+    def __init__(
+        self,
+        root: Path | str,
+        *,
+        split: str = "train",
+        feedback_label: str = "oracle_feedback_horizon",
+        feedback_output_key: str = "oracle_feedback_horizon",
+        tasks: tuple[str, ...] = ("grasp_slip_full_episode",),
+    ):
+        self.root = Path(root)
+        records_path = self.root / "records.jsonl"
+        labels_path = self.root / "training_labels.json"
+        missing = [str(path) for path in (records_path, labels_path) if not path.is_file()]
+        if missing:
+            raise FileNotFoundError(f"incomplete FRESH episode-window dataset; missing: {missing}")
+        labels = json.loads(labels_path.read_text())["records"]
+        allowed_tasks = set(tasks)
+        rows = []
+        for line in records_path.read_text().splitlines():
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            if row["split"] != split or row["task"] not in allowed_tasks:
+                continue
+            sample_id = row["sample_id"]
+            if sample_id not in labels or feedback_label not in labels[sample_id]:
+                raise KeyError(f"missing label {feedback_label!r} for {sample_id}")
+            rows.append((row, int(labels[sample_id][feedback_label])))
+        if not rows:
+            raise ValueError(f"no FRESH episode windows for split={split!r}, tasks={sorted(allowed_tasks)}")
+        self.rows = rows
+        self.feedback_output_key = feedback_output_key
+
+    def __len__(self):
+        return len(self.rows)
+
+    def __getitem__(self, idx):
+        from PIL import Image
+
+        row, feedback_horizon = self.rows[idx]
+        observation = row["observation"]
+        agent = np.asarray(Image.open(self.root / observation["agentview_path"]).convert("RGB"))
+        wrist = np.asarray(Image.open(self.root / observation["wrist_path"]).convert("RGB"))
+        return {
+            "image": [agent, wrist],
+            "fresh_sample_id": row["sample_id"],
+            "pair_id": row["pair_id"],
+            "branch_id": row["branch_id"],
+            "branch_outcome": row["branch_outcome"],
+            "frame_index": int(row["frame_index"]),
+            "task": row["task"],
+            "oracle_feedback_horizon": int(row["oracle_feedback_horizon"]),
+            "lang": row["language_instruction"],
+            "language": row["language_instruction"],
+            "action": np.asarray(row["action_chunk"], dtype=np.float32),
+            "state": np.asarray(row["robot_state"], dtype=np.float32),
+            self.feedback_output_key: feedback_horizon,
+        }
+
+
 def get_pi0_dataset(data_cfg, mode="train", **kwargs):
     """
     Get dataset for PaliGemmaOFT training.
@@ -228,9 +291,10 @@ def get_pi0_dataset(data_cfg, mode="train", **kwargs):
     """
     dataset_format = getattr(data_cfg, 'dataset_format', 'lerobot')
     action_horizon = getattr(data_cfg, 'action_horizon', 50)
-    if dataset_format == 'fresh_snapshot':
+    if dataset_format in {'fresh_snapshot', 'fresh_episode_window'}:
         configured_tasks = getattr(data_cfg, 'snapshot_tasks', ('grasp_slip',))
-        base_dataset = FreshSnapshotDataset(
+        dataset_class = FreshSnapshotDataset if dataset_format == 'fresh_snapshot' else FreshEpisodeWindowDataset
+        base_dataset = dataset_class(
             getattr(data_cfg, 'data_root_dir'),
             split=getattr(data_cfg, 'split', mode),
             feedback_label=getattr(data_cfg, 'feedback_horizon_column', 'oracle_feedback_horizon'),

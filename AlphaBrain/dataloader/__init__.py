@@ -3,12 +3,21 @@ import os
 from accelerate.logging import get_logger
 import numpy as np
 from torch.utils.data import DataLoader
-import numpy as np
+import torch
 import torch.distributed as dist
 from pathlib import Path
 from AlphaBrain.dataloader.vlm_datasets import make_vlm_dataloader
 
 logger = get_logger(__name__)
+
+
+def _seeded_shuffle_options(cfg, data_cfg):
+    """Return deterministic DataLoader ordering options for opted-in datasets."""
+    if not bool(getattr(data_cfg, "shuffle", False)):
+        return {"shuffle": False}
+    generator = torch.Generator()
+    generator.manual_seed(int(getattr(cfg, "seed", 0)))
+    return {"shuffle": True, "generator": generator}
 
 def save_dataset_statistics(dataset_statistics, run_dir):
     """Saves a `dataset_statistics.json` file."""
@@ -61,6 +70,7 @@ def build_dataloader(cfg, dataloader_module="lerobot_datasets_oxe"): # TODO now 
         from AlphaBrain.dataloader.lerobot_datasets import collate_fn
         vla_dataset_cfg = cfg.datasets.vla_data
         dataset = get_pi0_dataloader(data_cfg=vla_dataset_cfg)
+        ordering = _seeded_shuffle_options(cfg, vla_dataset_cfg)
         vla_train_dataloader = DataLoader(
             dataset,
             batch_size=cfg.datasets.vla_data.per_device_batch_size,
@@ -70,6 +80,7 @@ def build_dataloader(cfg, dataloader_module="lerobot_datasets_oxe"): # TODO now 
             persistent_workers=True,
             timeout=120,
             pin_memory=True,
+            **ordering,
         )
         return vla_train_dataloader
     elif dataloader_module == "vlm_datasets":

@@ -1023,6 +1023,12 @@ class VLATrainer(TrainerUtils):
             if v is None:
                 continue
             log_dict[k] = v.item() if isinstance(v, torch.Tensor) else v
+        for k, v in output_dict.items():
+            if not k.startswith("fresh_"):
+                continue
+            if isinstance(v, torch.Tensor) and v.numel() != 1:
+                continue
+            log_dict[k] = v.item() if isinstance(v, torch.Tensor) else v
         # V2: log video_loss and total_loss if present
         if "video_loss" in output_dict:
             vl = output_dict["video_loss"]

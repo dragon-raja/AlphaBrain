@@ -65,6 +65,17 @@ def _masked_mean(values: Tensor, mask: Tensor) -> Tensor:
     return (values * mask_f).sum() / mask_f.sum().clamp_min(1.0)
 
 
+def _step_loss_metrics(per_step_loss: Tensor) -> dict[str, Tensor]:
+    """Return detached per-step losses and their share of the horizon loss."""
+    step_means = per_step_loss.mean(dim=0)
+    total = step_means.sum().clamp_min(torch.finfo(step_means.dtype).tiny)
+    metrics: dict[str, Tensor] = {}
+    for step, step_loss in enumerate(step_means):
+        metrics[f"step_loss_{step:02d}"] = step_loss.detach()
+        metrics[f"step_loss_fraction_{step:02d}"] = (step_loss / total).detach()
+    return metrics
+
+
 def feedback_weighted_flow_loss(
     per_dim_loss: Tensor,
     feedback_horizon: Tensor | None = None,
@@ -84,19 +95,35 @@ def feedback_weighted_flow_loss(
     if weighting_mode not in {"suffix", "prefix_control"}:
         raise ValueError(f"unknown weighting_mode: {weighting_mode!r}")
 
+    horizons = None
     if feedback_horizon is not None:
-        _validate_feedback_horizons(
+        horizons = _validate_feedback_horizons(
             feedback_horizon,
             per_dim_loss.shape[1],
             batch_size=per_dim_loss.shape[0],
             device=per_dim_loss.device,
         )
 
+    per_step_loss = per_dim_loss.mean(dim=-1)
+    metrics = {
+        "full_loss": per_dim_loss.mean().detach(),
+        **_step_loss_metrics(per_step_loss),
+    }
+    if horizons is not None:
+        steps = torch.arange(per_dim_loss.shape[1], device=per_dim_loss.device)[None, :]
+        prefix_mask = steps < horizons[:, None]
+        metrics.update(
+            {
+                "prefix_loss": _masked_mean(per_step_loss, prefix_mask).detach(),
+                "suffix_loss": _masked_mean(per_step_loss, ~prefix_mask).detach(),
+                "mean_feedback_horizon": horizons.float().mean().detach(),
+            }
+        )
+
     if tail_weight == 1.0:
         baseline = per_dim_loss.mean()
-        return baseline, {"full_loss": baseline.detach()}
+        return baseline, metrics
 
-    per_step_loss = per_dim_loss.mean(dim=-1)
     if feedback_horizon is None:
         raise ValueError("feedback_horizon is required when tail_weight < 1")
 
@@ -113,10 +140,4 @@ def feedback_weighted_flow_loss(
     supervised_samples = weight_sums > 0
     per_sample = (weights * per_step_loss).sum(dim=1) / weight_sums.clamp_min(1.0)
     loss = per_sample.sum() / supervised_samples.sum().clamp_min(1)
-    metrics = {
-        "full_loss": per_dim_loss.mean().detach(),
-        "prefix_loss": _masked_mean(per_step_loss, prefix_mask).detach(),
-        "suffix_loss": _masked_mean(per_step_loss, ~prefix_mask).detach(),
-        "mean_feedback_horizon": prefix_mask.sum(dim=1).float().mean().detach(),
-    }
     return loss, metrics

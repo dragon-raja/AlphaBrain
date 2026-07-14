@@ -9,8 +9,20 @@ class FreshLossTest(unittest.TestCase):
     def test_tail_weight_one_is_exact_baseline(self) -> None:
         generator = torch.Generator().manual_seed(7)
         per_dim = torch.randn(3, 7, 5, generator=generator)
-        loss, _ = feedback_weighted_flow_loss(per_dim, torch.tensor([0, 3, 7]), tail_weight=1.0)
+        loss, metrics = feedback_weighted_flow_loss(per_dim, torch.tensor([0, 3, 7]), tail_weight=1.0)
         self.assertTrue(torch.equal(loss, per_dim.mean()))
+        per_step = per_dim.mean(dim=-1)
+        prefix = torch.arange(7)[None, :] < torch.tensor([0, 3, 7])[:, None]
+        self.assertTrue(torch.allclose(metrics["prefix_loss"], per_step[prefix].mean()))
+
+    def test_step_metrics_cover_the_horizon_and_fractions_sum_to_one(self) -> None:
+        per_dim = torch.tensor([[[1.0], [3.0], [6.0]], [[3.0], [1.0], [6.0]]])
+        _, metrics = feedback_weighted_flow_loss(per_dim, torch.tensor([1, 2]), tail_weight=1.0)
+        self.assertEqual(metrics["step_loss_00"].item(), 2.0)
+        self.assertEqual(metrics["step_loss_01"].item(), 2.0)
+        self.assertEqual(metrics["step_loss_02"].item(), 6.0)
+        fractions = sum(metrics[f"step_loss_fraction_{step:02d}"] for step in range(3))
+        self.assertTrue(torch.allclose(fractions, torch.tensor(1.0)))
 
     def test_horizon_semantics_are_zero_one_and_full(self) -> None:
         weights, prefix = feedback_prefix_weights(

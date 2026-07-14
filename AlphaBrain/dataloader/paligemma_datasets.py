@@ -13,6 +13,7 @@ Pi0 expects:
   - actions: [B, action_horizon, action_dim] float32
 """
 
+import json
 import logging
 from typing import Optional, Dict, List
 from pathlib import Path
@@ -126,6 +127,92 @@ class Pi0DataTransform:
         return result
 
 
+class FreshSnapshotDataset:
+    """Read pre-chunked counterfactual samples without inventing future frames."""
+
+    def __init__(
+        self,
+        root: Path | str,
+        *,
+        split: str = "train",
+        feedback_label: str = "oracle_feedback_horizon",
+        feedback_output_key: str = "oracle_feedback_horizon",
+        tasks: tuple[str, ...] = ("grasp_slip",),
+    ):
+        self.root = Path(root)
+        manifest_path = self.root / "manifest.json"
+        records_path = self.root / "records.jsonl"
+        splits_path = self.root / "splits.json"
+        labels_path = self.root / "training_labels.json"
+        self.snapshots_path = self.root / "policy_observation_snapshots.npz"
+        required = (manifest_path, records_path, splits_path, labels_path, self.snapshots_path)
+        missing = [str(path) for path in required if not path.is_file()]
+        if missing:
+            raise FileNotFoundError(f"incomplete FRESH snapshot dataset; missing: {missing}")
+
+        self.manifest = json.loads(manifest_path.read_text())
+        split_map = json.loads(splits_path.read_text())["pair_splits"]
+        labels = json.loads(labels_path.read_text())["records"]
+        pair_tasks = {row["pair_id"]: row["task"] for row in self.manifest["pairs"]}
+        allowed_tasks = set(tasks)
+        rows = [json.loads(line) for line in records_path.read_text().splitlines() if line.strip()]
+
+        selected = []
+        record_ids = set()
+        for row in rows:
+            pair_id = row["pair_id"]
+            if split_map.get(pair_id) != split or pair_tasks.get(pair_id) not in allowed_tasks:
+                continue
+            record_id = f"{pair_id}::{row['branch_id']}"
+            if record_id in record_ids:
+                raise ValueError(f"duplicate snapshot record: {record_id}")
+            record_ids.add(record_id)
+            if record_id not in labels or feedback_label not in labels[record_id]:
+                raise KeyError(f"missing label {feedback_label!r} for {record_id}")
+            selected.append((row, int(labels[record_id][feedback_label]), pair_tasks[pair_id]))
+        if not selected:
+            raise ValueError(f"no FRESH snapshot records for split={split!r}, tasks={sorted(allowed_tasks)}")
+
+        with np.load(self.snapshots_path, allow_pickle=False) as snapshots:
+            snapshot_keys = set(snapshots.files)
+        for row, _, _ in selected:
+            snapshot_key = row["observation"]["snapshot_key"]
+            expected = {f"{snapshot_key}_agentview", f"{snapshot_key}_wrist"}
+            missing_keys = sorted(expected - snapshot_keys)
+            if missing_keys:
+                raise KeyError(f"missing image arrays for {row['pair_id']}: {missing_keys}")
+
+        self.rows = selected
+        self.feedback_output_key = feedback_output_key
+        self._snapshots = None
+
+    def __len__(self):
+        return len(self.rows)
+
+    def __getitem__(self, idx):
+        if self._snapshots is None:
+            self._snapshots = np.load(self.snapshots_path, allow_pickle=False)
+        row, feedback_horizon, task = self.rows[idx]
+        snapshot_key = row["observation"]["snapshot_key"]
+        return {
+            "image": [
+                np.asarray(self._snapshots[f"{snapshot_key}_agentview"]),
+                np.asarray(self._snapshots[f"{snapshot_key}_wrist"]),
+            ],
+            "fresh_sample_id": f"{row['pair_id']}::{row['branch_id']}",
+            "pair_id": row["pair_id"],
+            "branch_id": row["branch_id"],
+            "branch_outcome": row.get("branch_outcome", row["branch_id"]),
+            "task": task,
+            "oracle_feedback_horizon": int(row["oracle_feedback_horizon"]),
+            "lang": row["language_instruction"],
+            "language": row["language_instruction"],
+            "action": np.asarray(row["action_chunk"], dtype=np.float32),
+            "state": np.asarray(row["robot_state"], dtype=np.float32),
+            self.feedback_output_key: feedback_horizon,
+        }
+
+
 def get_pi0_dataset(data_cfg, mode="train", **kwargs):
     """
     Get dataset for PaliGemmaOFT training.
@@ -139,32 +226,42 @@ def get_pi0_dataset(data_cfg, mode="train", **kwargs):
     Returns:
         dataset wrapped with Pi0DataTransform
     """
-    from AlphaBrain.dataloader.lerobot_datasets import get_vla_dataset
-    
-    # Override action_indices in LIBERO data config if action_horizon > default
+    dataset_format = getattr(data_cfg, 'dataset_format', 'lerobot')
     action_horizon = getattr(data_cfg, 'action_horizon', 50)
-    from AlphaBrain.dataloader.gr00t_lerobot.data_config import ROBOT_TYPE_CONFIG_MAP
-    libero_cfg = ROBOT_TYPE_CONFIG_MAP.get("libero_franka", None)
-    if libero_cfg is not None:
-        if action_horizon > 8:  # default LIBERO action_indices is range(8)
-            libero_cfg.action_indices = list(range(action_horizon))
-            logger.info(f"[pi0_data] Overriding action_indices to range({action_horizon})")
-        
-        # Skip data-level q99 normalization — Pi0 does MEAN_STD normalization in model
-        skip_action_norm = getattr(data_cfg, 'skip_action_norm', True)
-        if skip_action_norm:
-            from AlphaBrain.dataloader.gr00t_lerobot.transform.state_action import StateActionToTensor
-            from AlphaBrain.dataloader.gr00t_lerobot.transform.base import ComposedModalityTransform
-            # Override transform to only do tensor conversion, no q99 normalization
-            original_transform = libero_cfg.transform
-            def raw_transform(self=libero_cfg):
-                transforms = [StateActionToTensor(apply_to=self.action_keys)]
-                return ComposedModalityTransform(transforms=transforms)
-            libero_cfg.transform = raw_transform
-            logger.info("[pi0_data] Disabled data-level action normalization (model handles MEAN_STD)")
-    
-    # Get the base LeRobot dataset
-    base_dataset = get_vla_dataset(data_cfg, mode=mode, **kwargs)
+    if dataset_format == 'fresh_snapshot':
+        configured_tasks = getattr(data_cfg, 'snapshot_tasks', ('grasp_slip',))
+        base_dataset = FreshSnapshotDataset(
+            getattr(data_cfg, 'data_root_dir'),
+            split=getattr(data_cfg, 'split', mode),
+            feedback_label=getattr(data_cfg, 'feedback_horizon_column', 'oracle_feedback_horizon'),
+            feedback_output_key=getattr(data_cfg, 'feedback_horizon_key', 'oracle_feedback_horizon'),
+            tasks=tuple(configured_tasks),
+        )
+    else:
+        from AlphaBrain.dataloader.lerobot_datasets import get_vla_dataset
+        from AlphaBrain.dataloader.gr00t_lerobot.data_config import ROBOT_TYPE_CONFIG_MAP
+
+        # Override action_indices in LIBERO data config if action_horizon > default
+        libero_cfg = ROBOT_TYPE_CONFIG_MAP.get("libero_franka", None)
+        if libero_cfg is not None:
+            if action_horizon > 8:  # default LIBERO action_indices is range(8)
+                libero_cfg.action_indices = list(range(action_horizon))
+                logger.info(f"[pi0_data] Overriding action_indices to range({action_horizon})")
+
+            # Skip data-level q99 normalization; Pi0 handles MEAN_STD in the model.
+            skip_action_norm = getattr(data_cfg, 'skip_action_norm', True)
+            if skip_action_norm:
+                from AlphaBrain.dataloader.gr00t_lerobot.transform.state_action import StateActionToTensor
+                from AlphaBrain.dataloader.gr00t_lerobot.transform.base import ComposedModalityTransform
+
+                def raw_transform(self=libero_cfg):
+                    transforms = [StateActionToTensor(apply_to=self.action_keys)]
+                    return ComposedModalityTransform(transforms=transforms)
+
+                libero_cfg.transform = raw_transform
+                logger.info("[pi0_data] Disabled data-level action normalization (model handles MEAN_STD)")
+        # Get the base LeRobot dataset
+        base_dataset = get_vla_dataset(data_cfg, mode=mode, **kwargs)
     
     # Create Pi0 transform config from data_cfg
     pi0_config = Pi0DataConfig(

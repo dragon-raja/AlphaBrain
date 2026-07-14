@@ -144,13 +144,22 @@ def _reset_to_initial_state(env: Any, initial_state: np.ndarray, settle_steps: i
 
 
 def _capture_controller_state(env: Any) -> dict[str, np.ndarray]:
-    return {"gripper_action": np.asarray(env.robots[0].gripper.current_action).copy()}
+    state = {"gripper_action": np.asarray(env.robots[0].gripper.current_action).copy()}
+    object_ids = _object_geom_ids(env)
+    state["object_friction"] = env.sim.model.geom_friction[object_ids].copy()
+    # LIBERO randomizes fixed-body positions during reset; these positions are
+    # model state and are not included in MuJoCo's flattened simulation state.
+    state["model_body_pos"] = env.sim.model.body_pos.copy()
+    return state
 
 
 def _restore_snapshot(env: Any, sim_state: np.ndarray, controller_state: Mapping[str, np.ndarray]) -> Mapping[str, Any]:
     # A flattened MuJoCo state omits robosuite controller / observable state.
     # Hard-reset the wrapper so repeated paired rollouts cannot accumulate it.
     env.reset()
+    env.sim.model.body_pos[:] = controller_state["model_body_pos"]
+    object_ids = _object_geom_ids(env)
+    env.sim.model.geom_friction[object_ids] = controller_state["object_friction"]
     observation = env.regenerate_obs_from_state(sim_state)
     env.robots[0].controller.update(force=True)
     env.robots[0].controller.reset_goal()
@@ -173,12 +182,27 @@ def _object_geom_ids(env: Any) -> list[int]:
 
 
 def _prepare_grasp_snapshot(
-    env: Any, initial_state: np.ndarray, settle_steps: int
+    env: Any,
+    initial_state: np.ndarray,
+    settle_steps: int,
+    *,
+    object_offset: Sequence[float] = (0.0, 0.0, 0.0),
+    grasp_offset: Sequence[float] = (0.0, 0.0, 0.0),
+    friction_scale: float = 1.0,
 ) -> tuple[Mapping[str, Any], np.ndarray, dict[str, np.ndarray]]:
     observation = _reset_to_initial_state(env, initial_state, settle_steps)
+    if friction_scale <= 0:
+        raise ValueError("friction_scale must be positive")
+    if np.linalg.norm(np.asarray(object_offset, dtype=np.float64)) > 0:
+        observation = _set_object_offset(env, object_offset)
+        for _ in range(5):
+            observation = _step(env, [0.0] * 6 + [-1.0])
+    object_ids = _object_geom_ids(env)
+    env.sim.model.geom_friction[object_ids] *= friction_scale
     object_position = np.asarray(observation["cream_cheese_1_pos"]).copy()
-    observation = _move_to(env, observation, object_position + [0.0, 0.0, 0.12], gripper=-1.0)
-    observation = _move_to(env, observation, object_position, gripper=-1.0)
+    grasp_target = object_position + np.asarray(grasp_offset, dtype=np.float64)
+    observation = _move_to(env, observation, grasp_target + [0.0, 0.0, 0.12], gripper=-1.0)
+    observation = _move_to(env, observation, grasp_target, gripper=-1.0)
     for _ in range(25):
         observation = _step(env, [0.0] * 6 + [1.0])
     object_geoms = [env.sim.model.geom_id2name(index) for index in _object_geom_ids(env)]
@@ -282,14 +306,58 @@ def _run_grasp_branch(
     horizon: int,
     event_time: int,
     rng: np.random.Generator,
+    slip_offset: Sequence[float] = (0.055, 0.0, -0.005),
+    reference_observation: Mapping[str, Any] | None = None,
+    video_frames: list[np.ndarray] | None = None,
 ) -> tuple[np.ndarray, dict[str, Any], float]:
     observation = _restore_snapshot(env, snapshot, controller_state)
     restored_error = float(np.max(np.abs(env.get_sim_state() - snapshot)))
+    if reference_observation is None:
+        image_error = 0.0
+        state_error = 0.0
+    else:
+        image_error = max(
+            float(
+                np.max(
+                    np.abs(
+                        np.asarray(observation["agentview_image"], dtype=np.int16)
+                        - np.asarray(reference_observation["agentview_image"], dtype=np.int16)
+                    )
+                )
+            ),
+            float(
+                np.max(
+                    np.abs(
+                        np.asarray(observation["robot0_eye_in_hand_image"], dtype=np.int16)
+                        - np.asarray(reference_observation["robot0_eye_in_hand_image"], dtype=np.int16)
+                    )
+                )
+            ),
+        )
+        state_error = float(
+            np.max(
+                np.abs(
+                    robot_state_from_observation(observation)
+                    - robot_state_from_observation(reference_observation)
+                )
+            )
+        )
+    if video_frames is not None:
+        video_frames.append(
+            np.concatenate(
+                [
+                    np.asarray(observation["agentview_image"]),
+                    np.asarray(observation["robot0_eye_in_hand_image"]),
+                ],
+                axis=1,
+            )
+        )
     actions = []
     object_trajectory = [np.asarray(observation["cream_cheese_1_pos"]).copy()]
+    robot_state_trajectory = [robot_state_from_observation(observation).copy()]
     for step_index in range(horizon):
         if step_index == event_time and branch == "slipped":
-            observation = _set_object_offset(env, [0.055, 0.0, -0.005])
+            observation = _set_object_offset(env, slip_offset)
         if step_index < event_time:
             action = np.asarray([0.0, 0.0, 0.55, 0.0, 0.0, 0.0, 1.0])
         elif branch == "attached":
@@ -303,8 +371,19 @@ def _run_grasp_branch(
         if step_index >= event_time:
             action = _jitter_action(action, rng, 0.004)
         observation = _step(env, action)
+        if video_frames is not None:
+            video_frames.append(
+                np.concatenate(
+                    [
+                        np.asarray(observation["agentview_image"]),
+                        np.asarray(observation["robot0_eye_in_hand_image"]),
+                    ],
+                    axis=1,
+                )
+            )
         actions.append(action)
         object_trajectory.append(np.asarray(observation["cream_cheese_1_pos"]).copy())
+        robot_state_trajectory.append(robot_state_from_observation(observation).copy())
     object_geoms = [env.sim.model.geom_id2name(index) for index in _object_geom_ids(env)]
     return (
         np.asarray(actions),
@@ -314,6 +393,9 @@ def _run_grasp_branch(
             "object_displacement": float(np.linalg.norm(object_trajectory[-1] - object_trajectory[0])),
             "grasped_at_end": bool(env.env._check_grasp(env.robots[0].gripper, object_geoms)),
             "object_trajectory": np.asarray(object_trajectory).round(8).tolist(),
+            "robot_state_trajectory": np.asarray(robot_state_trajectory).round(8).tolist(),
+            "pre_branch_image_max_abs_error": image_error,
+            "pre_branch_state_max_abs_error": state_error,
         },
         restored_error,
     )
@@ -373,14 +455,57 @@ def _run_reach_branch(
     controller_state: Mapping[str, np.ndarray],
     *,
     horizon: int,
+    reference_observation: Mapping[str, Any] | None = None,
+    video_frames: list[np.ndarray] | None = None,
 ) -> tuple[np.ndarray, dict[str, Any], float]:
     observation = _restore_snapshot(env, snapshot, controller_state)
     restored_error = float(np.max(np.abs(env.get_sim_state() - snapshot)))
+    if reference_observation is None:
+        image_error = 0.0
+        state_error = 0.0
+    else:
+        image_error = max(
+            float(
+                np.max(
+                    np.abs(
+                        np.asarray(observation["agentview_image"], dtype=np.int16)
+                        - np.asarray(reference_observation["agentview_image"], dtype=np.int16)
+                    )
+                )
+            ),
+            float(
+                np.max(
+                    np.abs(
+                        np.asarray(observation["robot0_eye_in_hand_image"], dtype=np.int16)
+                        - np.asarray(reference_observation["robot0_eye_in_hand_image"], dtype=np.int16)
+                    )
+                )
+            ),
+        )
+        state_error = float(
+            np.max(
+                np.abs(
+                    robot_state_from_observation(observation)
+                    - robot_state_from_observation(reference_observation)
+                )
+            )
+        )
     start = np.asarray(observation["robot0_eef_pos"]).copy()
     target = start + [0.08, 0.05, -0.03]
     move_action = action_toward(start, target, gripper=-1.0)
     actions = []
     eef_trajectory = [start.copy()]
+    robot_state_trajectory = [robot_state_from_observation(observation).copy()]
+    if video_frames is not None:
+        video_frames.append(
+            np.concatenate(
+                [
+                    np.asarray(observation["agentview_image"]),
+                    np.asarray(observation["robot0_eye_in_hand_image"]),
+                ],
+                axis=1,
+            )
+        )
     for step_index in range(horizon):
         # The deterministic control compares an identical current-state plan,
         # so its two counterfactual labels must not create different actions.
@@ -388,12 +513,26 @@ def _run_reach_branch(
         observation = _step(env, action)
         actions.append(action)
         eef_trajectory.append(np.asarray(observation["robot0_eef_pos"]).copy())
+        robot_state_trajectory.append(robot_state_from_observation(observation).copy())
+        if video_frames is not None:
+            video_frames.append(
+                np.concatenate(
+                    [
+                        np.asarray(observation["agentview_image"]),
+                        np.asarray(observation["robot0_eye_in_hand_image"]),
+                    ],
+                    axis=1,
+                )
+            )
     return (
         np.asarray(actions),
         {
             "final_eef_position": np.asarray(observation["robot0_eef_pos"]).round(8).tolist(),
             "target_error": float(np.linalg.norm(np.asarray(observation["robot0_eef_pos"]) - target)),
             "eef_trajectory": np.asarray(eef_trajectory).round(8).tolist(),
+            "robot_state_trajectory": np.asarray(robot_state_trajectory).round(8).tolist(),
+            "pre_branch_image_max_abs_error": image_error,
+            "pre_branch_state_max_abs_error": state_error,
         },
         restored_error,
     )

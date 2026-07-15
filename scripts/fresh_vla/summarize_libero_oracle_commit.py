@@ -642,6 +642,9 @@ def main() -> None:
         if eligibility[pair_id]:
             source_state_clusters[str(group["source_initial_state_index"])].append(pair_id)
     source_state_clusters = {source: sorted(pair_ids) for source, pair_ids in sorted(source_state_clusters.items())}
+    oracle_equivalence = json.loads((args.runs_root / "oracle_equivalence.json").read_text())
+    if not oracle_equivalence.get("equivalent"):
+        raise ValueError("Oracle schedules or behavior rows are not semantically equivalent")
     evaluation_git_sha = frozen_git_sha(args.runs_root, args.seeds)
     latency = measured_latency_by_seed(args.runs_root, args.baseline_root, args.seeds)
     all_groups: dict[str, dict[int, dict[str, dict[str, float | None]]]] = {method: {} for method in METHODS}
@@ -737,6 +740,7 @@ def main() -> None:
             "source_initial_state_index; snapshot groups and seeds averaged within source before paired bootstrap"
         ),
         "evaluation_git_sha": evaluation_git_sha,
+        "oracle_equivalence": oracle_equivalence,
         "subgroup_ids": subgroup_ids,
         "source_state_clusters": source_state_clusters,
         "fixed_k_provenance": fixed_baseline_provenance(args.baseline_root, args.seeds),
@@ -801,6 +805,12 @@ def main() -> None:
         (
             "- teacher 绝对时钟在偏离轨迹上无效，因此实际 Oracle 是 privileged runtime grasp/lift event "
             "interrupt 上界；事件 outcome 从未进入 Pi0.5 输入或动作选择。"
+        ),
+        (
+            "- 两个 Oracle 的调度 trace 与行为结果逐行一致；独立 EGL 运行的编码视频配对中，"
+            f"{oracle_equivalence['video_mismatch_count']}/"
+            f"{sum(result['videos']['count'] for result in oracle_equivalence['results'].values())} 个 MP4 "
+            "未达到文件字节一致，其余完全一致。该渲染/编码复现性差异单独披露，不参与方法胜负。"
         ),
         "",
         "## 主结果",

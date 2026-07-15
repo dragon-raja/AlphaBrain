@@ -104,14 +104,14 @@ def is_premature_commitment(
     return bool(value[2] > 0.15 or toward_bowl)
 
 
-def _policy_observation(observation: Mapping[str, Any]) -> dict[str, Any]:
+def _policy_observation(observation: Mapping[str, Any], language: str = LANGUAGE) -> dict[str, Any]:
     return {
         "image": [
             upright_image(observation["agentview_image"]),
             upright_image(observation["robot0_eye_in_hand_image"]),
         ],
-        "lang": LANGUAGE,
-        "language": LANGUAGE,
+        "lang": language,
+        "language": language,
         "state": robot_state_from_observation(observation).astype(np.float32),
     }
 
@@ -191,13 +191,14 @@ def _write_paired_video(path: Path, attached: Sequence[np.ndarray], slipped: Seq
 
 
 class Pi05Policy:
-    def __init__(self, checkpoint: Path, device: str):
+    def __init__(self, checkpoint: Path, device: str, language: str = LANGUAGE):
         import torch
 
         from AlphaBrain.model.framework.base_framework import BaseFramework
 
         self.torch = torch
         self.device = device
+        self.language = language
         self.model = BaseFramework.from_pretrained(str(checkpoint))
         self.model = self.model.to(torch.bfloat16).to(device).eval()
         self.model.gripper_remap = False
@@ -210,7 +211,7 @@ class Pi05Policy:
         if self.torch.cuda.is_available():
             self.torch.cuda.manual_seed_all(seed)
         with self.torch.inference_mode():
-            output = self.model.predict_action(examples=[_policy_observation(observation)])
+            output = self.model.predict_action(examples=[_policy_observation(observation, self.language)])
         actions = np.asarray(output["normalized_actions"][0], dtype=np.float32)
         if actions.shape != (self.horizon, 7):
             raise RuntimeError(f"unexpected Pi0.5 action shape: {actions.shape}")
@@ -228,8 +229,9 @@ class Pi05Policy:
 
 
 class RemotePi05Policy:
-    def __init__(self, socket_path: Path):
+    def __init__(self, socket_path: Path, language: str = LANGUAGE):
         self.connection = Client(str(socket_path), family="AF_UNIX", authkey=b"fresh-vla-local")
+        self.language = language
         handshake = self.connection.recv()
         self.horizon = int(handshake["horizon"])
         self.checkpoint_realpath = str(handshake.get("checkpoint_realpath", ""))
@@ -241,7 +243,13 @@ class RemotePi05Policy:
         }
 
     def predict(self, observation: Mapping[str, Any], seed: int) -> np.ndarray:
-        self.connection.send({"op": "predict", "seed": int(seed), "example": _policy_observation(observation)})
+        self.connection.send(
+            {
+                "op": "predict",
+                "seed": int(seed),
+                "example": _policy_observation(observation, self.language),
+            }
+        )
         response = self.connection.recv()
         if "error" in response:
             raise RuntimeError(f"remote Pi0.5 inference failed: {response['error']}")
@@ -255,7 +263,7 @@ class RemotePi05Policy:
             {
                 "op": "predict_many",
                 "seeds": [int(seed) for seed in seeds],
-                "example": _policy_observation(observation),
+                "example": _policy_observation(observation, self.language),
             }
         )
         response = self.connection.recv()
@@ -501,6 +509,7 @@ def _evaluation_payload(
         "evaluation": args.evaluation,
         "split": args.split,
         "seed": args.seed,
+        "language": getattr(args, "language", LANGUAGE),
         "status": status,
         "completed_rows": len(rows),
         "expected_rows": expected_rows,
@@ -532,6 +541,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-groups", type=int)
     parser.add_argument("--split", default="test", choices=("train", "val", "test"))
     parser.add_argument("--seed", type=int, default=314159)
+    parser.add_argument("--language", default=LANGUAGE)
     parser.add_argument("--video-dir", type=Path)
     parser.add_argument("--video-groups", type=int, default=0)
     return parser.parse_args()
@@ -554,9 +564,9 @@ def main() -> None:
     if (args.checkpoint is None) == (args.policy_socket is None):
         raise ValueError("provide exactly one of --checkpoint or --policy-socket")
     policy = (
-        RemotePi05Policy(args.policy_socket)
+        RemotePi05Policy(args.policy_socket, args.language)
         if args.policy_socket is not None
-        else Pi05Policy(args.checkpoint, args.device)
+        else Pi05Policy(args.checkpoint, args.device, args.language)
     )
     if max(args.execution_horizons) > policy.horizon:
         raise ValueError("execution horizon exceeds policy chunk")

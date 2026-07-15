@@ -12,6 +12,7 @@ Conventions:
 
 # Standard Library
 import argparse
+from contextlib import nullcontext
 import json
 import logging
 import os
@@ -362,6 +363,14 @@ class VLATrainer(TrainerUtils):
             * self.accelerator.num_processes
             * self.accelerator.gradient_accumulation_steps
         )
+
+    def _deepspeed_manages_accumulation(self) -> bool:
+        return getattr(self.accelerator.state, "deepspeed_plugin", None) is not None
+
+    def _accumulation_context(self):
+        if self._deepspeed_manages_accumulation():
+            return nullcontext()
+        return self.accelerator.accumulate(self.model)
 
     def _init_wandb(self):
         """initialize Weights & Biases"""
@@ -850,6 +859,11 @@ class VLATrainer(TrainerUtils):
         # prepare data iterators
         self._create_data_iterators()
 
+        # AcceleratedOptimizer.zero_grad() is accumulation-aware when called
+        # after a microbatch. Start the first accumulation window explicitly.
+        if not self._deepspeed_manages_accumulation():
+            self.optimizer.zero_grad()
+
         # create progress bar
         progress_bar = tqdm(
             range(self.config.trainer.max_train_steps),
@@ -866,11 +880,13 @@ class VLATrainer(TrainerUtils):
 
             # execute training step
             t_start_model = time.perf_counter()
-            step_metrics = self._train_step(batch_vla)
+            with self._accumulation_context():
+                step_metrics = self._train_step(batch_vla)
+                optimizer_stepped = self.accelerator.sync_gradients
             t_end_model = time.perf_counter()
 
             # update progress
-            if self.accelerator.sync_gradients:
+            if optimizer_stepped:
                 progress_bar.update(1)
                 self.completed_steps += 1
 
@@ -885,9 +901,9 @@ class VLATrainer(TrainerUtils):
                     _postfix["total_loss"] = f"{step_metrics.get('total_loss', 0):.4f}"
                 progress_bar.set_postfix(_postfix)
 
-            # evaluate model
-
-            if self.completed_steps % self.config.trainer.eval_interval == 0:
+            # Evaluation, logging, and checkpointing are optimizer-step events,
+            # not microbatch events.
+            if optimizer_stepped and self.completed_steps % self.config.trainer.eval_interval == 0:
                 try:
                     step_metrics = self.eval_action_model(step_metrics)
                 except Exception as e:
@@ -898,10 +914,15 @@ class VLATrainer(TrainerUtils):
             # record metrics
             step_metrics["data_time"] = t_end_data - t_start_data
             step_metrics["model_time"] = t_end_model - t_start_model
-            self._log_metrics(step_metrics)
+            if optimizer_stepped:
+                self._log_metrics(step_metrics)
 
             # save checkpoint
-            if self.completed_steps % self.config.trainer.save_interval == 0 and self.completed_steps > 0:
+            if (
+                optimizer_stepped
+                and self.completed_steps % self.config.trainer.save_interval == 0
+                and self.completed_steps > 0
+            ):
                 self._save_checkpoint()
 
             # check termination condition
@@ -967,10 +988,11 @@ class VLATrainer(TrainerUtils):
 
     def _train_step(self, batch_vla, batch_vlm=None):
         """execute single training step"""
-        # NOTE: Do NOT use accelerator.accumulate() — it calls no_sync() which is
-        # incompatible with DeepSpeed ZeRO-2 reduce_scatter. Instead, DeepSpeed
-        # handles gradient accumulation internally via its own gradient_accumulation_steps.
-        self.optimizer.zero_grad()
+        # DeepSpeed owns its accumulation lifecycle. Ordinary single-process and
+        # DDP runs use Accelerator.accumulate() in train().
+        deepspeed_managed = self._deepspeed_manages_accumulation()
+        if deepspeed_managed:
+            self.optimizer.zero_grad()
 
         # VLA task forward propagation
         with torch.autocast("cuda", dtype=torch.bfloat16):
@@ -997,7 +1019,11 @@ class VLATrainer(TrainerUtils):
 
         # NaN-to-num protection (skip for CosmosPolicy which manages its own gradient stability)
         gradient_clipping = getattr(self.config.trainer, 'gradient_clipping', 1.0)
-        if gradient_clipping is not None and gradient_clipping != 0:
+        if (
+            gradient_clipping is not None
+            and gradient_clipping != 0
+            and (deepspeed_managed or self.accelerator.sync_gradients)
+        ):
             for param in self.model.parameters():
                 if param.grad is not None:
                     torch.nan_to_num(param.grad, nan=0.0, posinf=0.0, neginf=0.0, out=param.grad)
@@ -1006,10 +1032,13 @@ class VLATrainer(TrainerUtils):
 
         # optimizer step
         self.optimizer.step()
-        self.lr_scheduler.step()
+        if deepspeed_managed or self.accelerator.sync_gradients:
+            self.lr_scheduler.step()
+        if not deepspeed_managed:
+            self.optimizer.zero_grad()
 
         # EMA update
-        if self.use_ema and self.accelerator.is_main_process:
+        if self.use_ema and self.accelerator.is_main_process and self.accelerator.sync_gradients:
             unwrapped = self.accelerator.unwrap_model(self.model)
             with torch.no_grad():
                 for ema_p, model_p in zip(self.ema_model.parameters(), unwrapped.parameters()):

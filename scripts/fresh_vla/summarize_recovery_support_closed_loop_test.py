@@ -36,8 +36,22 @@ class SupportDecisionTest(unittest.TestCase):
         values["3"]["policy_vs_clean"]["attached_task_success"]["candidate_minus_baseline"] = summary(
             -0.02, -0.08, 0.03
         )
+        values["3"]["policy_vs_base"]["overall_task_success"]["candidate_minus_baseline"] = summary(
+            0.13, 0.03, 0.22
+        )
+        values["3"]["policy_vs_base"]["attached_task_success"]["candidate_minus_baseline"] = summary(
+            -0.01, -0.07, 0.04
+        )
         result = support_decision(values)
         self.assertEqual(result["decision"], "CONTINUE_MINIMAL_RECOVERY_BRIDGE")
+
+    def test_does_not_continue_when_policy_only_beats_weak_clean_control(self) -> None:
+        values = comparisons()
+        values["3"]["policy_vs_clean"]["slip_recovery_success"]["candidate_minus_baseline"] = summary(
+            0.15, 0.04, 0.24
+        )
+        result = support_decision(values)
+        self.assertEqual(result["decision"], "STOP_OFFLINE_SUPPORT_EXPANSION")
 
     def test_adopts_clean_replay_when_it_is_sufficient(self) -> None:
         values = comparisons()

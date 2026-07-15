@@ -83,16 +83,26 @@ def _attached_degradation_within(
 
 
 def support_decision(comparisons: Mapping[str, Any]) -> dict[str, Any]:
-    policy_better, policy_metric = _positive_behavior_effect(comparisons, "policy_vs_clean")
+    policy_better_clean, policy_clean_metric = _positive_behavior_effect(comparisons, "policy_vs_clean")
+    policy_better_base, policy_base_metric = _positive_behavior_effect(comparisons, "policy_vs_base")
     clean_better, clean_metric = _positive_behavior_effect(comparisons, "clean_vs_base")
     base_better, base_metric = _positive_behavior_effect(comparisons, "base_vs_original")
-    policy_preserves_attached = _attached_degradation_within(comparisons, "policy_vs_clean")
+    policy_preserves_clean_attached = _attached_degradation_within(comparisons, "policy_vs_clean")
+    policy_preserves_base_attached = _attached_degradation_within(comparisons, "policy_vs_base")
     clean_preserves_attached = _attached_degradation_within(comparisons, "clean_vs_base")
     base_preserves_attached = _attached_degradation_within(comparisons, "base_vs_original")
 
-    if policy_better and policy_preserves_attached:
+    if (
+        policy_better_clean
+        and policy_better_base
+        and policy_preserves_clean_attached
+        and policy_preserves_base_attached
+    ):
         decision = "CONTINUE_MINIMAL_RECOVERY_BRIDGE"
-        reason = f"policy-state recovery beats matched clean replay on {policy_metric}"
+        reason = (
+            "policy-state recovery beats both matched clean replay and Base "
+            f"on {policy_clean_metric}/{policy_base_metric}"
+        )
     elif clean_better and clean_preserves_attached:
         decision = "ADOPT_CLEAN_RECOVERY_REPLAY"
         reason = f"clean recovery replay improves {clean_metric}; policy-state data has no unique gain"
@@ -109,9 +119,12 @@ def support_decision(comparisons: Mapping[str, Any]) -> dict[str, Any]:
         "minimum_behavior_gain": 0.10,
         "paired_ci_must_exclude_zero": True,
         "maximum_attached_degradation": 0.05,
-        "policy_vs_clean_positive": policy_better,
-        "policy_vs_clean_metric": policy_metric,
-        "policy_preserves_attached": policy_preserves_attached,
+        "policy_vs_clean_positive": policy_better_clean,
+        "policy_vs_clean_metric": policy_clean_metric,
+        "policy_vs_base_positive": policy_better_base,
+        "policy_vs_base_metric": policy_base_metric,
+        "policy_preserves_clean_attached": policy_preserves_clean_attached,
+        "policy_preserves_base_attached": policy_preserves_base_attached,
         "clean_vs_base_positive": clean_better,
         "clean_vs_base_metric": clean_metric,
         "clean_preserves_attached": clean_preserves_attached,

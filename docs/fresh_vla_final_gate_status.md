@@ -73,3 +73,19 @@ Final outputs:
 - `/share/longjunyu/fresh-vla/runs/libero-full-episode-final-v2/closed_loop_summary`
 - `/share/longjunyu/fresh-vla/runs/libero-full-episode-final-v2/episode_offline_summary`
 - `/share/longjunyu/fresh-vla/runs/libero-full-episode-final-v2/deterministic_reach_summary`
+
+## Problem-First Follow-up
+
+The `STOP_TRAINING_WEIGHTING_ROUTE` decision remains unchanged for exact
+FRESH suffix weighting. A separate causal sufficiency diagnostic subsequently
+completed on clean commit `1cfc85a` with a corrected 320-action budget and
+reconstructed teacher/controller state.
+
+Policy-only success from the slipped feedback state is 21.85%. Teacher handoff
+to stable regrasp raises it to 85.19%, a paired +63.33 percentage points with a
+source-cluster bootstrap 95% CI of `[+49.62,+74.07]`; 3- and 12-action teacher
+prefixes do not help. This supports a recovery-state action-support bottleneck,
+not the discarded exact weighting teacher. The next comparison is Base
+continuation versus stage-balanced replay versus policy-state recovery SFT,
+subject to a stronger baseline-stability gate. See
+`docs/embodied_research_reset/recovery_support_diagnosis_results.md`.

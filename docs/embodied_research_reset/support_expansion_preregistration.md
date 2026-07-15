@@ -1,6 +1,6 @@
 # 恢复支持扩展预注册
 
-状态：等待 320-step expert-handoff Gate 完成后启动。本文先固定问题、对照和反证规则，不预设方法名称或正结果。
+状态：320-step expert-handoff Gate 已完成；稳定重抓是第一个满足预注册条件的最小充分段。Base continuation 校准尚未查看新结果。
 
 ## 研究问题
 
@@ -37,6 +37,12 @@ expert-handoff ladder 从同一 feedback state 比较：
 
 这个里程碑只定义需要补充的动作支持长度，不作为部署时的 privileged signal。
 
+正式结果为：policy-only success 21.85%；teacher-to-regrasp success 85.19%，
+paired gain +63.33 pp，source-cluster bootstrap 95% CI `[+49.62,+74.07]`，
+三个 seed 均同向。teacher 3/12 actions 分别为 -6.30/-6.67 pp。因此后续
+correction target 固定到稳定重抓，不把任意短 prefix 当作方法，也不默认扩展到
+lift 或 transport。完整结果见 `recovery_support_diagnosis_results.md`。
+
 ## 三臂等预算实验
 
 每个 seed 都从其现有 Full-H final checkpoint 开始，做完全相同数量的额外更新。这样 Base continuation 会直接检验原来的一轮训练是否不足，也避免把“训练更久”误归因给新数据。
@@ -47,6 +53,11 @@ expert-handoff ladder 从同一 feedback state 比较：
 - 原始 seeded shuffle；
 - 不做阶段平衡，不加入新状态；
 - 其余 optimizer、学习率、冻结模块和更新数与 B/C 相同。
+
+预算只用 validation 校准。第一候选为额外 6,902 updates；若 K=3 attached
+success 跨 seed 均值低于 30%，或少于两个 seed 达到 20%，则从原始 checkpoint
+统一重跑 13,804 updates。第二档仍不通过时判定 baseline 无效，不打开 test，
+也不比较 B/C。
 
 ### B. Stage-balanced replay
 

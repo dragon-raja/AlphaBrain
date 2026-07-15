@@ -24,6 +24,7 @@ from evaluate_recovery_expert_handoff import (
     reconstruct_feedback_snapshot,
 )
 from evaluate_recovery_segment_oracle import _observation_frame
+from build_recovery_support_views import first_stable_true
 from libero_full_episode_collector import FullEpisodeTeacher, TraceRecorder, object_grasped
 from libero_snapshot_collector import DEFAULT_BDDL, _step
 from video_io import write_h264_video
@@ -272,6 +273,43 @@ def _save_jpeg(path: Path, image: np.ndarray, quality: int) -> None:
     )
 
 
+def write_paired_correction_video(
+    path: Path,
+    clean_frames: Sequence[np.ndarray],
+    corrected_frames: Sequence[np.ndarray],
+    *,
+    fps: float = 10.0,
+) -> None:
+    import cv2
+
+    if not clean_frames or not corrected_frames:
+        raise ValueError("paired correction video requires both trajectories")
+    clean = [np.asarray(frame, dtype=np.uint8) for frame in clean_frames]
+    corrected = [np.asarray(frame, dtype=np.uint8) for frame in corrected_frames]
+    if clean[0].shape != corrected[0].shape:
+        raise ValueError("paired correction trajectories must have the same frame shape")
+    height, branch_width = clean[0].shape[:2]
+
+    def frames():
+        for index in range(max(len(clean), len(corrected))):
+            frame = np.full((height + 26, branch_width * 2, 3), 255, dtype=np.uint8)
+            frame[26:, :branch_width] = clean[min(index, len(clean) - 1)]
+            frame[26:, branch_width:] = corrected[min(index, len(corrected) - 1)]
+            cv2.putText(frame, "clean expert", (8, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 1)
+            cv2.putText(
+                frame,
+                "policy state + correction",
+                (branch_width + 8, 18),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.55,
+                (0, 0, 0),
+                1,
+            )
+            yield frame
+
+    write_h264_video(path, frames(), fps=fps)
+
+
 def correction_records(
     output_root: Path,
     pair_id: str,
@@ -326,10 +364,13 @@ def build_quality_report(
     *,
     requested_group_count: int,
     minimum_correction_group_rate: float,
+    paired_video_count: int = 0,
+    requested_video_count: int = 0,
 ) -> dict[str, Any]:
     corrected = [row for row in group_rows if row["retained"]]
     teacher_successes = [bool(row["full_teacher_audit"]["success"]) for row in corrected]
     correction_rate = len(corrected) / requested_group_count if requested_group_count else 0.0
+    expected_video_count = min(requested_video_count, len(corrected))
     checks = {
         "requested_groups_processed": len(group_rows) == requested_group_count,
         "train_split_only": all(row["split"] == "train" for row in group_rows),
@@ -352,6 +393,7 @@ def build_quality_report(
             np.asarray(row["action_chunk"]).shape == (10, 7) for row in records
         ),
         "nonempty_training_windows": bool(records),
+        "requested_paired_videos_written": paired_video_count == expected_video_count,
     }
     policy_audits = [
         row["frozen_policy_audit"]
@@ -387,6 +429,8 @@ def build_quality_report(
             )
             if policy_audits
             else None,
+            "paired_video_count": paired_video_count,
+            "expected_paired_video_count": expected_video_count,
         },
     }
 
@@ -458,7 +502,7 @@ def main() -> None:
     staging = args.output_dir.parent / f".{args.output_dir.name}.staging-{os.getpid()}"
     staging.mkdir(parents=True, exist_ok=False)
     (staging / "trajectories").mkdir()
-    (staging / "videos").mkdir()
+    (staging / "paired_videos").mkdir()
     env = OffScreenRenderEnv(
         bddl_file_name=str(Path(manifest.get("bddl", DEFAULT_BDDL))),
         camera_heights=224,
@@ -467,6 +511,7 @@ def main() -> None:
     env.seed(args.seed)
     group_rows = []
     records = []
+    paired_video_count = 0
     try:
         for group_index, group in enumerate(groups):
             pair_id = str(group["pair_id"])
@@ -562,16 +607,31 @@ def main() -> None:
             }
             trajectory_arrays["policy_prefix_actions"] = deviation["actions"]
             np.savez_compressed(staging / "trajectories" / f"{pair_id}.npz", **trajectory_arrays)
-            if group_index < args.video_groups:
+            if paired_video_count < args.video_groups:
                 correction_frames = [
                     np.concatenate([arrays["agentview"][index], arrays["wrist"][index]], axis=1)
                     for index in range(len(arrays["agentview"]))
                 ]
-                write_h264_video(
-                    staging / "videos" / f"{pair_id}.mp4",
+                episode_path = args.episode_root / str(group["episode_files"]["slipped"])
+                with np.load(episode_path, allow_pickle=False) as episode:
+                    clean_endpoint = first_stable_true(
+                        np.asarray(episode["grasped"], dtype=bool),
+                        start=feedback_index,
+                        dwell_steps=args.stage_dwell_steps,
+                    )
+                    if clean_endpoint is None:
+                        raise RuntimeError(f"clean teacher did not regrasp for paired video: {pair_id}")
+                    clean_stop = min(len(episode["agentview"]), clean_endpoint + args.action_horizon)
+                    clean_frames = [
+                        np.concatenate([episode["agentview"][index], episode["wrist"][index]], axis=1)
+                        for index in range(feedback_index, clean_stop)
+                    ]
+                write_paired_correction_video(
+                    staging / "paired_videos" / f"{pair_id}.mp4",
+                    clean_frames,
                     [*deviation["frames"], *correction_frames[1:]],
-                    fps=10.0,
                 )
+                paired_video_count += 1
             group_rows.append(row)
             print(
                 json.dumps(
@@ -596,6 +656,8 @@ def main() -> None:
         records,
         requested_group_count=len(groups),
         minimum_correction_group_rate=args.minimum_correction_group_rate,
+        paired_video_count=paired_video_count,
+        requested_video_count=args.video_groups,
     )
     output_manifest = {
         "schema_version": 1,

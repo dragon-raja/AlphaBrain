@@ -9,6 +9,7 @@ from collect_policy_state_recovery import (
     intervention_reason,
     restore_teacher,
     serialize_teacher,
+    write_paired_correction_video,
 )
 from libero_full_episode_collector import FullEpisodeTeacher
 
@@ -82,8 +83,20 @@ class QualityReportTest(unittest.TestCase):
             records,
             requested_group_count=1,
             minimum_correction_group_rate=0.8,
+            paired_video_count=1,
+            requested_video_count=1,
         )
         self.assertTrue(report["passed"])
+
+
+class PairedVideoTest(unittest.TestCase):
+    def test_rejects_mismatched_frame_shapes(self) -> None:
+        with self.assertRaisesRegex(ValueError, "same frame shape"):
+            write_paired_correction_video(
+                None,
+                [np.zeros((8, 8, 3), dtype=np.uint8)],
+                [np.zeros((9, 8, 3), dtype=np.uint8)],
+            )
 
 
 if __name__ == "__main__":

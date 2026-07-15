@@ -59,15 +59,17 @@ success 跨 seed 均值低于 30%，或少于两个 seed 达到 20%，则从原�
 统一重跑 13,804 updates。第二档仍不通过时判定 baseline 无效，不打开 test，
 也不比较 B/C。
 
-### B. Stage-balanced replay
+### B. Clean-state recovery replay
 
-- targets 仍全部来自原有成功 teacher episodes；
+- targets 全部来自原有成功 slipped teacher episodes；
+- target 严格限定为从 visual feedback 到稳定重抓的观测/动作段，与 C 的 correction endpoint 一致；
 - 不增加任何新 observation 或 action；
 - 一半更新为原始均匀 demonstration anchor；
-- 一半更新在 `regrasp / lift / transport / place` 四个阶段间等概率采样；
-- 同一 snapshot group 内再均匀选 window，避免长 episode 仅凭帧数获得更高权重。
+- 一半更新为 clean feedback-to-regrasp target；
+- 先在 snapshot group 间均匀采样，再在组内均匀选 window，避免长 episode 仅凭帧数获得更高权重。
 
-该臂只测试训练曝光与阶段不平衡，不声称增加动作支持。
+该臂是最直接的 recovery SFT/curation 强基线。它测试原有干净 teacher
+状态上的阶段曝光是否已经足以解决问题，不声称新的方法贡献。
 
 ### C. Policy-state recovery SFT
 
@@ -79,6 +81,18 @@ success 跨 seed 均值低于 30%，或少于两个 seed 达到 20%，则从原�
 - 不加入 preference loss、critic、dynamic K、horizon head 或 world model。
 
 该臂测试的是 on-policy state coverage 和正确恢复动作支持，而不是更复杂的损失。
+
+### 预注册修订记录（B/C 结果前）
+
+原 B 同时平衡 `regrasp / lift / transport / place`，而 C 只到稳定重抓，
+会把 target 长度、阶段分布和状态分布三个变量混在一起。在任何 B/C
+数据采集、训练或评测之前，B 修订为上述 clean feedback-to-regrasp
+replay。这使 B/C 拥有相同的 anchor/target 比例、target endpoint、更新数和
+source-group schedule，主要差异只剩下 clean expert state 与 policy-induced state。
+
+每个 seed 先生成一张固定的 slot schedule：50% anchor、50% targeted。B/C
+的 anchor slot 引用同一条原始 window，targeted slot 引用同一 snapshot group；
+训练期间不再 shuffle 这张已预随机化的表。该修订不使用 B/C 的任何结果。
 
 ## 数据与计算公平性
 
@@ -108,9 +122,10 @@ success 跨 seed 均值低于 30%，或少于两个 seed 达到 20%，则从原�
 
 若 A 已明显提高恢复与 attached success，且 B/C 没有稳定额外收益，则根因主要是原 baseline 未收敛。停止包装新方法，采用更充分的 Full-H 训练。
 
-### 结果 2：阶段曝光不足
+### 结果 2：干净 recovery 曝光不足
 
-若 B 稳定优于 A，且 C 不优于 B，则采用简单 stage-balanced replay。该结果更接近 SARM2/VLAC-CUT 式数据利用，不主张反事实动作信用贡献。
+若 B 稳定优于 A，且 C 不优于 B，则采用简单 clean recovery
+replay。该结果更接近 SARM2/VLAC-CUT 式数据利用，不主张反事实动作信用贡献。
 
 ### 结果 3：策略状态覆盖不足
 

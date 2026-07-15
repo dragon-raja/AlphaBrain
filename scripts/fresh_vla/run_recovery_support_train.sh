@@ -13,10 +13,10 @@ SEED=${2:?usage: run_recovery_support_train.sh ARM SEED GPU_ID STEPS}
 GPU_ID=${3:?usage: run_recovery_support_train.sh ARM SEED GPU_ID STEPS}
 STEPS=${4:?usage: run_recovery_support_train.sh ARM SEED GPU_ID STEPS}
 
-if [ "$ARM" != base_continuation ]; then
-  echo "only the preregistered base_continuation calibration arm is enabled" >&2
-  exit 2
-fi
+case "$ARM" in
+  base_continuation|clean_recovery_replay|policy_state_recovery) ;;
+  *) echo "ARM must be base_continuation, clean_recovery_replay, or policy_state_recovery" >&2; exit 2 ;;
+esac
 case "$SEED" in
   41) EXPECTED_SHA256=144a3b3d3dcc8421418564a62059a1038c9a7ef3196ac157f5f9ea1997a31f30 ;;
   42) EXPECTED_SHA256=98dc52d2ed1983776d218fee7666f3131053d1a55296e93e9f521b1c088ce875 ;;
@@ -31,6 +31,26 @@ fi
 CHECKPOINT="$BASELINE_ROOT/fresh_closed_loop_full_h_seed${SEED}/final_model"
 RUN_ID="recovery_support_${ARM}_seed${SEED}_steps${STEPS}"
 OUTPUT_DIR="$OUTPUT_ROOT/$RUN_ID"
+MODE=fresh_closed_loop_full_h
+DATASET=/share/longjunyu/fresh-vla/libero-full-episode-windows-v2-128
+if [ "$ARM" != base_continuation ]; then
+  MODE=fresh_recovery_support_full_h
+  DATASET="$OUTPUT_ROOT/data/seed${SEED}/$ARM"
+  export FRESH_RECOVERY_SUPPORT_DATA_ROOT="$DATASET"
+  if [ ! -f "$DATASET/quality_report.json" ]; then
+    echo "missing recovery-support data view: $DATASET/quality_report.json" >&2
+    exit 1
+  fi
+  "$PYTHON" - "$DATASET" "$STEPS" <<'PY'
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+steps = int(sys.argv[2])
+quality = json.loads((root / "quality_report.json").read_text())
+records = sum(1 for line in (root / "records.jsonl").read_text().splitlines() if line.strip())
+if not quality.get("passed") or records != steps:
+    raise SystemExit(f"invalid recovery-support view: passed={quality.get('passed')} records={records} steps={steps}")
+PY
+fi
 KEEPALIVE_SESSION="gpu-keepalive-${GPU_ID}"
 KEEPALIVE_WAS_RUNNING=0
 
@@ -82,7 +102,8 @@ path.write_text(json.dumps({
     "learning_rate": 1.0e-5,
     "minimum_learning_rate": 2.0e-6,
     "warmup_steps": 100,
-    "dataset": "/share/longjunyu/fresh-vla/libero-full-episode-windows-v2-128",
+    "dataset": "$DATASET",
+    "dataset_shuffle": $([ "$ARM" = base_continuation ] && echo true || echo false),
 }, indent=2, sort_keys=True) + "\n")
 PY
 
@@ -98,7 +119,7 @@ CUDA_VISIBLE_DEVICES="$GPU_ID" "$PYTHON" -m accelerate.commands.launch \
   --main_process_port "$PORT" \
   AlphaBrain/training/train_alphabrain.py \
   --config_yaml "$CONFIG" \
-  --mode fresh_closed_loop_full_h \
+  --mode "$MODE" \
   "run_id=$RUN_ID" \
   "seed=$SEED" \
   "output_root_dir=$OUTPUT_ROOT" \

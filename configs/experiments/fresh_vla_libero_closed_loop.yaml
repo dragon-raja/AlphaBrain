@@ -139,6 +139,13 @@ dataset_short: &dataset_short
     <<: *window_data_common
     feedback_horizon_column: short_h
 
+dataset_recovery_support: &dataset_recovery_support
+  vla_data:
+    <<: *window_data_common
+    snapshot_tasks: [recovery_support_view]
+    shuffle: false
+    feedback_horizon_column: oracle_feedback_horizon
+
 modes:
   fresh_closed_loop_full_h:
     <<: *train_common
@@ -187,3 +194,13 @@ modes:
       <<: *framework_short_h
     datasets:
       <<: *dataset_short
+
+  fresh_recovery_support_full_h:
+    <<: *train_common
+    run_id: fresh_recovery_support_full_h
+    data_root: ${FRESH_RECOVERY_SUPPORT_DATA_ROOT}
+    dataset_mix: fresh_recovery_support_matched_v1
+    framework:
+      <<: *framework_full
+    datasets:
+      <<: *dataset_recovery_support

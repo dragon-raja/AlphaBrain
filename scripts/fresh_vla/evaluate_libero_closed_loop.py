@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import time
 from collections import defaultdict
 from multiprocessing.connection import Client
 from pathlib import Path
@@ -19,6 +20,7 @@ from libero_snapshot_collector import (
     _step,
     robot_state_from_observation,
 )
+from video_io import write_h264_video
 
 
 LANGUAGE = "put the cream cheese in the bowl"
@@ -175,24 +177,17 @@ def _write_paired_video(path: Path, attached: Sequence[np.ndarray], slipped: Seq
     if not attached or not slipped:
         raise ValueError("paired evaluation video requires both branches")
     height, branch_width = attached[0].shape[:2]
-    writer = cv2.VideoWriter(
-        str(path),
-        cv2.VideoWriter_fourcc(*"mp4v"),
-        fps,
-        (branch_width * 2, height + 26),
-    )
-    if not writer.isOpened():
-        raise RuntimeError(f"OpenCV could not open video writer for {path}")
-    try:
+
+    def frames():
         for index in range(max(len(attached), len(slipped))):
             frame = np.full((height + 26, branch_width * 2, 3), 255, dtype=np.uint8)
             frame[26:, :branch_width] = attached[min(index, len(attached) - 1)]
             frame[26:, branch_width:] = slipped[min(index, len(slipped) - 1)]
             cv2.putText(frame, "attached", (8, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 1)
             cv2.putText(frame, "slipped/recovery", (branch_width + 8, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 1)
-            writer.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
-    finally:
-        writer.release()
+            yield frame
+
+    write_h264_video(path, frames(), fps=fps)
 
 
 class Pi05Policy:
@@ -223,6 +218,11 @@ class Pi05Policy:
             raise RuntimeError("Pi0.5 predicted non-finite actions")
         return np.clip(actions, -1.0, 1.0)
 
+    def predict_many(self, observation: Mapping[str, Any], seeds: Sequence[int]) -> tuple[np.ndarray, float]:
+        started = time.perf_counter()
+        actions = [self.predict(observation, int(seed)) for seed in seeds]
+        return np.stack(actions), time.perf_counter() - started
+
     def close(self) -> None:
         pass
 
@@ -232,6 +232,13 @@ class RemotePi05Policy:
         self.connection = Client(str(socket_path), family="AF_UNIX", authkey=b"fresh-vla-local")
         handshake = self.connection.recv()
         self.horizon = int(handshake["horizon"])
+        self.checkpoint_realpath = str(handshake.get("checkpoint_realpath", ""))
+        self.model_size_bytes = int(handshake.get("model_size_bytes", 0))
+        self.runtime_identity = {
+            "torch_version": handshake.get("torch_version"),
+            "cuda_version": handshake.get("cuda_version"),
+            "device_name": handshake.get("device_name"),
+        }
 
     def predict(self, observation: Mapping[str, Any], seed: int) -> np.ndarray:
         self.connection.send({"op": "predict", "seed": int(seed), "example": _policy_observation(observation)})
@@ -242,6 +249,22 @@ class RemotePi05Policy:
         if actions.shape != (self.horizon, 7):
             raise RuntimeError(f"remote Pi0.5 action shape changed: {actions.shape}")
         return actions
+
+    def predict_many(self, observation: Mapping[str, Any], seeds: Sequence[int]) -> tuple[np.ndarray, float]:
+        self.connection.send(
+            {
+                "op": "predict_many",
+                "seeds": [int(seed) for seed in seeds],
+                "example": _policy_observation(observation),
+            }
+        )
+        response = self.connection.recv()
+        if "error" in response:
+            raise RuntimeError(f"remote Pi0.5 inference failed: {response['error']}")
+        actions = np.asarray(response["actions"], dtype=np.float32)
+        if actions.ndim != 3 or actions.shape[1:] != (self.horizon, 7) or not np.all(np.isfinite(actions)):
+            raise RuntimeError(f"remote Pi0.5 sampled action shape changed: {actions.shape}")
+        return actions, float(response["predict_action_wall_seconds"])
 
     def close(self) -> None:
         try:

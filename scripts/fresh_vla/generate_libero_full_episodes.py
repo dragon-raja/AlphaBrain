@@ -17,6 +17,7 @@ from libero_full_episode_collector import (
     merge_prefix_and_continuation,
 )
 from libero_snapshot_collector import DEFAULT_BDDL, DEFAULT_INIT_STATES
+from video_io import write_h264_video
 
 
 def slip_offset_candidates(offset: Sequence[float], count: int = 8) -> list[np.ndarray]:
@@ -42,19 +43,9 @@ def is_recoverability_failure(error: RuntimeError) -> bool:
 
 
 def _write_video(path: Path, frames: np.ndarray, fps: float = 10.0) -> None:
-    import cv2
-
     if len(frames) == 0:
         raise ValueError(f"cannot write empty video: {path}")
-    height, width = frames[0].shape[:2]
-    writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
-    if not writer.isOpened():
-        raise RuntimeError(f"OpenCV could not open video writer for {path}")
-    try:
-        for frame in frames:
-            writer.write(cv2.cvtColor(np.asarray(frame), cv2.COLOR_RGB2BGR))
-    finally:
-        writer.release()
+    write_h264_video(path, frames, fps=fps)
 
 
 def _branch_frames(episode: Mapping[str, np.ndarray]) -> np.ndarray:
@@ -74,10 +65,8 @@ def _write_paired_video(
     frame_count = max(len(left), len(right))
     height, branch_width = left[0].shape[:2]
     width = branch_width * 2
-    writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height + 26))
-    if not writer.isOpened():
-        raise RuntimeError(f"OpenCV could not open paired video writer for {path}")
-    try:
+
+    def frames():
         for index in range(frame_count):
             frame = np.full((height + 26, width, 3), 255, dtype=np.uint8)
             frame[26:, :branch_width] = left[min(index, len(left) - 1)]
@@ -92,9 +81,9 @@ def _write_paired_video(
                 (0, 0, 0),
                 1,
             )
-            writer.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
-    finally:
-        writer.release()
+            yield frame
+
+    write_h264_video(path, frames(), fps=fps)
 
 
 def _recovery_index(episode: Mapping[str, np.ndarray], fallback: int) -> int:

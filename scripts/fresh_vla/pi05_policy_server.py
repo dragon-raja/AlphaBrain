@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import os
 import signal
+import time
 from multiprocessing.connection import Listener
 from pathlib import Path
 
@@ -10,6 +11,11 @@ import numpy as np
 import torch
 
 from AlphaBrain.model.framework.base_framework import BaseFramework
+
+
+def validate_policy_example(example: dict) -> None:
+    if set(example) != {"image", "lang", "language", "state"}:
+        raise ValueError(f"unexpected policy example keys: {sorted(example)}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -31,6 +37,20 @@ def main() -> None:
         parameter.requires_grad_(False)
     horizon = int(model.action_horizon)
 
+    def predict(example, seed: int) -> tuple[np.ndarray, float]:
+        validate_policy_example(example)
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+        started = time.perf_counter()
+        with torch.inference_mode():
+            output = model.predict_action(examples=[example])
+        elapsed = time.perf_counter() - started
+        actions = np.asarray(output["normalized_actions"][0], dtype=np.float32)
+        if actions.shape != (horizon, 7) or not np.all(np.isfinite(actions)):
+            raise ValueError(f"invalid action output: shape={actions.shape}")
+        return np.clip(actions, -1.0, 1.0), elapsed
+
     def stop(_signum, _frame):
         raise SystemExit(0)
 
@@ -42,7 +62,16 @@ def main() -> None:
         while True:
             connection = listener.accept()
             try:
-                connection.send({"horizon": horizon})
+                connection.send(
+                    {
+                        "horizon": horizon,
+                        "checkpoint_realpath": str(args.checkpoint.resolve()),
+                        "model_size_bytes": (args.checkpoint / "model.safetensors").stat().st_size,
+                        "torch_version": torch.__version__,
+                        "cuda_version": torch.version.cuda,
+                        "device_name": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
+                    }
+                )
                 while True:
                     try:
                         request = connection.recv()
@@ -50,21 +79,27 @@ def main() -> None:
                         break
                     if request.get("op") == "close":
                         break
-                    if request.get("op") != "predict":
+                    if request.get("op") not in {"predict", "predict_many"}:
                         connection.send({"error": f"unknown operation: {request.get('op')!r}"})
                         continue
-                    seed = int(request["seed"])
-                    torch.manual_seed(seed)
-                    if torch.cuda.is_available():
-                        torch.cuda.manual_seed_all(seed)
-                    example = request["example"]
-                    with torch.inference_mode():
-                        output = model.predict_action(examples=[example])
-                    actions = np.asarray(output["normalized_actions"][0], dtype=np.float32)
-                    if actions.shape != (horizon, 7) or not np.all(np.isfinite(actions)):
-                        connection.send({"error": f"invalid action output: shape={actions.shape}"})
-                        continue
-                    connection.send({"actions": np.clip(actions, -1.0, 1.0).tolist()})
+                    try:
+                        if request["op"] == "predict":
+                            actions, elapsed = predict(request["example"], int(request["seed"]))
+                            connection.send({"actions": actions.tolist(), "predict_action_wall_seconds": elapsed})
+                        else:
+                            seeds = [int(seed) for seed in request["seeds"]]
+                            if not 1 <= len(seeds) <= 16:
+                                raise ValueError("predict_many requires 1 to 16 seeds")
+                            outputs = [predict(request["example"], seed) for seed in seeds]
+                            connection.send(
+                                {
+                                    "actions": [actions.tolist() for actions, _ in outputs],
+                                    "predict_action_wall_seconds": sum(elapsed for _, elapsed in outputs),
+                                    "per_call_wall_seconds": [elapsed for _, elapsed in outputs],
+                                }
+                            )
+                    except Exception as error:
+                        connection.send({"error": f"{type(error).__name__}: {error}"})
             finally:
                 connection.close()
     finally:

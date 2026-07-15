@@ -33,6 +33,7 @@ from libero_snapshot_collector import (
     robot_state_from_observation,
     validate_physical_branches,
 )
+from video_io import write_h264_video
 
 
 BRANCHES = {
@@ -133,22 +134,10 @@ def build_training_labels(
 
 
 def _write_video(path: Path, frames: Sequence[np.ndarray], fps: float = 6.0) -> None:
-    import cv2
-
     if not frames:
         raise ValueError(f"cannot write empty video: {path}")
     transformed = [upright_pair_frame(frame) for frame in frames]
-    height, width = transformed[0].shape[:2]
-    writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
-    if not writer.isOpened():
-        raise RuntimeError(f"OpenCV could not open video writer for {path}")
-    try:
-        for frame in transformed:
-            if frame.shape[:2] != (height, width):
-                raise ValueError(f"video frame shape changed in {path}")
-            writer.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
-    finally:
-        writer.release()
+    write_h264_video(path, transformed, fps=fps)
 
 
 def _write_paired_video(
@@ -163,34 +152,27 @@ def _write_paired_video(
 
     if not left_frames or len(left_frames) != len(right_frames):
         raise ValueError(f"paired video requires equal non-empty branches: {path}")
-    paired_frames = []
-    for left, right in zip(left_frames, right_frames):
-        left_view = upright_pair_frame(left)
-        right_view = upright_pair_frame(right)
-        frame = np.full((left_view.shape[0] + 26, left_view.shape[1] * 2, 3), 255, dtype=np.uint8)
-        frame[26:, : left_view.shape[1]] = left_view
-        frame[26:, left_view.shape[1] :] = right_view
-        cv2.putText(frame, left_label, (8, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 1, cv2.LINE_AA)
-        cv2.putText(
-            frame,
-            right_label,
-            (left_view.shape[1] + 8, 18),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.55,
-            (0, 0, 0),
-            1,
-            cv2.LINE_AA,
-        )
-        paired_frames.append(frame)
-    height, width = paired_frames[0].shape[:2]
-    writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
-    if not writer.isOpened():
-        raise RuntimeError(f"OpenCV could not open paired video writer for {path}")
-    try:
-        for frame in paired_frames:
-            writer.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
-    finally:
-        writer.release()
+    def paired_frames():
+        for left, right in zip(left_frames, right_frames):
+            left_view = upright_pair_frame(left)
+            right_view = upright_pair_frame(right)
+            frame = np.full((left_view.shape[0] + 26, left_view.shape[1] * 2, 3), 255, dtype=np.uint8)
+            frame[26:, : left_view.shape[1]] = left_view
+            frame[26:, left_view.shape[1] :] = right_view
+            cv2.putText(frame, left_label, (8, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 1, cv2.LINE_AA)
+            cv2.putText(
+                frame,
+                right_label,
+                (left_view.shape[1] + 8, 18),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.55,
+                (0, 0, 0),
+                1,
+                cv2.LINE_AA,
+            )
+            yield frame
+
+    write_h264_video(path, paired_frames(), fps=fps)
 
 
 def _rollout_array_payload(

@@ -1,0 +1,34 @@
+{
+  "schema_version": 2,
+  "decision_validity": "invalidated",
+  "invalidation_date": "2026-07-15",
+  "invalidation_reason": "runtime snapshot omitted robosuite observable timing/cache and OSC/interpolator state; restored branches diverged from natural policy input and action at the next replanning boundary",
+  "git_sha": "2986a3a431d02a7f5e1adfba19d70f689a1ea2d0",
+  "seeds": [41, 42, 43],
+  "pair_group_count": 13,
+  "source_cluster_count": 9,
+  "feedback": {
+    "candidate_positive_coverage": 0.9487179487179487,
+    "oracle_replay_match_rate": 0.9487179487179487,
+    "heldout_next_stage_delta": 0.10185185185185185,
+    "heldout_next_stage_bootstrap_95": [0.00925925925925926, 0.1851851851851852],
+    "heldout_transport_delta": 0.05555555555555555,
+    "heldout_transport_bootstrap_95": [-0.0462962962962963, 0.15740740740740738],
+    "heldout_success_delta": 0.046296296296296294,
+    "heldout_success_bootstrap_95": [-0.009259259259259259, 0.1111111111111111],
+    "heldout_progress_auc_delta": 0.026997167617381593,
+    "heldout_progress_auc_bootstrap_95": [0.005317421066040632, 0.049177729569322995]
+  },
+  "post_regrasp": {
+    "eligibility_rate": 0.5384615384615384,
+    "eligible_seed_state_count": 21,
+    "heldout_next_stage_delta": 0.0,
+    "heldout_transport_delta": 0.0,
+    "heldout_success_delta": -0.03125,
+    "heldout_success_bootstrap_95": [-0.09375, 0.0]
+  },
+  "gate0b_passed": null,
+  "historical_decision": "STOP_SINGLE_CHUNK_RERANKER",
+  "decision": "INVALIDATED_REQUIRES_RERUN",
+  "next_hypothesis": "FIXED_BUDGET_RECEDING_SIBLING_INTERVENTION_CREDIT"
+}

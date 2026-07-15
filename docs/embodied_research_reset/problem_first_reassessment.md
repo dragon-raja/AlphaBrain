@@ -11,6 +11,8 @@
 - expert-action similarity 不等价于真实接触稳定性和阶段推进；
 - 只做 inference reranking 不会改善动作生成分布。
 
+进一步从根因复审后，最终方法主张收敛为 **Counterfactual Recovery Advantage Distillation**：同状态物理干预是因果数据获取手段，receding Oracle 是支持集上界，真正需要证明的是无搜索 Pi0.5 能否学会跨重规划持续有效的恢复动作。完整论证与反证条件见 `root_problem_method_review.md`。
+
 ## 原方案保留什么
 
 - 同状态 simulator clone；
@@ -52,7 +54,10 @@ post-regrasp 主状态必须由冻结策略从 feedback 状态闭环执行并在
 
 - 已完成同状态 restore parity 初检；
 - 已完成 1 个 val group 的开发 smoke，但它来自 dirty worktree 且单 continuation 选择对 held-out continuation 不稳定，只能用于发现测量问题，不能进入裁决；
-- 正式 Gate 0 已改为每候选多 matched continuations、独立 held-out continuation、带 dwell 的有序阶段状态机、policy-induced post-regrasp state 与 source-state cluster 统计；
+- 旧 Gate 0 曾在 clean commit `2986a3a` 上完成 seeds `41/42/43`，但后续 full-rollout parity 发现 runtime snapshot 漏掉 observable cache、采样时钟和 OSC/interpolator 状态，原裁决已标记为 `INVALIDATED_REQUIRES_RERUN`；
 - training bank 和 simulator 特权 audit bank 将物理分离；
-- 尚未启动 clean-commit 的 N=8 全量 GPU Gate 0；
-- 本次修订先于 candidate bank 和训练，因而没有为迁就已有昂贵结果而改变问题定义。
+- N=8 positive coverage 为 94.9%，held-out stable regrasp 提升约 10.2 pp，但 transport 仅 +5.6 pp、full success 仅 +4.6 pp 且区间跨 0；
+- policy-induced post-regrasp reranking 对 next-stage/transport 无增益；
+- 修复后 natural-vs-forced-restore 的动作、图像和 robot state 均为 0 差异，sim state 误差约 `8.3e-15`；
+- 下一轮从修复后的完整 runtime state 固定 4 个 replanning boundary，并在每个节点重新做同状态 sibling intervention；先跑 exact receding Oracle，再决定是否做策略后训练；
+- 详细结果见 `docs/embodied_research_reset/physical_process_gate0_results.md`。

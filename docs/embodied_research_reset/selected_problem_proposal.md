@@ -310,13 +310,15 @@ Gate 2 失败但 Gate 1 通过：保留窄的 inference-time 方法，不把它�
 
 ## 9. 下一轮执行顺序
 
-1. 固化 simulator/controller restore parity 测试；
-2. 增加 first-stage timestamps、matched continuation 和 structured outcome schema；
-3. 在 train/val 小规模状态上生成 N=8 candidate intervention bank；
-4. 先跑 Gate 0B physical oracle，不训练任何模型；
-5. Gate 0B 通过后，扩展 candidate bank 并训练 action-conditioned critic；
-6. Gate 1 通过后，比较 winner-only 与 pairwise process-preference 后训练；
-7. 冻结方法后开启 test，并完成固定 K 闭环、统计和视频审计。
+1. 已固化 simulator/controller restore parity 测试；
+2. 已增加 first-stage timestamps、matched continuation 和 structured outcome schema；
+3. 已在 val 上完成 N=8、三 seed candidate intervention Gate 0；
+4. 后续 full-rollout parity 发现旧 runtime snapshot 漏掉 observable/controller 时序状态，原 Gate 0 裁决失效；
+5. 已修复完整 runtime restore，并以动作、图像、robot state 全 0 差异和 sim `~8.3e-15` 误差通过真实 smoke；
+6. 固定执行 `4 replans x K3`，在每个 replanning 节点重新做同状态 sibling intervention，并重建 Gate 证据；
+7. 先跑 exact receding Oracle，检查逐节点 action credit 对 transport/full success 的持久收益；
+8. receding Gate 通过后，才比较 recovery SFT、unpaired/state-only/AFIL-style baseline 与同状态 action preference 后训练；
+9. 冻结方法后开启 test，并完成固定 K 闭环、统计和视频审计。
 
 本轮不实现 dynamic horizon、horizon head、world model、主动视觉或无界 RL。它们不是当前根因验证所必需的。
 
@@ -329,3 +331,7 @@ Gate 2 失败但 Gate 1 通过：保留窄的 inference-time 方法，不把它�
 若答案是否定，应直接采用更简单的近期方法或转向动作生成，不为保持独特性继续堆叠模块。
 
 SELECT_NEW_RESEARCH_PROBLEM: 同状态物理反事实过程信用分配
+
+## 11. Gate 0 更新
+
+旧三 seed 结果见 `docs/embodied_research_reset/physical_process_gate0_results.md`，其数值仅保留为历史诊断，原裁决已因不完整 runtime snapshot 失效。研究主线保留“同状态物理反事实”作为训练时识别设计：从修复后的完整状态固定 4 个闭环 replanning 节点，并在每个新状态重新生成合法的 sibling action pairs。完整预注册见 `docs/embodied_research_reset/recovery_segment_preregistration.md`；如果 receding Oracle 仍不能稳定改善 transport 或 full success，则终止该识别设计，而不是继续调 chunk horizon、候选数或打分器。

@@ -150,6 +150,38 @@ def _capture_controller_state(env: Any) -> dict[str, np.ndarray]:
     # LIBERO randomizes fixed-body positions during reset; these positions are
     # model state and are not included in MuJoCo's flattened simulation state.
     state["model_body_pos"] = env.sim.model.body_pos.copy()
+    controller = env.robots[0].controller
+    for name in ("goal_pos", "goal_ori", "relative_ori"):
+        if hasattr(controller, name):
+            state[f"controller_{name}"] = np.asarray(getattr(controller, name)).copy()
+    ori_ref = getattr(controller, "ori_ref", None)
+    state["controller_ori_ref_valid"] = np.asarray(ori_ref is not None, dtype=bool)
+    if ori_ref is not None:
+        state["controller_ori_ref"] = np.asarray(ori_ref).copy()
+    for name in ("interpolator_pos", "interpolator_ori"):
+        interpolator = getattr(controller, name, None)
+        if interpolator is None:
+            continue
+        for field in ("start", "goal", "step"):
+            state[f"controller_{name}_{field}"] = np.asarray(
+                getattr(interpolator, field)
+            ).copy()
+    runtime_env = env.env
+    state["runtime_cur_time"] = np.asarray(runtime_env.cur_time)
+    state["runtime_timestep"] = np.asarray(runtime_env.timestep)
+    state["runtime_done"] = np.asarray(runtime_env.done, dtype=bool)
+    for name, value in runtime_env._obs_cache.items():
+        state[f"runtime_obs_cache__{name}"] = np.asarray(value).copy()
+    for name, observable in runtime_env._observables.items():
+        prefix = f"runtime_observable__{name}__"
+        state[f"{prefix}time_since_last_sample"] = np.asarray(
+            observable._time_since_last_sample
+        )
+        state[f"{prefix}current_delay"] = np.asarray(observable._current_delay)
+        state[f"{prefix}current_observed_value"] = np.asarray(
+            observable._current_observed_value
+        ).copy()
+        state[f"{prefix}sampled"] = np.asarray(observable._sampled, dtype=bool)
     return state
 
 
@@ -161,9 +193,59 @@ def _restore_snapshot(env: Any, sim_state: np.ndarray, controller_state: Mapping
     object_ids = _object_geom_ids(env)
     env.sim.model.geom_friction[object_ids] = controller_state["object_friction"]
     observation = env.regenerate_obs_from_state(sim_state)
-    env.robots[0].controller.update(force=True)
-    env.robots[0].controller.reset_goal()
+    controller = env.robots[0].controller
+    controller.update(force=True)
+    if "controller_goal_pos" not in controller_state:
+        controller.reset_goal()
+    else:
+        for name in ("goal_pos", "goal_ori", "relative_ori"):
+            key = f"controller_{name}"
+            if key in controller_state:
+                setattr(controller, name, np.asarray(controller_state[key]).copy())
+        if bool(np.asarray(controller_state.get("controller_ori_ref_valid", False))):
+            controller.ori_ref = np.asarray(controller_state["controller_ori_ref"]).copy()
+        else:
+            controller.ori_ref = None
+        for name in ("interpolator_pos", "interpolator_ori"):
+            interpolator = getattr(controller, name, None)
+            if interpolator is None:
+                continue
+            for field in ("start", "goal", "step"):
+                key = f"controller_{name}_{field}"
+                if key in controller_state:
+                    value = np.asarray(controller_state[key]).copy()
+                    if field == "step":
+                        value = int(value)
+                    setattr(interpolator, field, value)
     env.robots[0].gripper.current_action = controller_state["gripper_action"].copy()
+    if "runtime_timestep" in controller_state:
+        runtime_env = env.env
+        runtime_env.cur_time = float(np.asarray(controller_state["runtime_cur_time"]))
+        runtime_env.timestep = int(np.asarray(controller_state["runtime_timestep"]))
+        runtime_env.done = bool(np.asarray(controller_state["runtime_done"]))
+        runtime_env._obs_cache = {
+            key.split("__", 1)[1]: np.asarray(value).copy()
+            for key, value in controller_state.items()
+            if key.startswith("runtime_obs_cache__")
+        }
+        for name, observable in runtime_env._observables.items():
+            prefix = f"runtime_observable__{name}__"
+            value_key = f"{prefix}current_observed_value"
+            if value_key not in controller_state:
+                continue
+            observable._time_since_last_sample = float(
+                np.asarray(controller_state[f"{prefix}time_since_last_sample"])
+            )
+            observable._current_delay = float(
+                np.asarray(controller_state[f"{prefix}current_delay"])
+            )
+            observable._current_observed_value = np.asarray(
+                controller_state[value_key]
+            ).copy()
+            observable._sampled = bool(
+                np.asarray(controller_state[f"{prefix}sampled"])
+            )
+        observation = runtime_env._get_observations()
     return observation
 
 

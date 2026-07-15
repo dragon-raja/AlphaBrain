@@ -37,6 +37,25 @@ if [ "$ARM" != base_continuation ]; then
   MODE=fresh_recovery_support_full_h
   DATASET="$OUTPUT_ROOT/data/seed${SEED}/$ARM"
   export FRESH_RECOVERY_SUPPORT_DATA_ROOT="$DATASET"
+  CALIBRATION_GATE="$OUTPUT_ROOT/base_continuation_calibration_steps${STEPS}.json"
+  if [ "${FRESH_ALLOW_UNGATED_SUPPORT_SMOKE:-0}" != 1 ]; then
+    if [ ! -f "$CALIBRATION_GATE" ]; then
+      echo "missing Base calibration gate: $CALIBRATION_GATE" >&2
+      exit 1
+    fi
+    "$PYTHON" - "$CALIBRATION_GATE" "$STEPS" <<'PY'
+import json, pathlib, sys
+path = pathlib.Path(sys.argv[1])
+steps = int(sys.argv[2])
+payload = json.loads(path.read_text())
+expected = f"FREEZE_{steps}_UPDATES"
+if not payload.get("gate", {}).get("passed") or payload.get("decision") != expected:
+    raise SystemExit(
+        f"Base calibration did not freeze this budget: gate={payload.get('gate')} "
+        f"decision={payload.get('decision')} expected={expected}"
+    )
+PY
+  fi
   if [ ! -f "$DATASET/quality_report.json" ]; then
     echo "missing recovery-support data view: $DATASET/quality_report.json" >&2
     exit 1

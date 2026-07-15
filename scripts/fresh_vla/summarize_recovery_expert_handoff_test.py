@@ -92,6 +92,11 @@ def payload():
         "continuation_seed_protocol": (
             "same repeat and global replan index use the same policy seed across methods"
         ),
+        "git_sha": "68037d6",
+        "git_dirty_at_launch": False,
+        "policy_checkpoint_sha256": (
+            "144a3b3d3dcc8421418564a62059a1038c9a7ef3196ac157f5f9ea1997a31f30"
+        ),
         "rows": [row],
     }
 

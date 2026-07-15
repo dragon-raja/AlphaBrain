@@ -14,7 +14,11 @@ from evaluate_recovery_expert_handoff import (
     EXPERT_SANITY_METHOD,
     HANDOFF_METHODS,
 )
-from evaluate_recovery_segment_oracle import BINARY_METRICS, METRICS
+from evaluate_recovery_segment_oracle import (
+    BINARY_METRICS,
+    EXPECTED_CHECKPOINT_SHA256,
+    METRICS,
+)
 from paired_evaluation import bootstrap_summary
 
 
@@ -103,6 +107,7 @@ def load_and_validate(
         "teacher_privileged_inputs",
         "policy_receives_teacher_or_branch_labels",
         "continuation_seed_protocol",
+        "git_sha",
     )
     identity = {key: payloads[0].get(key) for key in identity_keys}
     if identity["teacher_is_privileged_upper_bound"] is not True:
@@ -114,6 +119,18 @@ def load_and_validate(
     for path, payload in zip(paths, payloads, strict=True):
         if payload.get("status") != "complete":
             raise ValueError(f"incomplete handoff result: {path}")
+        payload_seed = int(payload.get("seed", -1))
+        if (
+            payload.get("run_kind") == "decision"
+            and payload.get("git_dirty_at_launch") is not False
+        ):
+            raise ValueError(f"handoff result was dirty at launch: {path}")
+        if not payload.get("git_sha"):
+            raise ValueError(f"handoff result lacks Git identity: {path}")
+        if payload.get("policy_checkpoint_sha256") != EXPECTED_CHECKPOINT_SHA256.get(
+            payload_seed
+        ):
+            raise ValueError(f"handoff checkpoint SHA256 mismatch: {path}")
         for key, expected in identity.items():
             if payload.get(key) != expected:
                 raise ValueError(f"handoff result identity mismatch for {key}: {path}")
@@ -147,6 +164,8 @@ def load_and_validate(
             rows.append(row)
 
     if require_full_grid:
+        if identity["run_kind"] != "decision":
+            raise ValueError("full handoff grid must use decision runs")
         seeds = {int(row["seed"]) for row in rows}
         if seeds != set(EXPECTED_SEEDS):
             raise ValueError(f"full grid requires seeds {EXPECTED_SEEDS}, found {sorted(seeds)}")

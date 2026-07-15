@@ -134,22 +134,41 @@ def load_pi0_weights(
     else:
         openpi_state = torch.load(str(checkpoint_path), map_location="cpu")
     
-    # Map keys
-    mapped_state = {}
-    unmapped_keys = []
-    
-    for openpi_key, value in openpi_state.items():
-        alphabrain_key = _map_openpi_key_to_alphabrain(openpi_key)
-        if alphabrain_key is not None:
-            mapped_state[alphabrain_key] = value
-        else:
-            unmapped_keys.append(openpi_key)
-    
-    # Fix VLM keys for PaliGemmaVLM structure
-    mapped_state = _fixup_vlm_keys(mapped_state)
-
-    # Load into model
     model_state = model.state_dict()
+
+    # AlphaBrain's self-contained final checkpoints already use the model's
+    # native key layout. Sending them through the OpenPI bridge would map zero
+    # keys and silently leave the freshly initialized model untouched.
+    direct_shape_matches = sum(
+        key in model_state and model_state[key].shape == value.shape
+        for key, value in openpi_state.items()
+    )
+    direct_coverage = direct_shape_matches / max(len(model_state), 1)
+    native_prefixes = (
+        "flow_matching_head.",
+        "vlm_interface.",
+        "paligemma_vl_interface.",
+    )
+    is_alphabrain_checkpoint = (
+        direct_coverage >= 0.95
+        and any(key.startswith(native_prefixes) for key in openpi_state)
+    )
+
+    if is_alphabrain_checkpoint:
+        mapped_state = dict(openpi_state)
+        unmapped_keys = []
+        source_format = "alphabrain_native"
+    else:
+        mapped_state = {}
+        unmapped_keys = []
+        for openpi_key, value in openpi_state.items():
+            alphabrain_key = _map_openpi_key_to_alphabrain(openpi_key)
+            if alphabrain_key is not None:
+                mapped_state[alphabrain_key] = value
+            else:
+                unmapped_keys.append(openpi_key)
+        mapped_state = _fixup_vlm_keys(mapped_state)
+        source_format = "openpi_bridge"
     
     matched = []
     adapted = []
@@ -182,6 +201,8 @@ def load_pi0_weights(
     
     if verbose:
         logger.info(f"Weight loading summary:")
+        logger.info(f"  Source format:  {source_format}")
+        logger.info(f"  Direct coverage: {direct_coverage * 100:.1f}%")
         logger.info(f"  Matched:        {len(matched)}/{len(model_state)}")
         logger.info(f"  Missing:        {len(missing)}")
         logger.info(f"  Unexpected:     {len(unexpected)}")
@@ -201,6 +222,8 @@ def load_pi0_weights(
         )
     
     return {
+        "source_format": source_format,
+        "direct_coverage": direct_coverage,
         "matched": matched,
         "missing": missing,
         "unexpected": unexpected,

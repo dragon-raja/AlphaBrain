@@ -64,11 +64,26 @@ restart, learning rate, scheduler, batch size, and frozen modules.
 3. Otherwise train Base from the original checkpoint for 13,804 updates. If it
    still misses that gate, report `BASELINE_INVALID_OR_DATA_INSUFFICIENT` and do
    not compare recovery methods.
-4. Once the budget is frozen, train stage-balanced replay and policy-state
-   recovery SFT for exactly the same updates, then open test once for all arms.
+4. Once the budget is frozen, train clean feedback-to-regrasp replay and
+   policy-state recovery SFT for exactly the same updates, then open test once
+   for all arms.
 
 The recovery SFT data may use privileged physics only to trigger collection and
 audit milestones. Policy inputs remain the deployable images, language, and
 existing proprioception. The correction target ends at the first stable
 regrasp milestone; adding lift or transport labels is a later ablation, not the
 primary method.
+
+The 6,902-update candidate has now failed the stronger gate: validation K=3
+attached success averaged 17.95%, and only seed 42 reached 20%. The independent
+13,804-update candidate was therefore launched from the original seed-specific
+Full-H checkpoints. B/C remain unopened until this second validation gate
+finishes.
+
+Before any B/C collection or result, the clean control was tightened from a
+four-stage replay mixture to the same feedback-to-stable-regrasp target used by
+the policy-state arm. A fixed per-seed schedule gives both arms identical
+anchor slots and identical target snapshot groups. This removes target length
+and stage composition as confounders; policy-induced versus clean state
+coverage is the intended difference. The amendment and rationale are recorded
+in `support_expansion_preregistration.md`.

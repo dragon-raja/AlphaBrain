@@ -86,6 +86,34 @@ to stable regrasp raises it to 85.19%, a paired +63.33 percentage points with a
 source-cluster bootstrap 95% CI of `[+49.62,+74.07]`; 3- and 12-action teacher
 prefixes do not help. This supports a recovery-state action-support bottleneck,
 not the discarded exact weighting teacher. The next comparison is Base
-continuation versus stage-balanced replay versus policy-state recovery SFT,
-subject to a stronger baseline-stability gate. See
+continuation versus clean feedback-to-regrasp replay versus policy-state
+recovery SFT, subject to a stronger baseline-stability gate. See
 `docs/embodied_research_reset/recovery_support_diagnosis_results.md`.
+
+### Recovery-support calibration status
+
+The first Base continuation candidate added 6,902 updates from each seed's
+original Full-H checkpoint. Validation-only K=3 attached success was 15.38%,
+23.08%, and 15.38% for seeds 41, 42, and 43: a cross-seed mean of 17.95%, with
+only one seed at or above 20%. It therefore failed both preregistered conditions
+(mean at least 30% and at least two seeds at or above 20%). Slip full-task
+recovery averaged 2.56%. No test result was opened for calibration.
+
+All 234 validation rows completed. The 117 paired videos contain exactly 37,044
+expected frames and pass H.264/`avc1`, `yuv420p`, fast-start, nonblank, and
+motion checks. The machine-readable result is
+`/share/longjunyu/fresh-vla/runs/recovery-support-v1/base_continuation_calibration_steps6902.json`.
+
+Per preregistration, the second Base candidate is an independent 13,804-update
+run from the original checkpoints, not a continuation of the 6,902-update
+weights. Formal B/C collection, training, and test comparison remain blocked by
+the Base gate. Their implementation has nevertheless passed a one-group real
+simulator smoke and matched 20-slot training smokes, so a passing Base result can
+proceed without changing the method after seeing B/C outcomes.
+
+The B/C revision was recorded before any B/C result: both use 50% identical
+anchor slots and 50% target slots with identical snapshot-group schedules, and
+both target the same feedback-to-stable-regrasp segment. B uses clean expert
+states; C uses states reached after the deployed policy has actually executed a
+wrong or unresolved continuation. Thus the controlled difference is state
+distribution coverage, not target length, phase mix, or a new loss.

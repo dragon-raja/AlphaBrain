@@ -44,7 +44,7 @@ def main() -> None:
                 payload = json.loads((run / name).read_text())
                 if payload.get("status") != "complete" or len(payload.get("rows", ())) != expected:
                     raise ValueError(f"incomplete artifact: {run / name}")
-                if payload.get("policy_checkpoint_sha256_source") != "runner_sha256sum_verified":
+                if payload.get("policy_checkpoint_sha256_source") != "sha256sum_preflight_verified":
                     raise ValueError(f"checkpoint hash was not measured by the runner: {run / name}")
                 current_identity = (
                     payload.get("git_sha"),

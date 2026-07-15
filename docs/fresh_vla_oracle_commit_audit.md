@@ -77,7 +77,7 @@ fixed K=1/2/3 的成功率、恢复率、行为诊断、progress、subgoal、com
 
 ## 泄漏防火墙
 
-Pi0.5 始终只接收原有 agent view、wrist view、robot state 和 language。policy server 对 RPC example key 做严格白名单检查，拒绝 branch、时间和 Oracle 元数据。wrapper 接收完整 action chunk 后才决定执行前几步。接口不接受 branch outcome，privileged runtime event 只允许中断当前 chunk，不改变动作值、不选择恢复动作、不改变模型权重，也不提供额外图像或未来状态。正式 runner 拒绝脏 Git worktree，现场计算并核对 checkpoint SHA256，记录 Git SHA、Torch/CUDA/GPU 身份，并用 `flock` 阻止重复矩阵或同一输出并发写入。
+Pi0.5 始终只接收原有 agent view、wrist view、robot state 和 language。policy server 对 RPC example key 做严格白名单检查，拒绝 branch、时间和 Oracle 元数据。wrapper 接收完整 action chunk 后才决定执行前几步。接口不接受 branch outcome，privileged runtime event 只允许中断当前 chunk，不改变动作值、不选择恢复动作、不改变模型权重，也不提供额外图像或未来状态。正式 runner 拒绝脏 Git worktree；matrix preflight 对三份 checkpoint 各现场计算一次 SHA256，单独 evaluator 则自行计算；产物记录 Git SHA、Torch/CUDA/GPU 身份，并用 `flock` 阻止重复矩阵或同一输出并发写入。
 
 ## 视频兼容性
 

@@ -324,7 +324,7 @@ def evaluation_payload(
         "policy_checkpoint_realpath": args.policy_checkpoint_realpath,
         "policy_model_size_bytes": args.policy_model_size_bytes,
         "policy_checkpoint_sha256": os.environ.get("FRESH_CHECKPOINT_SHA256"),
-        "policy_checkpoint_sha256_source": "runner_sha256sum_verified",
+        "policy_checkpoint_sha256_source": "sha256sum_preflight_verified",
         "git_sha": os.environ.get("FRESH_GIT_SHA"),
         "policy_runtime": args.policy_runtime,
         "episode_root": str(args.episode_root),

@@ -89,7 +89,11 @@ fi
 export FRESH_GIT_SHA
 FRESH_GIT_SHA=$(git rev-parse HEAD)
 export FRESH_CHECKPOINT_SHA256
-FRESH_CHECKPOINT_SHA256=$(sha256sum "$CHECKPOINT/model.safetensors" | awk '{print $1}')
+PREVERIFIED_NAME="FRESH_PREVERIFIED_CHECKPOINT_SHA256_${SEED}"
+FRESH_CHECKPOINT_SHA256=${!PREVERIFIED_NAME:-}
+if [ -z "$FRESH_CHECKPOINT_SHA256" ]; then
+  FRESH_CHECKPOINT_SHA256=$(sha256sum "$CHECKPOINT/model.safetensors" | awk '{print $1}')
+fi
 if [ "$FRESH_CHECKPOINT_SHA256" != "$EXPECTED_CHECKPOINT_SHA256" ]; then
   echo "frozen checkpoint SHA256 mismatch for seed $SEED" >&2
   exit 1

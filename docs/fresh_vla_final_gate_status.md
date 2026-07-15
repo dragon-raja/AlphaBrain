@@ -1,9 +1,10 @@
 # FRESH-VLA Final Gate Status
 
-Audit date: 2026-07-14 UTC
+Audit date: 2026-07-15 UTC
 
 Branch: `exp/fresh-vla-toy-v0`
 Audit base: `a374582`
+Implementation commit: `3f356ed`
 
 ## Complete Data
 
@@ -17,7 +18,7 @@ Audit base: `a374582`
 - Pre-reveal paired image, state, and action equality checks pass. Feedback becomes visible at the intervention, and all post-feedback windows restore horizon 10.
 - Window quality report passes all eight checks, including group-preserving split, loss-only oracle labels, and exact sample-level Oracle/Shuffled-Oracle marginal matching within each split.
 - 34,551 total windows: 27,607 train, 3,394 validation, and 3,550 test.
-- `label_revision.json` records the sample-marginal fix and the prior labels are retained as `training_labels.before_sample_marginal_fix.json`. The in-flight Full-H calibration is mathematically unaffected because its tail weight is exactly 1.0; all weighted methods will read the revised labels.
+- `label_revision.json` records the sample-marginal fix and the prior labels are retained as `training_labels.before_sample_marginal_fix.json`. The completed Full-H calibration is mathematically unaffected because its tail weight is exactly 1.0; all weighted methods used the revised labels.
 
 The data collection and post-feedback window construction are complete and must not be regenerated unless their quality checks fail.
 
@@ -44,21 +45,31 @@ These checkpoints are retained as pilot evidence, not final-gate checkpoints. Th
 
 Earlier Full-H and Oracle isolated K=1 attempts were interrupted after zero successes and predate atomic partial output. They are not final results and are not used for method selection.
 
-## Final Gate In Progress
+## Final Gate Complete
 
 The analysis rule is fixed before viewing final test results: K=3 is the primary commitment setting, K=2 is supporting evidence, and K=1 is a negative control. The final decision script applies the stated 10-point Oracle-vs-Full and 5-point control-effect thresholds together with normal-task, behavior-error, and baseline-validity gates. It does not select a checkpoint, seed, or execution horizon after seeing test performance.
 
 All methods use a 320-step end-to-end timeout. The held-out scripted expert requires at most 252 steps on the slip branch, so this budget provides a fixed 27% margin without changing between methods, seeds, or K.
 
-The final gate will:
+The final gate completed the following protocol:
 
-1. use Full-H on the validation split to establish a common training budget and baseline validity;
-2. train every method with identical initialization, shuffled sample order per seed, optimizer, batch size, horizon, and update count;
-3. run isolated recovery and event-triggered end-to-end evaluation for fixed K=1, K=2, and K=3 on all 13 held-out groups;
-4. save paired videos for every successful and failed evaluation episode;
-5. report group-level bootstrap confidence intervals, seed-level values, progress/subgoal diagnostics, and paired absolute percentage-point deltas;
-6. emit `docs/fresh_vla_final_decision.md` and machine-readable `final_decision.json`.
+1. Full-H passed the validation-only attached-success gate and fixed a common budget of 27,607 updates.
+2. All six methods used identical initialization, seeded data order, optimizer, batch size, horizon, frozen modules, and update count for seeds 41, 42, and 43.
+3. All 18 checkpoints completed isolated recovery, event-triggered end-to-end, deterministic reach, and offline evaluation for fixed K=1, K=2, and K=3 on all 13 held-out groups.
+4. The run produced 1,404 paired closed-loop videos, covering every method, seed, K, evaluation type, and test group.
+5. Group-level paired bootstrap intervals average seeds within each snapshot group; frames and windows are never treated as independent statistical samples.
+6. The final artifact audit passes for 18/18 checkpoints and every required evaluation output.
 
-The persistent `run_libero_final_gate.sh` controller records stage transitions under `final_gate_logs/pipeline.log`, skips complete artifacts, and stops before opening the test split if the validation baseline gate fails.
+The persistent `run_libero_final_gate.sh` controller completed at `2026-07-15T02:39:31Z`. Its stage log is under `final_gate_logs/pipeline.log`.
 
-Deterministic reach and offline MSE remain auxiliary controls. They cannot independently determine the final decision.
+The preregistered result is `STOP_TRAINING_WEIGHTING_ROUTE`. At primary K=3, Oracle FRESH did not improve slip recovery over Full-H and did not beat Random, Shuffled Oracle, Gripper, or Short-H on the required closed-loop success criteria. Offline common-prefix MSE improved, but suffix mode coverage collapsed and the gain did not transfer to full-task recovery.
+
+Deterministic reach and offline MSE remain auxiliary controls. They did not independently determine the decision. Failure-continuation and premature-commitment are distinct predicates but coincide on all 221 eligible final-gate rows, so they are not counted as independent evidence.
+
+Final outputs:
+
+- `docs/fresh_vla_final_decision.md`
+- `/share/longjunyu/fresh-vla/runs/libero-full-episode-final-v2/final_decision.json`
+- `/share/longjunyu/fresh-vla/runs/libero-full-episode-final-v2/closed_loop_summary`
+- `/share/longjunyu/fresh-vla/runs/libero-full-episode-final-v2/episode_offline_summary`
+- `/share/longjunyu/fresh-vla/runs/libero-full-episode-final-v2/deterministic_reach_summary`

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import copy
+import json
+from pathlib import Path
+import tempfile
 import unittest
 
-from finalize_libero_decision import METHODS, decide, render_markdown
+from finalize_libero_decision import METHODS, audit_behavior_diagnostics, decide, render_markdown
 
 
 METRICS = (
@@ -107,6 +110,28 @@ class FinalDecisionTest(unittest.TestCase):
         result = decide(data)
         self.assertEqual(result["decision"], "STOP_TRAINING_WEIGHTING_ROUTE")
         self.assertIn("n/a", render_markdown(result))
+
+    def test_behavior_audit_does_not_double_count_identical_diagnostics(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for method in METHODS:
+                for seed in (41, 42, 43):
+                    run = root / f"fresh_closed_loop_{method}_seed{seed}"
+                    run.mkdir()
+                    (run / "closed_loop_end_to_end.json").write_text(json.dumps({
+                        "status": "complete",
+                        "completed_rows": 78,
+                        "rows": [
+                            {"failure_continuation": True, "premature_commitment": True},
+                            {"failure_continuation": False, "premature_commitment": False},
+                            {"failure_continuation": None, "premature_commitment": None},
+                        ],
+                    }))
+            audit = audit_behavior_diagnostics(root)
+        self.assertEqual(audit["complete_end_to_end_files"], 18)
+        self.assertEqual(audit["eligible_triggered_slip_rows"], 36)
+        self.assertEqual(audit["rows_where_metrics_differ"], 0)
+        self.assertFalse(audit["metrics_provide_independent_evidence"])
 
 
 if __name__ == "__main__":

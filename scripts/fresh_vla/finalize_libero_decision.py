@@ -193,6 +193,39 @@ def decide(payload: Mapping[str, Any]) -> dict[str, Any]:
                 )
             },
         }
+    primary_seed_results = {
+        method: {
+            seed: {
+                metric: values.get(metric)
+                for metric in (
+                    "overall_task_success",
+                    "attached_task_success",
+                    "slip_recovery_success",
+                    "isolated_recovery_success",
+                )
+            }
+            for seed, values in payload.get("seed_summaries", {}).get(str(PRIMARY_K), {}).get(method, {}).items()
+        }
+        for method in METHODS
+    }
+    primary_comparisons = {}
+    for baseline in ("full_h", "random_soft010", "shuffled_oracle_soft010", "gripper_soft010", "short_h"):
+        comparison = payload["paired_comparisons"][str(PRIMARY_K)][f"oracle_vs_{baseline}"]
+        primary_comparisons[f"oracle_vs_{baseline}"] = {
+            metric: {
+                "paired_group_count": comparison[metric].get("group_count"),
+                "candidate_minus_baseline": _optional_delta(payload, PRIMARY_K, baseline, metric),
+            }
+            for metric in (
+                "overall_task_success",
+                "attached_task_success",
+                "slip_recovery_success",
+                "isolated_recovery_success",
+                "failure_continuation_rate",
+                "premature_commitment_rate",
+                "final_progress",
+            )
+        }
     return {
         "schema_version": 1,
         "decision": decision,
@@ -209,6 +242,8 @@ def decide(payload: Mapping[str, Any]) -> dict[str, Any]:
         "continue_checks": continue_checks,
         "pivot_checks": pivot_checks,
         "evidence": evidence,
+        "primary_seed_results": primary_seed_results,
+        "primary_oracle_comparisons": primary_comparisons,
     }
 
 
@@ -226,10 +261,141 @@ def _fmt_pp(summary: Mapping[str, float] | None) -> str:
     )
 
 
+def _fmt_pp_with_count(entry: Mapping[str, Any]) -> str:
+    formatted = _fmt_pp(entry.get("candidate_minus_baseline"))
+    count = entry.get("paired_group_count")
+    return formatted if count is None else f"{formatted} (n={count})"
+
+
+def _complete_json(path: Path, *, expected_rows: int | None = None) -> bool:
+    if not path.is_file():
+        return False
+    try:
+        payload = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return False
+    if payload.get("status") not in (None, "complete"):
+        return False
+    return expected_rows is None or int(payload.get("completed_rows", -1)) == expected_rows
+
+
+def audit_run_artifacts(runs_root: Path, episode_root: Path | None = None) -> dict[str, Any]:
+    run_dirs = [runs_root / f"fresh_closed_loop_{method}_seed{seed}" for method in METHODS for seed in (41, 42, 43)]
+    counts = {
+        "expected_runs": len(run_dirs),
+        "final_checkpoints": sum((run_dir / "final_model/model.safetensors").is_file() for run_dir in run_dirs),
+        "isolated_evaluations": sum(
+            _complete_json(run_dir / "closed_loop_isolated.json", expected_rows=78) for run_dir in run_dirs
+        ),
+        "end_to_end_evaluations": sum(
+            _complete_json(run_dir / "closed_loop_end_to_end.json", expected_rows=78) for run_dir in run_dirs
+        ),
+        "deterministic_reach_evaluations": sum(
+            _complete_json(run_dir / "deterministic_reach.json") for run_dir in run_dirs
+        ),
+        "offline_evaluations": sum(_complete_json(run_dir / "offline_eval.json") for run_dir in run_dirs),
+        "closed_loop_video_files": sum(
+            len(list((run_dir / "closed_loop_videos").glob("*.mp4"))) for run_dir in run_dirs
+        ),
+        "expected_closed_loop_video_files": len(run_dirs) * 78,
+    }
+    counts["complete"] = bool(
+        all(counts[name] == counts["expected_runs"] for name in (
+            "final_checkpoints",
+            "isolated_evaluations",
+            "end_to_end_evaluations",
+            "deterministic_reach_evaluations",
+            "offline_evaluations",
+        ))
+        and counts["closed_loop_video_files"] == counts["expected_closed_loop_video_files"]
+    )
+    if episode_root is not None:
+        counts.update({
+            "source_branch_episode_files": len(list((episode_root / "episodes").rglob("*.npz"))),
+            "source_paired_video_files": len(list((episode_root / "paired_videos").glob("*.mp4"))),
+            "source_branch_video_files": len(list((episode_root / "videos").rglob("*.mp4"))),
+            "source_contact_sheet": (episode_root / "contact_sheet.png").is_file(),
+        })
+        counts["complete"] = bool(
+            counts["complete"]
+            and counts["source_branch_episode_files"] == 256
+            and counts["source_paired_video_files"] == 128
+            and counts["source_branch_video_files"] == 256
+            and counts["source_contact_sheet"]
+        )
+    return counts
+
+
+def audit_behavior_diagnostics(runs_root: Path) -> dict[str, Any]:
+    eligible = 0
+    distinct = 0
+    complete_files = 0
+    for method in METHODS:
+        for seed in (41, 42, 43):
+            path = runs_root / f"fresh_closed_loop_{method}_seed{seed}" / "closed_loop_end_to_end.json"
+            if not _complete_json(path, expected_rows=78):
+                continue
+            complete_files += 1
+            for row in json.loads(path.read_text())["rows"]:
+                failure = row.get("failure_continuation")
+                premature = row.get("premature_commitment")
+                if failure is None or premature is None:
+                    continue
+                eligible += 1
+                distinct += bool(failure) != bool(premature)
+    return {
+        "complete_end_to_end_files": complete_files,
+        "eligible_triggered_slip_rows": eligible,
+        "rows_where_metrics_differ": distinct,
+        "metrics_provide_independent_evidence": distinct > 0,
+        "interpretation": (
+            "The predicates are distinct in code, but they coincide on every eligible final-gate row; "
+            "do not count them as independent behavioral evidence."
+            if eligible and not distinct
+            else "The two diagnostics differ on at least one eligible row."
+        ),
+    }
+
+
+def validity_evidence(
+    episode_quality: Mapping[str, Any] | None,
+    window_quality: Mapping[str, Any] | None,
+    reach: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    if episode_quality is not None:
+        result["episode_data"] = {
+            "passed": bool(episode_quality.get("passed")),
+            "checks": episode_quality.get("checks", {}),
+            "metrics": episode_quality.get("metrics", {}),
+        }
+    if window_quality is not None:
+        result["window_data"] = {
+            "passed": bool(window_quality.get("passed")),
+            "checks": window_quality.get("checks", {}),
+            "metrics": window_quality.get("metrics", {}),
+        }
+    if reach is not None:
+        result["deterministic_reach"] = {
+            "target_definition": reach.get("target_definition"),
+            "success_threshold_m": reach.get("success_threshold"),
+            "success_by_execution_horizon": {
+                str(k): {
+                    method: reach["aggregate"][str(k)][method]["success"]["mean"] for method in METHODS
+                }
+                for k in (1, 2, 3)
+            },
+        }
+    return result
+
+
 def render_markdown(result: Mapping[str, Any], offline: Mapping[str, Any] | None = None) -> str:
     decision = str(result["decision"])
     evidence = result["evidence"]
     primary = evidence[str(PRIMARY_K)]
+    artifacts = result.get("artifact_audit", {})
+    validity = result.get("validity_evidence", {})
+    diagnostics = result.get("behavior_diagnostic_audit", {})
     lines = [
         "# FRESH-VLA LIBERO Final Decision",
         "",
@@ -237,6 +403,50 @@ def render_markdown(result: Mapping[str, Any], offline: Mapping[str, Any] | None
         "",
         "The final comparison uses held-out snapshot groups, three fixed seeds, and fixed execution horizons. "
         "K=3 is the preregistered primary commitment setting, K=2 is supporting evidence, and K=1 is a negative control.",
+    ]
+    if artifacts:
+        lines.extend((
+            "",
+            "## Completion Audit",
+            "",
+            f"Artifact audit complete: `{str(bool(artifacts.get('complete'))).lower()}`.",
+            "",
+            "| Checkpoints | Isolated | End-to-end | Reach | Offline | Closed-loop videos |",
+            "| ---: | ---: | ---: | ---: | ---: | ---: |",
+            f"| {artifacts.get('final_checkpoints')}/{artifacts.get('expected_runs')} | "
+            f"{artifacts.get('isolated_evaluations')}/{artifacts.get('expected_runs')} | "
+            f"{artifacts.get('end_to_end_evaluations')}/{artifacts.get('expected_runs')} | "
+            f"{artifacts.get('deterministic_reach_evaluations')}/{artifacts.get('expected_runs')} | "
+            f"{artifacts.get('offline_evaluations')}/{artifacts.get('expected_runs')} | "
+            f"{artifacts.get('closed_loop_video_files')}/{artifacts.get('expected_closed_loop_video_files')} |",
+        ))
+        if "source_branch_episode_files" in artifacts:
+            lines.extend((
+                "",
+                f"Source data contain {artifacts['source_branch_episode_files']} branch episodes, "
+                f"{artifacts['source_paired_video_files']} paired videos, "
+                f"{artifacts['source_branch_video_files']} branch videos, and a contact sheet.",
+            ))
+    episode_validity = validity.get("episode_data")
+    window_validity = validity.get("window_data")
+    if episode_validity or window_validity:
+        lines.extend(("", "## Data And Expert Gate", ""))
+        if episode_validity:
+            metrics = episode_validity["metrics"]
+            lines.append(
+                f"Episode quality passed: `{str(bool(episode_validity['passed'])).lower()}`; "
+                f"{metrics.get('group_count')} groups, attached expert success "
+                f"{_fmt(metrics.get('attached_success_rate'))}, slip recovery expert success "
+                f"{_fmt(metrics.get('slipped_success_rate'))}."
+            )
+        if window_validity:
+            metrics = window_validity["metrics"]
+            lines.append(
+                f"Window quality passed: `{str(bool(window_validity['passed'])).lower()}`; "
+                f"{metrics.get('record_count')} windows with group-preserving splits and "
+                "post-feedback full supervision restored."
+            )
+    lines.extend((
         "",
         "## Baseline Gate",
         "",
@@ -253,11 +463,16 @@ def render_markdown(result: Mapping[str, Any], offline: Mapping[str, Any] | None
         ))
         + " |",
         "",
+        "The baseline clears the preregistered attached-success gate, but only narrowly. The conclusion is "
+        "therefore scoped to this training-weighting implementation and budget, not to feedback-aware control in general.",
+        "",
         "## Primary Closed-Loop Results (K=3)",
+        "",
+        "Attached success is also the normal/no-intervention success in this paired design.",
         "",
         "| Method | Overall | Attached | Slip recovery | Isolated recovery | Failure continuation | Premature commitment | Final progress |",
         "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
-    ]
+    ))
     for method in METHODS:
         row = primary["methods"][method]
         lines.append(
@@ -266,6 +481,46 @@ def render_markdown(result: Mapping[str, Any], offline: Mapping[str, Any] | None
             f"{_fmt(row['failure_continuation_rate'])} | {_fmt(row['premature_commitment_rate'])} | "
             f"{_fmt(row['final_progress'])} |"
         )
+    seed_results = result.get("primary_seed_results", {})
+    if any(seed_results.get(method) for method in METHODS):
+        lines.extend((
+            "",
+            "### Per-Seed K=3 Primary Rates",
+            "",
+            "| Method | Seed | Overall | Attached | Slip recovery | Isolated recovery |",
+            "| --- | ---: | ---: | ---: | ---: | ---: |",
+        ))
+        for method in METHODS:
+            for seed in ("41", "42", "43"):
+                row = seed_results.get(method, {}).get(seed)
+                if row is None:
+                    continue
+                lines.append(
+                    f"| `{method}` | {seed} | {_fmt(row['overall_task_success'])} | "
+                    f"{_fmt(row['attached_task_success'])} | {_fmt(row['slip_recovery_success'])} | "
+                    f"{_fmt(row['isolated_recovery_success'])} |"
+                )
+    comparisons = result.get("primary_oracle_comparisons", {})
+    if comparisons:
+        lines.extend((
+            "",
+            "### Oracle Versus Every Control At K=3",
+            "",
+            "Positive success deltas favor Oracle; negative behavior-error deltas favor Oracle. "
+            "The parenthesized n is the paired snapshot-group count.",
+            "",
+            "| Baseline | Overall | Attached | Slip recovery | Isolated recovery | Failure continuation |",
+            "| --- | ---: | ---: | ---: | ---: | ---: |",
+        ))
+        for baseline in ("full_h", "random_soft010", "shuffled_oracle_soft010", "gripper_soft010", "short_h"):
+            row = comparisons[f"oracle_vs_{baseline}"]
+            lines.append(
+                f"| `{baseline}` | {_fmt_pp_with_count(row['overall_task_success'])} | "
+                f"{_fmt_pp_with_count(row['attached_task_success'])} | "
+                f"{_fmt_pp_with_count(row['slip_recovery_success'])} | "
+                f"{_fmt_pp_with_count(row['isolated_recovery_success'])} | "
+                f"{_fmt_pp_with_count(row['failure_continuation_rate'])} |"
+            )
     lines.extend((
         "",
         "## Oracle vs Full-H Paired Deltas",
@@ -282,6 +537,19 @@ def render_markdown(result: Mapping[str, Any], offline: Mapping[str, Any] | None
             f"{_fmt_pp(row['isolated_recovery_success'])} | {_fmt_pp(row['failure_continuation_rate'])} | "
             f"{_fmt_pp(row['premature_commitment_rate'])} |"
         )
+    if diagnostics:
+        lines.extend((
+            "",
+            "### Behavioral Diagnostic Audit",
+            "",
+            f"Across {diagnostics.get('eligible_triggered_slip_rows')} eligible triggered-slip rows, "
+            f"failure-continuation and premature-commitment differ on "
+            f"{diagnostics.get('rows_where_metrics_differ')} rows. "
+            f"{diagnostics.get('interpretation')}",
+            "",
+            "Their K=3 paired comparisons use fewer groups than the success metrics because they are defined only "
+            "after an intervention event. The behavior-rate reduction is diagnostic, not independent success evidence.",
+        ))
     lines.extend(("", "## Rule Checks", "", "### Continue FRESH", ""))
     for name, passed in result["continue_checks"].items():
         lines.append(f"- `{name}`: {'PASS' if passed else 'FAIL'}")
@@ -295,22 +563,50 @@ def render_markdown(result: Mapping[str, Any], offline: Mapping[str, Any] | None
             "",
             "Offline MSE and suffix mode coverage are mechanism diagnostics only and did not determine the decision.",
             "",
-            "| Method | K=1 MSE | K=2 MSE | K=3 MSE | Suffix mode coverage |",
-            "| --- | ---: | ---: | ---: | ---: |",
+            "| Method | K=1 MSE | K=2 MSE | K=3 MSE | Oracle-prefix MSE | Suffix MSE | Mode coverage |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
         ))
         for method in METHODS:
             off = offline["aggregate"]["offline"][method]
             mode = offline["aggregate"]["mode"][method]
             lines.append(
                 f"| `{method}` | {off['fixed_k_1']['mean']:.4f} | {off['fixed_k_2']['mean']:.4f} | "
-                f"{off['fixed_k_3']['mean']:.4f} | {mode['suffix_mode_coverage']['mean']:.3f} |"
+                f"{off['fixed_k_3']['mean']:.4f} | {off['oracle_prefix']['mean']:.4f} | "
+                f"{off['suffix']['mean']:.4f} | {mode['suffix_mode_coverage']['mean']:.3f} |"
+            )
+    reach = validity.get("deterministic_reach")
+    if reach:
+        lines.extend((
+            "",
+            "## Deterministic Reach Negative Control",
+            "",
+            f"Success threshold: {float(reach['success_threshold_m']):.3f} m to the recorded expert EEF target.",
+            "",
+            "| Method | K=1 | K=2 | K=3 |",
+            "| --- | ---: | ---: | ---: |",
+        ))
+        for method in METHODS:
+            values = reach["success_by_execution_horizon"]
+            lines.append(
+                f"| `{method}` | {_fmt(values['1'][method])} | {_fmt(values['2'][method])} | "
+                f"{_fmt(values['3'][method])} |"
             )
     lines.extend((
         "",
         "## Interpretation",
         "",
-        "The decision follows the preregistered behavioral gate. Offline prediction errors, deterministic reach, "
-        "and individual frames were not used as substitutes for full-task and recovery behavior.",
+        "At the primary K=3 setting, Oracle does not improve slip recovery over Full-H and its overall-success "
+        "paired interval includes zero. Random, shuffled-Oracle, gripper, and Short-H controls match or exceed "
+        "Oracle on at least one primary success outcome, so the exact Oracle boundary has no demonstrated "
+        "closed-loop specificity.",
+        "",
+        "Oracle improves the offline common-prefix error, but its suffix mode coverage collapses and the offline "
+        "gain does not transfer to recovery or full-task success. K=1 improvements are negative-control evidence: "
+        "they do not persist at the preregistered commitment horizon and are not Oracle-specific.",
+        "",
+        "Deterministic reach confirms that deployment can execute basic directed motion. It does not substitute for "
+        "the failed full-task recovery gate. The decision therefore stops this suffix-loss weighting route; it does "
+        "not reject feedback-aware replanning, plan-commit execution, active probing, or belief-aware control.",
         "",
         decision,
     ))
@@ -320,9 +616,16 @@ def render_markdown(result: Mapping[str, Any], offline: Mapping[str, Any] | None
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     repo_root = Path(__file__).resolve().parents[2]
     default_runs = Path("/share/longjunyu/fresh-vla/runs/libero-full-episode-final-v2")
+    default_episodes = Path("/share/longjunyu/fresh-vla/libero-full-episode-v2-128")
+    default_windows = Path("/share/longjunyu/fresh-vla/libero-full-episode-windows-v2-128")
     parser = argparse.ArgumentParser(description="Apply the preregistered FRESH-VLA final decision gate")
+    parser.add_argument("--runs-root", type=Path, default=default_runs)
+    parser.add_argument("--episode-root", type=Path, default=default_episodes)
     parser.add_argument("--closed-loop-results", type=Path, default=default_runs / "closed_loop_summary/results.json")
     parser.add_argument("--offline-results", type=Path, default=default_runs / "episode_offline_summary/results.json")
+    parser.add_argument("--reach-results", type=Path, default=default_runs / "deterministic_reach_summary/results.json")
+    parser.add_argument("--episode-quality-report", type=Path, default=default_episodes / "quality_report.json")
+    parser.add_argument("--window-quality-report", type=Path, default=default_windows / "quality_report.json")
     parser.add_argument("--output-json", type=Path, default=default_runs / "final_decision.json")
     parser.add_argument("--output-md", type=Path, default=repo_root / "docs/fresh_vla_final_decision.md")
     return parser.parse_args(argv)
@@ -332,10 +635,23 @@ def main() -> None:
     args = parse_args()
     closed_loop = json.loads(args.closed_loop_results.read_text())
     offline = json.loads(args.offline_results.read_text()) if args.offline_results.is_file() else None
+    reach = json.loads(args.reach_results.read_text()) if args.reach_results.is_file() else None
+    episode_quality = (
+        json.loads(args.episode_quality_report.read_text()) if args.episode_quality_report.is_file() else None
+    )
+    window_quality = (
+        json.loads(args.window_quality_report.read_text()) if args.window_quality_report.is_file() else None
+    )
     result = decide(closed_loop)
+    result["artifact_audit"] = audit_run_artifacts(args.runs_root, args.episode_root)
+    result["behavior_diagnostic_audit"] = audit_behavior_diagnostics(args.runs_root)
+    result["validity_evidence"] = validity_evidence(episode_quality, window_quality, reach)
     result["inputs"] = {
         "closed_loop_results": str(args.closed_loop_results),
         "offline_results": str(args.offline_results) if offline is not None else None,
+        "reach_results": str(args.reach_results) if reach is not None else None,
+        "episode_quality_report": str(args.episode_quality_report) if episode_quality is not None else None,
+        "window_quality_report": str(args.window_quality_report) if window_quality is not None else None,
     }
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     args.output_md.parent.mkdir(parents=True, exist_ok=True)

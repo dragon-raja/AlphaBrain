@@ -412,9 +412,9 @@ def main() -> None:
         policy.runtime_identity
         if isinstance(policy, RemotePi05Policy)
         else {
-            "torch_version": policy.torch.__version__,
-            "cuda_version": policy.torch.version.cuda,
-            "device_name": policy.torch.cuda.get_device_name(0) if policy.torch.cuda.is_available() else "cpu",
+            "torch_version": str(policy.torch.__version__),
+            "cuda_version": None if policy.torch.version.cuda is None else str(policy.torch.version.cuda),
+            "device_name": (str(policy.torch.cuda.get_device_name(0)) if policy.torch.cuda.is_available() else "cpu"),
         }
     )
     random_boundary_overrides = None

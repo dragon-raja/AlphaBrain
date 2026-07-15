@@ -13,6 +13,16 @@ import torch
 from AlphaBrain.model.framework.base_framework import BaseFramework
 
 
+def runtime_identity(torch_module, device_index: int = 0) -> dict[str, str | None]:
+    return {
+        "torch_version": str(torch_module.__version__),
+        "cuda_version": None if torch_module.version.cuda is None else str(torch_module.version.cuda),
+        "device_name": (
+            str(torch_module.cuda.get_device_name(device_index)) if torch_module.cuda.is_available() else "cpu"
+        ),
+    }
+
+
 def validate_policy_example(example: dict) -> None:
     if set(example) != {"image", "lang", "language", "state"}:
         raise ValueError(f"unexpected policy example keys: {sorted(example)}")
@@ -57,6 +67,7 @@ def main() -> None:
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
     listener = Listener(str(args.socket), family="AF_UNIX", authkey=b"fresh-vla-local")
+    identity = runtime_identity(torch)
     print(f"policy_server_ready socket={args.socket} horizon={horizon}", flush=True)
     try:
         while True:
@@ -67,9 +78,7 @@ def main() -> None:
                         "horizon": horizon,
                         "checkpoint_realpath": str(args.checkpoint.resolve()),
                         "model_size_bytes": (args.checkpoint / "model.safetensors").stat().st_size,
-                        "torch_version": torch.__version__,
-                        "cuda_version": torch.version.cuda,
-                        "device_name": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
+                        **identity,
                     }
                 )
                 while True:

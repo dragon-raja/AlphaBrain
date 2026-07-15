@@ -14,6 +14,7 @@ from evaluate_recovery_segment_oracle import (
     METHODS,
     METRICS,
     METRIC_DIRECTIONS,
+    aggregate_recovery_preference_key,
 )
 from paired_evaluation import bootstrap_summary
 
@@ -207,8 +208,11 @@ def _validate_restore_audits(
             path,
             f"row {pair_id} lacks receding Oracle restore audits",
         ) from exc
-    if not isinstance(decisions, list) or not decisions:
-        raise _decision_error(path, f"row {pair_id} has no receding Oracle decisions")
+    if not isinstance(decisions, list) or len(decisions) != 4:
+        raise _decision_error(
+            path,
+            f"row {pair_id} must contain exactly four receding Oracle decisions",
+        )
     for decision in decisions:
         if decision.get("candidate0_branch_replay_semantic_match") is not True:
             raise _decision_error(
@@ -335,6 +339,12 @@ def _validate_decision_payload(path: Path, payload: Mapping[str, Any]) -> None:
         )
     for row in rows:
         _validate_restore_audits(path, row)
+        try:
+            for method in METHODS:
+                _method_summaries(row, method, decision_run=True)
+            _decision_stability_values(row)
+        except (KeyError, TypeError, ValueError) as exc:
+            raise _decision_error(path, str(exc)) from exc
 
 
 def _validate_decision_grid(rows: Sequence[Mapping[str, Any]], identity: Mapping[str, Any]) -> None:
@@ -476,6 +486,118 @@ def _random4_schedule_results(result: Mapping[str, Any]) -> Sequence[Mapping[str
     return None
 
 
+def _full_heldout_repeat(
+    outcome_row: Mapping[str, Any],
+    *,
+    label: str,
+) -> int:
+    value = outcome_row.get("repeat")
+    if isinstance(value, bool) or not isinstance(value, (int, np.integer)):
+        raise ValueError(f"{label} repeat must be an integer in 0..4")
+    repeat = int(value)
+    if repeat not in range(5):
+        raise ValueError(f"{label} repeat must be an integer in 0..4, found {repeat}")
+    return repeat
+
+
+def _outcome_metric_value(
+    outcome: Mapping[str, Any],
+    metric: str,
+    *,
+    label: str,
+) -> float:
+    if metric not in outcome:
+        raise ValueError(f"{label} outcome is missing metric {metric}")
+    raw_value = outcome[metric]
+    if isinstance(raw_value, (float, np.floating)) and not np.isfinite(raw_value):
+        raise ValueError(f"{label} outcome metric {metric} is non-finite")
+    if metric in BINARY_METRICS:
+        return float(bool(raw_value))
+    try:
+        value = float(raw_value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{label} outcome metric {metric} is not numeric") from exc
+    if not np.isfinite(value):
+        raise ValueError(f"{label} outcome metric {metric} is non-finite")
+    return value
+
+
+def _validate_full_heldout_rows(
+    summary: Mapping[str, Any],
+    outcome_rows: Any,
+    *,
+    expected_count: int,
+    require_unique_repeats: bool,
+    label: str,
+) -> list[tuple[int, Mapping[str, Any]]]:
+    if not isinstance(outcome_rows, list) or len(outcome_rows) != expected_count:
+        raise ValueError(
+            f"{label} requires {expected_count} full-heldout outcomes"
+        )
+    normalized: list[tuple[int, Mapping[str, Any]]] = []
+    for index, outcome_row in enumerate(outcome_rows):
+        row_label = f"{label} full-heldout outcome {index}"
+        if not isinstance(outcome_row, Mapping):
+            raise ValueError(f"{row_label} is not a mapping")
+        repeat = _full_heldout_repeat(outcome_row, label=row_label)
+        outcome = outcome_row.get("outcome")
+        if not isinstance(outcome, Mapping):
+            raise ValueError(f"{row_label} is missing its original outcome")
+        normalized.append((repeat, outcome))
+
+    repeats = [repeat for repeat, _ in normalized]
+    if require_unique_repeats and (
+        len(set(repeats)) != 5 or sorted(repeats) != list(range(5))
+    ):
+        raise ValueError(
+            f"{label} repeats must be unique and exactly 0..4, found {repeats}"
+        )
+    if "repeat_count" in summary and int(summary["repeat_count"]) != expected_count:
+        raise ValueError(
+            f"{label} full_heldout_summary repeat_count does not match its outcomes"
+        )
+
+    for metric in METRICS:
+        recomputed = float(
+            np.mean(
+                [
+                    _outcome_metric_value(outcome, metric, label=label)
+                    for _, outcome in normalized
+                ]
+            )
+        )
+        reported = _summary_metric(summary, metric)
+        if not np.isclose(reported, recomputed, rtol=0.0, atol=1e-12):
+            raise ValueError(
+                f"{label} full_heldout_summary does not match recomputed "
+                f"full-heldout outcomes for {metric}: {reported} != {recomputed}"
+            )
+    return normalized
+
+
+def _random4_schedule_identifier(
+    value: Mapping[str, Any],
+    *,
+    label: str,
+) -> int:
+    identifier = value.get(
+        "random_schedule_index",
+        value.get("schedule_index", value.get("schedule_id")),
+    )
+    if isinstance(identifier, bool) or identifier is None:
+        raise ValueError(f"{label} is missing a valid schedule identifier")
+    try:
+        normalized = int(identifier)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{label} has a non-integer schedule identifier") from exc
+    if str(normalized) != str(identifier) and not (
+        isinstance(identifier, (float, np.floating))
+        and float(identifier).is_integer()
+    ):
+        raise ValueError(f"{label} has a non-integer schedule identifier")
+    return normalized
+
+
 def _method_summaries(
     row: Mapping[str, Any],
     method: str,
@@ -495,10 +617,13 @@ def _method_summaries(
 
     if method != "random4":
         heldout_outcomes = result.get("full_heldout_outcomes")
-        if not isinstance(heldout_outcomes, list) or len(heldout_outcomes) != 5:
-            raise ValueError(
-                f"row {row.get('pair_id')} method {method} requires 5 full-heldout outcomes"
-            )
+        _validate_full_heldout_rows(
+            summary,
+            heldout_outcomes,
+            expected_count=5,
+            require_unique_repeats=True,
+            label=f"row {row.get('pair_id')} method {method}",
+        )
         return [summary], source
 
     schedules = _random4_schedule_results(result)
@@ -515,44 +640,90 @@ def _method_summaries(
         )
     flattened_outcomes = result.get("full_heldout_outcomes")
     expected_flattened_count = EXPECTED_RANDOM4_SCHEDULE_COUNT * 5
-    if not isinstance(flattened_outcomes, list) or len(flattened_outcomes) != expected_flattened_count:
-        raise ValueError(
-            f"row {row.get('pair_id')} random4 requires {expected_flattened_count} flattened full-heldout outcomes"
+    schedule_summaries: list[Mapping[str, Any]] = []
+    nested_outcomes: dict[tuple[int, int], Mapping[str, Any]] = {}
+    for schedule_position, schedule in enumerate(schedules):
+        if not isinstance(schedule, Mapping):
+            raise ValueError(
+                f"row {row.get('pair_id')} random4 schedule {schedule_position} is not a mapping"
+            )
+        identifier = _random4_schedule_identifier(
+            schedule,
+            label=f"row {row.get('pair_id')} random4 schedule {schedule_position}",
         )
-
-    schedule_summaries = []
-    identifiers = []
-    for schedule in schedules:
+        if identifier not in range(EXPECTED_RANDOM4_SCHEDULE_COUNT):
+            raise ValueError(
+                f"row {row.get('pair_id')} random4 schedule identifiers must be 0, 1, and 2"
+            )
         schedule_summary, _ = _extract_full_heldout_summary(
             schedule,
             decision_run=True,
         )
         schedule_summaries.append(schedule_summary)
-        schedule_outcomes = schedule.get("full_heldout_outcomes")
-        if not isinstance(schedule_outcomes, list) or len(schedule_outcomes) != 5:
-            raise ValueError(
-                f"row {row.get('pair_id')} random4 schedule requires 5 full-heldout outcomes"
-            )
-        identifier = schedule.get(
-            "random_schedule_index",
-            schedule.get("schedule_index", schedule.get("schedule_id")),
+        normalized_schedule_rows = _validate_full_heldout_rows(
+            schedule_summary,
+            schedule.get("full_heldout_outcomes"),
+            expected_count=5,
+            require_unique_repeats=True,
+            label=f"row {row.get('pair_id')} random4 schedule {identifier}",
         )
-        if identifier is not None:
-            identifiers.append(str(identifier))
-    expected_identifiers = {str(index) for index in range(EXPECTED_RANDOM4_SCHEDULE_COUNT)}
-    if set(identifiers) != expected_identifiers:
+        for repeat, outcome in normalized_schedule_rows:
+            key = (identifier, repeat)
+            if key in nested_outcomes:
+                raise ValueError(
+                    f"row {row.get('pair_id')} random4 has duplicate schedule/repeat {key}"
+                )
+            nested_outcomes[key] = outcome
+
+    expected_keys = {
+        (schedule_index, repeat)
+        for schedule_index in range(EXPECTED_RANDOM4_SCHEDULE_COUNT)
+        for repeat in range(5)
+    }
+    if set(nested_outcomes) != expected_keys:
         raise ValueError(
             f"row {row.get('pair_id')} random4 schedule identifiers must be 0, 1, and 2"
         )
-    flattened_identifiers = [
-        str(outcome.get("random_schedule_index"))
-        for outcome in flattened_outcomes
-        if isinstance(outcome, Mapping) and outcome.get("random_schedule_index") is not None
-    ]
-    if any(flattened_identifiers.count(identifier) != 5 for identifier in expected_identifiers):
-        raise ValueError(
-            f"row {row.get('pair_id')} flattened random4 outcomes must contain 5 rows per schedule"
+
+    normalized_flattened = _validate_full_heldout_rows(
+        summary,
+        flattened_outcomes,
+        expected_count=expected_flattened_count,
+        require_unique_repeats=False,
+        label=f"row {row.get('pair_id')} method random4",
+    )
+    flattened_by_key: dict[tuple[int, int], Mapping[str, Any]] = {}
+    assert isinstance(flattened_outcomes, list)
+    for flattened_row, (repeat, outcome) in zip(
+        flattened_outcomes,
+        normalized_flattened,
+        strict=True,
+    ):
+        identifier = _random4_schedule_identifier(
+            flattened_row,
+            label=f"row {row.get('pair_id')} flattened random4 outcome",
         )
+        key = (identifier, repeat)
+        if key in flattened_by_key:
+            raise ValueError(
+                f"row {row.get('pair_id')} flattened random4 outcomes contain duplicate schedule/repeat {key}"
+            )
+        flattened_by_key[key] = outcome
+    if set(flattened_by_key) != expected_keys:
+        raise ValueError(
+            f"row {row.get('pair_id')} flattened random4 outcomes must contain repeats 0..4 for each schedule"
+        )
+    mismatches = sorted(
+        key
+        for key in expected_keys
+        if dict(flattened_by_key[key]) != dict(nested_outcomes[key])
+    )
+    if mismatches:
+        raise ValueError(
+            f"row {row.get('pair_id')} flattened random4 outcomes do not match "
+            f"schedule rows for schedule/repeat {mismatches}"
+        )
+
     for metric in METRICS:
         aggregate_value = _summary_metric(summary, metric)
         schedule_mean = float(
@@ -595,6 +766,104 @@ def _scaled_summary(summary: Mapping[str, Any], scale: float) -> dict[str, Any]:
         key: (int(value) if key == "count" else float(value) * scale)
         for key, value in summary.items()
     }
+
+
+def absolute_method_summary(
+    rows: Sequence[Mapping[str, Any]],
+    *,
+    method: str,
+    metric: str,
+    bootstrap_samples: int,
+    seed: int,
+    decision_run: bool = True,
+) -> dict[str, Any]:
+    values_by_pair: dict[str, list[float]] = defaultdict(list)
+    values_by_seed_source: dict[tuple[int, str], list[float]] = defaultdict(list)
+    for row in rows:
+        source_cluster = _normalize_source(row.get("source_initial_state_index"))
+        value = method_metric_value(
+            row,
+            method,
+            metric,
+            decision_run=decision_run,
+        )
+        values_by_pair[str(row["pair_id"])].append(value)
+        values_by_seed_source[(int(row["seed"]), source_cluster)].append(value)
+
+    seed_source_values = {
+        key: float(np.mean(values))
+        for key, values in sorted(values_by_seed_source.items())
+    }
+    values_by_source: dict[str, list[float]] = defaultdict(list)
+    values_by_seed: dict[str, list[float]] = defaultdict(list)
+    for (run_seed, source_cluster), value in seed_source_values.items():
+        values_by_source[source_cluster].append(value)
+        values_by_seed[str(run_seed)].append(value)
+    source_values = {
+        source_cluster: float(np.mean(values))
+        for source_cluster, values in sorted(values_by_source.items())
+    }
+    per_seed_source_cluster_level = {
+        run_seed: bootstrap_summary(
+            values,
+            bootstrap_samples=bootstrap_samples,
+            seed=seed + 10_000 + int(run_seed),
+        )
+        for run_seed, values in sorted(values_by_seed.items())
+    }
+    source_cluster_level = bootstrap_summary(
+        list(source_values.values()),
+        bootstrap_samples=bootstrap_samples,
+        seed=seed,
+    )
+    result: dict[str, Any] = {
+        "metric_source": (
+            "full_heldout_summary"
+            if decision_run
+            else "full_heldout_summary_or_natural_outcome_smoke_fallback"
+        ),
+        "independent_unit": "source_initial_state_index",
+        "aggregation_order": (
+            "mean within (seed, source_initial_state_index), then mean across seeds "
+            "within each source cluster; bootstrap_summary resamples source clusters"
+        ),
+        "random4_schedule_aggregation": (
+            "validated_3_schedule_full_heldout_summary_before_source_cluster_aggregation"
+        ),
+        "source_cluster_level": source_cluster_level,
+        "per_source_cluster": source_values,
+        "per_pair_diagnostic": {
+            pair_id: float(np.mean(values))
+            for pair_id, values in sorted(values_by_pair.items())
+        },
+        "per_seed_source_cluster_level": per_seed_source_cluster_level,
+        "per_seed_mean": {
+            run_seed: summary["mean"]
+            for run_seed, summary in per_seed_source_cluster_level.items()
+        },
+        "per_seed_source_cluster_count": {
+            run_seed: len(values) for run_seed, values in sorted(values_by_seed.items())
+        },
+    }
+    if metric in BINARY_METRICS:
+        result["percentage"] = {
+            "source_cluster_level": _scaled_summary(source_cluster_level, 100.0),
+            "per_source_cluster": {
+                key: value * 100.0 for key, value in source_values.items()
+            },
+            "per_pair_diagnostic": {
+                key: value * 100.0
+                for key, value in result["per_pair_diagnostic"].items()
+            },
+            "per_seed_source_cluster_level": {
+                key: _scaled_summary(value, 100.0)
+                for key, value in per_seed_source_cluster_level.items()
+            },
+            "per_seed_mean": {
+                key: value * 100.0 for key, value in result["per_seed_mean"].items()
+            },
+        }
+    return result
 
 
 def paired_method_summary(
@@ -688,6 +957,395 @@ def paired_method_summary(
     return result
 
 
+def _candidate_top_set(
+    candidates: Sequence[Mapping[str, Any]],
+    summary_key: str,
+    *,
+    row_label: str,
+    decision_index: int,
+) -> tuple[int, ...]:
+    if not isinstance(candidates, list) or len(candidates) != 4:
+        raise ValueError(
+            f"{row_label} decision {decision_index} must contain exactly four candidates"
+        )
+    preference_keys: list[tuple[float | int, ...]] = []
+    for candidate_index, candidate in enumerate(candidates):
+        if not isinstance(candidate, Mapping):
+            raise ValueError(
+                f"{row_label} decision {decision_index} candidate {candidate_index} is not a mapping"
+            )
+        declared_index = candidate.get("candidate_index")
+        if declared_index is not None and (
+            isinstance(declared_index, bool) or int(declared_index) != candidate_index
+        ):
+            raise ValueError(
+                f"{row_label} decision {decision_index} candidate indices must be 0..3 in order"
+            )
+        summary = candidate.get(summary_key)
+        if not isinstance(summary, Mapping):
+            raise ValueError(
+                f"{row_label} decision {decision_index} candidate {candidate_index} "
+                f"is missing {summary_key}"
+            )
+        try:
+            preference_key = aggregate_recovery_preference_key(summary)
+        except (KeyError, TypeError, ValueError, OverflowError) as exc:
+            raise ValueError(
+                f"{row_label} decision {decision_index} candidate {candidate_index} "
+                f"has invalid {summary_key}"
+            ) from exc
+        if not all(np.isfinite(float(value)) for value in preference_key):
+            raise ValueError(
+                f"{row_label} decision {decision_index} candidate {candidate_index} "
+                f"has non-finite {summary_key}"
+            )
+        preference_keys.append(preference_key)
+    best_key = max(preference_keys)
+    return tuple(
+        candidate_index
+        for candidate_index, preference_key in enumerate(preference_keys)
+        if preference_key == best_key
+    )
+
+
+def _decision_stability_values(
+    row: Mapping[str, Any],
+) -> list[dict[str, float]]:
+    row_label = f"row {row.get('pair_id')}"
+    try:
+        decisions = row["methods"]["receding_oracle"]["decisions"]
+    except (KeyError, TypeError) as exc:
+        raise ValueError(f"{row_label} is missing receding Oracle decisions") from exc
+    if not isinstance(decisions, list) or len(decisions) != 4:
+        raise ValueError(
+            f"{row_label} must contain exactly four receding Oracle decisions"
+        )
+
+    result: list[dict[str, float]] = []
+    for decision_index, decision in enumerate(decisions):
+        if not isinstance(decision, Mapping):
+            raise ValueError(f"{row_label} decision {decision_index} is not a mapping")
+        candidates = decision.get("candidates")
+        selection_top_set = _candidate_top_set(
+            candidates,
+            "selection_summary",
+            row_label=row_label,
+            decision_index=decision_index,
+        )
+        heldout_top_set = _candidate_top_set(
+            candidates,
+            "decision_heldout_summary",
+            row_label=row_label,
+            decision_index=decision_index,
+        )
+        selection_first_index = selection_top_set[0]
+        heldout_first_index = heldout_top_set[0]
+        first_index_match = selection_first_index == heldout_first_index
+
+        declared_selection_index = decision.get("oracle_index")
+        if declared_selection_index is not None and int(declared_selection_index) != selection_first_index:
+            raise ValueError(
+                f"{row_label} decision {decision_index} oracle_index does not match selection_summary"
+            )
+        declared_heldout_index = decision.get("decision_heldout_oracle_index")
+        if declared_heldout_index is not None and int(declared_heldout_index) != heldout_first_index:
+            raise ValueError(
+                f"{row_label} decision {decision_index} decision_heldout_oracle_index "
+                "does not match decision_heldout_summary"
+            )
+        declared_match = decision.get("selection_matches_decision_heldout")
+        if declared_match is not None and bool(declared_match) != first_index_match:
+            raise ValueError(
+                f"{row_label} decision {decision_index} first-index match diagnostic is inconsistent"
+            )
+
+        selection_unique = len(selection_top_set) == 1
+        heldout_unique = len(heldout_top_set) == 1
+        both_unique = selection_unique and heldout_unique
+        result.append(
+            {
+                "selection_unique_best": float(selection_unique),
+                "heldout_unique_best": float(heldout_unique),
+                "top_set_overlap": float(
+                    bool(set(selection_top_set) & set(heldout_top_set))
+                ),
+                "both_unique": float(both_unique),
+                "both_unique_exact_match": float(
+                    both_unique and selection_top_set == heldout_top_set
+                ),
+                "all_four_tied_selection": float(len(selection_top_set) == 4),
+                "selected_nonzero": float(selection_first_index != 0),
+                "selection_top_set_size": float(len(selection_top_set)),
+                "heldout_top_set_size": float(len(heldout_top_set)),
+                "first_index_match": float(first_index_match),
+            }
+        )
+    return result
+
+
+def _hierarchical_decision_statistic(
+    rows_and_values: Sequence[tuple[Mapping[str, Any], Sequence[Mapping[str, float]]]],
+    *,
+    metric: str,
+    boolean: bool,
+    bootstrap_samples: int,
+    seed: int,
+) -> dict[str, Any]:
+    raw_values = [
+        float(decision[metric])
+        for _, decision_values in rows_and_values
+        for decision in decision_values
+    ]
+    row_values = [
+        (
+            int(row["seed"]),
+            _normalize_source(row.get("source_initial_state_index")),
+            float(np.mean([decision[metric] for decision in decision_values])),
+        )
+        for row, decision_values in rows_and_values
+    ]
+    values_by_seed_source: dict[tuple[int, str], list[float]] = defaultdict(list)
+    for run_seed, source_cluster, value in row_values:
+        values_by_seed_source[(run_seed, source_cluster)].append(value)
+    seed_source_values = {
+        key: float(np.mean(values))
+        for key, values in sorted(values_by_seed_source.items())
+    }
+
+    values_by_source: dict[str, list[float]] = defaultdict(list)
+    values_by_seed: dict[int, list[float]] = defaultdict(list)
+    for (run_seed, source_cluster), value in seed_source_values.items():
+        values_by_source[source_cluster].append(value)
+        values_by_seed[run_seed].append(value)
+    source_values = {
+        source_cluster: float(np.mean(values))
+        for source_cluster, values in sorted(values_by_source.items())
+    }
+    per_seed_source_cluster_level = {
+        str(run_seed): bootstrap_summary(
+            values,
+            bootstrap_samples=bootstrap_samples,
+            seed=seed + 10_000 + run_seed,
+        )
+        for run_seed, values in sorted(values_by_seed.items())
+    }
+    result: dict[str, Any] = {
+        "raw_decision_count": len(raw_values),
+        "source_cluster_level": bootstrap_summary(
+            list(source_values.values()),
+            bootstrap_samples=bootstrap_samples,
+            seed=seed,
+        ),
+        "per_source_cluster": source_values,
+        "per_seed_source_cluster_level": per_seed_source_cluster_level,
+        "per_seed_mean": {
+            run_seed: summary["mean"]
+            for run_seed, summary in per_seed_source_cluster_level.items()
+        },
+    }
+    if boolean:
+        result.update(
+            {
+                "raw_true_count": int(sum(raw_values)),
+                "raw_rate": float(np.mean(raw_values)),
+            }
+        )
+    else:
+        result["raw_mean"] = float(np.mean(raw_values))
+    return result
+
+
+def _conditional_both_unique_agreement(
+    rows_and_values: Sequence[tuple[Mapping[str, Any], Sequence[Mapping[str, float]]]],
+    *,
+    bootstrap_samples: int,
+    seed: int,
+) -> dict[str, Any]:
+    raw_denominator = int(
+        sum(
+            decision["both_unique"]
+            for _, decision_values in rows_and_values
+            for decision in decision_values
+        )
+    )
+    raw_numerator = int(
+        sum(
+            decision["both_unique_exact_match"]
+            for _, decision_values in rows_and_values
+            for decision in decision_values
+        )
+    )
+
+    row_components = []
+    for row, decision_values in rows_and_values:
+        row_components.append(
+            (
+                int(row["seed"]),
+                _normalize_source(row.get("source_initial_state_index")),
+                float(
+                    np.mean(
+                        [decision["both_unique_exact_match"] for decision in decision_values]
+                    )
+                ),
+                float(np.mean([decision["both_unique"] for decision in decision_values])),
+            )
+        )
+    by_seed_source: dict[tuple[int, str], list[tuple[float, float]]] = defaultdict(list)
+    for run_seed, source_cluster, numerator, denominator in row_components:
+        by_seed_source[(run_seed, source_cluster)].append((numerator, denominator))
+    seed_source_components = {
+        key: (
+            float(np.mean([value[0] for value in values])),
+            float(np.mean([value[1] for value in values])),
+        )
+        for key, values in sorted(by_seed_source.items())
+    }
+
+    by_source: dict[str, list[tuple[float, float]]] = defaultdict(list)
+    by_seed: dict[int, dict[str, tuple[float, float]]] = defaultdict(dict)
+    for (run_seed, source_cluster), components in seed_source_components.items():
+        by_source[source_cluster].append(components)
+        by_seed[run_seed][source_cluster] = components
+    source_components = {
+        source_cluster: (
+            float(np.mean([value[0] for value in values])),
+            float(np.mean([value[1] for value in values])),
+        )
+        for source_cluster, values in sorted(by_source.items())
+    }
+    source_rates = {
+        source_cluster: (
+            numerator / denominator if denominator > 0.0 else None
+        )
+        for source_cluster, (numerator, denominator) in source_components.items()
+    }
+    eligible_source_values = [
+        float(value) for value in source_rates.values() if value is not None
+    ]
+
+    per_seed_source_cluster_level: dict[str, Mapping[str, Any] | None] = {}
+    for run_seed, source_component_map in sorted(by_seed.items()):
+        eligible_rates = [
+            numerator / denominator
+            for numerator, denominator in source_component_map.values()
+            if denominator > 0.0
+        ]
+        per_seed_source_cluster_level[str(run_seed)] = (
+            bootstrap_summary(
+                eligible_rates,
+                bootstrap_samples=bootstrap_samples,
+                seed=seed + 10_000 + run_seed,
+            )
+            if eligible_rates
+            else None
+        )
+
+    return {
+        "conditional_denominator": (
+            "decisions where both selection and decision-heldout top sets are unique"
+        ),
+        "raw_agreement_count": raw_numerator,
+        "raw_both_unique_count": raw_denominator,
+        "raw_conditional_rate": (
+            raw_numerator / raw_denominator if raw_denominator else None
+        ),
+        "source_cluster_level": (
+            bootstrap_summary(
+                eligible_source_values,
+                bootstrap_samples=bootstrap_samples,
+                seed=seed,
+            )
+            if eligible_source_values
+            else None
+        ),
+        "eligible_source_cluster_count": len(eligible_source_values),
+        "source_cluster_count": len(source_rates),
+        "per_source_cluster": source_rates,
+        "per_source_cluster_components": {
+            source_cluster: {
+                "agreement_numerator": numerator,
+                "both_unique_denominator": denominator,
+            }
+            for source_cluster, (numerator, denominator) in source_components.items()
+        },
+        "per_seed_source_cluster_level": per_seed_source_cluster_level,
+        "cluster_denominator_handling": (
+            "numerator and both-unique denominator are aggregated separately at row, "
+            "seed/source, and source levels; zero-denominator source clusters are excluded "
+            "from the conditional bootstrap"
+        ),
+    }
+
+
+def selection_stability_summary(
+    rows: Sequence[Mapping[str, Any]],
+    *,
+    bootstrap_samples: int,
+    seed: int,
+) -> dict[str, Any]:
+    if not rows:
+        raise ValueError("selection stability requires at least one decision row")
+    rows_and_values = [(row, _decision_stability_values(row)) for row in rows]
+    boolean_metrics = (
+        ("selection_unique_best_rate", "selection_unique_best"),
+        ("heldout_unique_best_rate", "heldout_unique_best"),
+        ("top_set_overlap_rate", "top_set_overlap"),
+        ("both_unique_rate", "both_unique"),
+        ("all_four_tied_selection_rate", "all_four_tied_selection"),
+        ("selected_nonzero_rate", "selected_nonzero"),
+        ("first_index_match_rate_tie_inflated_diagnostic", "first_index_match"),
+    )
+    continuous_metrics = (
+        ("mean_selection_top_set_size", "selection_top_set_size"),
+        ("mean_heldout_top_set_size", "heldout_top_set_size"),
+    )
+    result: dict[str, Any] = {
+        "available": True,
+        "metric_source": (
+            "candidate selection_summary and decision_heldout_summary top sets using "
+            "aggregate_recovery_preference_key"
+        ),
+        "independent_unit": "source_initial_state_index",
+        "aggregation_order": (
+            "mean over four decisions within each row, then mean within "
+            "(seed, source_initial_state_index), then mean across seeds within each "
+            "source cluster; bootstrap_summary resamples source clusters"
+        ),
+        "raw_counts_are_diagnostic": (
+            "raw decision-frame counts do not treat decision frames as independent samples"
+        ),
+        "row_count": len(rows_and_values),
+        "decision_count": sum(len(values) for _, values in rows_and_values),
+    }
+    for metric_index, (output_name, metric) in enumerate(boolean_metrics):
+        result[output_name] = _hierarchical_decision_statistic(
+            rows_and_values,
+            metric=metric,
+            boolean=True,
+            bootstrap_samples=bootstrap_samples,
+            seed=seed + metric_index,
+        )
+    for metric_index, (output_name, metric) in enumerate(continuous_metrics):
+        result[output_name] = _hierarchical_decision_statistic(
+            rows_and_values,
+            metric=metric,
+            boolean=False,
+            bootstrap_samples=bootstrap_samples,
+            seed=seed + 100 + metric_index,
+        )
+    result["both_unique_count"] = result["both_unique_rate"]["raw_true_count"]
+    result["exact_agreement_among_both_unique"] = _conditional_both_unique_agreement(
+        rows_and_values,
+        bootstrap_samples=bootstrap_samples,
+        seed=seed + 200,
+    )
+    result["first_index_match_rate_tie_inflated_diagnostic"]["diagnostic_note"] = (
+        "tie-inflated: evaluator max selection uses the first index in each top set, so "
+        "matching first indices can report agreement even when neither side has a unique best"
+    )
+    return result
+
+
 def build_summary(
     rows: Sequence[Mapping[str, Any]],
     *,
@@ -701,9 +1359,34 @@ def build_summary(
             if decision_run
             else "full_heldout_summary_or_natural_outcome_smoke_fallback"
         ),
+        "absolute": {},
         "paired_vs_sample0": {},
         "gate_pairwise": {},
+        "selection_stability": (
+            selection_stability_summary(
+                rows,
+                bootstrap_samples=bootstrap_samples,
+                seed=seed + 2_000,
+            )
+            if decision_run
+            else {
+                "available": False,
+                "reason": "smoke rows are not decision-bearing",
+            }
+        ),
     }
+    for method_index, method in enumerate(METHODS):
+        result["absolute"][method] = {
+            metric: absolute_method_summary(
+                rows,
+                method=method,
+                metric=metric,
+                bootstrap_samples=bootstrap_samples,
+                seed=seed + 3_000 + method_index * 100 + metric_index,
+                decision_run=decision_run,
+            )
+            for metric_index, metric in enumerate(METRICS)
+        }
     for method_index, method in enumerate(METHODS[1:], start=1):
         result["paired_vs_sample0"][method] = {
             metric: paired_method_summary(

@@ -11,9 +11,11 @@ from summarize_recovery_segment_oracle import (
     METRIC_DIRECTIONS,
     METHODS,
     METRICS,
+    absolute_method_summary,
     build_summary,
     load_and_validate,
     paired_method_summary,
+    selection_stability_summary,
 )
 
 
@@ -69,7 +71,14 @@ def random_result(schedule_values, natural_value):
     }
 
 
-def restore_audit_decision():
+def restore_audit_decision(
+    selection_top=(0, 1, 2, 3),
+    heldout_top=(0, 1, 2, 3),
+):
+    selection_top = set(selection_top)
+    heldout_top = set(heldout_top)
+    selection_index = min(selection_top)
+    heldout_index = min(heldout_top)
     return {
         "candidate0_branch_replay_semantic_match": True,
         "candidate0_branch_replay_image_max_abs_delta": 0,
@@ -81,7 +90,42 @@ def restore_audit_decision():
         "selected_live_branch_robot_state_max_abs_delta": 0.0,
         "selected_direct_replay_match": True,
         "selected_endpoint_sim_max_abs_delta": 0.0,
+        "oracle_index": selection_index,
+        "decision_heldout_oracle_index": heldout_index,
+        "selection_matches_decision_heldout": selection_index == heldout_index,
+        "candidates": [
+            {
+                "candidate_index": candidate_index,
+                "selection_summary": metric_summary(
+                    1.0 if candidate_index in selection_top else 0.0
+                ),
+                "decision_heldout_summary": metric_summary(
+                    1.0 if candidate_index in heldout_top else 0.0
+                ),
+            }
+            for candidate_index in range(4)
+        ],
     }
+
+
+def stability_row(pair_id, seed, source, decisions):
+    return {
+        "pair_id": pair_id,
+        "seed": seed,
+        "source_initial_state_index": source,
+        "methods": {"receding_oracle": {"decisions": decisions}},
+    }
+
+
+def stability_rows(decision):
+    return [
+        stability_row(
+            "g00",
+            41,
+            0,
+            [copy.deepcopy(decision) for _ in range(4)],
+        )
+    ]
 
 
 def write_manifest(root, source_by_pair=SOURCE_BY_PAIR):
@@ -230,6 +274,16 @@ class RecoverySegmentSummaryTest(unittest.TestCase):
             comparison["absolute_percentage_points"]["per_seed_mean"],
             {"41": 100.0, "42": 100.0, "43": 100.0},
         )
+        absolute = summary["absolute"]["receding_oracle"]["success"]
+        self.assertEqual(absolute["source_cluster_level"]["mean"], 1.0)
+        self.assertEqual(
+            absolute["per_seed_mean"],
+            {"41": 1.0, "42": 1.0, "43": 1.0},
+        )
+        self.assertEqual(
+            absolute["percentage"]["source_cluster_level"]["mean"],
+            100.0,
+        )
 
     def test_random4_uses_validated_three_schedule_aggregate_before_pairing(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -283,6 +337,229 @@ class RecoverySegmentSummaryTest(unittest.TestCase):
         self.assertEqual(summary["source_cluster_level"]["count"], 1)
         self.assertEqual(summary["source_cluster_level"]["mean"], 0.5)
         self.assertEqual(summary["per_seed_source_cluster_level"]["41"]["mean"], 0.5)
+
+    def test_absolute_summary_uses_seed_source_then_source_clusters(self):
+        rows = [
+            {
+                "pair_id": pair_id,
+                "seed": run_seed,
+                "source_initial_state_index": source,
+                "methods": {
+                    "receding_oracle": method_result(value, value),
+                },
+            }
+            for pair_id, run_seed, source, value in (
+                ("a0", 41, 0, 0.0),
+                ("a1", 41, 0, 0.0),
+                ("b0", 41, 1, 1.0),
+                ("a0", 42, 0, 1.0),
+                ("b0", 42, 1, 1.0),
+            )
+        ]
+        summary = absolute_method_summary(
+            rows,
+            method="receding_oracle",
+            metric="success",
+            bootstrap_samples=100,
+            seed=13,
+        )
+
+        self.assertEqual(summary["source_cluster_level"]["count"], 2)
+        self.assertEqual(summary["source_cluster_level"]["mean"], 0.75)
+        self.assertNotEqual(summary["source_cluster_level"]["mean"], 0.6)
+        self.assertEqual(summary["per_source_cluster"], {"0": 0.5, "1": 1.0})
+        self.assertEqual(summary["per_seed_mean"], {"41": 0.5, "42": 1.0})
+        self.assertEqual(
+            summary["per_seed_source_cluster_level"]["41"]["count"],
+            2,
+        )
+        self.assertIn(
+            "bootstrap_95_low",
+            summary["per_seed_source_cluster_level"]["41"],
+        )
+        self.assertIn(
+            "bootstrap_95_high",
+            summary["per_seed_source_cluster_level"]["42"],
+        )
+
+    def test_selection_stability_all_tied_marks_first_index_match_as_inflated(self):
+        summary = selection_stability_summary(
+            stability_rows(restore_audit_decision()),
+            bootstrap_samples=100,
+            seed=3,
+        )
+
+        self.assertEqual(summary["selection_unique_best_rate"]["raw_rate"], 0.0)
+        self.assertEqual(summary["heldout_unique_best_rate"]["raw_rate"], 0.0)
+        self.assertEqual(summary["all_four_tied_selection_rate"]["raw_rate"], 1.0)
+        self.assertEqual(summary["selected_nonzero_rate"]["raw_rate"], 0.0)
+        self.assertEqual(summary["mean_selection_top_set_size"]["raw_mean"], 4.0)
+        self.assertEqual(summary["mean_heldout_top_set_size"]["raw_mean"], 4.0)
+        diagnostic = summary["first_index_match_rate_tie_inflated_diagnostic"]
+        self.assertEqual(diagnostic["raw_rate"], 1.0)
+        self.assertIn("tie-inflated", diagnostic["diagnostic_note"])
+        conditional = summary["exact_agreement_among_both_unique"]
+        self.assertEqual(conditional["raw_both_unique_count"], 0)
+        self.assertIsNone(conditional["raw_conditional_rate"])
+        self.assertIsNone(conditional["source_cluster_level"])
+
+    def test_selection_stability_unique_best_agreement_and_disagreement(self):
+        cases = (
+            ((2,), (2,), 1.0, 1.0),
+            ((1,), (2,), 0.0, 0.0),
+        )
+        for selection_top, heldout_top, expected_exact, expected_overlap in cases:
+            with self.subTest(
+                selection_top=selection_top,
+                heldout_top=heldout_top,
+            ):
+                summary = selection_stability_summary(
+                    stability_rows(
+                        restore_audit_decision(selection_top, heldout_top)
+                    ),
+                    bootstrap_samples=100,
+                    seed=5,
+                )
+
+                self.assertEqual(
+                    summary["selection_unique_best_rate"]["raw_rate"], 1.0
+                )
+                self.assertEqual(
+                    summary["heldout_unique_best_rate"]["raw_rate"], 1.0
+                )
+                self.assertEqual(summary["both_unique_count"], 4)
+                self.assertEqual(summary["selected_nonzero_rate"]["raw_rate"], 1.0)
+                self.assertEqual(
+                    summary["top_set_overlap_rate"]["raw_rate"], expected_overlap
+                )
+                conditional = summary["exact_agreement_among_both_unique"]
+                self.assertEqual(conditional["raw_both_unique_count"], 4)
+                self.assertEqual(
+                    conditional["raw_conditional_rate"], expected_exact
+                )
+                self.assertEqual(
+                    conditional["source_cluster_level"]["mean"], expected_exact
+                )
+
+    def test_selection_stability_reports_partial_top_set_overlap(self):
+        summary = selection_stability_summary(
+            stability_rows(restore_audit_decision((0, 1), (1, 2))),
+            bootstrap_samples=100,
+            seed=7,
+        )
+
+        self.assertEqual(summary["top_set_overlap_rate"]["raw_rate"], 1.0)
+        self.assertEqual(summary["selection_unique_best_rate"]["raw_rate"], 0.0)
+        self.assertEqual(summary["heldout_unique_best_rate"]["raw_rate"], 0.0)
+        self.assertEqual(summary["mean_selection_top_set_size"]["raw_mean"], 2.0)
+        self.assertEqual(summary["mean_heldout_top_set_size"]["raw_mean"], 2.0)
+        self.assertEqual(
+            summary["first_index_match_rate_tie_inflated_diagnostic"]["raw_rate"],
+            0.0,
+        )
+
+    def test_selection_stability_aggregates_rows_before_source_clusters(self):
+        unique = restore_audit_decision((1,), (1,))
+        tied = restore_audit_decision()
+        rows = [
+            stability_row(
+                pair_id,
+                run_seed,
+                source,
+                [copy.deepcopy(decision) for _ in range(4)],
+            )
+            for pair_id, run_seed, source, decision in (
+                ("a0", 41, 0, unique),
+                ("a1", 41, 0, tied),
+                ("b0", 41, 1, unique),
+                ("a0", 42, 0, tied),
+                ("b0", 42, 1, unique),
+            )
+        ]
+        summary = selection_stability_summary(
+            rows,
+            bootstrap_samples=100,
+            seed=9,
+        )["selection_unique_best_rate"]
+
+        self.assertEqual(summary["raw_rate"], 0.6)
+        self.assertEqual(summary["source_cluster_level"]["count"], 2)
+        self.assertEqual(summary["source_cluster_level"]["mean"], 0.625)
+        self.assertEqual(summary["per_source_cluster"], {"0": 0.25, "1": 1.0})
+        self.assertEqual(summary["per_seed_mean"], {"41": 0.75, "42": 0.5})
+
+    def test_both_unique_exact_cluster_rate_preserves_conditional_denominator(self):
+        agreement = restore_audit_decision((1,), (1,))
+        disagreement = restore_audit_decision((1,), (2,))
+        tied = restore_audit_decision()
+        rows = [
+            stability_row(
+                "a0",
+                41,
+                0,
+                [agreement, tied, copy.deepcopy(tied), copy.deepcopy(tied)],
+            ),
+            stability_row(
+                "a1",
+                41,
+                0,
+                [copy.deepcopy(disagreement) for _ in range(4)],
+            ),
+        ]
+        conditional = selection_stability_summary(
+            rows,
+            bootstrap_samples=100,
+            seed=11,
+        )["exact_agreement_among_both_unique"]
+
+        self.assertEqual(conditional["raw_agreement_count"], 1)
+        self.assertEqual(conditional["raw_both_unique_count"], 5)
+        self.assertEqual(conditional["raw_conditional_rate"], 0.2)
+        self.assertEqual(conditional["source_cluster_level"]["mean"], 0.2)
+
+    def test_decision_rejects_invalid_full_heldout_repeats_and_summaries(self):
+        def duplicate_repeat(payloads):
+            outcomes = payloads[0]["rows"][0]["methods"]["sample0"][
+                "full_heldout_outcomes"
+            ]
+            outcomes[4]["repeat"] = outcomes[3]["repeat"]
+
+        self.assert_decision_rejected(duplicate_repeat, "repeats must be unique")
+
+        def change_recomputed_metric(payloads):
+            payloads[0]["rows"][0]["methods"]["sample0"][
+                "full_heldout_summary"
+            ]["success_rate"] = 1.0
+
+        self.assert_decision_rejected(
+            change_recomputed_metric,
+            "full_heldout_summary does not match recomputed.*success",
+        )
+
+        def change_schedule_summary(payloads):
+            payloads[0]["rows"][0]["methods"]["random4"]["schedule_results"][0][
+                "full_heldout_summary"
+            ]["success_rate"] = 1.0
+
+        self.assert_decision_rejected(
+            change_schedule_summary,
+            "random4 schedule 0 full_heldout_summary does not match recomputed.*success",
+        )
+
+    def test_decision_rejects_random4_flattened_outcome_mismatch(self):
+        def change_nested_outcome_only(payloads):
+            schedule_outcome = payloads[0]["rows"][0]["methods"]["random4"][
+                "schedule_results"
+            ][0]["full_heldout_outcomes"][0]
+            schedule_outcome["outcome"] = {
+                **schedule_outcome["outcome"],
+                "nested_only_marker": True,
+            }
+
+        self.assert_decision_rejected(
+            change_nested_outcome_only,
+            "flattened random4 outcomes do not match schedule rows",
+        )
 
     def test_decision_rejects_invalid_provenance_and_completion(self):
         cases = (
@@ -447,12 +724,25 @@ class RecoverySegmentSummaryTest(unittest.TestCase):
                 seed=1,
                 decision_run=False,
             )
+            complete_summary = build_summary(
+                rows,
+                bootstrap_samples=10,
+                seed=1,
+                decision_run=False,
+            )
 
         self.assertEqual(validation["run_kind"], "smoke")
         self.assertFalse(validation["decision_eligible"])
         self.assertTrue(validation["non_decision_reasons"])
         self.assertEqual(summary["source_cluster_level"]["mean"], 1.0)
         self.assertIn("natural_outcome", summary["metric_source"])
+        self.assertFalse(complete_summary["selection_stability"]["available"])
+        self.assertEqual(
+            complete_summary["absolute"]["receding_oracle"]["success"][
+                "source_cluster_level"
+            ]["mean"],
+            1.0,
+        )
 
 
 if __name__ == "__main__":

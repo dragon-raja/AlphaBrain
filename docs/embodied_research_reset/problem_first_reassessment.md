@@ -11,7 +11,7 @@
 - expert-action similarity 不等价于真实接触稳定性和阶段推进；
 - 只做 inference reranking 不会改善动作生成分布。
 
-进一步从根因复审后，最终方法主张收敛为 **Counterfactual Recovery Advantage Distillation**：同状态物理干预是因果数据获取手段，receding Oracle 是支持集上界，真正需要证明的是无搜索 Pi0.5 能否学会跨重规划持续有效的恢复动作。完整论证与反证条件见 `root_problem_method_review.md`。
+进一步从根因复审后，不再预先承诺一个带名称的最终方法。**Counterfactual Recovery Advantage Distillation** 只保留为待证候选：同状态物理干预是因果诊断手段，receding Oracle 是支持集上界；只有当动作影响可控、结果可由部署信息辨认、优势可稳定预测，并且无搜索 Pi0.5 真正提高闭环成功率时，它才可能成为方法贡献。完整论证与反证条件见 `root_problem_method_review.md`。
 
 ## 原方案保留什么
 
@@ -42,9 +42,22 @@ post-regrasp 主状态必须由冻结策略从 feedback 状态闭环执行并在
 - teacher continuation：仅作可达性上界；
 - frozen-policy continuation：作为部署相关主标签。
 
-## 新增的学习目标
+## 修订后的识别问题
 
-同一 restored state 内构造 action preference pairs，用真实执行后的物理阶段结果定义 `DeltaG`。先训练 process critic 验证可预测性，再把同状态 preference 用于 Pi0.5 flow policy 后训练。最终主指标是 posttrained policy 的 sample0 闭环成功率，而不是 reranker 的 best-of-N 上界。
+正式实验先依次回答四个问题，而不是直接优化新 loss：
+
+1. **action leverage**：同一状态下改变当前 action chunk，能否在共享 continuation 下稳定改变 lift、transport 或 formal success；
+2. **deployable observability**：这种差异能否由当前图像、proprioception，或一个短的 observation-action-consequence history 辨认；
+3. **credit identifiability**：候选排序是否跨 continuation 稳定，还是大部分候选处于统计不可分的并列；
+4. **policy learnability**：只使用部署可见输入训练后，`N=1` Pi0.5 是否提高完整闭环成功率且不损害正常任务。
+
+任何一项失败都必须改变路线。特别是，当 continuation noise 大于 action effect 时，不允许用数组顺序强行产生 winner，也不允许把 noisy Oracle 标签包装成精确反事实信用。
+
+## 待证的学习目标
+
+同一 restored state 内先估计真实执行后的动作优势及其 continuation uncertainty。只有优势的稳健下界为正、候选 top set 可区分、且部署输入能够预测该差异时，才把样本用于 Pi0.5 后训练；不可辨识样本必须弃权，不产生人为 winner。
+
+第一学习候选应保持简单：winner-only advantage-weighted flow matching 加成功 demonstration anchor，并与 direct recovery SFT、普通 recovery curation、state-only weighting、unpaired outcome weighting 和 DICE-RL 风格 residual improvement 正面对比。最终主指标是 posttrained policy 的 sample0 闭环成功率，而不是 reranker 的 best-of-N 上界。
 
 ## 与强近邻的态度
 

@@ -2,11 +2,11 @@
 
 ## 研究问题
 
-Gate 0 证明单个 `K=3` action chunk 能影响稳定重抓，但 transport 和完整成功收益不足。下一步不把整个 winner trajectory 都标成好动作，也不做 inference-time best-of-N；要验证的是：
+旧 Gate 0 曾显示单个 `K=3` action chunk 可能影响稳定重抓，但该运行后来因 runtime snapshot 不完整而失效，不能作为已证事实。当前正式重跑不把整个 winner trajectory 都标成好动作，也不做 inference-time best-of-N；只验证：
 
 > 在恢复段的连续 replanning 节点上，重复进行合法的同状态 sibling intervention，能否把局部动作信用累积成持久的 transport 与 full-success 改善？
 
-该方案是反事实恢复优势蒸馏的训练数据识别与 policy-improvement 上界，不是最终部署算法。最终方法只有在 posttrained Pi0.5 的 `sample0`、无搜索推理中提高成功率才成立。根因与最终方法见 `root_problem_method_review.md`。
+该方案只是训练数据识别与 policy-improvement 上界，不是最终部署算法，也不预设某个命名方法成立。只有动作效应跨 continuation 可辨、可由部署信息预测，并且 posttrained Pi0.5 的 `sample0` 无搜索推理提高成功率，学习路线才成立。根因与候选方法见 `root_problem_method_review.md`。
 
 ## 与整段拒绝采样的区别
 

@@ -6,7 +6,7 @@ import unittest
 from accelerate import Accelerator
 import torch
 
-from AlphaBrain.training.train_alphabrain import VLATrainer
+from AlphaBrain.training.train_alphabrain import VLATrainer, _set_model_initialization_seed
 
 
 class _TinyFlowModel(torch.nn.Module):
@@ -19,6 +19,13 @@ class _TinyFlowModel(torch.nn.Module):
 
 
 class TrainAccumulationTest(unittest.TestCase):
+    def test_model_initialization_seed_is_reproducible(self) -> None:
+        self.assertEqual(_set_model_initialization_seed(41), 41)
+        first = torch.rand(8)
+        _set_model_initialization_seed(41)
+        second = torch.rand(8)
+        torch.testing.assert_close(first, second, rtol=0.0, atol=0.0)
+
     def test_non_deepspeed_updates_only_on_accumulation_boundary(self) -> None:
         accelerator = Accelerator(cpu=True, gradient_accumulation_steps=2)
         model = _TinyFlowModel()

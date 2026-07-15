@@ -90,6 +90,13 @@ def _build_accelerator(gradient_accumulation_steps: int = 1) -> Accelerator:
     return acc
 
 
+def _set_model_initialization_seed(seed: int) -> int:
+    """Seed all ranks identically before constructing partially initialized models."""
+    seed = int(seed)
+    set_seed(seed)
+    return seed
+
+
 # Sane Defaults
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -1158,8 +1165,14 @@ def main(cfg) -> None:
     grad_accum = getattr(cfg.trainer, "gradient_accumulation_steps", 1)
     accelerator = _build_accelerator(gradient_accumulation_steps=grad_accum)
 
+    # Checkpoint bridges can leave task-specific parameters randomly initialized.
+    # Seed before build_model so those parameters are reproducible across runs;
+    # prepare_training() later switches to seed + rank for training stochasticity.
+    model_init_seed = _set_model_initialization_seed(getattr(cfg, "seed", 3047))
+
     logger.info("VLA Training :: Warming Up")
     logger.info("✅ Configuration wrapped for access tracking")
+    logger.info(f"Model initialization seed: {model_init_seed}")
 
     # create output directory and save config
     output_dir = setup_directories(cfg=cfg)

@@ -103,6 +103,8 @@ path.write_text(json.dumps({
     "purpose": "baseline_validity_repair_only",
     "method": "full_h",
     "seed": $SEED,
+    "model_initialization_seed": $SEED,
+    "training_rank_seed_rule": "seed + global_rank",
     "optimizer_steps": $STEPS,
     "save_interval": $SAVE_INTERVAL,
     "git_sha": "$GIT_SHA",
@@ -158,6 +160,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 "$PYTHON" -m accelerate.commands.launch \
   2>&1 | tee "$OUTPUT_DIR/launcher.log"
 
 grep -q 'Distributed environment: DistributedType.MULTI_GPU' "$OUTPUT_DIR/launcher.log"
+grep -q 'Model initialization seed: '$SEED "$OUTPUT_DIR/launcher.log"
 grep -Eq 'Matched:[[:space:]]+814/827' "$OUTPUT_DIR/launcher.log"
 grep -Eq 'Total batch size:[[:space:]]+8' "$OUTPUT_DIR/launcher.log"
 test -s "$OUTPUT_DIR/final_model/model.safetensors"

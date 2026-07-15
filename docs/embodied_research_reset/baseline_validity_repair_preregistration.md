@@ -29,6 +29,18 @@ DDP 路径从未进入 `Accelerator.accumulate()`；当配置的梯度累积大�
 - 检查点：3,451、6,902、10,353、13,804 steps（约 1/2/3/4 epoch）；
 - seeds：41、42、43。
 
+模型构建前所有 DDP rank 使用相同的实验 seed，使基础 checkpoint 未覆盖的
+13 个任务参数可复现；模型构建与 DDP 同步后，训练随机性使用
+`seed + global_rank`。这两层 seed 都写入 run identity。
+
+### 预运行基础设施修订
+
+第一次 seed-41 尝试在 790/13,804 steps 时主动终止，尚未生成任何
+checkpoint，也未运行 offline 或 closed-loop validation。终止原因是审计发现
+原 trainer 在 `build_model()` 之后才调用 `set_seed()`，导致未从 Pi0.5 Base
+映射的新参数不受实验 seed 控制。本修订只固定随机初始化，不改数据、
+optimizer、训练预算、评测或裁决阈值；修订后从 step 0 重跑。
+
 采用 global batch 8 是最小的稳定配方：它与本地官方 OpenPI
 `pi05_libero_lora` 的 batch 规模一致，又不依赖新修复的累积路径。官方 full
 finetune 使用 batch 256 和 EMA，但在当前 8x32GB 机器上复制完整 EMA 或模拟
@@ -59,4 +71,3 @@ batch 256 会引入额外资源变量，因此本轮不启用。
 - 若普通 Full-H 已解决恢复：采用简单基线，不包装新方法。
 - 只有 policy-state correction 相对 clean replay 在等纠正帧预算下稳定提高恢复，
   才继续检验“自动寻找最早稳定能力区并蒸馏最短桥接段”的数据效率主张。
-

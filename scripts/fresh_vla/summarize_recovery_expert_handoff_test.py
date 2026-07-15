@@ -4,7 +4,12 @@ import unittest
 from pathlib import Path
 
 from evaluate_physical_process_oracle import aggregate_outcomes
-from evaluate_recovery_expert_handoff import EXPERT_SANITY_METHOD, HANDOFF_METHODS
+from evaluate_recovery_expert_handoff import (
+    EXPERT_SANITY_METHOD,
+    FEEDBACK_SNAPSHOT_PROTOCOL,
+    HANDOFF_METHODS,
+    TEACHER_ACTION_SOURCE,
+)
 from evaluate_recovery_segment_oracle import BINARY_METRICS, METRICS
 from summarize_recovery_expert_handoff import (
     build_summary,
@@ -62,6 +67,24 @@ def payload():
         "pair_id": "pair",
         "source_initial_state_index": 1,
         "feedback_state_index": 57,
+        "feedback_reconstruction": {
+            "protocol": FEEDBACK_SNAPSHOT_PROTOCOL,
+            "prefix_actions_replayed": 57,
+            "post_injection_sim_max_abs_delta": 0.0,
+            "prefix_gripper_max_abs_delta": 0.0,
+            "policy_image_max_abs_delta": 0,
+            "policy_robot_state_max_abs_delta": 0.0,
+        },
+        "teacher_state_reconstruction": {
+            "source": TEACHER_ACTION_SOURCE,
+            "branch_start_index": 53,
+            "phase": "lift",
+            "phase_steps": 2,
+            "regrasp_attempts": 0,
+            "place_attempts": 0,
+            "initial_eef_xy": [0.0, 0.0],
+            "initial_object_z": 0.0,
+        },
         "seed": 41,
         "method_order_invariance": {
             "first_chunk_max_abs_delta": 0.0,
@@ -87,6 +110,8 @@ def payload():
         "continuations": 5,
         "stage_dwell_steps": 2,
         "teacher_is_privileged_upper_bound": True,
+        "teacher_action_source": TEACHER_ACTION_SOURCE,
+        "feedback_snapshot_protocol": FEEDBACK_SNAPSHOT_PROTOCOL,
         "teacher_privileged_inputs": ["grasp/contact state", "environment success"],
         "policy_receives_teacher_or_branch_labels": False,
         "continuation_seed_protocol": (
@@ -128,6 +153,17 @@ class RecoveryExpertHandoffSummaryTest(unittest.TestCase):
             path = Path(directory) / "result.json"
             path.write_text(json.dumps(value))
             with self.assertRaisesRegex(ValueError, "must never hand control"):
+                load_and_validate([path], require_full_grid=False)
+
+    def test_rejects_missing_reconstruction_for_320_step_result(self):
+        value = payload()
+        value["total_action_budget"] = 320
+        value["max_teacher_actions"] = 320
+        del value["rows"][0]["feedback_reconstruction"]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "result.json"
+            path.write_text(json.dumps(value))
+            with self.assertRaisesRegex(ValueError, "feedback reconstruction"):
                 load_and_validate([path], require_full_grid=False)
 
     def test_hierarchical_summary_weights_source_clusters_equally(self):

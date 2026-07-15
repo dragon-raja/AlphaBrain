@@ -11,8 +11,11 @@ import numpy as np
 from evaluate_libero_closed_loop import _atomic_write_json
 from evaluate_physical_process_oracle import aggregate_outcomes
 from evaluate_recovery_expert_handoff import (
+    DECISION_TOTAL_ACTION_BUDGET,
     EXPERT_SANITY_METHOD,
+    FEEDBACK_SNAPSHOT_PROTOCOL,
     HANDOFF_METHODS,
+    TEACHER_ACTION_SOURCE,
 )
 from evaluate_recovery_segment_oracle import (
     BINARY_METRICS,
@@ -104,6 +107,8 @@ def load_and_validate(
         "continuations",
         "stage_dwell_steps",
         "teacher_is_privileged_upper_bound",
+        "teacher_action_source",
+        "feedback_snapshot_protocol",
         "teacher_privileged_inputs",
         "policy_receives_teacher_or_branch_labels",
         "continuation_seed_protocol",
@@ -114,6 +119,18 @@ def load_and_validate(
         raise ValueError("handoff results must label the teacher as a privileged upper bound")
     if identity["policy_receives_teacher_or_branch_labels"] is not False:
         raise ValueError("handoff policy must not receive teacher or branch labels")
+    if (
+        require_full_grid
+        and identity["total_action_budget"] == DECISION_TOTAL_ACTION_BUDGET
+        and identity["teacher_action_source"] != TEACHER_ACTION_SOURCE
+    ):
+        raise ValueError("formal handoff must reconstruct the original teacher state")
+    if (
+        require_full_grid
+        and identity["total_action_budget"] == DECISION_TOTAL_ACTION_BUDGET
+        and identity["feedback_snapshot_protocol"] != FEEDBACK_SNAPSHOT_PROTOCOL
+    ):
+        raise ValueError("formal handoff must reconstruct the recorded controller history")
     rows: list[Mapping[str, Any]] = []
     seen: set[tuple[int, str]] = set()
     for path, payload in zip(paths, payloads, strict=True):
@@ -155,6 +172,47 @@ def load_and_validate(
             order_audit = row.get("method_order_invariance", {})
             if any(float(value) != 0.0 for value in order_audit.values()):
                 raise ValueError(f"method-order invariance failed for {key}")
+            if identity["total_action_budget"] == DECISION_TOTAL_ACTION_BUDGET:
+                reconstruction = row.get("feedback_reconstruction", {})
+                if (
+                    reconstruction.get("protocol")
+                    != identity["feedback_snapshot_protocol"]
+                ):
+                    raise ValueError(
+                        f"feedback reconstruction protocol mismatch for {key}"
+                    )
+                if (
+                    float(
+                        reconstruction.get(
+                            "post_injection_sim_max_abs_delta",
+                            np.inf,
+                        )
+                    )
+                    > 1e-10
+                ):
+                    raise ValueError(f"feedback sim reconstruction failed for {key}")
+                if (
+                    float(
+                        reconstruction.get("prefix_gripper_max_abs_delta", np.inf)
+                    )
+                    > 1e-6
+                ):
+                    raise ValueError(f"feedback gripper reconstruction failed for {key}")
+                if int(reconstruction.get("policy_image_max_abs_delta", -1)) != 0:
+                    raise ValueError(f"feedback image reconstruction failed for {key}")
+                if (
+                    float(
+                        reconstruction.get(
+                            "policy_robot_state_max_abs_delta",
+                            np.inf,
+                        )
+                    )
+                    > 1e-6
+                ):
+                    raise ValueError(f"feedback robot-state reconstruction failed for {key}")
+                teacher_state = row.get("teacher_state_reconstruction", {})
+                if teacher_state.get("source") != identity["teacher_action_source"]:
+                    raise ValueError(f"teacher state reconstruction mismatch for {key}")
             for method in (*HANDOFF_METHODS, EXPERT_SANITY_METHOD):
                 _validate_method(
                     row,

@@ -44,6 +44,12 @@ HANDOFF_METHODS = (
     "teacher_to_transport",
 )
 EXPERT_SANITY_METHOD = "teacher_full"
+DECISION_TOTAL_ACTION_BUDGET = 320
+DECISION_MAX_TEACHER_ACTIONS = 320
+TEACHER_ACTION_SOURCE = "reconstructed_original_full_episode_teacher_state"
+FEEDBACK_SNAPSHOT_PROTOCOL = (
+    "replay_recorded_prefix_then_inject_recorded_post_slip_sim_state"
+)
 FIXED_TEACHER_ACTIONS = {
     "policy_only": 0,
     "teacher_h3": 3,
@@ -53,6 +59,155 @@ FIXED_TEACHER_ACTIONS = {
 
 def _aligned(action_count: int, execution_horizon: int) -> bool:
     return action_count % execution_horizon == 0
+
+
+def reconstruct_feedback_snapshot(
+    env: Any,
+    reference: Mapping[str, np.ndarray],
+    feedback_index: int,
+) -> tuple[Mapping[str, Any], Mapping[str, Any], dict[str, Any]]:
+    actions = np.asarray(reference["actions"], dtype=np.float64)
+    sim_states = np.asarray(reference["sim_state"], dtype=np.float64)
+    gripper_actions = np.asarray(reference["gripper_action"], dtype=np.float64)
+    if not 0 <= feedback_index <= len(actions):
+        raise ValueError(
+            f"feedback index {feedback_index} is outside action trajectory length {len(actions)}"
+        )
+    if len(sim_states) != len(actions) + 1 or len(gripper_actions) != len(sim_states):
+        raise ValueError("recorded feedback trajectory violates T actions / T+1 states")
+
+    observation = _restore_recorded_state(env, reference, 0)
+    for action in actions[:feedback_index]:
+        observation = _step(env, action)
+
+    expected_gripper = gripper_actions[feedback_index].reshape(-1)
+    actual_gripper = np.asarray(
+        env.robots[0].gripper.current_action,
+        dtype=np.float64,
+    ).reshape(-1)
+    gripper_delta = float(np.max(np.abs(actual_gripper - expected_gripper)))
+    if gripper_delta > 1e-6:
+        raise RuntimeError(
+            f"feedback prefix replay gripper mismatch: max_abs_delta={gripper_delta}"
+        )
+
+    observation = env.regenerate_obs_from_state(sim_states[feedback_index])
+    env.robots[0].gripper.current_action = expected_gripper.copy()
+    sim_delta = float(
+        np.max(
+            np.abs(
+                np.asarray(env.get_sim_state(), dtype=np.float64)
+                - sim_states[feedback_index]
+            )
+        )
+    )
+    if sim_delta > 1e-10:
+        raise RuntimeError(
+            f"recorded post-slip state injection mismatch: max_abs_delta={sim_delta}"
+        )
+    snapshot = capture_runtime_snapshot(env)
+    return observation, snapshot, {
+        "protocol": FEEDBACK_SNAPSHOT_PROTOCOL,
+        "prefix_actions_replayed": feedback_index,
+        "post_injection_sim_max_abs_delta": sim_delta,
+        "prefix_gripper_max_abs_delta": gripper_delta,
+    }
+
+
+def reconstruct_teacher_state(
+    episode_root: Path,
+    group: Mapping[str, Any],
+    reference: Mapping[str, np.ndarray],
+    feedback_index: int,
+) -> dict[str, Any]:
+    branch_start = int(group["prefix_steps"])
+    if not 0 <= branch_start < feedback_index:
+        raise ValueError("teacher branch start must precede feedback")
+    if int(group["event_time"]) != feedback_index:
+        raise ValueError("teacher reconstruction requires event-aligned feedback")
+
+    episode_path = episode_root / str(group["episode_files"]["slipped"])
+    with np.load(episode_path, allow_pickle=False) as episode:
+        observation_phases = np.asarray(episode["teacher_phase"])
+        action_phases = np.asarray(episode["action_phases"])
+    if len(observation_phases) != len(action_phases) + 1:
+        raise ValueError("teacher phase trajectory violates T actions / T+1 observations")
+
+    phase = str(observation_phases[feedback_index])
+    phase_steps = 0
+    for action_phase in action_phases[:feedback_index][::-1]:
+        if str(action_phase) != phase:
+            break
+        phase_steps += 1
+    if phase != "lift" or any(
+        str(value).startswith("recover_")
+        for value in action_phases[branch_start:feedback_index]
+    ):
+        raise ValueError("feedback must occur before the original teacher enters recovery")
+
+    return {
+        "source": TEACHER_ACTION_SOURCE,
+        "branch_start_index": branch_start,
+        "phase": phase,
+        "phase_steps": phase_steps,
+        "regrasp_attempts": 0,
+        "place_attempts": 0,
+        "initial_eef_xy": np.asarray(
+            reference["eef_pose"][branch_start, :2],
+            dtype=np.float64,
+        ).tolist(),
+        "initial_object_z": float(reference["object_pose"][branch_start, 2]),
+    }
+
+
+def audit_reconstructed_feedback_observation(
+    episode_root: Path,
+    group: Mapping[str, Any],
+    feedback_index: int,
+    observation: Mapping[str, Any],
+) -> dict[str, Any]:
+    episode_path = episode_root / str(group["episode_files"]["slipped"])
+    with np.load(episode_path, allow_pickle=False) as episode:
+        expected_images = np.stack(
+            [episode["agentview"][feedback_index], episode["wrist"][feedback_index]]
+        ).astype(np.uint8)
+        expected_state = np.asarray(
+            episode["robot_state"][feedback_index],
+            dtype=np.float32,
+        )
+    policy_observation = _policy_observation(observation)
+    actual_images = np.stack(policy_observation["image"]).astype(np.uint8)
+    actual_state = np.asarray(policy_observation["state"], dtype=np.float32)
+    image_delta = int(
+        np.max(
+            np.abs(actual_images.astype(np.int16) - expected_images.astype(np.int16))
+        )
+    )
+    state_delta = float(np.max(np.abs(actual_state - expected_state)))
+    if image_delta != 0 or state_delta > 1e-6:
+        raise RuntimeError(
+            "reconstructed feedback observation disagrees with the recorded policy input: "
+            f"image_delta={image_delta}, state_delta={state_delta}"
+        )
+    return {
+        "policy_image_max_abs_delta": image_delta,
+        "policy_robot_state_max_abs_delta": state_delta,
+    }
+
+
+def make_reconstructed_teacher(
+    observation: Mapping[str, Any],
+    state: Mapping[str, Any],
+) -> FullEpisodeTeacher:
+    teacher = FullEpisodeTeacher(observation)
+    teacher.phase = str(state["phase"])
+    teacher.phase_steps = int(state["phase_steps"])
+    teacher.regrasp_attempts = int(state["regrasp_attempts"])
+    teacher.place_attempts = int(state["place_attempts"])
+    teacher.initial_eef_xy = np.asarray(state["initial_eef_xy"], dtype=np.float64).copy()
+    teacher.initial_object_z = float(state["initial_object_z"])
+    teacher.done = False
+    return teacher
 
 
 def _milestone_reached(
@@ -111,6 +266,7 @@ def _update_milestones(
 def generate_teacher_endpoint(
     env: Any,
     feedback_snapshot: Mapping[str, Any],
+    teacher_state: Mapping[str, Any],
     *,
     method: str,
     execution_horizon: int,
@@ -121,9 +277,9 @@ def generate_teacher_endpoint(
     if method not in (*HANDOFF_METHODS, EXPERT_SANITY_METHOD):
         raise ValueError(f"unknown handoff method: {method}")
     observation = restore_runtime_snapshot(env, feedback_snapshot)
+    teacher = make_reconstructed_teacher(observation, teacher_state)
     trace = [_physical_state(env, observation, bool(env.check_success()))]
     frames = [_observation_frame(observation)]
-    teacher = FullEpisodeTeacher(observation)
     initial_z = float(trace[0]["object_z"])
     grasp_run = lift_run = transport_run = 0
     regrasp_reached = lift_reached = transport_reached = False
@@ -413,8 +569,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--group-offset", type=int, default=0)
     parser.add_argument("--max-groups", type=int)
     parser.add_argument("--execution-horizon", type=int, default=3)
-    parser.add_argument("--total-action-budget", type=int, default=120)
-    parser.add_argument("--max-teacher-actions", type=int, default=90)
+    parser.add_argument(
+        "--total-action-budget",
+        type=int,
+        default=DECISION_TOTAL_ACTION_BUDGET,
+    )
+    parser.add_argument(
+        "--max-teacher-actions",
+        type=int,
+        default=DECISION_MAX_TEACHER_ACTIONS,
+    )
     parser.add_argument("--continuations", type=int, default=5)
     parser.add_argument("--stage-dwell-steps", type=int, default=2)
     parser.add_argument("--seed", type=int, default=41)
@@ -440,8 +604,8 @@ def main() -> None:
         expected_config = {
             "split": "val",
             "execution_horizon": 3,
-            "total_action_budget": 120,
-            "max_teacher_actions": 90,
+            "total_action_budget": DECISION_TOTAL_ACTION_BUDGET,
+            "max_teacher_actions": DECISION_MAX_TEACHER_ACTIONS,
             "continuations": 5,
             "stage_dwell_steps": 2,
         }
@@ -518,7 +682,13 @@ def main() -> None:
             "continuations": args.continuations,
             "stage_dwell_steps": args.stage_dwell_steps,
             "teacher_is_privileged_upper_bound": True,
-            "teacher_privileged_inputs": ["grasp/contact state", "environment success"],
+            "teacher_action_source": TEACHER_ACTION_SOURCE,
+            "feedback_snapshot_protocol": FEEDBACK_SNAPSHOT_PROTOCOL,
+            "teacher_privileged_inputs": [
+                "grasp/contact state",
+                "environment success",
+                "recorded teacher phase at feedback",
+            ],
             "policy_receives_teacher_or_branch_labels": False,
             "continuation_seed_protocol": (
                 "same repeat and global replan index use the same policy seed across methods"
@@ -543,8 +713,25 @@ def main() -> None:
         for group in groups:
             reference = _load_reference_arrays(args.episode_root, group, "slipped")
             feedback_index = int(group["feedback_reveal_time"])
-            _restore_recorded_state(env, reference, feedback_index)
-            feedback_snapshot = capture_runtime_snapshot(env)
+            (
+                feedback_observation,
+                feedback_snapshot,
+                feedback_reconstruction,
+            ) = reconstruct_feedback_snapshot(env, reference, feedback_index)
+            feedback_reconstruction.update(
+                audit_reconstructed_feedback_observation(
+                    args.episode_root,
+                    group,
+                    feedback_index,
+                    feedback_observation,
+                )
+            )
+            teacher_state = reconstruct_teacher_state(
+                args.episode_root,
+                group,
+                reference,
+                feedback_index,
+            )
             pair_id = str(group["pair_id"])
 
             before_chunk, before_images, before_state = first_chunk_order_invariance(
@@ -560,6 +747,7 @@ def main() -> None:
                     return generate_teacher_endpoint(
                         env,
                         feedback_snapshot,
+                        teacher_state,
                         method=method_name,
                         execution_horizon=args.execution_horizon,
                         total_action_budget=args.total_action_budget,
@@ -617,6 +805,8 @@ def main() -> None:
                 "pair_id": pair_id,
                 "source_initial_state_index": int(group["source_initial_state_index"]),
                 "feedback_state_index": feedback_index,
+                "feedback_reconstruction": feedback_reconstruction,
+                "teacher_state_reconstruction": teacher_state,
                 "seed": args.seed,
                 "method_order_invariance": order_audit,
                 "methods": methods,

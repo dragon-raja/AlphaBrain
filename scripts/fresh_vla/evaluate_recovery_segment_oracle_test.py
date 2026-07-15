@@ -15,6 +15,7 @@ from evaluate_recovery_segment_oracle import (
     EXPECTED_PREREGISTRATION_SHA256,
     PROGRESS_TIE_EPSILON,
     aggregate_random_schedule_results,
+    build_audit_bank,
     build_training_bank,
     candidate_seed_schedule,
     choose_candidate,
@@ -32,6 +33,8 @@ def outcome(*, success=False, next_stage=False, progress=0.0):
         "transport_reached": success,
         "lift_reached": success,
         "stable_grasp_at_end": next_stage or success,
+        "first_regrasp_step": 1 if next_stage or success else None,
+        "first_transport_step": 2 if success else None,
         "drop": False,
         "progress_auc": progress,
         "object_to_bowl_progress": progress,
@@ -77,6 +80,21 @@ class RecoverySegmentOracleTest(unittest.TestCase):
         self.assertNotIn("candidate_seeds", bank)
         self.assertNotIn("heldout_oracle_index", bank)
         self.assertNotIn("candidate_heldout_metrics", bank)
+
+    def test_audit_bank_pads_variable_constraint_shapes(self):
+        bank = build_audit_bank(
+            [
+                {"sim_data_efc_force": np.array([1.0, 2.0])},
+                {"sim_data_efc_force": np.array([3.0, 4.0, 5.0])},
+            ]
+        )
+        self.assertEqual(bank["sim_data_efc_force"].shape, (2, 3))
+        self.assertTrue(
+            np.array_equal(
+                bank["sim_data_efc_force__valid_shapes"],
+                np.array([[2], [3]]),
+            )
+        )
 
     def test_preference_key_uses_ordered_recovery_not_object_tiebreaks(self):
         first = outcome(next_stage=True, progress=0.2)
@@ -153,6 +171,7 @@ class RecoverySegmentOracleTest(unittest.TestCase):
             "direct_policy_images": np.zeros((2, 2, 2, 3), dtype=np.uint8),
             "direct_policy_state": np.zeros((8,), dtype=np.float64),
         }
+        endpoint_zero = dict(endpoint_one)
         seen_endpoints = []
 
         def continuation_side_effect(_env, _policy, endpoint, **_kwargs):
@@ -199,7 +218,7 @@ class RecoverySegmentOracleTest(unittest.TestCase):
             mock.patch.object(
                 segment_oracle,
                 "generate_candidate_endpoint",
-                return_value=endpoint_one,
+                side_effect=[endpoint_zero, endpoint_one, endpoint_zero],
             ) as generate,
             mock.patch.object(
                 segment_oracle,
@@ -225,12 +244,18 @@ class RecoverySegmentOracleTest(unittest.TestCase):
                 stage_dwell_steps=2,
             )
 
-        self.assertEqual(execute.call_count, 1)
-        self.assertEqual(generate.call_count, 1)
+        self.assertEqual(execute.call_count, 0)
+        # Both selection endpoints live in the branch environment. Candidate 0
+        # receives one extra K-step replay used only for parity auditing.
+        self.assertEqual(generate.call_count, 3)
         self.assertEqual(len(seen_endpoints), 8)
         self.assertEqual(len({id(endpoint) for endpoint in seen_endpoints}), 2)
         self.assertEqual(training["candidate_action_mask"].shape, (2, 3))
         self.assertTrue(decision["selection_matches_decision_heldout"])
+        self.assertTrue(decision["candidate0_branch_replay_semantic_match"])
+        self.assertEqual(
+            decision["cost"]["candidate0_parity_replay_simulator_actions"], 3
+        )
 
     def test_comparison_video_pads_shorter_method_with_last_frame(self):
         first = [np.zeros((8, 8, 3), dtype=np.uint8)]

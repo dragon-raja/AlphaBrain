@@ -25,7 +25,8 @@ EXPECTED_DECISION_SEEDS = (41, 42, 43)
 EXPECTED_DECISION_GROUP_COUNT = 13
 EXPECTED_DECISION_SOURCE_CLUSTER_COUNT = 9
 EXPECTED_RANDOM4_SCHEDULE_COUNT = 3
-EXPECTED_PREREGISTRATION_SHA256 = "d3105ba595e3467f2d2cec5642ca052dea2a692a63ad98b026c06a436ecb167c"
+EXPECTED_REPLAY_SIM_TOLERANCE = 1e-8
+EXPECTED_PREREGISTRATION_SHA256 = "81986ee652f6d1466a31b98fa56eeda8b474f6fe42d8a25dd9f497cb48c5937e"
 EXPECTED_CHECKPOINT_SHA256 = {
     41: "144a3b3d3dcc8421418564a62059a1038c9a7ef3196ac157f5f9ea1997a31f30",
     42: "98dc52d2ed1983776d218fee7666f3131053d1a55296e93e9f521b1c088ce875",
@@ -44,6 +45,9 @@ EXPECTED_DECISION_CONFIG = {
     "full_heldout_continuations": 5,
     "stage_dwell_steps": 2,
     "random4_schedule_count": EXPECTED_RANDOM4_SCHEDULE_COUNT,
+    "replay_sim_tolerance": EXPECTED_REPLAY_SIM_TOLERANCE,
+    "candidate_pool_tolerance": 1e-6,
+    "branch_rollout_uses_separate_env": True,
 }
 
 IDENTITY_KEYS = (
@@ -72,6 +76,7 @@ IDENTITY_KEYS = (
     "expected_preregistration_sha256",
     "expected_global_rows",
     "expected_global_pair_source_map",
+    "branch_rollout_uses_separate_env",
 )
 
 
@@ -158,6 +163,96 @@ def _decision_error(path: Path, message: str) -> ValueError:
     return ValueError(f"invalid decision run {path}: {message}")
 
 
+def _validate_restore_audits(
+    path: Path,
+    row: Mapping[str, Any],
+) -> None:
+    pair_id = row.get("pair_id")
+    parity = row.get("sample0_restore_parity")
+    if not isinstance(parity, Mapping) or parity.get("passed") is not True:
+        raise _decision_error(path, f"row {pair_id} failed sample0 restore parity")
+    if parity.get("forced_restore_replans") != 4:
+        raise _decision_error(
+            path,
+            f"row {pair_id} sample0 parity must restore exactly four intervention replans",
+        )
+    if parity.get("scope") != "fixed_intervention_segment" or parity.get(
+        "action_budget"
+    ) != 12:
+        raise _decision_error(
+            path,
+            f"row {pair_id} sample0 parity must cover the fixed 12-action segment",
+        )
+    if parity.get("image_max_abs_delta") != 0 or parity.get(
+        "decision_image_max_abs_delta"
+    ) != 0:
+        raise _decision_error(path, f"row {pair_id} sample0 parity changed pixels")
+    numeric_deltas = parity.get("numeric_max_abs_delta")
+    if not isinstance(numeric_deltas, Mapping) or not numeric_deltas:
+        raise _decision_error(path, f"row {pair_id} sample0 parity lacks numeric deltas")
+    if any(
+        not np.isfinite(float(delta))
+        or float(delta) > EXPECTED_REPLAY_SIM_TOLERANCE
+        for delta in numeric_deltas.values()
+    ):
+        raise _decision_error(
+            path,
+            f"row {pair_id} sample0 parity exceeded numeric tolerance",
+        )
+
+    try:
+        decisions = row["methods"]["receding_oracle"]["decisions"]
+    except (KeyError, TypeError) as exc:
+        raise _decision_error(
+            path,
+            f"row {pair_id} lacks receding Oracle restore audits",
+        ) from exc
+    if not isinstance(decisions, list) or not decisions:
+        raise _decision_error(path, f"row {pair_id} has no receding Oracle decisions")
+    for decision in decisions:
+        if decision.get("candidate0_branch_replay_semantic_match") is not True:
+            raise _decision_error(
+                path,
+                f"row {pair_id} candidate-0 replay changed physical semantics",
+            )
+        if decision.get("candidate0_branch_replay_image_max_abs_delta") != 0:
+            raise _decision_error(
+                path,
+                f"row {pair_id} candidate-0 replay changed pixels",
+            )
+        if decision.get("selected_live_branch_semantic_match") is not True:
+            raise _decision_error(
+                path,
+                f"row {pair_id} live selected action changed branch semantics",
+            )
+        if decision.get("selected_live_branch_image_max_abs_delta") != 0:
+            raise _decision_error(
+                path,
+                f"row {pair_id} live selected action changed branch pixels",
+            )
+        for field in (
+            "candidate0_branch_replay_sim_max_abs_delta",
+            "candidate0_branch_replay_robot_state_max_abs_delta",
+            "selected_live_branch_sim_max_abs_delta",
+            "selected_live_branch_robot_state_max_abs_delta",
+        ):
+            value = decision.get(field)
+            if (
+                value is None
+                or not np.isfinite(float(value))
+                or float(value) > EXPECTED_REPLAY_SIM_TOLERANCE
+            ):
+                raise _decision_error(
+                    path,
+                    f"row {pair_id} restore audit {field} exceeded tolerance",
+                )
+        if decision.get("selected_direct_replay_match") is not True:
+            raise _decision_error(
+                path,
+                f"row {pair_id} selected endpoint replay changed physical semantics",
+            )
+
+
 def _validate_decision_payload(path: Path, payload: Mapping[str, Any]) -> None:
     if payload.get("schema_version") != EXPECTED_SCHEMA_VERSION:
         raise _decision_error(path, f"schema_version must be {EXPECTED_SCHEMA_VERSION}")
@@ -174,6 +269,7 @@ def _validate_decision_payload(path: Path, payload: Mapping[str, Any]) -> None:
         "random_schedules",
         "expected_global_rows",
         "expected_global_pair_source_map",
+        "branch_rollout_uses_separate_env",
     )
     missing_schema_fields = [key for key in required_schema_fields if key not in payload]
     if missing_schema_fields:
@@ -237,6 +333,8 @@ def _validate_decision_payload(path: Path, payload: Mapping[str, Any]) -> None:
             path,
             f"incomplete shard: expected={expected_rows}, completed={completed_rows}, rows={len(rows)}",
         )
+    for row in rows:
+        _validate_restore_audits(path, row)
 
 
 def _validate_decision_grid(rows: Sequence[Mapping[str, Any]], identity: Mapping[str, Any]) -> None:

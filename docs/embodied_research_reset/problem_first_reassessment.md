@@ -58,6 +58,8 @@ post-regrasp 主状态必须由冻结策略从 feedback 状态闭环执行并在
 - training bank 和 simulator 特权 audit bank 将物理分离；
 - N=8 positive coverage 为 94.9%，held-out stable regrasp 提升约 10.2 pp，但 transport 仅 +5.6 pp、full success 仅 +4.6 pp 且区间跨 0；
 - policy-induced post-regrasp reranking 对 next-stage/transport 无增益；
-- 修复后 natural-vs-forced-restore 的动作、图像和 robot state 均为 0 差异，sim state 误差约 `8.3e-15`；
-- 下一轮从修复后的完整 runtime state 固定 4 个 replanning boundary，并在每个节点重新做同状态 sibling intervention；先跑 exact receding Oracle，再决定是否做策略后训练；
+- 进一步发现：在接触临界策略轨迹上，额外 restore 产生的 `1e-14` 级 solver 差异可在约 60 步后放大，旧的“恢复 live env 后继续控制”会混入测量干预；
+- 当前实现已把 candidate/search/held-out rollout 隔离到独立 branch env，选中动作只在 untouched live env 执行；单组开发 smoke 的 12-action sample0 parity、4 个 candidate-0 branch replay 和 4 个 selected live-vs-branch K3 endpoint 均为 sim/image/state 零差；
+- 新 smoke 仍来自 dirty 单组、`N=2`、零 lookahead 配置，只证明测量链路和 H.264/审计落盘有效，不能进入方法裁决；
+- 下一轮在 clean commit 上按预注册配置执行三 seed、13 group 的 exact receding Oracle Gate，再决定是否做策略后训练；
 - 详细结果见 `docs/embodied_research_reset/physical_process_gate0_results.md`。

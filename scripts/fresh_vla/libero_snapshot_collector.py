@@ -143,14 +143,95 @@ def _reset_to_initial_state(env: Any, initial_state: np.ndarray, settle_steps: i
     return observation
 
 
+SIM_DATA_RUNTIME_FIELDS = (
+    "qacc_warmstart",
+    "qfrc_applied",
+    "xfrc_applied",
+    "ctrl",
+    "mocap_pos",
+    "mocap_quat",
+    "qacc",
+    "qfrc_constraint",
+    "efc_force",
+    "efc_JT",
+    "efc_AR",
+    "efc_AR_colind",
+    "efc_AR_rowadr",
+    "efc_AR_rownnz",
+    "dof_island",
+    "dof_islandind",
+    "efc_island",
+    "island_dofind",
+    "island_efcind",
+    "cacc",
+    "cfrc_ext",
+    "cfrc_int",
+    "sensordata",
+)
+
+ROBOT_BUFFER_FIELDS = (
+    "recent_qpos",
+    "recent_actions",
+    "recent_torques",
+    "recent_ee_forcetorques",
+    "recent_ee_pose",
+    "recent_ee_vel",
+    "recent_ee_acc",
+    "recent_ee_vel_buffer",
+)
+
+
+def _capture_robot_buffers(env: Any, state: dict[str, np.ndarray]) -> None:
+    robot = env.robots[0]
+    for name in ROBOT_BUFFER_FIELDS:
+        buffer = getattr(robot, name, None)
+        if buffer is None:
+            continue
+        prefix = f"robot_buffer_{name}__"
+        if hasattr(buffer, "buf"):
+            state[f"{prefix}buf"] = np.asarray(buffer.buf).copy()
+            state[f"{prefix}ptr"] = np.asarray(buffer.ptr)
+            state[f"{prefix}size"] = np.asarray(buffer._size)
+        elif hasattr(buffer, "current") and hasattr(buffer, "last"):
+            state[f"{prefix}current"] = np.asarray(buffer.current).copy()
+            state[f"{prefix}last"] = np.asarray(buffer.last).copy()
+
+
+def _restore_robot_buffers(env: Any, state: Mapping[str, np.ndarray]) -> None:
+    robot = env.robots[0]
+    for name in ROBOT_BUFFER_FIELDS:
+        buffer = getattr(robot, name, None)
+        if buffer is None:
+            continue
+        prefix = f"robot_buffer_{name}__"
+        if f"{prefix}buf" in state and hasattr(buffer, "buf"):
+            buffer.buf[:] = np.asarray(state[f"{prefix}buf"])
+            buffer.ptr = int(np.asarray(state[f"{prefix}ptr"]))
+            buffer._size = int(np.asarray(state[f"{prefix}size"]))
+        elif f"{prefix}current" in state and hasattr(buffer, "current"):
+            buffer.current = np.asarray(state[f"{prefix}current"]).copy()
+            buffer.last = np.asarray(state[f"{prefix}last"]).copy()
+
+
 def _capture_controller_state(env: Any) -> dict[str, np.ndarray]:
     state = {"gripper_action": np.asarray(env.robots[0].gripper.current_action).copy()}
+    sim_data = getattr(env.sim, "data", None)
+    for name in SIM_DATA_RUNTIME_FIELDS:
+        if sim_data is not None and hasattr(sim_data, name):
+            state[f"sim_data_{name}"] = np.asarray(getattr(sim_data, name)).copy()
     object_ids = _object_geom_ids(env)
     state["object_friction"] = env.sim.model.geom_friction[object_ids].copy()
     # LIBERO randomizes fixed-body positions during reset; these positions are
     # model state and are not included in MuJoCo's flattened simulation state.
     state["model_body_pos"] = env.sim.model.body_pos.copy()
+    if hasattr(env.sim.model, "site_rgba"):
+        state["model_site_rgba"] = env.sim.model.site_rgba.copy()
     controller = env.robots[0].controller
+    if hasattr(controller, "new_update"):
+        state["controller_new_update"] = np.asarray(controller.new_update, dtype=bool)
+    for name in ("initial_joint", "initial_ee_pos", "initial_ee_ori_mat"):
+        if hasattr(controller, name):
+            state[f"controller_{name}"] = np.asarray(getattr(controller, name)).copy()
     for name in ("goal_pos", "goal_ori", "relative_ori"):
         if hasattr(controller, name):
             state[f"controller_{name}"] = np.asarray(getattr(controller, name)).copy()
@@ -182,19 +263,28 @@ def _capture_controller_state(env: Any) -> dict[str, np.ndarray]:
             observable._current_observed_value
         ).copy()
         state[f"{prefix}sampled"] = np.asarray(observable._sampled, dtype=bool)
+    _capture_robot_buffers(env, state)
     return state
 
 
 def _restore_snapshot(env: Any, sim_state: np.ndarray, controller_state: Mapping[str, np.ndarray]) -> Mapping[str, Any]:
     # A flattened MuJoCo state omits robosuite controller / observable state.
-    # Hard-reset the wrapper so repeated paired rollouts cannot accumulate it.
-    env.reset()
+    # Legacy snapshots need a wrapper reset. Complete runtime snapshots restore
+    # those fields directly and must not rebuild contact/controller state.
+    if "runtime_timestep" not in controller_state:
+        env.reset()
     env.sim.model.body_pos[:] = controller_state["model_body_pos"]
+    if "model_site_rgba" in controller_state and hasattr(env.sim.model, "site_rgba"):
+        env.sim.model.site_rgba[:] = controller_state["model_site_rgba"]
     object_ids = _object_geom_ids(env)
     env.sim.model.geom_friction[object_ids] = controller_state["object_friction"]
     observation = env.regenerate_obs_from_state(sim_state)
     controller = env.robots[0].controller
     controller.update(force=True)
+    for name in ("initial_joint", "initial_ee_pos", "initial_ee_ori_mat"):
+        key = f"controller_{name}"
+        if key in controller_state:
+            setattr(controller, name, np.asarray(controller_state[key]).copy())
     if "controller_goal_pos" not in controller_state:
         controller.reset_goal()
     else:
@@ -218,6 +308,14 @@ def _restore_snapshot(env: Any, sim_state: np.ndarray, controller_state: Mapping
                         value = int(value)
                     setattr(interpolator, field, value)
     env.robots[0].gripper.current_action = controller_state["gripper_action"].copy()
+    sim_data = getattr(env.sim, "data", None)
+    for name in SIM_DATA_RUNTIME_FIELDS:
+        key = f"sim_data_{name}"
+        if key in controller_state and sim_data is not None and hasattr(sim_data, name):
+            getattr(sim_data, name)[:] = np.asarray(controller_state[key])
+    if "controller_new_update" in controller_state:
+        controller.new_update = bool(np.asarray(controller_state["controller_new_update"]))
+    _restore_robot_buffers(env, controller_state)
     if "runtime_timestep" in controller_state:
         runtime_env = env.env
         runtime_env.cur_time = float(np.asarray(controller_state["runtime_cur_time"]))

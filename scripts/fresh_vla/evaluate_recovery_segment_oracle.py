@@ -75,7 +75,7 @@ EXPECTED_CHECKPOINT_SHA256 = {
 }
 # Updated only after the preregistration text is frozen. Decision runs fail
 # closed until this value matches the runner-provided document digest.
-EXPECTED_PREREGISTRATION_SHA256 = "d3105ba595e3467f2d2cec5642ca052dea2a692a63ad98b026c06a436ecb167c"
+EXPECTED_PREREGISTRATION_SHA256 = "81986ee652f6d1466a31b98fa56eeda8b474f6fe42d8a25dd9f497cb48c5937e"
 
 
 def candidate_seed_schedule(
@@ -137,6 +137,28 @@ def aggregate_recovery_preference_key(
 
 def semantic_outcome(outcome: Mapping[str, Any]) -> dict[str, Any]:
     return {key: outcome[key] for key in REPLAY_SEMANTIC_KEYS}
+
+
+def _stack_audit_arrays(
+    values: Sequence[np.ndarray],
+) -> tuple[np.ndarray, np.ndarray | None]:
+    arrays = [np.asarray(value) for value in values]
+    if not arrays:
+        raise ValueError("audit arrays must not be empty")
+    shapes = [array.shape for array in arrays]
+    if len(set(shapes)) == 1:
+        return np.stack(arrays), None
+    ranks = {array.ndim for array in arrays}
+    if len(ranks) != 1:
+        raise ValueError(f"audit arrays have incompatible ranks: {sorted(ranks)}")
+    max_shape = tuple(
+        max(shape[axis] for shape in shapes) for axis in range(arrays[0].ndim)
+    )
+    padded = np.zeros((len(arrays), *max_shape), dtype=np.result_type(*arrays))
+    for index, array in enumerate(arrays):
+        slices = (index, *tuple(slice(0, size) for size in array.shape))
+        padded[slices] = array
+    return padded, np.asarray(shapes, dtype=np.int64)
 
 
 def _observation_frame(observation: Mapping[str, Any]) -> np.ndarray:
@@ -303,42 +325,9 @@ def evaluate_oracle_decision(
     candidates, server_wall = policy.predict_many(observation, sample_seeds)
     inference_wall = time.perf_counter() - inference_started
 
-    # Candidate zero follows the natural policy path from the live state. Every
-    # other candidate is executed once from the exact same saved state.
-    uninterrupted_trace = [dict(state) for state in prefix_trace]
-    uninterrupted_candidate0_frames: list[np.ndarray] = []
-    uninterrupted_observation, candidate0_actions = _execute_candidate(
-        env,
-        observation,
-        uninterrupted_trace,
-        candidates[0],
-        execution_horizon,
-        uninterrupted_candidate0_frames,
-    )
-    candidate0_snapshot = capture_runtime_snapshot(env)
-    uninterrupted_candidate0_input = _policy_observation(uninterrupted_observation)
+    # All counterfactual work happens in a separate branch environment. The
+    # live environment is not touched until a candidate has been selected.
     candidate_endpoints = [
-        {
-            "endpoint_snapshot": candidate0_snapshot,
-            "trace": uninterrupted_trace,
-            "direct": summarize_recovery_trace(
-                uninterrupted_trace,
-                stage_dwell_steps=stage_dwell_steps,
-            ),
-            "candidate_actions": candidate0_actions,
-            "candidate_frames": uninterrupted_candidate0_frames,
-            "direct_sim_state": np.asarray(
-                candidate0_snapshot["sim_state"], dtype=np.float64
-            ),
-            "direct_policy_images": np.stack(
-                uninterrupted_candidate0_input["image"]
-            ).astype(np.uint8),
-            "direct_policy_state": np.asarray(
-                uninterrupted_candidate0_input["state"], dtype=np.float64
-            ),
-        }
-    ]
-    candidate_endpoints.extend(
         generate_candidate_endpoint(
             env,
             snapshot,
@@ -347,39 +336,52 @@ def evaluate_oracle_decision(
             execution_horizon=execution_horizon,
             stage_dwell_steps=stage_dwell_steps,
         )
-        for candidate in candidates[1:]
+        for candidate in candidates
+    ]
+    candidate0_replay_endpoint = generate_candidate_endpoint(
+        env,
+        snapshot,
+        prefix_trace,
+        candidate=candidates[0],
+        execution_horizon=execution_horizon,
+        stage_dwell_steps=stage_dwell_steps,
     )
-
-    restored_candidate0_observation = restore_runtime_snapshot(env, candidate0_snapshot)
-    restored_candidate0_input = _policy_observation(restored_candidate0_observation)
-    candidate0_restore_delta = float(
+    candidate0_branch_replay_sim_delta = float(
         np.max(
             np.abs(
-                np.asarray(env.get_sim_state(), dtype=np.float64)
-                - np.asarray(candidate0_snapshot["sim_state"], dtype=np.float64)
+                candidate_endpoints[0]["direct_sim_state"]
+                - candidate0_replay_endpoint["direct_sim_state"]
             )
         )
     )
-    candidate0_image_delta = int(
+    candidate0_branch_replay_image_delta = int(
         np.max(
             np.abs(
-                np.stack(uninterrupted_candidate0_input["image"]).astype(np.int16)
-                - np.stack(restored_candidate0_input["image"]).astype(np.int16)
+                candidate_endpoints[0]["direct_policy_images"].astype(np.int16)
+                - candidate0_replay_endpoint["direct_policy_images"].astype(np.int16)
             )
         )
     )
-    candidate0_robot_state_delta = float(
+    candidate0_branch_replay_robot_state_delta = float(
         np.max(
             np.abs(
-                np.asarray(uninterrupted_candidate0_input["state"], dtype=np.float64)
-                - np.asarray(restored_candidate0_input["state"], dtype=np.float64)
+                candidate_endpoints[0]["direct_policy_state"]
+                - candidate0_replay_endpoint["direct_policy_state"]
             )
         )
     )
-    if candidate0_restore_delta > REPLAY_SIM_TOLERANCE:
-        raise RuntimeError("capture/restore changed the candidate-0 simulator endpoint")
-    if candidate0_image_delta != 0 or candidate0_robot_state_delta > REPLAY_SIM_TOLERANCE:
-        raise RuntimeError("capture/restore changed the candidate-0 policy observation")
+    candidate0_branch_replay_semantic_match = semantic_outcome(
+        candidate_endpoints[0]["direct"]
+    ) == semantic_outcome(candidate0_replay_endpoint["direct"])
+    if (
+        candidate0_branch_replay_sim_delta > REPLAY_SIM_TOLERANCE
+        or candidate0_branch_replay_image_delta != 0
+        or candidate0_branch_replay_robot_state_delta > REPLAY_SIM_TOLERANCE
+        or not candidate0_branch_replay_semantic_match
+    ):
+        raise RuntimeError(
+            "candidate-0 branch replay diverged from its matched K-step endpoint"
+        )
 
     continuation_calls = int(np.ceil(lookahead_steps / execution_horizon))
     selection_seed_rows = [
@@ -515,13 +517,25 @@ def evaluate_oracle_decision(
         "selection_matches_decision_heldout": (
             oracle_index == decision_heldout_oracle_index
         ),
-        "candidate0_uninterrupted_restore_max_abs_delta": candidate0_restore_delta,
-        "candidate0_uninterrupted_image_max_abs_delta": candidate0_image_delta,
-        "candidate0_uninterrupted_robot_state_max_abs_delta": candidate0_robot_state_delta,
+        "candidate0_branch_replay_sim_max_abs_delta": (
+            candidate0_branch_replay_sim_delta
+        ),
+        "candidate0_branch_replay_image_max_abs_delta": (
+            candidate0_branch_replay_image_delta
+        ),
+        "candidate0_branch_replay_robot_state_max_abs_delta": (
+            candidate0_branch_replay_robot_state_delta
+        ),
+        "candidate0_branch_replay_semantic_match": (
+            candidate0_branch_replay_semantic_match
+        ),
         "cost": {
             "candidate_inference_count": sample_count,
             "candidate_policy_batch_calls": 1,
             "candidate_endpoint_simulator_actions": int(candidate_execution_counts.sum()),
+            "candidate0_parity_replay_simulator_actions": int(
+                candidate0_replay_endpoint["candidate_actions"]
+            ),
             "selection_continuation_policy_calls": int(selection_policy_calls),
             "selection_continuation_simulator_actions": int(selection_actions),
             "decision_heldout_policy_calls": int(decision_heldout_policy_calls),
@@ -578,15 +592,19 @@ def evaluate_oracle_decision(
         "candidate_direct_sim_state": np.stack(
             [endpoint["direct_sim_state"] for endpoint in candidate_endpoints]
         ),
+        "candidate0_parity_replay_sim_state": np.asarray(
+            candidate0_replay_endpoint["direct_sim_state"]
+        ),
     }
     for key, value in snapshot["controller_state"].items():
         audit_record[f"snapshot_controller_state__{key}"] = np.asarray(value)
-        audit_record[f"candidate_endpoint_controller_state__{key}"] = np.stack(
-            [
-                np.asarray(endpoint["endpoint_snapshot"]["controller_state"][key])
-                for endpoint in candidate_endpoints
-            ]
+        endpoint_key = f"candidate_endpoint_controller_state__{key}"
+        endpoint_values, endpoint_shapes = _stack_audit_arrays(
+            [endpoint["endpoint_snapshot"]["controller_state"][key] for endpoint in candidate_endpoints]
         )
+        audit_record[endpoint_key] = endpoint_values
+        if endpoint_shapes is not None:
+            audit_record[f"{endpoint_key}__valid_shapes"] = endpoint_shapes
     return (
         decision,
         np.asarray(candidates),
@@ -749,13 +767,13 @@ def _sample0_parity_rollout(
     seed: int,
     execution_horizon: int,
     total_action_budget: int,
-    force_restore_each_replan: bool,
+    forced_restore_replans: int,
 ) -> list[dict[str, Any]]:
     observation = restore_runtime_snapshot(env, feedback_snapshot)
     records: list[dict[str, Any]] = []
     replan_index = 0
     while len(records) < total_action_budget and not bool(env.check_success()):
-        if force_restore_each_replan:
+        if replan_index < forced_restore_replans:
             observation = restore_runtime_snapshot(env, capture_runtime_snapshot(env))
         decision_policy_input = _policy_observation(observation)
         chunk = policy.predict(observation, stable_seed(seed, pair_id, replan_index))
@@ -801,34 +819,36 @@ def _sample0_parity_rollout(
 
 
 def run_sample0_restore_parity(
-    env: Any,
+    natural_env: Any,
+    branch_env: Any,
     policy: Pi05Policy | RemotePi05Policy,
     feedback_snapshot: Mapping[str, Any],
     *,
     pair_id: str,
     seed: int,
     execution_horizon: int,
-    total_action_budget: int,
+    segment_replans: int,
 ) -> dict[str, Any]:
+    segment_action_budget = segment_replans * execution_horizon
     natural = _sample0_parity_rollout(
-        env,
+        natural_env,
         policy,
         feedback_snapshot,
         pair_id=pair_id,
         seed=seed,
         execution_horizon=execution_horizon,
-        total_action_budget=total_action_budget,
-        force_restore_each_replan=False,
+        total_action_budget=segment_action_budget,
+        forced_restore_replans=0,
     )
     restored = _sample0_parity_rollout(
-        env,
+        branch_env,
         policy,
         feedback_snapshot,
         pair_id=pair_id,
         seed=seed,
         execution_horizon=execution_horizon,
-        total_action_budget=total_action_budget,
-        force_restore_each_replan=True,
+        total_action_budget=segment_action_budget,
+        forced_restore_replans=segment_replans,
     )
     if len(natural) != len(restored):
         raise RuntimeError("sample0 restore parity changed rollout length")
@@ -925,7 +945,10 @@ def run_sample0_restore_parity(
     if max(deltas.values()) > REPLAY_SIM_TOLERANCE:
         raise RuntimeError("sample0 restore parity exceeded numeric tolerance")
     return {
+        "scope": "fixed_intervention_segment",
         "actions": len(natural),
+        "action_budget": segment_action_budget,
+        "forced_restore_replans": segment_replans,
         "natural_success": natural[-1]["success"],
         "forced_restore_success": restored[-1]["success"],
         "success_match": success_match,
@@ -941,6 +964,7 @@ def run_method(
     policy: Pi05Policy | RemotePi05Policy,
     feedback_snapshot: Mapping[str, Any],
     *,
+    branch_env: Any,
     method: str,
     pair_id: str,
     seed: int,
@@ -970,6 +994,7 @@ def run_method(
         "candidate_inference_count": 0,
         "candidate_policy_calls": 0,
         "search_simulator_actions": 0,
+        "parity_audit_simulator_actions": 0,
         "search_continuation_policy_calls": 0,
         "live_segment_actions": 0,
         "natural_continuation_policy_calls": 0,
@@ -982,6 +1007,7 @@ def run_method(
         if trace[-1]["success"]:
             break
         before_steps = len(trace) - 1
+        selected_endpoint: Mapping[str, Any] | None = None
         if method == "sample0":
             candidate = policy.predict(observation, stable_seed(seed, pair_id, replan_index))
             cost["candidate_inference_count"] += 1
@@ -1015,7 +1041,7 @@ def run_method(
                 audit_record,
                 selected_endpoint,
             ) = evaluate_oracle_decision(
-                env,
+                branch_env,
                 policy,
                 snapshot,
                 observation,
@@ -1039,12 +1065,15 @@ def run_method(
             training_records.append(training_record)
             audit_records.append(audit_record)
             decision["selected_index"] = selected_index
-            observation = restore_runtime_snapshot(
-                env, selected_endpoint["endpoint_snapshot"]
+            candidate = np.asarray(candidates[selected_index])
+            observation, executed = _execute_candidate(
+                env,
+                observation,
+                trace,
+                candidate,
+                execution_horizon,
+                frames,
             )
-            trace = [dict(state) for state in selected_endpoint["trace"]]
-            frames.extend(selected_endpoint["candidate_frames"])
-            executed = int(selected_endpoint["candidate_actions"])
             decision_cost = decision["cost"]
             cost["candidate_inference_count"] += int(
                 decision_cost["candidate_inference_count"]
@@ -1056,6 +1085,9 @@ def run_method(
                 decision_cost["candidate_endpoint_simulator_actions"]
                 + decision_cost["selection_continuation_simulator_actions"]
                 + decision_cost["decision_heldout_simulator_actions"]
+            )
+            cost["parity_audit_simulator_actions"] += int(
+                decision_cost["candidate0_parity_replay_simulator_actions"]
             )
             cost["search_continuation_policy_calls"] += int(
                 decision_cost["selection_continuation_policy_calls"]
@@ -1092,7 +1124,7 @@ def run_method(
             else:
                 snapshot = capture_runtime_snapshot(env)
                 selected_index, myopic_outcomes, candidate_endpoints = _choose_myopic_candidate(
-                    env,
+                    branch_env,
                     snapshot,
                     trace,
                     candidates,
@@ -1116,46 +1148,69 @@ def run_method(
             }
             if myopic_outcomes is not None:
                 decision["candidate_direct_outcomes"] = myopic_outcomes
-            if selected_endpoint is None:
-                observation, executed = _execute_candidate(
-                    env,
-                    observation,
-                    trace,
-                    np.asarray(candidate),
-                    execution_horizon,
-                    frames,
-                )
-            else:
-                observation = restore_runtime_snapshot(
-                    env, selected_endpoint["endpoint_snapshot"]
-                )
-                trace = [dict(state) for state in selected_endpoint["trace"]]
-                frames.extend(selected_endpoint["candidate_frames"])
-                executed = int(selected_endpoint["candidate_actions"])
+            observation, executed = _execute_candidate(
+                env,
+                observation,
+                trace,
+                np.asarray(candidate),
+                execution_horizon,
+                frames,
+            )
 
         decision["executed_actions"] = executed
         decision["prefix_steps_after_execution"] = len(trace) - 1
         decision["live_direct_outcome"] = summarize_recovery_trace(
             trace, stage_dwell_steps=stage_dwell_steps
         )
-        if method == "receding_oracle":
-            expected = decision["candidates"][selected_index]["direct"]
-            decision["selected_direct_replay_match"] = semantic_outcome(
+        if selected_endpoint is not None:
+            expected = selected_endpoint["direct"]
+            decision["selected_live_branch_semantic_match"] = semantic_outcome(
                 decision["live_direct_outcome"]
             ) == semantic_outcome(expected)
             replay_snapshot = capture_runtime_snapshot(env)
             live_sim_state = np.asarray(replay_snapshot["sim_state"], dtype=np.float64)
-            expected_sim_state = np.asarray(
-                audit_record["candidate_direct_sim_state"][selected_index],
-                dtype=np.float64,
+            live_policy_input = _policy_observation(observation)
+            decision["selected_live_branch_sim_max_abs_delta"] = float(
+                np.max(
+                    np.abs(
+                        live_sim_state
+                        - np.asarray(selected_endpoint["direct_sim_state"], dtype=np.float64)
+                    )
+                )
             )
-            decision["selected_endpoint_sim_max_abs_delta"] = float(
-                np.max(np.abs(live_sim_state - expected_sim_state))
+            decision["selected_live_branch_image_max_abs_delta"] = int(
+                np.max(
+                    np.abs(
+                        np.stack(live_policy_input["image"]).astype(np.int16)
+                        - selected_endpoint["direct_policy_images"].astype(np.int16)
+                    )
+                )
             )
-            if not decision["selected_direct_replay_match"]:
-                raise RuntimeError("selected action changed physical semantics after exact replay")
-            if decision["selected_endpoint_sim_max_abs_delta"] > REPLAY_SIM_TOLERANCE:
-                raise RuntimeError("selected action endpoint exceeded simulator replay tolerance")
+            decision["selected_live_branch_robot_state_max_abs_delta"] = float(
+                np.max(
+                    np.abs(
+                        np.asarray(live_policy_input["state"], dtype=np.float64)
+                        - selected_endpoint["direct_policy_state"]
+                    )
+                )
+            )
+            # Compatibility aliases retain the original output schema names.
+            decision["selected_direct_replay_match"] = decision[
+                "selected_live_branch_semantic_match"
+            ]
+            decision["selected_endpoint_sim_max_abs_delta"] = decision[
+                "selected_live_branch_sim_max_abs_delta"
+            ]
+            if not decision["selected_live_branch_semantic_match"]:
+                raise RuntimeError("live selected action changed branch physical semantics")
+            if (
+                decision["selected_live_branch_sim_max_abs_delta"]
+                > REPLAY_SIM_TOLERANCE
+                or decision["selected_live_branch_image_max_abs_delta"] != 0
+                or decision["selected_live_branch_robot_state_max_abs_delta"]
+                > REPLAY_SIM_TOLERANCE
+            ):
+                raise RuntimeError("live selected action diverged from its branch K-step endpoint")
         if len(trace) - 1 <= before_steps:
             raise RuntimeError("selected candidate executed no actions")
         cost["live_segment_actions"] += executed
@@ -1193,7 +1248,7 @@ def run_method(
         video_files.append(str(natural_video))
 
     full_heldout_rows, full_heldout_summary = run_full_heldout_continuations(
-        env,
+        branch_env,
         policy,
         segment_snapshot,
         segment_trace,
@@ -1313,10 +1368,13 @@ def aggregate_random_schedule_results(
 def build_audit_bank(records: Sequence[Mapping[str, Any]]) -> dict[str, np.ndarray]:
     if not records:
         raise ValueError("at least one Oracle audit record is required")
-    return {
-        key: np.stack([np.asarray(record[key]) for record in records])
-        for key in records[0]
-    }
+    result: dict[str, np.ndarray] = {}
+    for key in records[0]:
+        values, shapes = _stack_audit_arrays([record[key] for record in records])
+        result[key] = values
+        if shapes is not None:
+            result[f"{key}__valid_shapes"] = shapes
+    return result
 
 
 def summarize_rows(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
@@ -1365,22 +1423,42 @@ def summarize_rows(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         result["selected_endpoint_sim_max_abs_delta"] = float(
             max(decision["selected_endpoint_sim_max_abs_delta"] for decision in oracle_decisions)
         )
-        result["candidate0_uninterrupted_restore_max_abs_delta"] = float(
+        result["selected_live_branch_image_max_abs_delta"] = int(
             max(
-                decision["candidate0_uninterrupted_restore_max_abs_delta"]
+                decision["selected_live_branch_image_max_abs_delta"]
                 for decision in oracle_decisions
             )
         )
-        result["candidate0_uninterrupted_image_max_abs_delta"] = int(
+        result["selected_live_branch_robot_state_max_abs_delta"] = float(
             max(
-                decision["candidate0_uninterrupted_image_max_abs_delta"]
+                decision["selected_live_branch_robot_state_max_abs_delta"]
                 for decision in oracle_decisions
             )
         )
-        result["candidate0_uninterrupted_robot_state_max_abs_delta"] = float(
+        result["candidate0_branch_replay_sim_max_abs_delta"] = float(
             max(
-                decision["candidate0_uninterrupted_robot_state_max_abs_delta"]
+                decision["candidate0_branch_replay_sim_max_abs_delta"]
                 for decision in oracle_decisions
+            )
+        )
+        result["candidate0_branch_replay_image_max_abs_delta"] = int(
+            max(
+                decision["candidate0_branch_replay_image_max_abs_delta"]
+                for decision in oracle_decisions
+            )
+        )
+        result["candidate0_branch_replay_robot_state_max_abs_delta"] = float(
+            max(
+                decision["candidate0_branch_replay_robot_state_max_abs_delta"]
+                for decision in oracle_decisions
+            )
+        )
+        result["candidate0_branch_replay_semantic_match_rate"] = float(
+            np.mean(
+                [
+                    decision["candidate0_branch_replay_semantic_match"]
+                    for decision in oracle_decisions
+                ]
             )
         )
         result["oracle_selected_nonzero_rate"] = float(
@@ -1392,6 +1470,19 @@ def summarize_rows(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     )
     result["sample0_restore_parity_image_max_abs_delta"] = int(
         max(parity["image_max_abs_delta"] for parity in parity_rows)
+    )
+    result["sample0_restore_parity_decision_image_max_abs_delta"] = int(
+        max(parity["decision_image_max_abs_delta"] for parity in parity_rows)
+    )
+    result["sample0_restore_parity_numeric_max_abs_delta"] = float(
+        max(
+            delta
+            for parity in parity_rows
+            for delta in parity["numeric_max_abs_delta"].values()
+        )
+    )
+    result["sample0_restore_parity_forced_restore_replans"] = sorted(
+        {int(parity["forced_restore_replans"]) for parity in parity_rows}
     )
     return result
 
@@ -1504,7 +1595,13 @@ def main() -> None:
         camera_heights=224,
         camera_widths=224,
     )
+    branch_env = OffScreenRenderEnv(
+        bddl_file_name=str(Path(manifest.get("bddl", DEFAULT_BDDL))),
+        camera_heights=224,
+        camera_widths=224,
+    )
     env.seed(args.seed)
+    branch_env.seed(args.seed)
     args.bank_dir.mkdir(parents=True, exist_ok=True)
     args.audit_bank_dir.mkdir(parents=True, exist_ok=True)
     args.video_dir.mkdir(parents=True, exist_ok=True)
@@ -1563,6 +1660,7 @@ def main() -> None:
             "outcome_metric_order": list(METRICS),
             "outcome_metric_directions": list(METRIC_DIRECTIONS),
             "privileged_audit_bank_is_separate": True,
+            "branch_rollout_uses_separate_env": True,
             "git_sha": os.environ.get("FRESH_GIT_SHA"),
             "git_dirty_at_launch": os.environ.get("FRESH_GIT_DIRTY") == "1",
             "preregistration_sha256": os.environ.get("FRESH_PREREGISTRATION_SHA256"),
@@ -1593,15 +1691,17 @@ def main() -> None:
             source_initial_state_index = int(group["source_initial_state_index"])
             sample0_restore_parity = run_sample0_restore_parity(
                 env,
+                branch_env,
                 policy,
                 feedback_snapshot,
                 pair_id=pair_id,
                 seed=args.seed,
                 execution_horizon=args.execution_horizon,
-                total_action_budget=args.total_action_budget,
+                segment_replans=args.segment_replans,
             )
             methods: dict[str, Any] = {}
             common_kwargs = {
+                "branch_env": branch_env,
                 "pair_id": pair_id,
                 "seed": args.seed,
                 "source_initial_state_index": source_initial_state_index,
@@ -1767,6 +1867,7 @@ def main() -> None:
         partial.unlink(missing_ok=True)
     finally:
         env.close()
+        branch_env.close()
         policy.close()
 
 

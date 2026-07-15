@@ -15,10 +15,10 @@ Gate 0 证明单个 `K=3` action chunk 能影响稳定重抓，但 transport 和
 本轮固定执行 4 个 replanning 节点。每个节点都在当前真实状态重新：
 
 1. 采样 N=4 action chunks；
-2. 从完全相同的 simulator/controller snapshot 执行每个候选；
+2. 在与 live control 隔离的 branch env 中，从完全相同的 simulator/controller snapshot 执行每个候选；
 3. 用 matched frozen-policy lookahead 估计候选的物理过程结果；
 4. 只在该节点内形成 action preference；
-5. 执行 selection continuation 选出的 action prefix；
+5. 在从未被搜索 rollout 或 restore 改写的 live env 中重新执行选出的 action prefix；
 6. 读取真实新观测后进入下一节点。
 
 因此每个训练 pair 的候选共享当前状态；不同节点之间不构造伪反事实动作对。
@@ -39,11 +39,13 @@ Gate 0 证明单个 `K=3` action chunk 能影响稳定重抓，但 transport 和
 - Oracle selection key：`formal success -> non-regress -> transport -> lift -> next-stage -> stable-regrasp -> quantized progress AUC` 的固定 lexicographic rule
 - segment 不因 grasp/lift/transport event 提前结束；只有正式 task success 可终止 episode
 - decision-heldout 和 full-heldout continuation 均不参与候选选择、segment 长度或任何阈值调整
-- 每个候选的 K3 endpoint 只物理执行一次，selection 与 decision-heldout 必须从同一个已保存 endpoint 分叉
+- 每个候选的 K3 selection endpoint 只在 branch env 物理执行一次，selection 与 decision-heldout 必须从同一个已保存 endpoint 分叉
+- candidate 0 额外做一次同 snapshot、同动作的 K3 branch replay；它只用于核对分支环境可复现性，不参与选择、训练标签或搜索收益，成本单列为 parity audit
+- 选出的 K3 action prefix 必须在未被搜索改写的 live env 重新执行，并与 branch endpoint 在像素、robot state、sim state 和物理语义上严格匹配
 
-所有方法从同一 feedback snapshot 开始，执行动作数和观测频率相同。搜索 rollout 只存在于训练时 Oracle 上界，不计入真实控制动作预算，但必须单独报告 simulator transition 成本。
+所有方法从同一 feedback snapshot 开始，执行动作数和观测频率相同。搜索 rollout 只存在于隔离的 branch env，不得改变 live env；它不计入真实控制动作预算，但必须单独报告 simulator transition 成本。
 
-runtime snapshot 必须覆盖 MuJoCo flattened state、model body/friction、gripper、OSC goal/orientation、position/orientation interpolator、environment timestep、observation cache，以及每个 Observable 的采样时钟和缓存值。只验证 restore 当下的 sim state 或像素不充分；必须验证下一次推理输入、预测动作和完整后续动力学。旧 Gate 0 因缺少这些运行态而标记为 `INVALIDATED_REQUIRES_RERUN`，不得并入本轮结果。
+runtime snapshot 必须覆盖 MuJoCo flattened state、model body/friction/site visibility、gripper、OSC goal/orientation/update flag、position/orientation interpolator、robot history buffers、environment timestep、observation cache、每个 Observable 的采样时钟和缓存值，以及接触求解会延续到下一步的 `qacc_warmstart`、active acceleration/constraint caches、外力、control 与 mocap runtime arrays。只验证 restore 当下的 sim state 或像素不充分；必须验证同动作 K3 endpoint。长程接触动力学会把 `1e-14` 级浮点差异放大，因此不把“额外 restore 后 120 步像素 bit-exact”当作有效门槛；真实 live rollout 必须完全隔离，长程效果由相同 branch protocol 的 held-out repeats 估计。旧 Gate 0 因缺少这些运行态而标记为 `INVALIDATED_REQUIRES_RERUN`，不得并入本轮结果。
 
 ## 方法与对照
 
@@ -82,6 +84,8 @@ privileged audit 视图单独保存：
 - held-out physical outcome vectors 与 held-out Oracle index；
 - friction 与 controller runtime state。
 
+接触约束缓存允许随 active contact 数量改变 shape；privileged audit bank 必须零填充到分片最大 shape，并为每条记录保存原始 valid shape，禁止截断或使用 pickle object arrays。
+
 训练 loader 不得读取 audit bank。未来图像、object pose、branch outcome、sim state 和 seeds 不得输入 policy。
 
 ## 统计
@@ -102,7 +106,9 @@ privileged audit 视图单独保存：
 - split 为完整 val：13 groups、9 source clusters；
 - seeds 为 `41, 42, 43`，checkpoint SHA256 与 seed 映射固定；
 - Git worktree clean，Git SHA 与本文 SHA256 记录在输出；
-- sample0 通过 120-action natural-vs-forced-restore parity：动作、agent/wrist 图像、robot state 与 success 完全一致，sim/controller 数值误差不超过 `1e-8`；
+- sample0 通过完整 12-action intervention segment 的 live-env-vs-branch-env parity：两条 rollout 使用完全相同的 seed schedule，branch env 在 4 个 replan 边界执行 capture/restore；动作、agent/wrist 图像、robot state 与 success 完全一致，sim/controller 数值误差不超过 `1e-8`；
+- 每个 Oracle 干预节点的 candidate 0 必须通过同 snapshot、同动作的两次 K3 branch replay parity；
+- 每个最终选中的 K3 prefix 必须通过 branch endpoint 与未受搜索影响的 live endpoint parity，像素和语义结果完全一致，sim/robot-state 数值误差不超过 `1e-8`；
 - 各方法首个状态的候选池一致；
 - 所有 candidate、continuation、policy-call 和 simulator-transition 成本完整记录。
 

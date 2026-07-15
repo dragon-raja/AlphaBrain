@@ -39,6 +39,8 @@
 
 这样比较的是 `a_i` 与 `a_j` 在同一状态下的边际影响，而不是把容易 episode 的成功误归因给动作。
 
+搜索 rollout 必须运行在独立 branch env，不能反复 restore 正在执行任务的 live env。候选选定后，action prefix 在 untouched live env 重新执行，并与 branch K-step endpoint 做严格 parity。这里解决的是测量干预污染：接触临界点会把 `1e-14` 级求解差异在长程放大，因此不能用“搜索后恢复 live env”制造看似更好的恢复行为，也不能用不对应真实算法操作的 120 步 bit-exact 压力测试误杀合法的 K-step 分支。
+
 ### 2.2 matched continuation survival
 
 候选执行固定 `K` 步后，从各自真实 endpoint 出发，使用共享随机数的相同 frozen-policy continuations。标签不只看 K 步后的瞬时 contact，而看一条有序恢复 survival chain：
@@ -92,13 +94,14 @@ Oracle 不从同一初态挑一整条 winner trajectory。它只在当前真实�
 
 它必须同时满足：
 
-1. `sample0` 是真正自然、不中断的 Full-H rollout；
-2. candidate K-step endpoint 只生成一次，selection 与 decision-heldout 从同一 endpoint 分叉；
-3. 4 次干预结束后，从每种方法 endpoint 启动 5 条共享 seed 的 full-heldout continuations；
-4. Gate 指标使用 full-heldout transport、formal success、regress 和 progress，而不是 selection lookahead；
-5. random selector 使用多个预注册 schedule，不能让一次随机抽样充当基线；
-6. 三个 checkpoint seed 使用完全相同的 13 个 val groups、9 个 source clusters；
-7. 运行配置、checkpoint hash、Git commit 和预注册 hash 必须硬锁。
+1. `sample0` 是真正自然、不中断且不受搜索 restore 影响的 Full-H rollout；
+2. candidate K-step endpoint 只在独立 branch env 生成一次，selection 与 decision-heldout 从同一 endpoint 分叉；
+3. 选中 action 在 live env 重新执行，K-step sim、pixels、robot state 和物理语义必须与 branch endpoint 严格一致；
+4. 4 次干预结束后，从每种方法 endpoint 启动 5 条共享 seed 的 full-heldout continuations；
+5. Gate 指标使用 full-heldout transport、formal success、regress 和 progress，而不是 selection lookahead；
+6. random selector 使用多个预注册 schedule，不能让一次随机抽样充当基线；
+7. 三个 checkpoint seed 使用完全相同的 13 个 val groups、9 个 source clusters；
+8. 运行配置、checkpoint hash、Git commit 和预注册 hash 必须硬锁。
 
 若 receding Oracle 仍不能提高 full-heldout transport/success，结论是 base policy candidate support 或 continuation dynamics 不足。此时不训练 critic，也不把更多标签技巧包装成解法，直接转向高质量 recovery demonstrations、AFIL/SARM2 类 on-policy improvement 或显式反馈重规划。
 

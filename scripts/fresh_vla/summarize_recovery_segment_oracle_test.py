@@ -69,6 +69,21 @@ def random_result(schedule_values, natural_value):
     }
 
 
+def restore_audit_decision():
+    return {
+        "candidate0_branch_replay_semantic_match": True,
+        "candidate0_branch_replay_image_max_abs_delta": 0,
+        "candidate0_branch_replay_sim_max_abs_delta": 0.0,
+        "candidate0_branch_replay_robot_state_max_abs_delta": 0.0,
+        "selected_live_branch_semantic_match": True,
+        "selected_live_branch_image_max_abs_delta": 0,
+        "selected_live_branch_sim_max_abs_delta": 0.0,
+        "selected_live_branch_robot_state_max_abs_delta": 0.0,
+        "selected_direct_replay_match": True,
+        "selected_endpoint_sim_max_abs_delta": 0.0,
+    }
+
+
 def write_manifest(root, source_by_pair=SOURCE_BY_PAIR):
     manifest = {
         "groups": [
@@ -97,17 +112,34 @@ def decision_payloads(
     for model_seed in (41, 42, 43):
         rows = []
         for pair_id, source in SOURCE_BY_PAIR.items():
+            oracle_result = method_result(oracle_value, natural_oracle)
+            oracle_result["decisions"] = [
+                restore_audit_decision() for _ in range(4)
+            ]
             rows.append(
                 {
                     "pair_id": pair_id,
                     "split": "val",
                     "source_initial_state_index": source,
                     "seed": model_seed,
+                    "sample0_restore_parity": {
+                        "passed": True,
+                        "scope": "fixed_intervention_segment",
+                        "action_budget": 12,
+                        "forced_restore_replans": 4,
+                        "image_max_abs_delta": 0,
+                        "decision_image_max_abs_delta": 0,
+                        "numeric_max_abs_delta": {
+                            "action": 0.0,
+                            "sim_state": 0.0,
+                            "robot_state": 0.0,
+                        },
+                    },
                     "methods": {
                         "sample0": method_result(sample0_value, natural_sample0),
                         "random4": random_result(random_schedule_values, 0.25),
                         "myopic_stage": method_result(myopic_value, 0.25),
-                        "receding_oracle": method_result(oracle_value, natural_oracle),
+                        "receding_oracle": oracle_result,
                     },
                 }
             )
@@ -139,6 +171,7 @@ def decision_payloads(
                 "outcome_metric_directions": list(METRIC_DIRECTIONS),
                 "git_sha": "0123456789abcdef",
                 "git_dirty_at_launch": False,
+                "branch_rollout_uses_separate_env": True,
                 "policy_checkpoint_sha256": EXPECTED_CHECKPOINT_SHA256[model_seed],
                 "expected_rows": len(rows),
                 "completed_rows": len(rows),
@@ -277,6 +310,20 @@ class RecoverySegmentSummaryTest(unittest.TestCase):
             (
                 lambda payloads: payloads[0].pop("full_heldout_continuations"),
                 "schema version 2 fields are missing",
+            ),
+            (
+                lambda payloads: payloads[0]["rows"][0][
+                    "sample0_restore_parity"
+                ].update(passed=False),
+                "failed sample0 restore parity",
+            ),
+            (
+                lambda payloads: payloads[0]["rows"][0]["methods"][
+                    "receding_oracle"
+                ]["decisions"][0].update(
+                    candidate0_branch_replay_image_max_abs_delta=1
+                ),
+                "candidate-0 replay changed pixels",
             ),
         )
         for mutation, pattern in cases:

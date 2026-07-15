@@ -29,6 +29,7 @@ class LiberoSnapshotCollectorTest(unittest.TestCase):
             step=1,
         )
         controller = SimpleNamespace(
+            new_update=True,
             goal_pos=np.array([0.2, 0.3, 0.4]),
             goal_ori=np.eye(3),
             relative_ori=np.array([0.01, 0.02, 0.03]),
@@ -41,6 +42,16 @@ class LiberoSnapshotCollectorTest(unittest.TestCase):
         model = SimpleNamespace(
             body_pos=np.zeros((2, 3)),
             geom_friction=np.ones((1, 3)),
+            site_rgba=np.ones((1, 4)),
+        )
+        sim_data = SimpleNamespace(
+            qacc_warmstart=np.array([0.1, 0.2]),
+            qacc=np.array([0.3, 0.4]),
+            qfrc_applied=np.zeros((2,)),
+            xfrc_applied=np.zeros((1, 6)),
+            ctrl=np.array([0.3, 0.4]),
+            mocap_pos=np.zeros((1, 3)),
+            mocap_quat=np.array([[1.0, 0.0, 0.0, 0.0]]),
         )
         runtime_env = SimpleNamespace(
             cur_time=0.15,
@@ -57,7 +68,7 @@ class LiberoSnapshotCollectorTest(unittest.TestCase):
                     gripper=SimpleNamespace(current_action=np.array([0.5])),
                 )
             ],
-            sim=SimpleNamespace(model=model),
+            sim=SimpleNamespace(model=model, data=sim_data),
             reset=mock.Mock(),
             regenerate_obs_from_state=mock.Mock(return_value={"observation": True}),
             env=runtime_env,
@@ -110,7 +121,11 @@ class LiberoSnapshotCollectorTest(unittest.TestCase):
         with mock.patch("libero_snapshot_collector._object_geom_ids", return_value=[0]):
             state = _capture_controller_state(env)
             env.robots[0].controller.goal_pos[:] = -1
+            env.robots[0].controller.new_update = False
             env.robots[0].controller.interpolator_pos.step = 0
+            env.sim.data.qacc_warmstart[:] = -1
+            env.sim.data.qacc[:] = -1
+            env.sim.model.site_rgba[:] = 0
             env.env.cur_time = 0.0
             env.env._obs_cache = {}
             _restore_snapshot(env, np.zeros((4,)), state)
@@ -118,8 +133,15 @@ class LiberoSnapshotCollectorTest(unittest.TestCase):
             np.array_equal(env.robots[0].controller.goal_pos, np.array([0.2, 0.3, 0.4]))
         )
         self.assertEqual(env.robots[0].controller.interpolator_pos.step, 2)
+        self.assertTrue(env.robots[0].controller.new_update)
+        self.assertTrue(
+            np.array_equal(env.sim.data.qacc_warmstart, np.array([0.1, 0.2]))
+        )
+        self.assertTrue(np.array_equal(env.sim.data.qacc, np.array([0.3, 0.4])))
+        self.assertTrue(np.array_equal(env.sim.model.site_rgba, np.ones((1, 4))))
         self.assertAlmostEqual(env.env.cur_time, 0.15)
         self.assertTrue(np.array_equal(env.env._obs_cache["robot"], np.array([1.0, 2.0])))
+        env.reset.assert_not_called()
         env.robots[0].controller.reset_goal.assert_not_called()
 
     def test_legacy_snapshot_still_resets_controller_goal(self) -> None:
@@ -131,6 +153,7 @@ class LiberoSnapshotCollectorTest(unittest.TestCase):
         }
         with mock.patch("libero_snapshot_collector._object_geom_ids", return_value=[0]):
             _restore_snapshot(env, np.zeros((4,)), legacy)
+        env.reset.assert_called_once_with()
         env.robots[0].controller.reset_goal.assert_called_once_with()
 
 

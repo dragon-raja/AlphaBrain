@@ -103,7 +103,7 @@ path.write_text(json.dumps({
     "minimum_learning_rate": 2.0e-6,
     "warmup_steps": 100,
     "dataset": "$DATASET",
-    "dataset_shuffle": $([ "$ARM" = base_continuation ] && echo true || echo false),
+    "dataset_shuffle": "$ARM" == "base_continuation",
 }, indent=2, sort_keys=True) + "\n")
 PY
 

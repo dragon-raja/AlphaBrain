@@ -234,6 +234,20 @@ Gate 1 通过后，选择 validation 上成功率最高且成本最低的简单�
 - 只有 paired CFR 胜过非成对强对照，才评估 policy-relative competence truncation；
 - 任一更简单强基线解决问题时，停止增加模块并采用该基线。
 
+### 9.1 Baseline v2 已释放 Gate 1
+
+10,353-step Full-H 三 seed validation gate 已通过：K=3 attached 跨 seed
+均值为 53.85%，三个 seed 均达到单 seed 门槛，正式状态为
+`BASELINE_VALID_PROCEED_TO_RECOVERY_CONTROLS`。test 仍未打开。与此同时，
+failure-continuation 从 K=1 的三个 seed 全 0% 上升到 K=3 的
+62.5%/55.6%/75.0%，说明 stale-tail 现象在具备基本任务能力的策略上仍存在。
+
+因此下一步不再修 baseline，也不直接实现 CFR。按结果前冻结的 Gate 1，先比较
+Base continuation、clean feedback-to-regrasp replay 和 policy-state recovery；三者
+从相同 10,353-step seed checkpoint 出发，统一增加 6,902 updates。具体协议见
+`recovery_support_v2_preregistration.md`。只有 policy-state correction 在等预算下
+胜过两个简单强对照，才有理由继续考察 paired CFR 的独立价值。
+
 这条路线允许最终答案是一个热门近邻，也允许答案是负结果。唯一不能接受的是为了形式差异
 而牺牲闭环成功、数据效率或实验可解释性。
 

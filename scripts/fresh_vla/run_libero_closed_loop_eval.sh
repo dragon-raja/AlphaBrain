@@ -130,7 +130,8 @@ for evaluation in isolated end_to_end; do
     continue
   fi
   video_args=()
-  if [ "${FRESH_SAVE_EVAL_VIDEOS:-0}" = 1 ]; then
+  if [ "${FRESH_SAVE_EVAL_VIDEOS:-0}" = 1 ] && \
+     { [ "$evaluation" = end_to_end ] || [ "${FRESH_SAVE_ISOLATED_VIDEOS:-0}" = 1 ]; }; then
     video_args=(
       --video-dir "$RUN_DIR/closed_loop_videos${OUTPUT_SUFFIX}"
       --video-groups "${FRESH_EVAL_VIDEO_GROUPS:-2}"

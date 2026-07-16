@@ -5,8 +5,9 @@ REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 CONFIG=${FRESH_RECOVERY_SUPPORT_CONFIG:-$REPO_ROOT/configs/experiments/fresh_vla_libero_closed_loop.yaml}
 PYTHON=${FRESH_TRAIN_PYTHON:-$REPO_ROOT/.venv/bin/python}
 BASELINE_VIEW_ROOT=${FRESH_BASELINE_VIEW_ROOT:-/share/longjunyu/fresh-vla/runs/baseline-repair-v1/eval_views}
-BASELINE_GATE=${FRESH_BASELINE_GATE:-/share/longjunyu/fresh-vla/runs/baseline-repair-v1/baseline_repair_three_seed_gate.json}
-OUTPUT_ROOT=${FRESH_RECOVERY_SUPPORT_ROOT:-/share/longjunyu/fresh-vla/runs/recovery-support-repaired-v1}
+BASELINE_GATE=${FRESH_BASELINE_GATE:-/share/longjunyu/fresh-vla/runs/baseline-repair-v1/baseline_repair_v2_three_seed_gate.json}
+BASELINE_STEPS=${FRESH_BASELINE_STEPS:-10353}
+OUTPUT_ROOT=${FRESH_RECOVERY_SUPPORT_ROOT:-/share/longjunyu/fresh-vla/runs/recovery-support-repaired-v2-step10353}
 PRETRAINED_MODELS_DIR=${PRETRAINED_MODELS_DIR:-/share/longjunyu/alphabrain/pretrained_models}
 
 ARM=${1:?usage: run_recovery_support_train.sh ARM SEED GPU_ID STEPS}
@@ -19,9 +20,9 @@ case "$ARM" in
   *) echo "ARM must be base_continuation, clean_recovery_replay, or policy_state_recovery" >&2; exit 2 ;;
 esac
 case "$SEED" in
-  41) EXPECTED_SHA256=31cc2edf0b53fa69a0e05d9ef83171e7b42cebf76a482a4111c8d672c0f76dce ;;
-  42) EXPECTED_SHA256=596349bdb536b413b3853106a7ae75613528a082ce84e9063b41735ece6bb185 ;;
-  43) EXPECTED_SHA256=a82def7273a8ea0abe6ff171958ed0c4b5527b0f3d7c96a77474f363f1df6253 ;;
+  41) EXPECTED_SHA256=732da869fe5aab23ae83f6b517bb33a83bb0b5e7cea9c2535edc9388f07d61c4 ;;
+  42) EXPECTED_SHA256=73d23cc8659ab7510eecdd013b1ffdc48c2ea97304ec14b3cf886906fc4da90a ;;
+  43) EXPECTED_SHA256=cfd9547bde803ca83430bae37675aeb61e534f0d490f2b1d233ab3289baec4c4 ;;
   *) echo "seed must be one of 41, 42, or 43" >&2; exit 2 ;;
 esac
 if [[ ! "$GPU_ID" =~ ^[0-7]$ ]] || [[ ! "$STEPS" =~ ^[1-9][0-9]*$ ]] || (( STEPS % 2 != 0 )); then
@@ -29,7 +30,7 @@ if [[ ! "$GPU_ID" =~ ^[0-7]$ ]] || [[ ! "$STEPS" =~ ^[1-9][0-9]*$ ]] || (( STEPS
   exit 2
 fi
 
-CHECKPOINT="$BASELINE_VIEW_ROOT/fresh_closed_loop_repair_step3451_seed${SEED}/final_model"
+CHECKPOINT="$BASELINE_VIEW_ROOT/fresh_closed_loop_repair_step${BASELINE_STEPS}_seed${SEED}/final_model"
 RUN_ID="recovery_support_${ARM}_seed${SEED}_steps${STEPS}"
 OUTPUT_DIR="$OUTPUT_ROOT/$RUN_ID"
 MODE=fresh_recovery_support_full_h
@@ -124,7 +125,7 @@ path.write_text(json.dumps({
     "learning_rate": 1.0e-5,
     "minimum_learning_rate": 2.0e-6,
     "warmup_steps": 100,
-    "baseline_optimizer_steps": 3451,
+    "baseline_optimizer_steps": $BASELINE_STEPS,
     "baseline_gate": "$BASELINE_GATE",
     "dataset": "$DATASET",
     "dataset_shuffle": False,

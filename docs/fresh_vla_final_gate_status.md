@@ -139,3 +139,29 @@ One final validation-only budget repair is frozen before seed-42/43 results:
 41. Its protocol and terminal stopping rule are in
 `docs/embodied_research_reset/baseline_validity_repair_v2_amendment.md`. No
 recovery control or test evaluation may start unless this unchanged gate passes.
+
+### Baseline repair v2 result
+
+The final 10,353-step repair completed for all three seeds and passed the
+unchanged validation-only gate. At primary K=3, attached success is 61.54%,
+38.46%, and 61.54%; the cross-seed mean is 53.85%. Overall task success is
+50.00%, 30.77%, and 50.00%, while slip recovery is 38.46%, 23.08%, and 38.46%.
+The formal decision is `BASELINE_VALID_PROCEED_TO_RECOVERY_CONTROLS`; test is
+still sealed.
+
+K=3 failure continuation is 62.5%, 55.6%, and 75.0%, compared with 0% for every
+seed at K=1. This makes stale chunk commitment a closed-loop behavior signal on
+a baseline that can perform the task, rather than an artifact of a wholly
+incompetent policy.
+
+All 117 end-to-end videos and 32,591 frames passed exact decode, H.264/`avc1`,
+`yuv420p`, fast-start, nonblank, motion, and frame-count checks. Formal outputs
+are `baseline_repair_v2_three_seed_gate.json` and
+`baseline_repair_v2_three_seed_video_artifact_audit.json` under the baseline
+repair run root.
+
+Gate 1 is now frozen in
+`docs/embodied_research_reset/recovery_support_v2_preregistration.md`: Base
+continuation, clean feedback-to-regrasp replay, and policy-state recovery use
+the same seed-matched 10,353-step initialization and 6,902 additional updates.
+Only validation K=1/2/3 is allowed until the paired decision is complete.

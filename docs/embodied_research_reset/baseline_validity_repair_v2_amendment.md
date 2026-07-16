@@ -66,3 +66,11 @@ If this gate passes, 10,353 becomes the common budget for the already specified
 recovery-support controls. If it fails, no 13,804-step cross-seed retry, checkpoint
 selection, threshold change, recovery-method comparison, or test opening is
 allowed. The result remains `BASELINE_INVALID_OR_DATA_INSUFFICIENT`.
+
+## Completed result
+
+The amendment completed without changing its gate. All three seeds were
+evaluated at 10,353 steps; K=3 attached success was 61.54%, 38.46%, and 61.54%,
+with a cross-seed mean of 53.85%. The decision is
+`BASELINE_VALID_PROCEED_TO_RECOVERY_CONTROLS`. Test remained sealed, and all
+117 end-to-end validation videos passed the formal codec and decode audit.

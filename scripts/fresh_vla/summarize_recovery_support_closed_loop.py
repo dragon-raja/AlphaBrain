@@ -160,9 +160,10 @@ def _load_method_seed(
     baseline_tag: str,
     split: str,
     execution_horizon: int,
+    baseline_steps: int,
 ) -> dict[str, dict[str, float | None]]:
     if method == "original_full_h":
-        run = baseline_root / f"fresh_closed_loop_repair_step3451_seed{seed}"
+        run = baseline_root / f"fresh_closed_loop_repair_step{baseline_steps}_seed{seed}"
         isolated_path = run / f"closed_loop_isolated_{baseline_tag}.json"
         end_to_end_path = run / f"closed_loop_end_to_end_{baseline_tag}.json"
         deterministic_path = run / f"deterministic_reach_{baseline_tag}.json"
@@ -203,6 +204,7 @@ def summarize_support(
     baseline_tag: str,
     split: str,
     bootstrap_samples: int,
+    baseline_steps: int = 10353,
 ) -> dict[str, Any]:
     groups: dict[str, dict[str, dict[int, dict[str, dict[str, float | None]]]]] = {}
     seed_summaries: dict[str, Any] = {}
@@ -230,6 +232,7 @@ def summarize_support(
                     baseline_tag=baseline_tag,
                     split=split,
                     execution_horizon=horizon,
+                    baseline_steps=baseline_steps,
                 )
                 groups[horizon_key][method][seed] = per_group
                 summary = summarize_seed(per_group)
@@ -263,6 +266,7 @@ def summarize_support(
     return {
         "schema_version": 1,
         "steps": steps,
+        "baseline_steps": baseline_steps,
         "tag": tag,
         "baseline_tag": baseline_tag,
         "split": split,
@@ -335,7 +339,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-root",
         type=Path,
-        default=Path("/share/longjunyu/fresh-vla/runs/recovery-support-repaired-v1"),
+        default=Path("/share/longjunyu/fresh-vla/runs/recovery-support-repaired-v2-step10353"),
     )
     parser.add_argument(
         "--baseline-root",
@@ -343,6 +347,7 @@ def parse_args() -> argparse.Namespace:
         default=Path("/share/longjunyu/fresh-vla/runs/baseline-repair-v1/eval_views"),
     )
     parser.add_argument("--steps", type=int, required=True)
+    parser.add_argument("--baseline-steps", type=int, default=10353)
     parser.add_argument("--tag", required=True)
     parser.add_argument("--baseline-tag", default="val_gate_final")
     parser.add_argument("--split", choices=("val", "test"), default="val")
@@ -363,6 +368,7 @@ def main() -> None:
         baseline_tag=args.baseline_tag,
         split=args.split,
         bootstrap_samples=args.bootstrap_samples,
+        baseline_steps=args.baseline_steps,
     )
     output_dir = args.output_dir or args.output_root / f"closed_loop_summary_{args.split}_steps{args.steps}"
     output_dir.mkdir(parents=True, exist_ok=True)

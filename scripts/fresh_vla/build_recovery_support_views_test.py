@@ -69,13 +69,18 @@ class MatchedRowsTest(unittest.TestCase):
         self.assertTrue(metadata["passed"])
         self.assertEqual(metadata["anchor_count"], 6)
         self.assertEqual(metadata["target_count"], 6)
-        left = rows["clean_recovery_replay"]
-        right = rows["policy_state_recovery"]
-        for clean_row, policy_row in zip(left, right, strict=True):
+        base = rows["base_continuation"]
+        clean = rows["clean_recovery_replay"]
+        policy = rows["policy_state_recovery"]
+        self.assertEqual(set(rows), {"base_continuation", "clean_recovery_replay", "policy_state_recovery"})
+        for base_row, clean_row, policy_row in zip(base, clean, policy, strict=True):
+            self.assertEqual(base_row["slot_type"], clean_row["slot_type"])
             self.assertEqual(clean_row["slot_type"], policy_row["slot_type"])
             if clean_row["slot_type"] == "anchor":
+                self.assertEqual(base_row["source_sample_id"], clean_row["source_sample_id"])
                 self.assertEqual(clean_row["source_sample_id"], policy_row["source_sample_id"])
             else:
+                self.assertEqual(base_row["source_pair_id"], clean_row["source_pair_id"])
                 self.assertEqual(clean_row["source_pair_id"], policy_row["source_pair_id"])
 
     def test_requires_even_step_budget(self) -> None:

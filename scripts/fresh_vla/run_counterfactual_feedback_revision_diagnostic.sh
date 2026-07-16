@@ -3,16 +3,13 @@ set -euo pipefail
 
 REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 PYTHON=${FRESH_TRAIN_PYTHON:-$REPO_ROOT/.venv/bin/python}
-SIM_PYTHON=${FRESH_LIBERO_PYTHON:-/workspace/envs/fresh-libero/bin/python}
-LIBERO_SOURCE=${FRESH_LIBERO_SOURCE:-/projects/openpi/third_party/libero}
 BASELINE_VIEW_ROOT=${FRESH_BASELINE_VIEW_ROOT:-/share/longjunyu/fresh-vla/runs/baseline-repair-v1/eval_views}
-BASELINE_GATE=${FRESH_BASELINE_GATE:-/share/longjunyu/fresh-vla/runs/baseline-repair-v1/baseline_repair_three_seed_gate.json}
 EPISODE_ROOT=${FRESH_EPISODE_ROOT:-/share/longjunyu/fresh-vla/libero-full-episode-v2-128}
-OUTPUT_ROOT=${FRESH_RECOVERY_SUPPORT_ROOT:-/share/longjunyu/fresh-vla/runs/recovery-support-repaired-v1}
+OUTPUT_ROOT=${FRESH_MECHANISM_DIAGNOSTIC_ROOT:-/share/longjunyu/fresh-vla/runs/mechanism-diagnostics-v1}
 PRETRAINED_MODELS_DIR=${PRETRAINED_MODELS_DIR:-/share/longjunyu/alphabrain/pretrained_models}
 
-SEED=${1:?usage: run_policy_state_recovery_collection.sh SEED GPU_ID [MAX_GROUPS]}
-GPU_ID=${2:?usage: run_policy_state_recovery_collection.sh SEED GPU_ID [MAX_GROUPS]}
+SEED=${1:?usage: run_counterfactual_feedback_revision_diagnostic.sh SEED GPU_ID [MAX_GROUPS]}
+GPU_ID=${2:?usage: run_counterfactual_feedback_revision_diagnostic.sh SEED GPU_ID [MAX_GROUPS]}
 MAX_GROUPS=${3:-}
 
 case "$SEED" in
@@ -31,44 +28,30 @@ if [ -n "$MAX_GROUPS" ] && [[ ! "$MAX_GROUPS" =~ ^[1-9][0-9]*$ ]]; then
 fi
 
 CHECKPOINT="$BASELINE_VIEW_ROOT/fresh_closed_loop_repair_step3451_seed${SEED}/final_model"
-TAG="policy_state_repaired_seed${SEED}"
+TAG="counterfactual_feedback_revision_train_seed${SEED}"
 if [ -n "$MAX_GROUPS" ]; then
   TAG="${TAG}_smoke${MAX_GROUPS}"
 fi
-OUTPUT_DIR="$OUTPUT_ROOT/corrections/$TAG"
-LOG_DIR="$OUTPUT_ROOT/corrections/logs"
+OUTPUT="$OUTPUT_ROOT/${TAG}.json"
+LOG_DIR="$OUTPUT_ROOT/logs"
+SOCKET_PATH="/tmp/fresh-feedback-revision-${SEED}-$$.sock"
 KEEPALIVE_SESSION="gpu-keepalive-${GPU_ID}"
-SOCKET_PATH="/tmp/fresh-policy-state-${SEED}-$$.sock"
-SERVER_PID=""
 KEEPALIVE_WAS_RUNNING=0
+SERVER_PID=""
 
 if [ ! -f "$CHECKPOINT/model.safetensors" ]; then
-  echo "missing checkpoint: $CHECKPOINT/model.safetensors" >&2
+  echo "missing selected repaired checkpoint: $CHECKPOINT/model.safetensors" >&2
   exit 1
 fi
-if [ -e "$OUTPUT_DIR" ]; then
-  echo "refusing to overwrite existing output: $OUTPUT_DIR" >&2
+if [ -e "$OUTPUT" ]; then
+  echo "refusing to overwrite diagnostic: $OUTPUT" >&2
   exit 1
-fi
-
-if [ "${FRESH_ALLOW_UNGATED_SUPPORT_SMOKE:-0}" != 1 ]; then
-  "$PYTHON" - "$BASELINE_GATE" <<'PY'
-import json, pathlib, sys
-path = pathlib.Path(sys.argv[1])
-if not path.is_file():
-    raise SystemExit(f"missing repaired baseline gate: {path}")
-payload = json.loads(path.read_text())
-if payload.get("decision") != "BASELINE_VALID_PROCEED_TO_RECOVERY_CONTROLS":
-    raise SystemExit(f"repaired baseline gate did not pass: {payload.get('decision')}")
-if payload.get("test_split_opened", False):
-    raise SystemExit("repaired baseline gate unexpectedly opened test")
-PY
 fi
 
 cd "$REPO_ROOT"
 GIT_SHA=$(git rev-parse HEAD)
 if [ -n "$(git status --porcelain)" ]; then
-  echo "formal policy-state collection requires a clean Git worktree" >&2
+  echo "formal feedback-revision diagnostic requires a clean Git worktree" >&2
   exit 1
 fi
 ACTUAL_SHA256=$(sha256sum "$CHECKPOINT/model.safetensors" | awk '{print $1}')
@@ -123,23 +106,19 @@ fi
 
 max_group_args=()
 if [ -n "$MAX_GROUPS" ]; then
-  max_group_args=(--max-groups "$MAX_GROUPS" --video-groups "$MAX_GROUPS" --policy-audit-stride 1 --minimum-correction-group-rate 0.0)
+  max_group_args=(--max-groups "$MAX_GROUPS")
 fi
 
 FRESH_GIT_SHA="$GIT_SHA" \
 FRESH_GIT_DIRTY=0 \
-FRESH_CHECKPOINT_SHA256="$ACTUAL_SHA256" \
-PYTHONPATH="$REPO_ROOT/scripts/fresh_vla:$LIBERO_SOURCE${PYTHONPATH:+:$PYTHONPATH}" \
-LIBERO_CONFIG_PATH="$REPO_ROOT/scripts/fresh_vla/libero_config" \
-MUJOCO_GL=egl \
-PYOPENGL_PLATFORM=egl \
+PYTHONPATH="$REPO_ROOT/scripts/fresh_vla${PYTHONPATH:+:$PYTHONPATH}" \
 CUDA_VISIBLE_DEVICES="$GPU_ID" \
-PRETRAINED_MODELS_DIR="$PRETRAINED_MODELS_DIR" \
 PYTHONDONTWRITEBYTECODE=1 \
-"$SIM_PYTHON" scripts/fresh_vla/collect_policy_state_recovery.py \
+"$PYTHON" scripts/fresh_vla/diagnose_counterfactual_feedback_revision.py \
   --policy-socket "$SOCKET_PATH" \
   --episode-root "$EPISODE_ROOT" \
-  --output-dir "$OUTPUT_DIR" \
-  --seed "$SEED" \
+  --output "$OUTPUT" \
+  --policy-seed "$SEED" \
+  --split train \
   "${max_group_args[@]}" \
-  2>&1 | tee "$LOG_DIR/${TAG}_collector.log"
+  2>&1 | tee "$LOG_DIR/${TAG}.log"

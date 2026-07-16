@@ -4,8 +4,9 @@ set -euo pipefail
 REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 CONFIG=${FRESH_RECOVERY_SUPPORT_CONFIG:-$REPO_ROOT/configs/experiments/fresh_vla_libero_closed_loop.yaml}
 PYTHON=${FRESH_TRAIN_PYTHON:-$REPO_ROOT/.venv/bin/python}
-BASELINE_ROOT=${FRESH_BASELINE_ROOT:-/share/longjunyu/fresh-vla/runs/libero-full-episode-final-v2}
-OUTPUT_ROOT=${FRESH_RECOVERY_SUPPORT_ROOT:-/share/longjunyu/fresh-vla/runs/recovery-support-v1}
+BASELINE_VIEW_ROOT=${FRESH_BASELINE_VIEW_ROOT:-/share/longjunyu/fresh-vla/runs/baseline-repair-v1/eval_views}
+BASELINE_GATE=${FRESH_BASELINE_GATE:-/share/longjunyu/fresh-vla/runs/baseline-repair-v1/baseline_repair_three_seed_gate.json}
+OUTPUT_ROOT=${FRESH_RECOVERY_SUPPORT_ROOT:-/share/longjunyu/fresh-vla/runs/recovery-support-repaired-v1}
 PRETRAINED_MODELS_DIR=${PRETRAINED_MODELS_DIR:-/share/longjunyu/alphabrain/pretrained_models}
 
 ARM=${1:?usage: run_recovery_support_train.sh ARM SEED GPU_ID STEPS}
@@ -18,63 +19,65 @@ case "$ARM" in
   *) echo "ARM must be base_continuation, clean_recovery_replay, or policy_state_recovery" >&2; exit 2 ;;
 esac
 case "$SEED" in
-  41) EXPECTED_SHA256=144a3b3d3dcc8421418564a62059a1038c9a7ef3196ac157f5f9ea1997a31f30 ;;
-  42) EXPECTED_SHA256=98dc52d2ed1983776d218fee7666f3131053d1a55296e93e9f521b1c088ce875 ;;
-  43) EXPECTED_SHA256=5db16350d9835c1f28d01b660dd6e9234bcab3da79abbce1f092e92b08ac9149 ;;
+  41) EXPECTED_SHA256=31cc2edf0b53fa69a0e05d9ef83171e7b42cebf76a482a4111c8d672c0f76dce ;;
+  42) EXPECTED_SHA256=596349bdb536b413b3853106a7ae75613528a082ce84e9063b41735ece6bb185 ;;
+  43) EXPECTED_SHA256=a82def7273a8ea0abe6ff171958ed0c4b5527b0f3d7c96a77474f363f1df6253 ;;
   *) echo "seed must be one of 41, 42, or 43" >&2; exit 2 ;;
 esac
-if [[ ! "$GPU_ID" =~ ^[0-7]$ ]] || [[ ! "$STEPS" =~ ^[1-9][0-9]*$ ]]; then
-  echo "GPU_ID must be in [0,7] and STEPS must be positive" >&2
+if [[ ! "$GPU_ID" =~ ^[0-7]$ ]] || [[ ! "$STEPS" =~ ^[1-9][0-9]*$ ]] || (( STEPS % 2 != 0 )); then
+  echo "GPU_ID must be in [0,7] and STEPS must be positive and even" >&2
   exit 2
 fi
 
-CHECKPOINT="$BASELINE_ROOT/fresh_closed_loop_full_h_seed${SEED}/final_model"
+CHECKPOINT="$BASELINE_VIEW_ROOT/fresh_closed_loop_repair_step3451_seed${SEED}/final_model"
 RUN_ID="recovery_support_${ARM}_seed${SEED}_steps${STEPS}"
 OUTPUT_DIR="$OUTPUT_ROOT/$RUN_ID"
-MODE=fresh_closed_loop_full_h
-DATASET=/share/longjunyu/fresh-vla/libero-full-episode-windows-v2-128
-if [ "$ARM" != base_continuation ]; then
-  MODE=fresh_recovery_support_full_h
-  DATASET="$OUTPUT_ROOT/data/seed${SEED}/$ARM"
-  export FRESH_RECOVERY_SUPPORT_DATA_ROOT="$DATASET"
-  CALIBRATION_GATE="$OUTPUT_ROOT/base_continuation_calibration_steps${STEPS}.json"
-  if [ "${FRESH_ALLOW_UNGATED_SUPPORT_SMOKE:-0}" != 1 ]; then
-    if [ ! -f "$CALIBRATION_GATE" ]; then
-      echo "missing Base calibration gate: $CALIBRATION_GATE" >&2
-      exit 1
-    fi
-    "$PYTHON" - "$CALIBRATION_GATE" "$STEPS" <<'PY'
+MODE=fresh_recovery_support_full_h
+DATASET="$OUTPUT_ROOT/data/seed${SEED}/$ARM"
+export FRESH_RECOVERY_SUPPORT_DATA_ROOT="$DATASET"
+if [ "${FRESH_ALLOW_UNGATED_SUPPORT_SMOKE:-0}" != 1 ]; then
+  "$PYTHON" - "$BASELINE_GATE" <<'PY'
 import json, pathlib, sys
 path = pathlib.Path(sys.argv[1])
-steps = int(sys.argv[2])
+if not path.is_file():
+    raise SystemExit(f"missing repaired baseline gate: {path}")
 payload = json.loads(path.read_text())
-expected = f"FREEZE_{steps}_UPDATES"
-if not payload.get("gate", {}).get("passed") or payload.get("decision") != expected:
-    raise SystemExit(
-        f"Base calibration did not freeze this budget: gate={payload.get('gate')} "
-        f"decision={payload.get('decision')} expected={expected}"
-    )
+if payload.get("decision") != "BASELINE_VALID_PROCEED_TO_RECOVERY_CONTROLS":
+    raise SystemExit(f"repaired baseline gate did not pass: {payload.get('decision')}")
+if payload.get("test_split_opened", False):
+    raise SystemExit("repaired baseline gate unexpectedly opened test")
 PY
-  fi
-  if [ ! -f "$DATASET/quality_report.json" ]; then
-    echo "missing recovery-support data view: $DATASET/quality_report.json" >&2
-    exit 1
-  fi
-  "$PYTHON" - "$DATASET" "$STEPS" <<'PY'
+fi
+if [ ! -f "$DATASET/quality_report.json" ]; then
+  echo "missing recovery-support data view: $DATASET/quality_report.json" >&2
+  exit 1
+fi
+"$PYTHON" - "$DATASET" "$STEPS" "$ARM" "$SEED" <<'PY'
 import json, pathlib, sys
 root = pathlib.Path(sys.argv[1])
 steps = int(sys.argv[2])
+arm = sys.argv[3]
+seed = int(sys.argv[4])
 quality = json.loads((root / "quality_report.json").read_text())
+manifest = json.loads((root / "manifest.json").read_text())
 records = sum(1 for line in (root / "records.jsonl").read_text().splitlines() if line.strip())
 if not quality.get("passed") or records != steps:
     raise SystemExit(f"invalid recovery-support view: passed={quality.get('passed')} records={records} steps={steps}")
+if manifest.get("arm") != arm or manifest.get("seed") != seed or manifest.get("steps") != steps:
+    raise SystemExit(f"recovery-support manifest identity mismatch: {manifest}")
+if manifest.get("shuffle") is not False:
+    raise SystemExit("formal recovery-support view must use its frozen slot order")
 PY
-fi
 KEEPALIVE_SESSION="gpu-keepalive-${GPU_ID}"
 KEEPALIVE_WAS_RUNNING=0
 
 if [ ! -f "$CHECKPOINT/model.safetensors" ]; then
   echo "missing baseline checkpoint: $CHECKPOINT/model.safetensors" >&2
+  exit 1
+fi
+ACTUAL_SHA256=$(sha256sum "$CHECKPOINT/model.safetensors" | awk '{print $1}')
+if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+  echo "checkpoint SHA256 mismatch for seed $SEED" >&2
   exit 1
 fi
 if [ -e "$OUTPUT_DIR" ]; then
@@ -115,14 +118,16 @@ path.write_text(json.dumps({
     "git_sha": "$GIT_SHA",
     "git_dirty_at_launch": False,
     "initial_checkpoint": "$CHECKPOINT",
-    "initial_checkpoint_sha256": "$EXPECTED_SHA256",
+    "initial_checkpoint_sha256": "$ACTUAL_SHA256",
     "checkpoint_load_format_required": "alphabrain_native",
     "optimizer_state": "reset_equally_for_all_arms",
     "learning_rate": 1.0e-5,
     "minimum_learning_rate": 2.0e-6,
     "warmup_steps": 100,
+    "baseline_optimizer_steps": 3451,
+    "baseline_gate": "$BASELINE_GATE",
     "dataset": "$DATASET",
-    "dataset_shuffle": "$ARM" == "base_continuation",
+    "dataset_shuffle": False,
 }, indent=2, sort_keys=True) + "\n")
 PY
 

@@ -138,11 +138,11 @@ def _candidate_run(output_root: Path, method: str, seed: int, steps: int) -> Pat
     return output_root / f"recovery_support_{method}_seed{seed}_steps{steps}"
 
 
-def _load_payload(path: Path, *, evaluation: str) -> Mapping[str, Any]:
+def _load_payload(path: Path, *, evaluation: str, split: str) -> Mapping[str, Any]:
     payload = json.loads(path.read_text())
     if (
         payload.get("status") != "complete"
-        or payload.get("split") != "test"
+        or payload.get("split") != split
         or payload.get("evaluation") != evaluation
     ):
         raise ValueError(f"invalid support evaluation payload: {path}")
@@ -157,20 +157,22 @@ def _load_method_seed(
     *,
     steps: int,
     tag: str,
+    baseline_tag: str,
+    split: str,
     execution_horizon: int,
 ) -> dict[str, dict[str, float | None]]:
     if method == "original_full_h":
-        run = baseline_root / f"fresh_closed_loop_full_h_seed{seed}"
-        isolated_path = run / "closed_loop_isolated.json"
-        end_to_end_path = run / "closed_loop_end_to_end.json"
-        deterministic_path = run / "deterministic_reach.json"
+        run = baseline_root / f"fresh_closed_loop_repair_step3451_seed{seed}"
+        isolated_path = run / f"closed_loop_isolated_{baseline_tag}.json"
+        end_to_end_path = run / f"closed_loop_end_to_end_{baseline_tag}.json"
+        deterministic_path = run / f"deterministic_reach_{baseline_tag}.json"
     else:
         run = _candidate_run(output_root, method, seed, steps)
         isolated_path = run / f"closed_loop_isolated_{tag}.json"
         end_to_end_path = run / f"closed_loop_end_to_end_{tag}.json"
         deterministic_path = run / f"deterministic_reach_{tag}.json"
-    isolated = _load_payload(isolated_path, evaluation="isolated")
-    end_to_end = _load_payload(end_to_end_path, evaluation="end_to_end")
+    isolated = _load_payload(isolated_path, evaluation="isolated", split=split)
+    end_to_end = _load_payload(end_to_end_path, evaluation="end_to_end", split=split)
     deterministic = json.loads(deterministic_path.read_text())
     deterministic_rows = list(deterministic.get("rows", ()))
     deterministic_identities = {
@@ -178,7 +180,7 @@ def _load_method_seed(
         for row in deterministic_rows
     }
     if (
-        deterministic.get("split") != "test"
+        deterministic.get("split") != split
         or deterministic.get("evaluation") != "deterministic_reach"
         or len(deterministic_rows) != 39
         or len(deterministic_identities) != 39
@@ -198,6 +200,8 @@ def summarize_support(
     *,
     steps: int,
     tag: str,
+    baseline_tag: str,
+    split: str,
     bootstrap_samples: int,
 ) -> dict[str, Any]:
     groups: dict[str, dict[str, dict[int, dict[str, dict[str, float | None]]]]] = {}
@@ -223,6 +227,8 @@ def summarize_support(
                     seed,
                     steps=steps,
                     tag=tag,
+                    baseline_tag=baseline_tag,
+                    split=split,
                     execution_horizon=horizon,
                 )
                 groups[horizon_key][method][seed] = per_group
@@ -258,6 +264,9 @@ def summarize_support(
         "schema_version": 1,
         "steps": steps,
         "tag": tag,
+        "baseline_tag": baseline_tag,
+        "split": split,
+        "test_split_opened": split == "test",
         "methods": list(METHODS),
         "seeds": list(SEEDS),
         "execution_horizons": list(EXECUTION_HORIZONS),
@@ -282,6 +291,8 @@ def _format_interval(row: Mapping[str, Any]) -> str:
 def report_markdown(payload: Mapping[str, Any]) -> str:
     lines = [
         "# Recovery Support Closed-Loop Result",
+        "",
+        f"Split: `{payload['split']}`. Test opened: `{str(payload['test_split_opened']).lower()}`.",
         "",
         "Inference uses paired snapshot groups after averaging seeds; frames are not statistical samples.",
         "",
@@ -324,15 +335,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-root",
         type=Path,
-        default=Path("/share/longjunyu/fresh-vla/runs/recovery-support-v1"),
+        default=Path("/share/longjunyu/fresh-vla/runs/recovery-support-repaired-v1"),
     )
     parser.add_argument(
         "--baseline-root",
         type=Path,
-        default=Path("/share/longjunyu/fresh-vla/runs/libero-full-episode-final-v2"),
+        default=Path("/share/longjunyu/fresh-vla/runs/baseline-repair-v1/eval_views"),
     )
     parser.add_argument("--steps", type=int, required=True)
     parser.add_argument("--tag", required=True)
+    parser.add_argument("--baseline-tag", default="val_gate_final")
+    parser.add_argument("--split", choices=("val", "test"), default="val")
     parser.add_argument("--bootstrap-samples", type=int, default=10_000)
     parser.add_argument("--output-dir", type=Path)
     return parser.parse_args()
@@ -347,13 +360,15 @@ def main() -> None:
         args.baseline_root,
         steps=args.steps,
         tag=args.tag,
+        baseline_tag=args.baseline_tag,
+        split=args.split,
         bootstrap_samples=args.bootstrap_samples,
     )
-    output_dir = args.output_dir or args.output_root / f"closed_loop_summary_steps{args.steps}"
+    output_dir = args.output_dir or args.output_root / f"closed_loop_summary_{args.split}_steps{args.steps}"
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "results.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
     (output_dir / "report.md").write_text(report_markdown(payload))
-    (args.output_root / "support_decision.json").write_text(
+    (args.output_root / f"support_decision_{args.split}.json").write_text(
         json.dumps(payload["support_decision"], indent=2, sort_keys=True) + "\n"
     )
     print(json.dumps({"output_dir": str(output_dir), **payload["support_decision"]}, sort_keys=True))

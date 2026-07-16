@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
-from summarize_recovery_support_closed_loop import support_decision
+from summarize_recovery_support_closed_loop import _load_payload, support_decision
 
 
 def summary(mean: float, low: float, high: float) -> dict:
@@ -72,6 +75,21 @@ class SupportDecisionTest(unittest.TestCase):
     def test_stops_when_no_behavior_effect_clears_ci(self) -> None:
         result = support_decision(comparisons())
         self.assertEqual(result["decision"], "STOP_OFFLINE_SUPPORT_EXPANSION")
+
+
+class PayloadSplitTest(unittest.TestCase):
+    def test_load_payload_enforces_requested_split(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "result.json"
+            path.write_text(
+                json.dumps(
+                    {"status": "complete", "split": "val", "evaluation": "end_to_end"}
+                )
+            )
+            payload = _load_payload(path, evaluation="end_to_end", split="val")
+            self.assertEqual(payload["split"], "val")
+            with self.assertRaisesRegex(ValueError, "invalid support evaluation"):
+                _load_payload(path, evaluation="end_to_end", split="test")
 
 
 if __name__ == "__main__":

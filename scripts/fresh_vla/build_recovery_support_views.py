@@ -12,7 +12,7 @@ import numpy as np
 
 
 SUPPORT_TASK = "recovery_support_view"
-ARMS = ("clean_recovery_replay", "policy_state_recovery")
+ARMS = ("base_continuation", "clean_recovery_replay", "policy_state_recovery")
 
 
 def first_stable_true(
@@ -177,10 +177,16 @@ def build_matched_rows(
         raise ValueError("steps must be a positive even number")
     if not anchor_pool:
         raise ValueError("anchor pool is empty")
-    common_groups = sorted(set(clean_by_group) & set(policy_by_group))
+    base_by_group: dict[str, list[tuple[dict[str, Any], Path]]] = defaultdict(list)
+    for source, source_root in anchor_pool:
+        base_by_group[str(source["pair_id"])].append((source, source_root))
+    common_groups = sorted(set(base_by_group) & set(clean_by_group) & set(policy_by_group))
     if not common_groups:
-        raise ValueError("clean and policy-state pools have no common groups")
-    if any(not clean_by_group[group] or not policy_by_group[group] for group in common_groups):
+        raise ValueError("base, clean, and policy-state pools have no common groups")
+    if any(
+        not base_by_group[group] or not clean_by_group[group] or not policy_by_group[group]
+        for group in common_groups
+    ):
         raise ValueError("a common group has an empty target pool")
 
     target_count = steps // 2
@@ -195,6 +201,7 @@ def build_matched_rows(
         )
     )
     anchor_rng = np.random.default_rng(seed + 30_011)
+    base_rng = np.random.default_rng(seed + 35_017)
     clean_rng = np.random.default_rng(seed + 40_009)
     policy_rng = np.random.default_rng(seed + 50_021)
 
@@ -205,14 +212,16 @@ def build_matched_rows(
         if slot_type == "anchor":
             source, source_root = anchor_pool[int(anchor_rng.integers(len(anchor_pool)))]
             pair_id = str(source["pair_id"])
-            clean_ref = policy_ref = (source, source_root)
+            base_ref = clean_ref = policy_ref = (source, source_root)
         else:
             pair_id = next(group_sequence)
+            base_pool = base_by_group[pair_id]
             clean_pool = clean_by_group[pair_id]
             policy_pool = policy_by_group[pair_id]
+            base_ref = base_pool[int(base_rng.integers(len(base_pool)))]
             clean_ref = clean_pool[int(clean_rng.integers(len(clean_pool)))]
             policy_ref = policy_pool[int(policy_rng.integers(len(policy_pool)))]
-        for arm, reference in zip(ARMS, (clean_ref, policy_ref), strict=True):
+        for arm, reference in zip(ARMS, (base_ref, clean_ref, policy_ref), strict=True):
             source, source_root = reference
             rows[arm].append(
                 _view_row(
@@ -230,34 +239,37 @@ def build_matched_rows(
                 "slot": slot,
                 "slot_type": slot_type,
                 "source_pair_id": pair_id,
-                "clean_source_sample_id": rows[ARMS[0]][-1]["source_sample_id"],
-                "policy_source_sample_id": rows[ARMS[1]][-1]["source_sample_id"],
+                "base_source_sample_id": rows["base_continuation"][-1]["source_sample_id"],
+                "clean_source_sample_id": rows["clean_recovery_replay"][-1]["source_sample_id"],
+                "policy_source_sample_id": rows["policy_state_recovery"][-1]["source_sample_id"],
             }
         )
 
     target_counts = Counter(
-        row["source_pair_id"] for row in rows[ARMS[0]] if row["slot_type"] == "target"
+        row["source_pair_id"]
+        for row in rows["base_continuation"]
+        if row["slot_type"] == "target"
     )
     checks = {
-        "equal_view_lengths": len(rows[ARMS[0]]) == len(rows[ARMS[1]]) == steps,
+        "equal_view_lengths": all(len(rows[arm]) == steps for arm in ARMS),
         "half_anchor_half_target": all(
             Counter(row["slot_type"] for row in rows[arm])
             == {"anchor": target_count, "target": target_count}
             for arm in ARMS
         ),
         "slot_types_aligned": all(
-            left["slot_type"] == right["slot_type"]
-            for left, right in zip(rows[ARMS[0]], rows[ARMS[1]], strict=True)
+            len({rows[arm][slot]["slot_type"] for arm in ARMS}) == 1
+            for slot in range(steps)
         ),
         "anchor_samples_identical": all(
-            left["source_sample_id"] == right["source_sample_id"]
-            for left, right in zip(rows[ARMS[0]], rows[ARMS[1]], strict=True)
-            if left["slot_type"] == "anchor"
+            len({rows[arm][slot]["source_sample_id"] for arm in ARMS}) == 1
+            for slot in range(steps)
+            if rows["base_continuation"][slot]["slot_type"] == "anchor"
         ),
         "target_groups_identical": all(
-            left["source_pair_id"] == right["source_pair_id"]
-            for left, right in zip(rows[ARMS[0]], rows[ARMS[1]], strict=True)
-            if left["slot_type"] == "target"
+            len({rows[arm][slot]["source_pair_id"] for arm in ARMS}) == 1
+            for slot in range(steps)
+            if rows["base_continuation"][slot]["slot_type"] == "target"
         ),
         "target_groups_balanced": max(target_counts.values()) - min(target_counts.values()) <= 1,
         "train_only": all(row["split"] == "train" for arm in ARMS for row in rows[arm]),
@@ -352,7 +364,9 @@ def _write_view(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Build matched clean/on-policy recovery replay views")
+    parser = argparse.ArgumentParser(
+        description="Build matched Base, clean-replay, and policy-state recovery views"
+    )
     parser.add_argument("--episode-root", type=Path, required=True)
     parser.add_argument("--window-root", type=Path, required=True)
     parser.add_argument("--correction-root", type=Path, required=True)

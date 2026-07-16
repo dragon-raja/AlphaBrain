@@ -34,6 +34,25 @@ test split 之前冻结。本文不把候选方案声明为新方法，也不改
 任务中的独立贡献。一个只调整训练 suffix 权重的方法既没有增加失败状态支持，也没有让
 执行器读取 chunk 生成后的新观测，因此不应继续作为主方案。
 
+### 2.1 三种子 train-only 机制诊断结果
+
+在 102 个 train snapshot group、三个独立 Pi0.5 checkpoint 上，比较反馈前生成的旧 chunk
+tail 与反馈时从最新图像重新生成的 fresh chunk。每个 group 先跨 policy seed 平均，再以
+snapshot group bootstrap；validation/test 均未打开。`stale age=1, horizon=1` 的结果为：
+
+- slip teacher-action MSE 从 stale 改成 fresh 后平均降低 0.4582，95% CI
+  `[0.4285, 0.4859]`，相对降低 83.5%；
+- 首步 recovery-action rate 提高 81.0 个百分点，95% CI `[75.8, 85.9]`；
+- fresh attached/slip twin assignment 正确率为 96.7%，95% CI `[94.4, 98.7]`；
+- attached 分支 fresh-minus-stale MSE 为 -0.0023，95% CI `[-0.0110, 0.0067]`，未见正常
+  分支损害；
+- 三个 seed 的 fresh slip recovery-action rate 分别为 97.1%、78.4% 和 80.4%，方向一致。
+
+这确认旧 chunk tail 在反馈后会过时，但也**否定了“基策略在反馈后的第一步普遍不会恢复”**：
+从最新观测重规划时，基策略大多能立即选择正确恢复方向。它不否定后续 support gap，因为
+正式 multi-step handoff 的完整成功率仍只有 21.85%。因此，任何新方法都必须把“首步 revision”
+和“后续恢复轨迹覆盖”分开测量；不能拿首步 MSE 改善代替闭环成功。
+
 ## 3. 修订后的主假设：Counterfactual Feedback Revision
 
 暂用工作名 **CFR**，不作为原创性声明。冻结基策略在时刻 `t` 从观测 `o_t` 生成 chunk
@@ -60,6 +79,13 @@ simulator state 或未来信息。它只回答：最新视觉是否提供了足�
 这个对象直接针对“新物理反馈何时应覆盖旧 chunk”，同时用 policy-induced recovery 数据
 补齐覆盖后的动作能力。若普通 A2C2-style correction 或 RaC/VLA-OPD-style 数据已经解决
 问题，就采用近邻方案并停止 CFR 主张。
+
+新诊断也进一步收缩了 CFR 的必要性：fresh `K=1` 重规划是首步 revision 的最简单上界。
+若完整闭环中 `K=1` 已解决问题且计算成本可接受，就直接采用高频重规划，不训练 residual；
+若 `K=1` 只能修正第一步而无法完成恢复，则先补 policy-state recovery support；只有在
+高频重规划成本不可接受、固定 `K>1` 的 stale tail 又造成显著失败时，A2C2-style residual
+或 paired CFR 才有独立工程价值。paired CFR 仍必须正面胜过非成对 A2C2-style 控制，不能
+靠组合两个已知组件成立。
 
 ## 4. 辅助对象：policy-relative competence set
 
@@ -203,6 +229,7 @@ Gate 1 通过后，选择 validation 上成功率最高且成本最低的简单�
 - 在 baseline gate 完成前，不启动 B/C，不打开 test；
 - 旧 B/C runner 绑定旧 checkpoint，不能用于 repaired baseline；
 - 第一轮恢复实验先回答 clean-state exposure 与 policy-state coverage 哪个是根因；
+- 把最终 `K=1/2/3` 闭环差异作为 stale-tail 的行为验证；train-only action 诊断不单独裁决；
 - 只有普通恢复监督有效，才实现最小 CFR residual prototype；
 - 只有 paired CFR 胜过非成对强对照，才评估 policy-relative competence truncation；
 - 任一更简单强基线解决问题时，停止增加模块并采用该基线。

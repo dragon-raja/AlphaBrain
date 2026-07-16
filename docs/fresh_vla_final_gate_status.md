@@ -117,3 +117,25 @@ both target the same feedback-to-stable-regrasp segment. B uses clean expert
 states; C uses states reached after the deployed policy has actually executed a
 wrong or unresolved continuation. Thus the controlled difference is state
 distribution coverage, not target length, phase mix, or a new loss.
+
+## Full-H Baseline Repair Update (2026-07-16)
+
+The corrected global-batch-8 Full-H repair selected the earliest passing
+seed-41 checkpoint, 3,451 optimizer steps, exactly as preregistered. The formal
+three-seed validation gate then completed 234/234 rows. At primary K=3,
+attached success was 46.15%, 23.08%, and 7.69% for seeds 41, 42, and 43; the
+cross-seed mean was 25.64%. Two seeds reached 20%, but the mean missed the fixed
+30% threshold. The machine-readable decision is therefore
+`BASELINE_INVALID_OR_DATA_INSUFFICIENT`. Test remains sealed.
+
+All 117 paired videos and 36,781 decoded frames passed codec, fast-start,
+frame-count, nonblank, and motion checks. The gate and audit are under
+`/share/longjunyu/fresh-vla/runs/baseline-repair-v1/` as
+`baseline_repair_three_seed_gate.json` and
+`baseline_repair_three_seed_video_artifact_audit.json`.
+
+One final validation-only budget repair is frozen before seed-42/43 results:
+10,353 steps, the earliest later preregistered checkpoint that passed for seed
+41. Its protocol and terminal stopping rule are in
+`docs/embodied_research_reset/baseline_validity_repair_v2_amendment.md`. No
+recovery control or test evaluation may start unless this unchanged gate passes.

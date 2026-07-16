@@ -6,6 +6,7 @@ import numpy as np
 
 from libero_snapshot_collector import (
     _capture_controller_state,
+    _restore_sim_data_runtime_fields,
     _restore_snapshot,
     action_toward,
     gripper_transition_horizon,
@@ -155,6 +156,23 @@ class LiberoSnapshotCollectorTest(unittest.TestCase):
             _restore_snapshot(env, np.zeros((4,)), legacy)
         env.reset.assert_called_once_with()
         env.robots[0].controller.reset_goal.assert_called_once_with()
+
+    def test_dynamic_constraint_shape_mismatch_keeps_rebuilt_buffer(self) -> None:
+        sim_data = SimpleNamespace(efc_force=np.array([7.0, 8.0, 9.0]))
+        skipped = _restore_sim_data_runtime_fields(
+            sim_data,
+            {"sim_data_efc_force": np.array([1.0, 2.0])},
+        )
+        self.assertEqual(skipped, ("efc_force",))
+        self.assertTrue(np.array_equal(sim_data.efc_force, np.array([7.0, 8.0, 9.0])))
+
+    def test_fixed_runtime_shape_mismatch_is_not_silently_ignored(self) -> None:
+        sim_data = SimpleNamespace(qacc=np.array([7.0, 8.0, 9.0]))
+        with self.assertRaisesRegex(ValueError, "fixed MuJoCo runtime field shape mismatch"):
+            _restore_sim_data_runtime_fields(
+                sim_data,
+                {"sim_data_qacc": np.array([1.0, 2.0])},
+            )
 
 
 if __name__ == "__main__":

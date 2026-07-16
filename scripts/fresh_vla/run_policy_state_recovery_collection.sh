@@ -12,9 +12,10 @@ EPISODE_ROOT=${FRESH_EPISODE_ROOT:-/share/longjunyu/fresh-vla/libero-full-episod
 OUTPUT_ROOT=${FRESH_RECOVERY_SUPPORT_ROOT:-/share/longjunyu/fresh-vla/runs/recovery-support-repaired-v2-step10353}
 PRETRAINED_MODELS_DIR=${PRETRAINED_MODELS_DIR:-/share/longjunyu/alphabrain/pretrained_models}
 
-SEED=${1:?usage: run_policy_state_recovery_collection.sh SEED GPU_ID [MAX_GROUPS]}
-GPU_ID=${2:?usage: run_policy_state_recovery_collection.sh SEED GPU_ID [MAX_GROUPS]}
+SEED=${1:?usage: run_policy_state_recovery_collection.sh SEED GPU_ID [MAX_GROUPS] [GROUP_OFFSET]}
+GPU_ID=${2:?usage: run_policy_state_recovery_collection.sh SEED GPU_ID [MAX_GROUPS] [GROUP_OFFSET]}
 MAX_GROUPS=${3:-}
+GROUP_OFFSET=${4:-0}
 
 case "$SEED" in
   41) EXPECTED_SHA256=732da869fe5aab23ae83f6b517bb33a83bb0b5e7cea9c2535edc9388f07d61c4 ;;
@@ -30,11 +31,15 @@ if [ -n "$MAX_GROUPS" ] && [[ ! "$MAX_GROUPS" =~ ^[1-9][0-9]*$ ]]; then
   echo "MAX_GROUPS must be positive" >&2
   exit 2
 fi
+if [[ ! "$GROUP_OFFSET" =~ ^[0-9]+$ ]]; then
+  echo "GROUP_OFFSET must be non-negative" >&2
+  exit 2
+fi
 
 CHECKPOINT="$BASELINE_VIEW_ROOT/fresh_closed_loop_repair_step${BASELINE_STEPS}_seed${SEED}/final_model"
 TAG="policy_state_repaired_seed${SEED}"
 if [ -n "$MAX_GROUPS" ]; then
-  TAG="${TAG}_smoke${MAX_GROUPS}"
+  TAG="${TAG}_smoke${MAX_GROUPS}_offset${GROUP_OFFSET}"
 fi
 OUTPUT_DIR="$OUTPUT_ROOT/corrections/$TAG"
 LOG_DIR="$OUTPUT_ROOT/corrections/logs"
@@ -124,7 +129,7 @@ fi
 
 max_group_args=()
 if [ -n "$MAX_GROUPS" ]; then
-  max_group_args=(--max-groups "$MAX_GROUPS" --video-groups "$MAX_GROUPS" --policy-audit-stride 1 --minimum-correction-group-rate 0.0)
+  max_group_args=(--group-offset "$GROUP_OFFSET" --max-groups "$MAX_GROUPS" --video-groups "$MAX_GROUPS" --policy-audit-stride 1 --minimum-correction-group-rate 0.0)
 fi
 
 FRESH_GIT_SHA="$GIT_SHA" \

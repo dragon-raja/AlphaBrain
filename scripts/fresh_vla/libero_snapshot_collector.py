@@ -169,6 +169,25 @@ SIM_DATA_RUNTIME_FIELDS = (
     "sensordata",
 )
 
+# These buffers are sized by MuJoCo's active contact/constraint graph. A state
+# restore can rebuild an equivalent graph with a different packed length, so a
+# captured buffer is only assignable when its shape still matches.
+DYNAMIC_CONSTRAINT_RUNTIME_FIELDS = frozenset(
+    {
+        "efc_force",
+        "efc_JT",
+        "efc_AR",
+        "efc_AR_colind",
+        "efc_AR_rowadr",
+        "efc_AR_rownnz",
+        "dof_island",
+        "dof_islandind",
+        "efc_island",
+        "island_dofind",
+        "island_efcind",
+    }
+)
+
 ROBOT_BUFFER_FIELDS = (
     "recent_qpos",
     "recent_actions",
@@ -211,6 +230,29 @@ def _restore_robot_buffers(env: Any, state: Mapping[str, np.ndarray]) -> None:
         elif f"{prefix}current" in state and hasattr(buffer, "current"):
             buffer.current = np.asarray(state[f"{prefix}current"]).copy()
             buffer.last = np.asarray(state[f"{prefix}last"]).copy()
+
+
+def _restore_sim_data_runtime_fields(
+    sim_data: Any,
+    state: Mapping[str, np.ndarray],
+) -> tuple[str, ...]:
+    skipped = []
+    for name in SIM_DATA_RUNTIME_FIELDS:
+        key = f"sim_data_{name}"
+        if key not in state or sim_data is None or not hasattr(sim_data, name):
+            continue
+        target = np.asarray(getattr(sim_data, name))
+        source = np.asarray(state[key])
+        if target.shape != source.shape:
+            if name in DYNAMIC_CONSTRAINT_RUNTIME_FIELDS:
+                skipped.append(name)
+                continue
+            raise ValueError(
+                f"fixed MuJoCo runtime field shape mismatch for {name}: "
+                f"captured={source.shape}, current={target.shape}"
+            )
+        target[...] = source
+    return tuple(skipped)
 
 
 def _capture_controller_state(env: Any) -> dict[str, np.ndarray]:
@@ -308,11 +350,7 @@ def _restore_snapshot(env: Any, sim_state: np.ndarray, controller_state: Mapping
                         value = int(value)
                     setattr(interpolator, field, value)
     env.robots[0].gripper.current_action = controller_state["gripper_action"].copy()
-    sim_data = getattr(env.sim, "data", None)
-    for name in SIM_DATA_RUNTIME_FIELDS:
-        key = f"sim_data_{name}"
-        if key in controller_state and sim_data is not None and hasattr(sim_data, name):
-            getattr(sim_data, name)[:] = np.asarray(controller_state[key])
+    _restore_sim_data_runtime_fields(getattr(env.sim, "data", None), controller_state)
     if "controller_new_update" in controller_state:
         controller.new_update = bool(np.asarray(controller_state["controller_new_update"]))
     _restore_robot_buffers(env, controller_state)

@@ -161,8 +161,30 @@ done
 if [ "$EVAL_ONLY" = all ] || [ "$EVAL_ONLY" = reach ]; then
   reach_output="$RUN_DIR/deterministic_reach${OUTPUT_SUFFIX}.json"
   if [ -f "$reach_output" ]; then
-    echo "skip completed deterministic reach method=$METHOD seed=$SEED"
-    exit 0
+    if "$PYTHON" - "$reach_output" "$EVAL_SPLIT" <<'PY'
+import json
+import sys
+
+payload = json.load(open(sys.argv[1]))
+rows = payload.get("rows", [])
+identities = {
+    (int(row["execution_horizon"]), str(row["pair_id"]))
+    for row in rows
+}
+valid = (
+    payload.get("evaluation") == "deterministic_reach"
+    and payload.get("split") == sys.argv[2]
+    and len(rows) == 39
+    and len(identities) == 39
+)
+raise SystemExit(0 if valid else 1)
+PY
+    then
+      echo "skip completed deterministic reach method=$METHOD seed=$SEED split=$EVAL_SPLIT"
+      exit 0
+    fi
+    echo "existing deterministic reach output does not match split=$EVAL_SPLIT: $reach_output" >&2
+    exit 1
   fi
   PYTHONPATH="$REPO_ROOT/scripts/fresh_vla:$LIBERO_SOURCE${PYTHONPATH:+:$PYTHONPATH}" \
   LIBERO_CONFIG_PATH="$REPO_ROOT/scripts/fresh_vla/libero_config" \
@@ -179,6 +201,7 @@ if [ "$EVAL_ONLY" = all ] || [ "$EVAL_ONLY" = reach ]; then
     --max-steps "$REACH_MAX_STEPS" \
     --reference-target-step "$REACH_TARGET_STEP" \
     --device cuda:0 \
+    --split "$EVAL_SPLIT" \
     --seed "$((271828 + SEED))" \
     "${max_group_args[@]}"
 fi

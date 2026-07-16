@@ -14,6 +14,7 @@ class ClosedLoopEvalRunnerTest(unittest.TestCase):
 
         self.assertIn('--split "$EVAL_SPLIT"', reach_block)
         self.assertIn('payload.get("split") == sys.argv[2]', reach_block)
+        self.assertIn('len(rows) == 3 * group_count', reach_block)
 
 
 if __name__ == "__main__":

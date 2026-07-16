@@ -1,6 +1,6 @@
 # Recovery Support v2 Preregistration
 
-Status: frozen before collecting or training any recovery-support v2 arm.
+Status: protocol frozen before collection; validation experiment completed.
 
 ## Baseline release
 
@@ -72,3 +72,12 @@ The controller is `scripts/fresh_vla/run_recovery_support_v2_pipeline.sh`. It
 refuses dirty code, failed baseline provenance, failed data quality, incomplete
 pre-existing outputs, and any overwrite. Videos are H.264/`avc1`, `yuv420p`,
 fast-start and are decoded before a result is accepted.
+
+## Completed result
+
+Gate 1 completed with `STOP_OFFLINE_SUPPORT_EXPANSION`. At primary K=3, Base
+continuation improved overall success by only 5.1 points and slip recovery by
+2.6 points over Full-H, with both paired intervals crossing zero. Clean replay
+and policy-state correction significantly reduced full-task success relative to
+Base. See `recovery_support_v2_results.md` for the complete result, confidence
+intervals, video audit, and quarantined deterministic-reach split deviation.

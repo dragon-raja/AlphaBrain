@@ -161,12 +161,16 @@ done
 if [ "$EVAL_ONLY" = all ] || [ "$EVAL_ONLY" = reach ]; then
   reach_output="$RUN_DIR/deterministic_reach${OUTPUT_SUFFIX}.json"
   if [ -f "$reach_output" ]; then
-    if "$PYTHON" - "$reach_output" "$EVAL_SPLIT" <<'PY'
+    if "$PYTHON" - "$reach_output" "$EVAL_SPLIT" "$EPISODE_ROOT" "$MAX_GROUPS" <<'PY'
 import json
 import sys
 
 payload = json.load(open(sys.argv[1]))
 rows = payload.get("rows", [])
+manifest = json.load(open(f"{sys.argv[3]}/manifest.json"))
+group_count = sum(group["split"] == sys.argv[2] for group in manifest["groups"])
+if sys.argv[4]:
+    group_count = min(group_count, int(sys.argv[4]))
 identities = {
     (int(row["execution_horizon"]), str(row["pair_id"]))
     for row in rows
@@ -174,8 +178,9 @@ identities = {
 valid = (
     payload.get("evaluation") == "deterministic_reach"
     and payload.get("split") == sys.argv[2]
-    and len(rows) == 39
-    and len(identities) == 39
+    and len(rows) == 3 * group_count
+    and len(identities) == len(rows)
+    and {int(row["execution_horizon"]) for row in rows} == {1, 2, 3}
 )
 raise SystemExit(0 if valid else 1)
 PY

@@ -251,6 +251,19 @@ Base continuation、clean feedback-to-regrasp replay 和 policy-state recovery�
 这条路线允许最终答案是一个热门近邻，也允许答案是负结果。唯一不能接受的是为了形式差异
 而牺牲闭环成功、数据效率或实验可解释性。
 
+### 9.2 Gate 1 已完成：停止扩展离线 recovery support
+
+Gate 1 的三组对照已按冻结协议完成。K=3 下，普通 continuation 相对 Full-H 的 overall
+仅提高 5.1 个百分点、slip recovery 仅提高 2.6 个百分点，paired CI 均跨 0；clean
+recovery replay 与 policy-state correction 则显著降低完整任务成功率。正式决定为
+`STOP_OFFLINE_SUPPORT_EXPANSION`。
+
+这个结果说明两个事实可以同时成立：stale tail 确实存在，K=1 也确实消除了
+failure-continuation；但当前策略仍缺少完成多步恢复的可靠能力，而 50/50 的离线恢复 SFT
+没有补上它，反而造成干扰。因此不实现 CFR、competence head、边界 sweep 或更多 paired
+replay。后续若继续研究，必须改成新的执行时纠正/重规划问题，并正面对比 K=1/K=2、
+residual correction 和强 on-policy correction，同时使用新封存的确认组。
+
 ## 10. 范围限制
 
 CFR 与能力释放边界只针对当前实验证据指向的 feedback revision 和 post-feedback recovery

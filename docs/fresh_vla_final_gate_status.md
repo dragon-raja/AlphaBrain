@@ -165,3 +165,29 @@ Gate 1 is now frozen in
 continuation, clean feedback-to-regrasp replay, and policy-state recovery use
 the same seed-matched 10,353-step initialization and 6,902 additional updates.
 Only validation K=1/2/3 is allowed until the paired decision is complete.
+
+## Recovery Support v2 Result (2026-07-16)
+
+Gate 1 completed all nine support trainings and all validation closed-loop
+evaluations. The formal result is `STOP_OFFLINE_SUPPORT_EXPANSION`. At primary
+K=3, Base continuation reached 48.7% overall and 35.9% slip recovery versus
+43.6% and 33.3% for the released Full-H baseline. The paired gains, +5.1 and
++2.6 points, did not reach the frozen 10-point threshold and both intervals
+cross zero. Clean recovery replay fell to 32.1% overall/12.8% slip; policy-state
+recovery fell to 30.8%/17.9%. Both targeted arms significantly underperformed
+Base on the primary full-task metrics.
+
+All 351 candidate end-to-end videos and 104,048 frames passed H.264/`avc1`,
+`yuv420p`, fast-start, exact-frame, nonblank, motion, and decode checks. K=1
+eliminated failure continuation but did not solve full-task recovery, while
+deterministic reach remained 94.9-97.4%. This separates stale-tail revision from
+the missing multi-step recovery competence and rejects further tuning of this
+offline support recipe.
+
+A runner defect initially allowed deterministic reach alone to use its default
+`test` split. Twelve auxiliary JSONs were quarantined before summary or method
+selection, the runner was fixed in `53353b0`, and all reach controls were rerun
+on validation. No Gate 1 isolated or end-to-end test episode ran, but the old
+test groups are not strictly pristine after this auxiliary access. Future
+confirmation requires newly sealed groups. Full details are in
+`docs/embodied_research_reset/recovery_support_v2_results.md`.

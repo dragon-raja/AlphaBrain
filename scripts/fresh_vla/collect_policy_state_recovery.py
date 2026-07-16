@@ -31,6 +31,17 @@ from video_io import write_h264_video
 
 
 LANGUAGE = "put the cream cheese in the bowl"
+EXPECTED_CORRECTION_REJECTIONS = frozenset(
+    {
+        "teacher correction did not reach stable regrasp",
+        "teacher correction did not provide a full action tail",
+    }
+)
+
+
+def correction_rejection_reason(error: RuntimeError) -> str | None:
+    message = str(error)
+    return message if message in EXPECTED_CORRECTION_REJECTIONS else None
 
 
 def intervention_reason(
@@ -412,6 +423,13 @@ def build_quality_report(
                 {int(row["source_initial_state_index"]) for row in corrected}
             ),
             "trigger_reason_counts": dict(Counter(row["trigger_reason"] for row in corrected)),
+            "correction_rejection_reason_counts": dict(
+                Counter(
+                    row["correction_failure_reason"]
+                    for row in group_rows
+                    if row.get("correction_failure_reason")
+                )
+            ),
             "mean_policy_prefix_actions": float(
                 np.mean([row["policy_prefix_actions"] for row in corrected])
             )
@@ -560,13 +578,36 @@ def main() -> None:
                 group_rows.append(row)
                 continue
 
-            correction = collect_teacher_correction(
-                env,
-                deviation["observation"],
-                action_horizon=args.action_horizon,
-                dwell_steps=args.stage_dwell_steps,
-                max_teacher_actions=args.max_teacher_actions,
-            )
+            try:
+                correction = collect_teacher_correction(
+                    env,
+                    deviation["observation"],
+                    action_horizon=args.action_horizon,
+                    dwell_steps=args.stage_dwell_steps,
+                    max_teacher_actions=args.max_teacher_actions,
+                )
+            except RuntimeError as error:
+                rejection_reason = correction_rejection_reason(error)
+                if rejection_reason is None:
+                    raise
+                row["retained"] = False
+                row["correction_failure_reason"] = rejection_reason
+                group_rows.append(row)
+                print(
+                    json.dumps(
+                        {
+                            "completed": group_index + 1,
+                            "total": len(groups),
+                            "pair_id": pair_id,
+                            "retained": False,
+                            "trigger": row["trigger_reason"],
+                            "correction_rejection_reason": rejection_reason,
+                        },
+                        sort_keys=True,
+                    ),
+                    flush=True,
+                )
+                continue
             arrays = correction["arrays"]
             row["stable_regrasp_reached"] = True
             row["teacher_correction_actions"] = int(correction["correction_action_count"])

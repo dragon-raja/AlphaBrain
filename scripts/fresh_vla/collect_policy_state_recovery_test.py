@@ -6,6 +6,7 @@ import numpy as np
 
 from collect_policy_state_recovery import (
     build_quality_report,
+    correction_rejection_reason,
     intervention_reason,
     restore_teacher,
     serialize_teacher,
@@ -87,6 +88,17 @@ class QualityReportTest(unittest.TestCase):
             requested_video_count=1,
         )
         self.assertTrue(report["passed"])
+
+    def test_expected_teacher_failure_is_a_group_level_rejection(self) -> None:
+        self.assertEqual(
+            correction_rejection_reason(
+                RuntimeError("teacher correction did not reach stable regrasp")
+            ),
+            "teacher correction did not reach stable regrasp",
+        )
+
+    def test_unknown_runtime_error_remains_fatal(self) -> None:
+        self.assertIsNone(correction_rejection_reason(RuntimeError("unexpected simulator bug")))
 
 
 class PairedVideoTest(unittest.TestCase):

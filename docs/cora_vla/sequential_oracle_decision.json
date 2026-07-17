@@ -1,0 +1,648 @@
+{
+  "candidate_count": 16,
+  "comparisons": {
+    "oracle_policy_continuation": {
+      "vs_random": {
+        "overall_success": {
+          "ci95_high": 0.23076923076923078,
+          "ci95_low": 0.03846153846153848,
+          "group_count": 13,
+          "mean": 0.12820512820512822
+        },
+        "slip_recovery_success": {
+          "ci95_high": 0.46153846153846156,
+          "ci95_low": 0.07692307692307693,
+          "group_count": 13,
+          "mean": 0.25641025641025644
+        }
+      },
+      "vs_single": {
+        "attached_success": {
+          "ci95_high": 0.12820512820512822,
+          "ci95_low": 0.0,
+          "group_count": 13,
+          "mean": 0.05128205128205129
+        },
+        "overall_success": {
+          "ci95_high": 0.19230769230769235,
+          "ci95_low": 0.025641025641025644,
+          "group_count": 13,
+          "mean": 0.10256410256410257
+        },
+        "slip_recovery_success": {
+          "ci95_high": 0.2820512820512821,
+          "ci95_low": 0.025641025641025647,
+          "group_count": 13,
+          "mean": 0.15384615384615385
+        }
+      }
+    },
+    "oracle_short_physical": {
+      "vs_random": {
+        "overall_success": {
+          "ci95_high": 0.07692307692307693,
+          "ci95_low": -0.07692307692307693,
+          "group_count": 13,
+          "mean": 0.0
+        },
+        "slip_recovery_success": {
+          "ci95_high": 0.15384615384615385,
+          "ci95_low": -0.15384615384615385,
+          "group_count": 13,
+          "mean": 0.0
+        }
+      },
+      "vs_single": {
+        "attached_success": {
+          "ci95_high": 0.12820512820512822,
+          "ci95_low": 0.0,
+          "group_count": 13,
+          "mean": 0.05128205128205129
+        },
+        "overall_success": {
+          "ci95_high": 0.06410256410256411,
+          "ci95_low": -0.11538461538461539,
+          "group_count": 13,
+          "mean": -0.025641025641025644
+        },
+        "slip_recovery_success": {
+          "ci95_high": 0.051282051282051294,
+          "ci95_low": -0.25641025641025644,
+          "group_count": 13,
+          "mean": -0.10256410256410257
+        }
+      }
+    },
+    "oracle_teacher_distance": {
+      "vs_random": {
+        "overall_success": {
+          "ci95_high": -0.6153846153846154,
+          "ci95_low": -0.7692307692307693,
+          "group_count": 13,
+          "mean": -0.6923076923076923
+        },
+        "slip_recovery_success": {
+          "ci95_high": -0.46153846153846145,
+          "ci95_low": -0.7692307692307693,
+          "group_count": 13,
+          "mean": -0.6153846153846154
+        }
+      },
+      "vs_single": {
+        "attached_success": {
+          "ci95_high": -0.5897435897435899,
+          "ci95_low": -0.846153846153846,
+          "group_count": 13,
+          "mean": -0.717948717948718
+        },
+        "overall_success": {
+          "ci95_high": -0.6153846153846153,
+          "ci95_low": -0.8205128205128205,
+          "group_count": 13,
+          "mean": -0.717948717948718
+        },
+        "slip_recovery_success": {
+          "ci95_high": -0.5897435897435898,
+          "ci95_low": -0.846153846153846,
+          "group_count": 13,
+          "mean": -0.717948717948718
+        }
+      }
+    },
+    "random_pick_N": {
+      "vs_random": {
+        "overall_success": {
+          "ci95_high": 0.0,
+          "ci95_low": 0.0,
+          "group_count": 13,
+          "mean": 0.0
+        },
+        "slip_recovery_success": {
+          "ci95_high": 0.0,
+          "ci95_low": 0.0,
+          "group_count": 13,
+          "mean": 0.0
+        }
+      },
+      "vs_single": {
+        "attached_success": {
+          "ci95_high": 0.12820512820512822,
+          "ci95_low": 0.0,
+          "group_count": 13,
+          "mean": 0.05128205128205129
+        },
+        "overall_success": {
+          "ci95_high": 0.06410256410256411,
+          "ci95_low": -0.11538461538461539,
+          "group_count": 13,
+          "mean": -0.025641025641025644
+        },
+        "slip_recovery_success": {
+          "ci95_high": 0.10256410256410257,
+          "ci95_low": -0.2820512820512821,
+          "group_count": 13,
+          "mean": -0.10256410256410256
+        }
+      }
+    },
+    "self_consistency_pick": {
+      "vs_random": {
+        "overall_success": {
+          "ci95_high": -0.11538461538461539,
+          "ci95_low": -0.38461538461538464,
+          "group_count": 13,
+          "mean": -0.24358974358974358
+        },
+        "slip_recovery_success": {
+          "ci95_high": -0.10256410256410255,
+          "ci95_low": -0.5384615384615384,
+          "group_count": 13,
+          "mean": -0.3076923076923077
+        }
+      },
+      "vs_single": {
+        "attached_success": {
+          "ci95_high": 0.025641025641025654,
+          "ci95_low": -0.3076923076923077,
+          "group_count": 13,
+          "mean": -0.1282051282051282
+        },
+        "overall_success": {
+          "ci95_high": -0.12820512820512822,
+          "ci95_low": -0.423076923076923,
+          "group_count": 13,
+          "mean": -0.2692307692307692
+        },
+        "slip_recovery_success": {
+          "ci95_high": -0.1794871794871795,
+          "ci95_low": -0.6153846153846154,
+          "group_count": 13,
+          "mean": -0.4102564102564103
+        }
+      }
+    }
+  },
+  "confirmation_arrays_loaded_or_used": false,
+  "confirmation_formal_evaluator_accessed": false,
+  "confirmation_metadata_key_listing_during_batch_smoke": true,
+  "decision": "STOP_CORA_ROUTING",
+  "execution_horizon": 2,
+  "experiment": "cora_sequential_oracle",
+  "gate_audit": {
+    "oracle_policy_continuation": {
+      "checks": {
+        "attached_degradation_at_most_5pp": true,
+        "onpolicy_recall16_at_least_60pct": true,
+        "overall_gain_at_least_5pp": true,
+        "significantly_better_than_random": true,
+        "slip_gain_at_least_15pp": true,
+        "teacher_distance_same_direction": false,
+        "three_seed_direction_or_ci": true
+      },
+      "seed_slip_differences": [
+        0.07692307692307698,
+        0.15384615384615385,
+        0.23076923076923084
+      ]
+    },
+    "oracle_short_physical": {
+      "checks": {
+        "attached_degradation_at_most_5pp": true,
+        "onpolicy_recall16_at_least_60pct": true,
+        "overall_gain_at_least_5pp": false,
+        "significantly_better_than_random": false,
+        "slip_gain_at_least_15pp": false,
+        "teacher_distance_same_direction": false,
+        "three_seed_direction_or_ci": false
+      },
+      "seed_slip_differences": [
+        -0.15384615384615385,
+        -0.15384615384615385,
+        0.0
+      ]
+    }
+  },
+  "methods": {
+    "oracle_policy_continuation": {
+      "attached_success": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "group_count": 13,
+        "mean": 1.0
+      },
+      "by_seed_attached_success": {
+        "41": 1.0,
+        "42": 1.0,
+        "43": 1.0
+      },
+      "by_seed_slip_success": {
+        "41": 0.9230769230769231,
+        "42": 0.9230769230769231,
+        "43": 0.7692307692307693
+      },
+      "completion_actions": 98.48717948717949,
+      "decision_diagnostics": {
+        "episode_success_given_first_j_correct": {
+          "1": {
+            "eligible": 75,
+            "success": 70,
+            "success_rate": 0.9333333333333333
+          },
+          "16": {
+            "eligible": 39,
+            "success": 36,
+            "success_rate": 0.9230769230769231
+          },
+          "2": {
+            "eligible": 74,
+            "success": 69,
+            "success_rate": 0.9324324324324325
+          },
+          "4": {
+            "eligible": 73,
+            "success": 68,
+            "success_rate": 0.9315068493150684
+          },
+          "8": {
+            "eligible": 73,
+            "success": 68,
+            "success_rate": 0.9315068493150684
+          }
+        },
+        "mean_pool_immediate_correct_rate": 0.7847943161173112,
+        "selected_immediate_correct_rate": 0.7812094471840124
+      },
+      "failure_continuation": 0.23076923076923078,
+      "overall_success": {
+        "ci95_high": 0.9871794871794871,
+        "ci95_low": 0.8717948717948718,
+        "group_count": 13,
+        "mean": 0.9358974358974359
+      },
+      "premature_commitment": 0.358974358974359,
+      "progress_auc": 0.5359678401644625,
+      "slip_recovery_success": {
+        "ci95_high": 0.9743589743589743,
+        "ci95_low": 0.7435897435897435,
+        "group_count": 13,
+        "mean": 0.8717948717948717
+      },
+      "stable_regrasp": 0.9487179487179487,
+      "wall_seconds": 397.1449698374416
+    },
+    "oracle_short_physical": {
+      "attached_success": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "group_count": 13,
+        "mean": 1.0
+      },
+      "by_seed_attached_success": {
+        "41": 1.0,
+        "42": 1.0,
+        "43": 1.0
+      },
+      "by_seed_slip_success": {
+        "41": 0.6923076923076923,
+        "42": 0.6153846153846154,
+        "43": 0.5384615384615384
+      },
+      "completion_actions": 119.12820512820512,
+      "decision_diagnostics": {
+        "episode_success_given_first_j_correct": {
+          "1": {
+            "eligible": 78,
+            "success": 63,
+            "success_rate": 0.8076923076923077
+          },
+          "16": {
+            "eligible": 68,
+            "success": 53,
+            "success_rate": 0.7794117647058824
+          },
+          "2": {
+            "eligible": 78,
+            "success": 63,
+            "success_rate": 0.8076923076923077
+          },
+          "4": {
+            "eligible": 78,
+            "success": 63,
+            "success_rate": 0.8076923076923077
+          },
+          "8": {
+            "eligible": 78,
+            "success": 63,
+            "success_rate": 0.8076923076923077
+          }
+        },
+        "mean_pool_immediate_correct_rate": 0.8944498173221578,
+        "selected_immediate_correct_rate": 0.9630346013324736
+      },
+      "failure_continuation": 0.20512820512820512,
+      "overall_success": {
+        "ci95_high": 0.8846153846153846,
+        "ci95_low": 0.7307692307692306,
+        "group_count": 13,
+        "mean": 0.8076923076923077
+      },
+      "premature_commitment": 0.20512820512820512,
+      "progress_auc": 0.43624335775327683,
+      "slip_recovery_success": {
+        "ci95_high": 0.7692307692307693,
+        "ci95_low": 0.46153846153846145,
+        "group_count": 13,
+        "mean": 0.6153846153846154
+      },
+      "stable_regrasp": 0.6923076923076923,
+      "wall_seconds": 175.62793345694453
+    },
+    "oracle_teacher_distance": {
+      "attached_success": {
+        "ci95_high": 0.33333333333333337,
+        "ci95_low": 0.1282051282051282,
+        "group_count": 13,
+        "mean": 0.23076923076923078
+      },
+      "by_seed_attached_success": {
+        "41": 0.15384615384615385,
+        "42": 0.5384615384615384,
+        "43": 0.0
+      },
+      "by_seed_slip_success": {
+        "41": 0.0,
+        "42": 0.0,
+        "43": 0.0
+      },
+      "completion_actions": 296.8205128205128,
+      "decision_diagnostics": {
+        "episode_success_given_first_j_correct": {
+          "1": {
+            "eligible": 78,
+            "success": 9,
+            "success_rate": 0.11538461538461539
+          },
+          "16": {
+            "eligible": 78,
+            "success": 9,
+            "success_rate": 0.11538461538461539
+          },
+          "2": {
+            "eligible": 78,
+            "success": 9,
+            "success_rate": 0.11538461538461539
+          },
+          "4": {
+            "eligible": 78,
+            "success": 9,
+            "success_rate": 0.11538461538461539
+          },
+          "8": {
+            "eligible": 78,
+            "success": 9,
+            "success_rate": 0.11538461538461539
+          }
+        },
+        "mean_pool_immediate_correct_rate": 0.9530966571650686,
+        "selected_immediate_correct_rate": 0.9934352595663816
+      },
+      "failure_continuation": 0.05128205128205128,
+      "overall_success": {
+        "ci95_high": 0.16666666666666669,
+        "ci95_low": 0.0641025641025641,
+        "group_count": 13,
+        "mean": 0.11538461538461539
+      },
+      "premature_commitment": 0.05128205128205128,
+      "progress_auc": 0.4259034312037436,
+      "slip_recovery_success": {
+        "ci95_high": 0.0,
+        "ci95_low": 0.0,
+        "group_count": 13,
+        "mean": 0.0
+      },
+      "stable_regrasp": 0.1282051282051282,
+      "wall_seconds": 106.93283069098834
+    },
+    "random_pick_N": {
+      "attached_success": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "group_count": 13,
+        "mean": 1.0
+      },
+      "by_seed_attached_success": {
+        "41": 1.0,
+        "42": 1.0,
+        "43": 1.0
+      },
+      "by_seed_slip_success": {
+        "41": 0.8461538461538461,
+        "42": 0.38461538461538464,
+        "43": 0.6153846153846154
+      },
+      "completion_actions": 125.84615384615384,
+      "decision_diagnostics": {
+        "episode_success_given_first_j_correct": {
+          "1": {
+            "eligible": 77,
+            "success": 62,
+            "success_rate": 0.8051948051948052
+          },
+          "16": {
+            "eligible": 54,
+            "success": 47,
+            "success_rate": 0.8703703703703703
+          },
+          "2": {
+            "eligible": 75,
+            "success": 61,
+            "success_rate": 0.8133333333333334
+          },
+          "4": {
+            "eligible": 73,
+            "success": 59,
+            "success_rate": 0.8082191780821918
+          },
+          "8": {
+            "eligible": 72,
+            "success": 58,
+            "success_rate": 0.8055555555555556
+          }
+        },
+        "mean_pool_immediate_correct_rate": 0.7803800040642146,
+        "selected_immediate_correct_rate": 0.7823613086770982
+      },
+      "failure_continuation": 0.28205128205128205,
+      "overall_success": {
+        "ci95_high": 0.8846153846153846,
+        "ci95_low": 0.7307692307692306,
+        "group_count": 13,
+        "mean": 0.8076923076923077
+      },
+      "premature_commitment": 0.3333333333333333,
+      "progress_auc": 0.44684784748577006,
+      "slip_recovery_success": {
+        "ci95_high": 0.7692307692307693,
+        "ci95_low": 0.46153846153846145,
+        "group_count": 13,
+        "mean": 0.6153846153846154
+      },
+      "stable_regrasp": 0.7435897435897436,
+      "wall_seconds": 76.97742217348423
+    },
+    "self_consistency_pick": {
+      "attached_success": {
+        "ci95_high": 0.9487179487179487,
+        "ci95_low": 0.6666666666666667,
+        "group_count": 13,
+        "mean": 0.8205128205128205
+      },
+      "by_seed_attached_success": {
+        "41": 1.0,
+        "42": 0.6153846153846154,
+        "43": 0.8461538461538461
+      },
+      "by_seed_slip_success": {
+        "41": 0.38461538461538464,
+        "42": 0.23076923076923078,
+        "43": 0.3076923076923077
+      },
+      "completion_actions": 187.98717948717947,
+      "decision_diagnostics": {
+        "episode_success_given_first_j_correct": {
+          "1": {
+            "eligible": 78,
+            "success": 44,
+            "success_rate": 0.5641025641025641
+          },
+          "16": {
+            "eligible": 61,
+            "success": 37,
+            "success_rate": 0.6065573770491803
+          },
+          "2": {
+            "eligible": 78,
+            "success": 44,
+            "success_rate": 0.5641025641025641
+          },
+          "4": {
+            "eligible": 78,
+            "success": 44,
+            "success_rate": 0.5641025641025641
+          },
+          "8": {
+            "eligible": 78,
+            "success": 44,
+            "success_rate": 0.5641025641025641
+          }
+        },
+        "mean_pool_immediate_correct_rate": 0.786406526774765,
+        "selected_immediate_correct_rate": 0.7758550211200436
+      },
+      "failure_continuation": 0.15384615384615385,
+      "overall_success": {
+        "ci95_high": 0.6794871794871794,
+        "ci95_low": 0.4358974358974359,
+        "group_count": 13,
+        "mean": 0.5641025641025641
+      },
+      "premature_commitment": 0.15384615384615385,
+      "progress_auc": 0.3629479241722653,
+      "slip_recovery_success": {
+        "ci95_high": 0.4871794871794872,
+        "ci95_low": 0.1282051282051282,
+        "group_count": 13,
+        "mean": 0.3076923076923077
+      },
+      "stable_regrasp": 0.6410256410256411,
+      "wall_seconds": 63.824949020889996
+    },
+    "single_sample": {
+      "attached_success": {
+        "ci95_high": 1.0,
+        "ci95_low": 0.8717948717948717,
+        "group_count": 13,
+        "mean": 0.9487179487179487
+      },
+      "by_seed_attached_success": {
+        "41": 1.0,
+        "42": 0.8461538461538461,
+        "43": 1.0
+      },
+      "by_seed_slip_success": {
+        "41": 0.8461538461538461,
+        "42": 0.7692307692307693,
+        "43": 0.5384615384615384
+      },
+      "completion_actions": 123.42307692307692,
+      "decision_diagnostics": {
+        "episode_success_given_first_j_correct": {
+          "1": {
+            "eligible": 76,
+            "success": 63,
+            "success_rate": 0.8289473684210527
+          },
+          "16": {
+            "eligible": 54,
+            "success": 47,
+            "success_rate": 0.8703703703703703
+          },
+          "2": {
+            "eligible": 75,
+            "success": 62,
+            "success_rate": 0.8266666666666667
+          },
+          "4": {
+            "eligible": 74,
+            "success": 61,
+            "success_rate": 0.8243243243243243
+          },
+          "8": {
+            "eligible": 72,
+            "success": 59,
+            "success_rate": 0.8194444444444444
+          }
+        },
+        "mean_pool_immediate_correct_rate": 0.8141702921068987,
+        "selected_immediate_correct_rate": 0.8141702921068987
+      },
+      "failure_continuation": 0.28205128205128205,
+      "overall_success": {
+        "ci95_high": 0.9102564102564101,
+        "ci95_low": 0.769230769230769,
+        "group_count": 13,
+        "mean": 0.8333333333333333
+      },
+      "premature_commitment": 0.358974358974359,
+      "progress_auc": 0.44982010565073377,
+      "slip_recovery_success": {
+        "ci95_high": 0.846153846153846,
+        "ci95_low": 0.5897435897435898,
+        "group_count": 13,
+        "mean": 0.717948717948718
+      },
+      "stable_regrasp": 0.7692307692307693,
+      "wall_seconds": 27.831345193452226
+    }
+  },
+  "onpolicy_recall@16": 0.9620853080568721,
+  "onpolicy_support_decision": "PASS_ONPOLICY_SUPPORT",
+  "qualifying_oracles": [],
+  "seeds": [
+    41,
+    42,
+    43
+  ],
+  "snapshot_group_count": 13,
+  "video_audit": {
+    "codec_counts": {
+      "h264/avc1/yuv420p": 468
+    },
+    "decode_errors": 0,
+    "failure_video_count": 151,
+    "faststart_count": 468,
+    "success_video_count": 317,
+    "video_count": 468
+  }
+}

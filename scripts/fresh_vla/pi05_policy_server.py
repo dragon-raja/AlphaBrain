@@ -61,6 +61,22 @@ def main() -> None:
             raise ValueError(f"invalid action output: shape={actions.shape}")
         return np.clip(actions, -1.0, 1.0), elapsed
 
+    def predict_sample_batch(example, count: int, seed: int) -> tuple[np.ndarray, float]:
+        validate_policy_example(example)
+        if not 1 <= count <= 16:
+            raise ValueError("predict_sample_batch requires count in [1, 16]")
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+        started = time.perf_counter()
+        with torch.inference_mode():
+            output = model.predict_action(examples=[example] * count)
+        elapsed = time.perf_counter() - started
+        actions = np.asarray(output["normalized_actions"], dtype=np.float32)
+        if actions.shape != (count, horizon, 7) or not np.all(np.isfinite(actions)):
+            raise ValueError(f"invalid batched action output: shape={actions.shape}")
+        return np.clip(actions, -1.0, 1.0), elapsed
+
     def stop(_signum, _frame):
         raise SystemExit(0)
 
@@ -88,14 +104,14 @@ def main() -> None:
                         break
                     if request.get("op") == "close":
                         break
-                    if request.get("op") not in {"predict", "predict_many"}:
+                    if request.get("op") not in {"predict", "predict_many", "predict_sample_batch"}:
                         connection.send({"error": f"unknown operation: {request.get('op')!r}"})
                         continue
                     try:
                         if request["op"] == "predict":
                             actions, elapsed = predict(request["example"], int(request["seed"]))
                             connection.send({"actions": actions.tolist(), "predict_action_wall_seconds": elapsed})
-                        else:
+                        elif request["op"] == "predict_many":
                             seeds = [int(seed) for seed in request["seeds"]]
                             if not 1 <= len(seeds) <= 16:
                                 raise ValueError("predict_many requires 1 to 16 seeds")
@@ -105,6 +121,16 @@ def main() -> None:
                                     "actions": [actions.tolist() for actions, _ in outputs],
                                     "predict_action_wall_seconds": sum(elapsed for _, elapsed in outputs),
                                     "per_call_wall_seconds": [elapsed for _, elapsed in outputs],
+                                }
+                            )
+                        else:
+                            actions, elapsed = predict_sample_batch(
+                                request["example"], int(request["count"]), int(request["seed"])
+                            )
+                            connection.send(
+                                {
+                                    "actions": actions.tolist(),
+                                    "predict_action_wall_seconds": elapsed,
                                 }
                             )
                     except Exception as error:

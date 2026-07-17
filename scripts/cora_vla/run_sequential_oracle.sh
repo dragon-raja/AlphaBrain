@@ -14,6 +14,11 @@ METHOD=${4:?method is required}
 OFFSET=${5:-0}
 MAX_GROUPS=${6:-}
 RUN_KIND=${7:-formal}
+CPU_THREADS=${CORA_CPU_THREADS:-1}
+export OMP_NUM_THREADS="$CPU_THREADS"
+export OPENBLAS_NUM_THREADS="$CPU_THREADS"
+export MKL_NUM_THREADS="$CPU_THREADS"
+export NUMEXPR_NUM_THREADS="$CPU_THREADS"
 
 case "$SEED" in
   41) CHECKPOINT=/share/longjunyu/fresh-vla/runs/baseline-repair-v1/baseline_repair_full_h_ddp8_seed41_steps13804_formal-v2/checkpoints/steps_10353 ;;

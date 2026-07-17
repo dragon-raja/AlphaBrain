@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import time
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -265,8 +264,7 @@ def main() -> None:
             success = bool(live_env.check_success())
             while actions_executed < args.max_actions and not success:
                 seeds = [stable_seed(args.seed, pair_id, "onpolicy", replan_index, index) for index in range(16)]
-                started = time.perf_counter()
-                candidates, inference_seconds = sample_many(policy, observation, seeds)
+                candidates, inference_seconds = sample_many(policy, observation, seeds[:1])
                 distance = float(
                     np.linalg.norm(
                         np.asarray(observation["cream_cheese_1_pos"]) - np.asarray(observation["robot0_eef_pos"])
@@ -282,8 +280,11 @@ def main() -> None:
                     candidate0_closes=bool(np.any(candidates[0, :2, -1] > 0.2)),
                 )
                 snapshot = capture_runtime_snapshot(live_env)
-                last_state = (snapshot, candidates, seeds, replan_index)
+                last_state = (snapshot, observation, candidates[0], seeds, replan_index)
                 if stage not in captured:
+                    remaining, remaining_seconds = sample_many(policy, observation, seeds[1:])
+                    candidates = np.concatenate([candidates, remaining], axis=0)
+                    inference_seconds += remaining_seconds
                     row = evaluate_state(
                         branch_env,
                         snapshot,
@@ -319,7 +320,9 @@ def main() -> None:
                 replan_index += 1
 
             if not success and "final_failure" not in captured and last_state is not None:
-                snapshot, candidates, seeds, final_replan = last_state
+                snapshot, final_observation, candidate0, seeds, final_replan = last_state
+                remaining, _ = sample_many(policy, final_observation, seeds[1:])
+                candidates = np.concatenate([candidate0[None], remaining], axis=0)
                 row = evaluate_state(
                     branch_env,
                     snapshot,

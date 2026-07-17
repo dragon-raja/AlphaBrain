@@ -47,6 +47,8 @@ Gate 1 的主 `correct-mode recall@N` 使用 **action-compatible 与 effect-comp
 
 任何成体系的输入或候选差异都先按数据泄漏调查；无法排除时输出 `COUNTERFACTUAL_DATA_LEAKAGE` 并停止。
 
+实现时每个 group、每个 checkpoint seed 使用一个成对随机候选作运行时一致性检查；图像、state 与 simulator state 仍逐元素全量检查。这样形成 13 x 3 次独立候选审计，不重复为完全相同输入生成 32 次，不影响 post-feedback 的 N=32 主实验。
+
 ## 辅助状态
 
 另报告 attached 的 transport/place 状态、slipped isolated-recovery 状态，以及已有 policy-state correction 的实际失败状态的候选诊断。这些辅助状态不改变主 Gate 阈值，也不允许用于 confirmation 选择。

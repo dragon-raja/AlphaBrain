@@ -251,9 +251,13 @@ def audit_pre_feedback(
     frame_index = int(group["feedback_reveal_time"]) - 1
     signatures = {}
     chunks = {}
+    # Exact policy inputs are already compared exhaustively. One paired stochastic
+    # draw per group/checkpoint detects branch-dependent runtime routing without
+    # spending another 64 serial flow samples on an identical observation.
+    audit_candidate_count = min(candidate_count, 1)
     seeds = [
         stable_seed("cora-gate1-pre", checkpoint_seed, group["pair_id"], index)
-        for index in range(candidate_count)
+        for index in range(audit_candidate_count)
     ]
     for outcome in ("attached", "slipped"):
         observation = _restore_recorded_state(env, episodes[outcome], frame_index)
@@ -271,6 +275,7 @@ def audit_pre_feedback(
         "frame_index": frame_index,
         "policy_input_max_abs_error": input_errors,
         "candidate_max_abs_error": candidate_max_abs_error,
+        "candidate_count": audit_candidate_count,
         "passed": all(value == 0.0 for value in input_errors.values()) and candidate_max_abs_error == 0.0,
     }
 

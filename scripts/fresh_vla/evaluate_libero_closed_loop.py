@@ -351,7 +351,10 @@ class RemotePi05Policy:
 
     def close(self) -> None:
         try:
-            self.connection.send({"op": "close"})
+            try:
+                self.connection.send({"op": "close"})
+            except (BrokenPipeError, EOFError, OSError):
+                pass
         finally:
             self.connection.close()
 

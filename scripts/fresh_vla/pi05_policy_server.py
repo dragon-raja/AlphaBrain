@@ -77,6 +77,24 @@ def main() -> None:
             raise ValueError(f"invalid batched action output: shape={actions.shape}")
         return np.clip(actions, -1.0, 1.0), elapsed
 
+    def predict_observation_batch(examples, seed: int) -> tuple[np.ndarray, float]:
+        if not 1 <= len(examples) <= 16:
+            raise ValueError("predict_observation_batch requires 1 to 16 examples")
+        for example in examples:
+            validate_policy_example(example)
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+        started = time.perf_counter()
+        with torch.inference_mode():
+            output = model.predict_action(examples=examples)
+        elapsed = time.perf_counter() - started
+        actions = np.asarray(output["normalized_actions"], dtype=np.float32)
+        expected = (len(examples), horizon, 7)
+        if actions.shape != expected or not np.all(np.isfinite(actions)):
+            raise ValueError(f"invalid observation-batch output: shape={actions.shape}")
+        return np.clip(actions, -1.0, 1.0), elapsed
+
     def stop(_signum, _frame):
         raise SystemExit(0)
 
@@ -104,7 +122,12 @@ def main() -> None:
                         break
                     if request.get("op") == "close":
                         break
-                    if request.get("op") not in {"predict", "predict_many", "predict_sample_batch"}:
+                    if request.get("op") not in {
+                        "predict",
+                        "predict_many",
+                        "predict_sample_batch",
+                        "predict_observation_batch",
+                    }:
                         connection.send({"error": f"unknown operation: {request.get('op')!r}"})
                         continue
                     try:
@@ -123,9 +146,19 @@ def main() -> None:
                                     "per_call_wall_seconds": [elapsed for _, elapsed in outputs],
                                 }
                             )
-                        else:
+                        elif request["op"] == "predict_sample_batch":
                             actions, elapsed = predict_sample_batch(
                                 request["example"], int(request["count"]), int(request["seed"])
+                            )
+                            connection.send(
+                                {
+                                    "actions": actions.tolist(),
+                                    "predict_action_wall_seconds": elapsed,
+                                }
+                            )
+                        else:
+                            actions, elapsed = predict_observation_batch(
+                                request["examples"], int(request["seed"])
                             )
                             connection.send(
                                 {

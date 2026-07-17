@@ -241,6 +241,24 @@ class Pi05Policy:
             raise RuntimeError(f"unexpected Pi0.5 batched action shape: {actions.shape}")
         return np.clip(actions, -1.0, 1.0), time.perf_counter() - started
 
+    def predict_observation_batch(
+        self, observations: Sequence[Mapping[str, Any]], *, seed: int
+    ) -> tuple[np.ndarray, float]:
+        if not 1 <= len(observations) <= 16:
+            raise ValueError("observation batch count must be in [1, 16]")
+        self.torch.manual_seed(seed)
+        if self.torch.cuda.is_available():
+            self.torch.cuda.manual_seed_all(seed)
+        examples = [_policy_observation(observation, self.language) for observation in observations]
+        started = time.perf_counter()
+        with self.torch.inference_mode():
+            output = self.model.predict_action(examples=examples)
+        actions = np.asarray(output["normalized_actions"], dtype=np.float32)
+        expected = (len(observations), self.horizon, 7)
+        if actions.shape != expected or not np.all(np.isfinite(actions)):
+            raise RuntimeError(f"unexpected Pi0.5 observation-batch action shape: {actions.shape}")
+        return np.clip(actions, -1.0, 1.0), time.perf_counter() - started
+
     def close(self) -> None:
         pass
 
@@ -308,6 +326,27 @@ class RemotePi05Policy:
         actions = np.asarray(response["actions"], dtype=np.float32)
         if actions.shape != (count, self.horizon, 7) or not np.all(np.isfinite(actions)):
             raise RuntimeError(f"remote Pi0.5 batched action shape changed: {actions.shape}")
+        return actions, float(response["predict_action_wall_seconds"])
+
+    def predict_observation_batch(
+        self, observations: Sequence[Mapping[str, Any]], *, seed: int
+    ) -> tuple[np.ndarray, float]:
+        count = len(observations)
+        self.connection.send(
+            {
+                "op": "predict_observation_batch",
+                "seed": int(seed),
+                "examples": [
+                    _policy_observation(observation, self.language) for observation in observations
+                ],
+            }
+        )
+        response = self.connection.recv()
+        if "error" in response:
+            raise RuntimeError(f"remote Pi0.5 inference failed: {response['error']}")
+        actions = np.asarray(response["actions"], dtype=np.float32)
+        if actions.shape != (count, self.horizon, 7) or not np.all(np.isfinite(actions)):
+            raise RuntimeError(f"remote Pi0.5 observation-batch shape changed: {actions.shape}")
         return actions, float(response["predict_action_wall_seconds"])
 
     def close(self) -> None:

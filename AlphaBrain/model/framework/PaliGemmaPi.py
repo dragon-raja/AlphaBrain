@@ -701,18 +701,30 @@ class PaliGemmaPi(BaseFramework):
             t = TF.normalize(t, mean=[0.5]*3, std=[0.5]*3)
             return t
 
-        ex = examples[0]
-        imgs_raw = ex['image'] if isinstance(ex['image'], list) else [ex['image']]
+        batch_size = len(examples)
+        images_by_example = [
+            ex['image'] if isinstance(ex['image'], list) else [ex['image']]
+            for ex in examples
+        ]
+        max_image_count = min(3, max(len(images) for images in images_by_example))
         _dtype = next(self.parameters()).dtype
-        img_tensors = [_proc_img(im).unsqueeze(0).to(device).to(_dtype) for im in imgs_raw]
-        while len(img_tensors) < 3:
-            img_tensors.append(torch.full((1, 3, 224, 224), -1.0, device=device, dtype=_dtype))
-        img_masks_list = [torch.tensor([True], device=device)] * len(imgs_raw) + \
-                         [torch.tensor([False], device=device)] * (3 - len(imgs_raw))
+        img_tensors, img_masks_list = [], []
+        for image_index in range(3):
+            images = []
+            masks = []
+            for example_images in images_by_example:
+                if image_index < min(len(example_images), max_image_count):
+                    images.append(_proc_img(example_images[image_index]))
+                    masks.append(True)
+                else:
+                    images.append(torch.full((3, 224, 224), -1.0))
+                    masks.append(False)
+            img_tensors.append(torch.stack(images).to(device).to(_dtype))
+            img_masks_list.append(torch.tensor(masks, dtype=torch.bool, device=device))
 
-        tokens, masks = _tokenize_openpi_style(ex['lang'])
-        tokens_t = torch.tensor(tokens, dtype=torch.long).unsqueeze(0).to(device)
-        masks_t = torch.tensor(masks, dtype=torch.bool).unsqueeze(0).to(device)
+        token_rows = [_tokenize_openpi_style(ex['lang']) for ex in examples]
+        tokens_t = torch.tensor(np_.stack([row[0] for row in token_rows]), dtype=torch.long).to(device)
+        masks_t = torch.tensor(np_.stack([row[1] for row in token_rows]), dtype=torch.bool).to(device)
 
         embs_list, pad_list, att_list = [], [], []
         for img_t, img_m in zip(img_tensors, img_masks_list):
@@ -731,7 +743,7 @@ class PaliGemmaPi(BaseFramework):
         prefix_embs = torch.cat(embs_list, dim=1)
         prefix_pad_masks = torch.cat(pad_list, dim=1)
         att_tensor = torch.tensor(att_list, dtype=torch.bool, device=device)
-        prefix_att_masks = att_tensor[None, :].expand(bsize, -1)
+        prefix_att_masks = att_tensor[None, :].expand(batch_size, -1)
 
         vlm_lm = self._get_vlm_language_model()
 

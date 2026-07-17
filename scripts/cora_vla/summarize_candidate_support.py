@@ -40,6 +40,17 @@ def aggregate(payloads: Sequence[Mapping[str, object]]) -> dict[str, object]:
         raise ValueError("checkpoint seeds do not cover identical group/outcome rows")
 
     by_seed = {}
+    curves = {
+        outcome: {
+            field: {str(size): [] for size in (1, 4, 8, 16, 32)}
+            for field in ("joint_recall", "action_recall", "effect_recall", "physical_recall")
+        }
+        for outcome in ("attached", "slipped")
+    }
+    agreements = {
+        outcome: {"action_physical_agreement": [], "joint_physical_agreement": []}
+        for outcome in ("attached", "slipped")
+    }
     group_metrics: dict[str, dict[str, list[float]]] = {
         name: {}
         for name in (
@@ -72,6 +83,11 @@ def aggregate(payloads: Sequence[Mapping[str, object]]) -> dict[str, object]:
         for row in rows:
             pair_id = str(row["pair_id"])
             outcome = str(row["outcome"])
+            for field in curves[outcome]:
+                for size in curves[outcome][field]:
+                    curves[outcome][field][size].append(float(row[field][size]))
+            for field in agreements[outcome]:
+                agreements[outcome][field].append(float(row[field]))
             if outcome == "attached":
                 group_metrics["attached_joint16"].setdefault(pair_id, []).append(
                     float(row["joint_recall"]["16"])
@@ -92,6 +108,17 @@ def aggregate(payloads: Sequence[Mapping[str, object]]) -> dict[str, object]:
                 )
 
     estimates = {name: paired_group_bootstrap(values) for name, values in group_metrics.items()}
+    mean_curves = {
+        outcome: {
+            field: {size: float(np.mean(values)) for size, values in by_size.items()}
+            for field, by_size in by_field.items()
+        }
+        for outcome, by_field in curves.items()
+    }
+    mean_agreements = {
+        outcome: {field: float(np.mean(values)) for field, values in by_field.items()}
+        for outcome, by_field in agreements.items()
+    }
     thresholds = {
         "attached_joint_recall@16": estimates["attached_joint16"]["mean"] >= 0.80,
         "slipped_joint_recall@16": estimates["slipped_joint16"]["mean"] >= 0.50,
@@ -111,6 +138,8 @@ def aggregate(payloads: Sequence[Mapping[str, object]]) -> dict[str, object]:
         "decision": decision,
         "checkpoint_seeds": [41, 42, 43],
         "by_seed": by_seed,
+        "mean_recall_curves": mean_curves,
+        "mean_label_agreements": mean_agreements,
         "group_level_estimates": estimates,
         "thresholds_passed": thresholds,
         "pre_feedback_leakage_passed": leakage_passed,
@@ -154,6 +183,35 @@ def markdown(result: Mapping[str, object]) -> str:
             f"slipped physical @1/@16={percent(values['slipped_physical_success@1'])}/"
             f"{percent(values['slipped_physical_success@16'])}。"
         )
+    lines.extend(
+        [
+            "",
+            "## 完整 recall@N",
+            "",
+            "| 分支 | N | Action | EEF effect | 联合主标签 | 短时物理标签 |",
+            "|---|---:|---:|---:|---:|---:|",
+        ]
+    )
+    curves = result["mean_recall_curves"]
+    for outcome in ("attached", "slipped"):
+        for size in ("1", "4", "8", "16", "32"):
+            lines.append(
+                f"| {outcome} | {size} | {percent(curves[outcome]['action_recall'][size])} | "
+                f"{percent(curves[outcome]['effect_recall'][size])} | "
+                f"{percent(curves[outcome]['joint_recall'][size])} | "
+                f"{percent(curves[outcome]['physical_recall'][size])} |"
+            )
+    agreements = result["mean_label_agreements"]
+    lines.extend(
+        [
+            "",
+            "标签一致率："
+            f"attached action/physical={percent(agreements['attached']['action_physical_agreement'])}、"
+            f"joint/physical={percent(agreements['attached']['joint_physical_agreement'])}；"
+            f"slipped action/physical={percent(agreements['slipped']['action_physical_agreement'])}、"
+            f"joint/physical={percent(agreements['slipped']['joint_physical_agreement'])}。",
+        ]
+    )
     lines.extend(
         [
             "",

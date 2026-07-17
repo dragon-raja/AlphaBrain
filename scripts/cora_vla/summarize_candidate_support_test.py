@@ -10,16 +10,30 @@ def payload(seed, attached, slipped16, slipped32, physical1, physical16, leakage
             {
                 "pair_id": f"g{index}",
                 "outcome": "attached",
-                "joint_recall": {"16": attached[index], "32": attached[index]},
-                "physical_recall": {"1": True, "16": True},
+                "joint_recall": {str(n): attached[index] for n in (1, 4, 8, 16, 32)},
+                "physical_recall": {str(n): True for n in (1, 4, 8, 16, 32)},
+                "action_recall": {str(n): attached[index] for n in (1, 4, 8, 16, 32)},
+                "effect_recall": {str(n): attached[index] for n in (1, 4, 8, 16, 32)},
+                "action_physical_agreement": 1.0,
+                "joint_physical_agreement": 1.0,
             }
         )
         rows.append(
             {
                 "pair_id": f"g{index}",
                 "outcome": "slipped",
-                "joint_recall": {"16": slipped16[index], "32": slipped32[index]},
-                "physical_recall": {"1": physical1[index], "16": physical16[index]},
+                "joint_recall": {
+                    str(n): slipped32[index] if n == 32 else slipped16[index]
+                    for n in (1, 4, 8, 16, 32)
+                },
+                "physical_recall": {
+                    str(n): physical1[index] if n == 1 else physical16[index]
+                    for n in (1, 4, 8, 16, 32)
+                },
+                "action_recall": {str(n): slipped16[index] for n in (1, 4, 8, 16, 32)},
+                "effect_recall": {str(n): slipped16[index] for n in (1, 4, 8, 16, 32)},
+                "action_physical_agreement": 1.0,
+                "joint_physical_agreement": 1.0,
             }
         )
     return {

@@ -708,13 +708,13 @@ def main() -> None:
         raise ValueError("provide exactly one of --checkpoint or --policy-socket")
     manifest = json.loads((args.episode_root / "manifest.json").read_text())
     validate_args(args, manifest)
-    groups = sorted(
+    selected_groups = sorted(
         [group for group in manifest["groups"] if group["split"] == args.split],
         key=lambda group: group["pair_id"],
     )[args.group_offset :]
     if args.max_groups is not None:
-        groups = groups[: args.max_groups]
-    if not groups:
+        selected_groups = selected_groups[: args.max_groups]
+    if not selected_groups:
         raise ValueError("selected shard contains no groups")
 
     policy = RemotePi05Policy(args.policy_socket) if args.policy_socket else Pi05Policy(args.checkpoint, args.device)
@@ -733,8 +733,31 @@ def main() -> None:
         else None
     )
     args.video_dir.mkdir(parents=True, exist_ok=True)
-    rows = []
     partial = args.output.with_name(f"{args.output.stem}.partial{args.output.suffix}")
+    rows = []
+    if partial.exists():
+        previous = json.loads(partial.read_text())
+        identity = {
+            "experiment": "cora_sequential_oracle",
+            "run_kind": args.run_kind,
+            "seed": args.seed,
+            "outcome": args.outcome,
+            "method": args.method,
+            "split": args.split,
+            "candidate_count": args.candidate_count,
+            "execution_horizon": args.execution_horizon,
+            "max_actions": args.max_actions,
+            "lookahead_actions": args.lookahead_actions,
+            "continuation_repeats": args.continuation_repeats,
+        }
+        mismatched = [key for key, value in identity.items() if previous.get(key) != value]
+        if mismatched:
+            raise ValueError(f"partial resume identity mismatch: {mismatched}")
+        rows = list(previous["rows"])
+    completed_pair_ids = {str(row["pair_id"]) for row in rows}
+    if len(completed_pair_ids) != len(rows):
+        raise ValueError("partial resume contains duplicate pair ids")
+    groups = [group for group in selected_groups if str(group["pair_id"]) not in completed_pair_ids]
 
     def payload(status: str) -> dict[str, Any]:
         return {
@@ -759,7 +782,7 @@ def main() -> None:
                 "faststart": True,
             },
             "completed_groups": len(rows),
-            "expected_groups": len(groups),
+            "expected_groups": len(selected_groups),
             "rows": rows,
         }
 

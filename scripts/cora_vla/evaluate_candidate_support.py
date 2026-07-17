@@ -289,6 +289,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--effect-margin", type=float, default=0.002)
     parser.add_argument("--teacher-max-steps", type=int, default=320)
     parser.add_argument("--max-groups", type=int)
+    parser.add_argument("--group-start", type=int, default=0)
+    parser.add_argument("--group-count", type=int)
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--language", default=LANGUAGE)
     return parser.parse_args()
@@ -309,6 +311,13 @@ def main() -> None:
         [group for group in manifest["groups"] if group["split"] == args.split],
         key=lambda group: group["pair_id"],
     )
+    if args.group_start < 0:
+        raise ValueError("group-start must be non-negative")
+    groups = groups[args.group_start :]
+    if args.group_count is not None:
+        if args.group_count <= 0:
+            raise ValueError("group-count must be positive")
+        groups = groups[: args.group_count]
     if args.max_groups is not None:
         groups = groups[: args.max_groups]
     if not groups:

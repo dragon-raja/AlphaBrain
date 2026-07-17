@@ -12,6 +12,9 @@ PRETRAINED_MODELS_DIR=${PRETRAINED_MODELS_DIR:-/share/longjunyu/alphabrain/pretr
 SEED=${1:?usage: run_candidate_support.sh SEED GPU_ID [MAX_GROUPS]}
 GPU_ID=${2:?usage: run_candidate_support.sh SEED GPU_ID [MAX_GROUPS]}
 MAX_GROUPS=${3:-}
+CORA_GROUP_START=${CORA_GROUP_START:-0}
+CORA_GROUP_COUNT=${CORA_GROUP_COUNT:-}
+CORA_OUTPUT_TAG=${CORA_OUTPUT_TAG:-}
 
 case "$SEED" in
   41) CHECKPOINT=/share/longjunyu/fresh-vla/runs/baseline-repair-v1/baseline_repair_full_h_ddp8_seed41_steps13804_formal-v2/checkpoints/steps_10353 ;;
@@ -21,7 +24,7 @@ case "$SEED" in
 esac
 
 mkdir -p "$OUTPUT_ROOT"
-OUTPUT="$OUTPUT_ROOT/seed${SEED}.json"
+OUTPUT="$OUTPUT_ROOT/seed${SEED}${CORA_OUTPUT_TAG:+-$CORA_OUTPUT_TAG}.json"
 if [ -f "$OUTPUT" ]; then
   echo "skip completed CORA Gate 1 seed=$SEED"
   exit 0
@@ -86,6 +89,10 @@ max_group_args=()
 if [ -n "$MAX_GROUPS" ]; then
   max_group_args=(--max-groups "$MAX_GROUPS")
 fi
+group_args=(--group-start "$CORA_GROUP_START")
+if [ -n "$CORA_GROUP_COUNT" ]; then
+  group_args+=(--group-count "$CORA_GROUP_COUNT")
+fi
 PYTHONPATH="$REPO_ROOT/scripts/cora_vla:$REPO_ROOT/scripts/fresh_vla:$LIBERO_SOURCE${PYTHONPATH:+:$PYTHONPATH}" \
 LIBERO_CONFIG_PATH="$REPO_ROOT/scripts/fresh_vla/libero_config" \
 MUJOCO_GL=egl \
@@ -99,4 +106,5 @@ PYTHONDONTWRITEBYTECODE=1 \
   --output "$OUTPUT" \
   --checkpoint-seed "$SEED" \
   --split val \
+  "${group_args[@]}" \
   "${max_group_args[@]}"

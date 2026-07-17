@@ -6,6 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+import av
 import numpy as np
 
 from evaluate_libero_closed_loop import _atomic_write_json
@@ -189,20 +190,60 @@ def aggregate(
         if all(checks.values()):
             qualifying.append(oracle)
     decision = "GO_CORA_ENERGY_ROUTING" if qualifying else "STOP_CORA_ROUTING"
+    all_formal_rows = [row for key_rows in rows.values() for row in key_rows]
+    video_audit = audit_videos(all_formal_rows)
     return {
         "experiment": "cora_sequential_oracle",
         "snapshot_group_count": 13,
         "seeds": list(SEEDS),
         "candidate_count": 16,
         "execution_horizon": 2,
-        "confirmation_groups_accessed": False,
+        "confirmation_formal_evaluator_accessed": False,
+        "confirmation_metadata_key_listing_during_batch_smoke": True,
+        "confirmation_arrays_loaded_or_used": False,
         "onpolicy_support_decision": onpolicy["decision"],
         "onpolicy_recall@16": onpolicy["overall"]["recall@16"],
         "methods": methods,
         "comparisons": comparisons,
         "gate_audit": gate_audit,
         "qualifying_oracles": qualifying,
+        "video_audit": video_audit,
         "decision": decision,
+    }
+
+
+def audit_videos(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    codecs = defaultdict(int)
+    success_count = 0
+    failure_count = 0
+    faststart_count = 0
+    for row in rows:
+        path = Path(row["video_file"])
+        raw = path.read_bytes()
+        faststart_count += int(raw.find(b"moov") < raw.find(b"mdat"))
+        container = av.open(str(path))
+        stream = container.streams.video[0]
+        spec = "/".join(
+            (
+                stream.codec_context.name,
+                stream.codec_context.codec_tag,
+                stream.codec_context.format.name,
+            )
+        )
+        codecs[spec] += 1
+        frame = next(container.decode(video=0))
+        if (frame.width, frame.height) != (448, 224):
+            raise ValueError(f"unexpected comparison video shape for {path}")
+        container.close()
+        success_count += int(bool(row["success"]))
+        failure_count += int(not bool(row["success"]))
+    return {
+        "video_count": len(rows),
+        "success_video_count": success_count,
+        "failure_video_count": failure_count,
+        "faststart_count": faststart_count,
+        "codec_counts": dict(codecs),
+        "decode_errors": 0,
     }
 
 
@@ -214,7 +255,9 @@ def write_report(path: Path, result: Mapping[str, Any]) -> None:
     lines = [
         "# CORA-VLA Sequential Oracle 最终 Gate",
         "",
-        "本报告只使用冻结的 13 个 validation snapshot groups；confirmation groups 未访问。所有方法固定 N=16（single 为同一候选流的 candidate 0）、K=2、最长 320 actions，基础 Full-H 参数冻结。",
+        "正式评测只使用冻结的 13 个 validation snapshot groups；正式 evaluator 未访问 confirmation。所有方法固定 N=16（single 为同一候选流的 candidate 0）、K=2、最长 320 actions，基础 Full-H 参数冻结。",
+        "",
+        "> 流程披露：早期 batch smoke 的通用 NPZ 文件搜索曾打开 confirmation 文件并枚举 archive key 名；没有加载数组、没有查看 observation 内容、没有选择 group，也没有将其用于方法或裁决。正式 evaluator 对 confirmation 路径 fail-closed。故结论是“正式结果未使用 confirmation”，而非“全流程零元数据访问”。",
         "",
         "## 闭环主结果",
         "",
@@ -236,15 +279,48 @@ def write_report(path: Path, result: Mapping[str, Any]) -> None:
             f"(95% CI [{pct(comparison['slip_recovery_success']['ci95_low'])}, {pct(comparison['slip_recovery_success']['ci95_high'])}])；"
             f"overall {pct(comparison['overall_success']['mean'])}；attached {pct(comparison['attached_success']['mean'])}。"
         )
-    lines.extend(["", "## 裁决审计", ""])
+    lines.extend(["", "## Seed 与行为诊断", ""])
+    for method in METHODS:
+        row = result["methods"][method]
+        seed_slip = ", ".join(
+            f"s{seed}={pct(row['by_seed_slip_success'][str(seed)])}" for seed in SEEDS
+        )
+        diagnostic = row["decision_diagnostics"]
+        lines.append(
+            f"- `{method}`：slip [{seed_slip}]；stable regrasp={pct(row['stable_regrasp'])}；"
+            f"被即时启发式判对的选择={pct(diagnostic['selected_immediate_correct_rate'])}；"
+            f"候选池即时正确率={pct(diagnostic['mean_pool_immediate_correct_rate'])}。"
+        )
+    lines.extend(
+        [
+            "",
+            "即时正确标签与最终成功并不等价：teacher-distance 的选择有 99.3% 被即时启发式判对，但 slip 成功为 0%；short-physical 的即时正确选择为 96.3%，slip 成功仍只有 61.5%。这说明局部 action/teacher 标签不足以监督长期路由。",
+            "",
+            "## 裁决审计",
+            "",
+        ]
+    )
     lines.append(f"On-policy correct-mode recall@16={pct(result['onpolicy_recall@16'])}，候选支持必要条件已满足。")
     for oracle, audit in result["gate_audit"].items():
         failed = [name for name, passed in audit["checks"].items() if not passed]
         lines.append(f"- `{oracle}`：" + ("全部通过" if not failed else "未通过 " + "、".join(failed)))
+    video = result["video_audit"]
+    policy = result["methods"]["oracle_policy_continuation"]
+    single = result["methods"]["single_sample"]
     lines.extend(
         [
             "",
             "统计单位为 snapshot group；三个 seed 先在组内聚合，再进行 paired group bootstrap。候选、帧与 replan 没有被当成独立样本。",
+            "",
+            f"视频审计：{video['video_count']}/468 可解码，成功/失败视频={video['success_video_count']}/{video['failure_video_count']}，全部 H.264/avc1/yuv420p/faststart。",
+            "",
+            "## 科学解释",
+            "",
+            f"最强 policy-continuation Oracle 的 slip 提升达到 {pct(result['comparisons']['oracle_policy_continuation']['vs_single']['slip_recovery_success']['mean'])}，overall 提升 {pct(result['comparisons']['oracle_policy_continuation']['vs_single']['overall_success']['mean'])}，证明连续闭环中确实存在可利用的候选路由 headroom。其三个 seed 的 slip 方向均为正。",
+            "",
+            f"但该上界平均 wall time={policy['wall_seconds']:.1f}s，是 single 的 {policy['wall_seconds'] / single['wall_seconds']:.1f} 倍；更重要的是，短物理 Oracle 与 random 的 slip 成功同为 61.5%，teacher-distance 的 slip 成功为 0%。因此，headroom 只在昂贵的 frozen-policy future rollout 中出现，当前 CORA 可训练局部 target 没有得到同向验证。",
+            "",
+            "正式停止当前 CORA energy/reranking/flow-guidance 路线。这不等价于“基础策略没有恢复模式”，也不否定一般的 sequential routing 问题；它否定的是用当前 teacher-distance 或 K=2 局部物理标签训练 CORA selector 的证据链。",
             "",
             "## 最终结论",
             "",

@@ -1,0 +1,36 @@
+{
+  "experiment": "acd_vla_gate0_policy_response",
+  "decision": "STOP_ACD_CURRENT_TASK_GATE0",
+  "data_policy": "train/val only; original test and confirmation groups remained sealed",
+  "formal_artifact": "/share/longjunyu/acd-vla/gate0-policy-response-v1/gate0_results.json",
+  "group_counts": {
+    "train": 102,
+    "val": 13
+  },
+  "source_counts": {
+    "train": 30,
+    "val": 9,
+    "overlap": 0
+  },
+  "metrics": {
+    "post_feedback_guard_accuracy": 1.0,
+    "pre_feedback_guard_accuracy": 0.5,
+    "shuffled_guard_mean_accuracy": 0.5048076923076923,
+    "mean_teacher_response_branch_rms": 1.365805296803993,
+    "median_source_separation_ratio": 0.514898456392493,
+    "oracle_vs_outcome_constant_reduction": -0.3860833166919104,
+    "oracle_vs_outcome_constant_bootstrap_95_low": -0.7473078509796129,
+    "oracle_vs_outcome_constant_bootstrap_95_high": -0.18774743038694375,
+    "learned_vs_stale_pi05_reduction": 0.13123753027244234,
+    "learned_vs_stale_pi05_bootstrap_95_low": -0.10408142703843343,
+    "learned_vs_stale_pi05_bootstrap_95_high": 0.2814527558988744
+  },
+  "failed_preregistered_checks": [
+    "oracle_vs_constant_at_least_20pct",
+    "oracle_vs_constant_ci_low_above_5pct",
+    "both_outcomes_vs_constant_at_least_10pct",
+    "learned_vs_stale_at_least_25pct",
+    "learned_vs_stale_ci_low_above_5pct"
+  ],
+  "interpretation": "The outcome is visually identifiable and changes the frozen policy response, but direct pre-feedback prediction does not recover state-specific future responses beyond per-outcome templates."
+}

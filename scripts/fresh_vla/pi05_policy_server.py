@@ -28,6 +28,21 @@ def validate_policy_example(example: dict) -> None:
         raise ValueError(f"unexpected policy example keys: {sorted(example)}")
 
 
+def coupled_flow_noise(
+    torch_module,
+    *,
+    batch_size: int,
+    horizon: int,
+    action_dim: int,
+    device,
+):
+    """Create one flow-noise draw and repeat it exactly across observations."""
+    if batch_size < 1:
+        raise ValueError("batch_size must be positive")
+    one = torch_module.randn(1, horizon, action_dim, dtype=torch_module.float32, device=device)
+    return one.expand(batch_size, -1, -1).clone()
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Local Unix-socket Pi0.5 inference server")
     parser.add_argument("--checkpoint", type=Path, required=True)
@@ -95,6 +110,45 @@ def main() -> None:
             raise ValueError(f"invalid observation-batch output: shape={actions.shape}")
         return np.clip(actions, -1.0, 1.0), elapsed
 
+    def predict_observation_batch_coupled(examples, seed: int) -> tuple[np.ndarray, float]:
+        if not 1 <= len(examples) <= 16:
+            raise ValueError("predict_observation_batch_coupled requires 1 to 16 examples")
+        for example in examples:
+            validate_policy_example(example)
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+        device = next(model.parameters()).device
+        noise = coupled_flow_noise(
+            torch,
+            batch_size=len(examples),
+            horizon=horizon,
+            action_dim=int(model.action_dim),
+            device=device,
+        )
+        started = time.perf_counter()
+        with torch.inference_mode():
+            output = model.predict_action(examples=examples, noise=noise)
+        elapsed = time.perf_counter() - started
+        actions = np.asarray(output["normalized_actions"], dtype=np.float32)
+        expected = (len(examples), horizon, 7)
+        if actions.shape != expected or not np.all(np.isfinite(actions)):
+            raise ValueError(f"invalid coupled observation-batch output: shape={actions.shape}")
+        return np.clip(actions, -1.0, 1.0), elapsed
+
+    def extract_feature(example) -> tuple[np.ndarray, float]:
+        from AlphaBrain.model.pi05_features import extract_pi05_image_feature
+
+        validate_policy_example(example)
+        started = time.perf_counter()
+        with torch.inference_mode():
+            feature = extract_pi05_image_feature(model, example)[0]
+        elapsed = time.perf_counter() - started
+        array = feature.detach().to(torch.float16).cpu().numpy()
+        if array.ndim != 1 or not np.all(np.isfinite(array)):
+            raise ValueError(f"invalid frozen feature: shape={array.shape}")
+        return array, elapsed
+
     def stop(_signum, _frame):
         raise SystemExit(0)
 
@@ -127,6 +181,8 @@ def main() -> None:
                         "predict_many",
                         "predict_sample_batch",
                         "predict_observation_batch",
+                        "predict_observation_batch_coupled",
+                        "extract_feature",
                     }:
                         connection.send({"error": f"unknown operation: {request.get('op')!r}"})
                         continue
@@ -156,7 +212,7 @@ def main() -> None:
                                     "predict_action_wall_seconds": elapsed,
                                 }
                             )
-                        else:
+                        elif request["op"] == "predict_observation_batch":
                             actions, elapsed = predict_observation_batch(
                                 request["examples"], int(request["seed"])
                             )
@@ -164,6 +220,25 @@ def main() -> None:
                                 {
                                     "actions": actions.tolist(),
                                     "predict_action_wall_seconds": elapsed,
+                                }
+                            )
+                        elif request["op"] == "predict_observation_batch_coupled":
+                            actions, elapsed = predict_observation_batch_coupled(
+                                request["examples"], int(request["seed"])
+                            )
+                            connection.send(
+                                {
+                                    "actions": actions.tolist(),
+                                    "predict_action_wall_seconds": elapsed,
+                                    "coupled_flow_noise": True,
+                                }
+                            )
+                        else:
+                            feature, elapsed = extract_feature(request["example"])
+                            connection.send(
+                                {
+                                    "feature": feature,
+                                    "feature_wall_seconds": elapsed,
                                 }
                             )
                     except Exception as error:

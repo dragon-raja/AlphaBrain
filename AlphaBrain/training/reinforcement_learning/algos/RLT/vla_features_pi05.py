@@ -63,6 +63,7 @@ def get_vla_hidden_states_pi05(
     vla,
     batch_images: List,
     instructions: List[str],
+    states: Optional[List] = None,
     image_only: bool = True,
     drop_action_tokens: bool = True,  # accepted for API parity; no-op for Pi05
 ) -> Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]:
@@ -91,10 +92,12 @@ def get_vla_hidden_states_pi05(
         list(imgs) if isinstance(imgs, (list, tuple)) else [imgs]
         for imgs in batch_images
     ]
-    examples = [
-        {"image": imgs, "lang": instr}
-        for imgs, instr in zip(batch_images_normed, instructions)
-    ]
+    examples = []
+    for index, (imgs, instr) in enumerate(zip(batch_images_normed, instructions)):
+        example = {"image": imgs, "lang": instr}
+        if states is not None:
+            example["state"] = states[index]
+        examples.append(example)
 
     # ── Step 1: build prefix embeddings (image+text, pre-Gemma) ──
     prefix_embs, prefix_pad_masks, prefix_att_masks = vla._prepare_prefix_paligemma(examples)
@@ -142,3 +145,26 @@ def get_vla_hidden_states_pi05(
         encoder_mask = prefix_pad_masks.to(torch.long)
 
     return last_hidden, encoder_mask, None
+
+
+def pool_vla_image_views_pi05(
+    last_hidden: torch.Tensor,
+    *,
+    num_views: int,
+    tokens_per_view: int = _PALIGEMMA_IMG_TOKENS_PER_VIEW,
+) -> torch.Tensor:
+    """Mean-pool each real image view without mixing in language or padded views."""
+    if last_hidden.ndim != 3:
+        raise ValueError(f"last_hidden must have shape [B, L, H], got {last_hidden.shape}")
+    if num_views < 1:
+        raise ValueError("num_views must be positive")
+    required_tokens = num_views * tokens_per_view
+    if last_hidden.shape[1] < required_tokens:
+        raise ValueError(
+            f"hidden sequence has {last_hidden.shape[1]} tokens, needs {required_tokens}"
+        )
+    pooled = [
+        last_hidden[:, view * tokens_per_view : (view + 1) * tokens_per_view].mean(dim=1)
+        for view in range(num_views)
+    ]
+    return torch.cat(pooled, dim=-1)

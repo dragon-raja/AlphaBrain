@@ -1,0 +1,20 @@
+{
+  "decision": "STOP_BRANCH_ACTION_CHUNK",
+  "train_groups": 102,
+  "validation_groups": 13,
+  "validation_source_states": 9,
+  "post_feedback_guard_accuracy": 1.0,
+  "pre_feedback_guard_accuracy": 0.5,
+  "shuffled_label_mean_accuracy": 0.5048076923076923,
+  "learned_route_vs_linear_reduction": {
+    "mean": 0.5802209484462969,
+    "bootstrap_95_low": 0.5136399194257928,
+    "bootstrap_95_high": 0.6451114755292009
+  },
+  "oracle_route_vs_constant_reduction": {
+    "mean": -0.49560045155251253,
+    "bootstrap_95_low": -0.7235945113373016,
+    "bootstrap_95_high": -0.3027821943067799
+  },
+  "artifact": "/share/longjunyu/branch-vla/gate0-representation-v1/gate0_results.json"
+}

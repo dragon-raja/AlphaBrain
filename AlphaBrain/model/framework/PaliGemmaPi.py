@@ -317,6 +317,7 @@ class PaliGemmaPi(BaseFramework):
         import torchvision.transforms.functional as TF
 
         device = next(self.parameters()).device
+
         dtype = next(self.parameters()).dtype
         B = len(examples)
         paligemma_cfg = getattr(self.config.framework, 'paligemma', None)
@@ -632,6 +633,19 @@ class PaliGemmaPi(BaseFramework):
 
         device = next(self.parameters()).device
 
+        inference_noise = kwargs.get("noise")
+        if inference_noise is not None:
+            inference_noise = torch.as_tensor(
+                inference_noise,
+                dtype=torch.float32,
+                device=device,
+            )
+            expected_noise_shape = (len(examples), self.action_horizon, self.action_dim)
+            if tuple(inference_noise.shape) != expected_noise_shape:
+                raise ValueError(
+                    f"inference noise shape {tuple(inference_noise.shape)} != {expected_noise_shape}"
+                )
+
         state = None
         if not self.pi05 and "state" in examples[0]:
             state = torch.stack([torch.tensor(ex["state"], dtype=torch.float32) for ex in examples])
@@ -648,6 +662,7 @@ class PaliGemmaPi(BaseFramework):
                 prefix_att_masks=prefix_att_masks,
                 state=state,
                 device=device,
+                noise=inference_noise,
             )
 
             # Unnormalize actions if MEAN_STD normalization was used
@@ -754,6 +769,7 @@ class PaliGemmaPi(BaseFramework):
             vlm_language_model=vlm_lm,
             state=state,
             device=device,
+            noise=inference_noise,
         )
 
         # Unnormalize actions if MEAN_STD normalization was used

@@ -1,0 +1,23 @@
+{
+  "decision": "STOP_POLICY_RELATIVE_COMMITTOR",
+  "valid_state_count": 21,
+  "source_state_count": 8,
+  "state_median_comparable_fraction": {
+    "41-42": 0.0,
+    "41-43": 0.0,
+    "42-43": 0.0
+  },
+  "source_mean_preference_flip_rate": {
+    "41-42": 0.156751740822214,
+    "41-43": 0.17701912602647896,
+    "42-43": 0.07197504687379508
+  },
+  "oracle_minus_leave_one_policy_out": {
+    "mean": 0.10642361111111111,
+    "bootstrap_95_low": 0.029166666666666664,
+    "bootstrap_95_high": 0.19237847222222068
+  },
+  "stages_with_flip_rate_at_least_15pp": 2,
+  "sources_with_flip_rate_at_least_15pp": 1,
+  "artifact": "/share/longjunyu/basin-vla/policy-relativity-gate0-v1/gate0_results.json"
+}

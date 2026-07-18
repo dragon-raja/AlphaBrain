@@ -1,0 +1,15 @@
+{
+  "decision": "STOP_VERIFY_VLA",
+  "formal_artifact": "/share/longjunyu/verify-vla/gate0-probe-v1/gate0_results.json",
+  "train_expected": 102,
+  "train_valid": 88,
+  "val_expected": 13,
+  "val_valid": 12,
+  "pre_probe_vision_accuracy": 0.9166666666666666,
+  "pre_probe_vision_group_bootstrap_95": [0.7916666666666666, 1.0],
+  "baseline_teacher_attached_success": 1.0,
+  "baseline_teacher_detached_recovery": 1.0,
+  "passing_probes": [],
+  "sealed_test_or_confirmation_used": false,
+  "interpretation": "The pose-offset twin was visually identifiable before probing; do not tune probes on this task."
+}

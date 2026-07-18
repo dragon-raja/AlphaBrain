@@ -259,6 +259,45 @@ class Pi05Policy:
             raise RuntimeError(f"unexpected Pi0.5 observation-batch action shape: {actions.shape}")
         return np.clip(actions, -1.0, 1.0), time.perf_counter() - started
 
+    def predict_observation_batch_coupled(
+        self, observations: Sequence[Mapping[str, Any]], *, seed: int
+    ) -> tuple[np.ndarray, float]:
+        from pi05_policy_server import coupled_flow_noise
+
+        if not 1 <= len(observations) <= 16:
+            raise ValueError("coupled observation batch count must be in [1, 16]")
+        self.torch.manual_seed(seed)
+        if self.torch.cuda.is_available():
+            self.torch.cuda.manual_seed_all(seed)
+        examples = [_policy_observation(observation, self.language) for observation in observations]
+        noise = coupled_flow_noise(
+            self.torch,
+            batch_size=len(examples),
+            horizon=self.horizon,
+            action_dim=int(self.model.action_dim),
+            device=next(self.model.parameters()).device,
+        )
+        started = time.perf_counter()
+        with self.torch.inference_mode():
+            output = self.model.predict_action(examples=examples, noise=noise)
+        actions = np.asarray(output["normalized_actions"], dtype=np.float32)
+        expected = (len(observations), self.horizon, 7)
+        if actions.shape != expected or not np.all(np.isfinite(actions)):
+            raise RuntimeError(f"unexpected coupled Pi0.5 action shape: {actions.shape}")
+        return np.clip(actions, -1.0, 1.0), time.perf_counter() - started
+
+    def extract_feature(self, observation: Mapping[str, Any]) -> tuple[np.ndarray, float]:
+        from AlphaBrain.model.pi05_features import extract_pi05_image_feature
+
+        example = _policy_observation(observation, self.language)
+        started = time.perf_counter()
+        with self.torch.inference_mode():
+            feature = extract_pi05_image_feature(self.model, example)[0]
+        array = feature.detach().to(self.torch.float16).cpu().numpy()
+        if array.ndim != 1 or not np.all(np.isfinite(array)):
+            raise RuntimeError(f"invalid Pi0.5 feature shape: {array.shape}")
+        return array, time.perf_counter() - started
+
     def close(self) -> None:
         pass
 
@@ -348,6 +387,44 @@ class RemotePi05Policy:
         if actions.shape != (count, self.horizon, 7) or not np.all(np.isfinite(actions)):
             raise RuntimeError(f"remote Pi0.5 observation-batch shape changed: {actions.shape}")
         return actions, float(response["predict_action_wall_seconds"])
+
+    def predict_observation_batch_coupled(
+        self, observations: Sequence[Mapping[str, Any]], *, seed: int
+    ) -> tuple[np.ndarray, float]:
+        count = len(observations)
+        self.connection.send(
+            {
+                "op": "predict_observation_batch_coupled",
+                "seed": int(seed),
+                "examples": [
+                    _policy_observation(observation, self.language) for observation in observations
+                ],
+            }
+        )
+        response = self.connection.recv()
+        if "error" in response:
+            raise RuntimeError(f"remote coupled Pi0.5 inference failed: {response['error']}")
+        if not bool(response.get("coupled_flow_noise")):
+            raise RuntimeError("policy server did not attest coupled flow noise")
+        actions = np.asarray(response["actions"], dtype=np.float32)
+        if actions.shape != (count, self.horizon, 7) or not np.all(np.isfinite(actions)):
+            raise RuntimeError(f"remote coupled Pi0.5 shape changed: {actions.shape}")
+        return actions, float(response["predict_action_wall_seconds"])
+
+    def extract_feature(self, observation: Mapping[str, Any]) -> tuple[np.ndarray, float]:
+        self.connection.send(
+            {
+                "op": "extract_feature",
+                "example": _policy_observation(observation, self.language),
+            }
+        )
+        response = self.connection.recv()
+        if "error" in response:
+            raise RuntimeError(f"remote Pi0.5 feature extraction failed: {response['error']}")
+        feature = np.asarray(response["feature"], dtype=np.float16)
+        if feature.ndim != 1 or not np.all(np.isfinite(feature)):
+            raise RuntimeError(f"remote Pi0.5 feature shape changed: {feature.shape}")
+        return feature, float(response["feature_wall_seconds"])
 
     def close(self) -> None:
         try:

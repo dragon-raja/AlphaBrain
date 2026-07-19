@@ -1,0 +1,30 @@
+{
+  "experiment": "continuation_selected_self_distillation_gate0",
+  "decision": "STOP_CONTINUATION_DISTILL_LABEL_BANK",
+  "fitting": {
+    "state_count": 534,
+    "accepted_state_count": 77,
+    "accepted_source_count": 17,
+    "mean_gain": 0.010127817994982288,
+    "mean_gain_bootstrap_95": [0.0056476964407755305, 0.012155005441889181],
+    "accepted_stage_counts": {
+      "post_regrasp": 59,
+      "preclose": 12,
+      "reapproach": 6
+    }
+  },
+  "evaluation": {
+    "state_count": 182,
+    "accepted_state_count": 32,
+    "accepted_source_count": 5,
+    "mean_gain": 0.03713070425558762,
+    "mean_gain_bootstrap_95": [0.007959378087300557, 0.06005799518277566]
+  },
+  "failed_checks": [
+    "fitting_accepted_at_least_120",
+    "three_fitting_stages_at_least_20"
+  ],
+  "ccv_holdout_states_opened": 0,
+  "test_or_confirmation_states_opened": 0,
+  "next_action": "PIVOT_TO_ONPOLICY_CLOSED_LOOP_RECOVERY_OPTION"
+}

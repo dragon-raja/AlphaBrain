@@ -1,0 +1,55 @@
+{
+  "analysis": {
+    "bootstrap_replicates": 10000,
+    "conditions": {
+      "action_leverage_at_least_30pct": true,
+      "mse_reduction_at_least_20pct": false,
+      "one_repeat_regret_ci_above_negative_5pct_gain": true,
+      "one_repeat_regret_point_positive": true
+    },
+    "metrics": {
+      "action_leverage": {
+        "high": 0.47438845357717496,
+        "low": 0.39078348970504523,
+        "mean": 0.4336146653055112
+      },
+      "available_oracle_gain": {
+        "high": 0.013763954294036013,
+        "low": 0.007273072535718353,
+        "mean": 0.010384273019635864
+      },
+      "mse_reduction_fraction": {
+        "high": 0.18034930875475083,
+        "low": 0.14460608009675632,
+        "mean": 0.16241331619351485
+      },
+      "regret_improvement_b1": {
+        "high": 0.004996944922361791,
+        "low": 0.0014970357008228586,
+        "mean": 0.0031666026848844835
+      },
+      "regret_improvement_b2": {
+        "high": 0.008564706586833533,
+        "low": 0.003972610281567843,
+        "mean": 0.006178810372021855
+      }
+    },
+    "source_count": 23,
+    "state_count": 716
+  },
+  "collection": {
+    "completed_groups": 102,
+    "integrity_audit": "pass",
+    "overall_teacher_success": 0.9019607843137255,
+    "sealed_holdout_states_not_opened": 234,
+    "total_states": 988
+  },
+  "dataset_root": "/share/longjunyu/fresh-vla/ccv-vla/gate0-coupled-v3",
+  "decision": "STOP_COUPLED_CONTINUATION_ROUTE",
+  "experiment": "ccv_vla_gate0a_final",
+  "gate0a_decision": "STOP_CCV_GATE0A",
+  "gate0b_status": "NOT_RUN_LOCKED",
+  "holdout_content_status": "SEALED_UNOPENED",
+  "preregistration_sha256": "060512b914d01a3a4092ccf3f7e955396733f2befbf83db79d16ec82c70b3bd0",
+  "validation_status": "NOT_RUN_LOCKED"
+}

@@ -1,5 +1,8 @@
 # CCV-VLA: Coupled Continuation Viability for VLA Policies
 
+Status: stopped at formal Gate 0A on 2026-07-19. Coupling reduced one-repeat pairwise MSE by
+16.24%, below the preregistered 20% threshold. See `gate0a_results.md`.
+
 ## Research question
 
 Why can a VLA contain a locally correct recovery action in its sample support, yet fail to

@@ -1,0 +1,34 @@
+{
+  "experiment": "policy_response_surrogate_gate_minus1",
+  "decision": "STOP_POLICY_RESPONSE_SURROGATE",
+  "fit_state_count": 534,
+  "evaluation_state_count": 182,
+  "evaluation_source_count": 5,
+  "integrity": {
+    "expected_records": 716,
+    "actual_records": 716,
+    "missing_records": 0,
+    "extra_records": 0,
+    "preregistration_hash_match": true,
+    "ccv_holdout_states_opened": 0,
+    "test_or_confirmation_states_opened": 0
+  },
+  "metrics": {
+    "oracle_gain": 0.011683481201387,
+    "oracle_gain_bootstrap_95": [0.005082544976888101, 0.017173579086190133],
+    "candidate_oracle_gain_recovered": 0.44704178568832814,
+    "response_oracle_gain_recovered": 0.01690501173313694,
+    "candidate_response_oracle_gain_recovered": 0.6353527474576144,
+    "candidate_response_minus_best_baseline_bootstrap_95": [
+      -0.1852725303012306,
+      0.5070216286012339
+    ],
+    "response_pairwise_concordance": 0.5173986609437051,
+    "candidate_response_stable_grasp_harm_rate": 0.020740740740740737
+  },
+  "failed_checks": [
+    "paired_improvement_ci_low_above_zero",
+    "response_concordance_above_055"
+  ],
+  "next_action": "PREREGISTER_CONTINUATION_SELECTED_SELF_DISTILLATION_PILOT"
+}

@@ -294,6 +294,10 @@ def main() -> None:
         "evaluation_state_count": len(evaluation),
         "alpha_selection": alpha_rows,
         "metrics": metrics,
+        "per_source_metrics": {
+            method: {str(source): row for source, row in source_metrics.items()}
+            for method, source_metrics in grouped.items()
+        },
         "bootstrap": intervals,
         "checks": checks,
         "ccv_holdout_states_opened": 0,

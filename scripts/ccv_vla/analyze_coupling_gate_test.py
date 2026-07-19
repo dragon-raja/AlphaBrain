@@ -4,7 +4,12 @@ import unittest
 
 import numpy as np
 
-from analyze_coupling_gate import independent_permutations, pairwise_mse, state_metrics
+from analyze_coupling_gate import (
+    independent_permutations,
+    leave_out_profiles,
+    pairwise_mse,
+    state_metrics,
+)
 
 
 class CouplingGateAnalysisTest(unittest.TestCase):
@@ -25,6 +30,19 @@ class CouplingGateAnalysisTest(unittest.TestCase):
         independent = pairwise_mse(signatures, permutations)
         self.assertLess(coupled, 1e-12)
         self.assertGreater(independent, 0.01)
+
+    def test_pairwise_target_excludes_the_evaluated_repeat(self) -> None:
+        signatures = np.asarray([[[0.0], [2.0]], [[0.0], [0.0]]])
+        self.assertEqual(pairwise_mse(signatures), 4.0)
+
+    def test_leave_out_profile_does_not_contain_selected_label(self) -> None:
+        signatures = np.zeros((2, 3, 6), dtype=np.float64)
+        signatures[0, :, 5] = [1.0, 0.0, 0.0]
+        signatures[1, :, 5] = [0.0, 1.0, 1.0]
+        indices = np.zeros((2, 1), dtype=np.int64)
+        profiles = leave_out_profiles(signatures, indices)
+        self.assertEqual(profiles[0, 5], 0.0)
+        self.assertEqual(profiles[1, 5], 1.0)
 
     def test_state_metrics_detect_action_leverage(self) -> None:
         signatures = np.zeros((16, 6, 6), dtype=np.float64)

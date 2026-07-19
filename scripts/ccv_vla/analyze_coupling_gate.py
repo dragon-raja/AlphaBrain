@@ -54,19 +54,58 @@ def selection_regret(reference_profiles: np.ndarray, estimate_profiles: np.ndarr
     )
 
 
+def complement_indices(repeats: int, selected: np.ndarray) -> np.ndarray:
+    chosen = {int(index) for index in np.asarray(selected).reshape(-1)}
+    remaining = [index for index in range(repeats) if index not in chosen]
+    if not remaining:
+        raise ValueError("leave-out target needs at least one unused repeat")
+    return np.asarray(remaining, dtype=np.int64)
+
+
+def leave_out_profiles(signatures: np.ndarray, indices: np.ndarray) -> np.ndarray:
+    values = np.asarray(signatures, dtype=np.float64)
+    selected = np.asarray(indices, dtype=np.int64)
+    if selected.ndim != 2 or selected.shape[0] != values.shape[0]:
+        raise ValueError("indices must have shape [candidate, budget]")
+    targets = np.stack(
+        [
+            complement_indices(values.shape[1], selected[candidate])
+            for candidate in range(values.shape[0])
+        ]
+    )
+    return profile_rows(values, targets)
+
+
+def leave_out_selection_regret(signatures: np.ndarray, indices: np.ndarray) -> float:
+    return selection_regret(
+        leave_out_profiles(signatures, indices),
+        profile_rows(signatures, indices),
+    )
+
+
 def pairwise_mse(signatures: np.ndarray, permutations: np.ndarray | None = None) -> float:
     values = np.asarray(signatures, dtype=np.float64)
     candidate_count, repeats, _ = values.shape
     errors = []
-    for left, right in itertools.combinations(range(candidate_count), 2):
-        truth = values[left].mean(axis=0) - values[right].mean(axis=0)
-        if permutations is None:
-            differences = values[left] - values[right]
-        else:
-            differences = (
-                values[left, permutations[left]] - values[right, permutations[right]]
-            )
-        errors.append(float(np.square(differences - truth).mean()))
+    selected_by_trial = (
+        np.broadcast_to(np.arange(repeats), (candidate_count, repeats)).T
+        if permutations is None
+        else np.asarray(permutations, dtype=np.int64).T
+    )
+    for selected in selected_by_trial:
+        estimates = values[np.arange(candidate_count), selected]
+        targets = np.stack(
+            [
+                values[candidate, complement_indices(repeats, [selected[candidate]])].mean(
+                    axis=0
+                )
+                for candidate in range(candidate_count)
+            ]
+        )
+        for left, right in itertools.combinations(range(candidate_count), 2):
+            estimate_difference = estimates[left] - estimates[right]
+            target_difference = targets[left] - targets[right]
+            errors.append(float(np.square(estimate_difference - target_difference).mean()))
     return float(np.mean(errors))
 
 
@@ -94,10 +133,10 @@ def state_metrics(signatures: np.ndarray, *, state_id: str) -> dict[str, float |
         )
         independent_mses.append(pairwise_mse(values, permutations))
         independent_regrets_1.append(
-            selection_regret(reference, profile_rows(values, permutations[:, :1]))
+            leave_out_selection_regret(values, permutations[:, :1])
         )
         independent_regrets_2.append(
-            selection_regret(reference, profile_rows(values, permutations[:, :2]))
+            leave_out_selection_regret(values, permutations[:, :2])
         )
 
     coupled_regrets_1 = []
@@ -111,8 +150,8 @@ def state_metrics(signatures: np.ndarray, *, state_id: str) -> dict[str, float |
             ],
             axis=1,
         )
-        coupled_regrets_1.append(selection_regret(reference, profile_rows(values, one)))
-        coupled_regrets_2.append(selection_regret(reference, profile_rows(values, two)))
+        coupled_regrets_1.append(leave_out_selection_regret(values, one))
+        coupled_regrets_2.append(leave_out_selection_regret(values, two))
 
     independent_mse = float(np.mean(independent_mses))
     return {

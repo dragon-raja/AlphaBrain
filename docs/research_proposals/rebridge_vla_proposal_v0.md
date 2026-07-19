@@ -1,6 +1,8 @@
 # ReBridge-VLA：基于策略相对最优停止的 VLA 闭环恢复
 
-状态：`PROPOSAL_V0`，尚未开始新训练，不作方法有效性或原创性结论。
+状态：`SUPERSEDED_TECHNICAL_NOTE`。正式研究计划见
+[`rebridge_vla_formal_research_proposal_v1.md`](rebridge_vla_formal_research_proposal_v1.md)。
+本文保留为方法构思与 Gate 设计记录，不作方法有效性或原创性结论。
 
 日期：2026-07-19
 

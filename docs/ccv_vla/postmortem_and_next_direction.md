@@ -39,7 +39,15 @@ Relevant primary sources:
 - [Common random numbers for rollout planning](https://arxiv.org/abs/2605.04732)
 - [Forward-backward and successor representations](https://arxiv.org/abs/2209.14935)
 
-## FOVEA-VLA hypothesis
+## Superseded draft: FOVEA-VLA hypothesis
+
+Update on 2026-07-19: this section is retained as research history, but FOVEA is
+paused before implementation. The BASIN result and the crowded scalar/process
+critic literature make a new first-passage head premature. The active follow-up
+first tests whether endpoint frozen-policy responses are a sufficient statistic
+for long continuation ranking; see
+`docs/policy_response_vla/method_and_related_work.md` and
+`docs/policy_response_vla/gate_minus1_preregistration.md`.
 
 Temporary name: **FOVEA-VLA**, Frozen-policy Occupancy Viability for Efficient Action selection.
 
@@ -98,4 +106,3 @@ Do not open the six CCV holdout source IDs during method development.
 The route should be stopped immediately if a dense scalar critic matches the structured model, if
 Bellman consistency does not improve source-held-out ranking, or if accepted reranks cannot be
 calibrated without near-total abstention.
-

@@ -192,6 +192,60 @@ cabi_bind_framework_decision_closure: &cabi_bind_framework_decision_closure
     causal_factor_contrastive_weight: 0.1
     counterfactual_attention_grounding_weight: 0.05
 
+# The v10b audit measured a <1% adapter-to-prefix norm and showed that clean
+# role geometry was ignored by the action decoder. A 1.0 residual scale raises
+# the bridge to roughly 10% of the frozen prefix norm without changing the
+# single-pass inference path. The closure variant differs only by its
+# action-free, decision-point functional constraint.
+cabi_bind_framework_action_bridge: &cabi_bind_framework_action_bridge
+  <<: *cabi_bind_framework_bc
+  cabi:
+    enabled: true
+    binding_dim: 128
+    transport_rank: 32
+    temperature: 1.0
+    residual_scale: 1.0
+    tie_read_write_attention: true
+    role_state_residual: true
+    single_weight: 0.25
+    anchor_weight: 0.5
+    commutator_weight: 0.1
+    cycle_weight: 0.1
+    specificity_weight: 0.1
+    orthogonality_weight: 0.01
+    flow_transport_weight: 0.5
+    intervention_margin: 0.1
+    intervention_identifiability_weight: 0.5
+    attention_separation_weight: 0.05
+    contrastive_temperature: 0.1
+    causal_factor_contrastive_weight: 0.1
+    counterfactual_attention_grounding_weight: 0.05
+
+cabi_bind_framework_action_bridge_closure: &cabi_bind_framework_action_bridge_closure
+  <<: *cabi_bind_framework_action_bridge
+  cabi:
+    enabled: true
+    binding_dim: 128
+    transport_rank: 32
+    temperature: 1.0
+    residual_scale: 1.0
+    tie_read_write_attention: true
+    role_state_residual: true
+    single_weight: 0.25
+    anchor_weight: 0.5
+    commutator_weight: 0.1
+    cycle_weight: 0.1
+    specificity_weight: 0.1
+    orthogonality_weight: 0.01
+    flow_transport_weight: 0.5
+    decoder_closure_weight: 0.25
+    intervention_margin: 0.1
+    intervention_identifiability_weight: 0.5
+    attention_separation_weight: 0.05
+    contrastive_temperature: 0.1
+    causal_factor_contrastive_weight: 0.1
+    counterfactual_attention_grounding_weight: 0.05
+
 modes:
   cabi_bind_pi05_bc_smoke:
     <<: *cabi_bind_common
@@ -228,3 +282,15 @@ modes:
     run_id: cabi_bind_pi05_decision_closure_smoke
     framework:
       <<: *cabi_bind_framework_decision_closure
+
+  cabi_bind_pi05_action_bridge_smoke:
+    <<: *cabi_bind_common
+    run_id: cabi_bind_pi05_action_bridge_smoke
+    framework:
+      <<: *cabi_bind_framework_action_bridge
+
+  cabi_bind_pi05_action_bridge_closure_smoke:
+    <<: *cabi_bind_common
+    run_id: cabi_bind_pi05_action_bridge_closure_smoke
+    framework:
+      <<: *cabi_bind_framework_action_bridge_closure

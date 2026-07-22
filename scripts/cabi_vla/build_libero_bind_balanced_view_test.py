@@ -5,6 +5,7 @@ from build_libero_bind_balanced_view import (
     largest_remainder,
     macro_phase,
     plan_balanced_edge_quotas,
+    solve_equal_edge_loss_units,
     source_record_coverage,
     stage_quotas_cover_source,
 )
@@ -67,6 +68,46 @@ def test_exact_exposure_plan_balances_sources_and_targets() -> None:
         target_units[target] += units
     assert set(source_units.values()) == {7488}
     assert set(target_units.values()) == {11232}
+
+
+def test_equal_edge_plan_removes_incomplete_graph_shortcut() -> None:
+    count, quotas, anchor_regular, loss_units, anchor = plan_balanced_edge_quotas(
+        synthetic_manifest(),
+        ("red-left", "red-right", "white-left", "yellow_white-right"),
+        minimum_record_count=5611,
+        anchor_period=32,
+        balance_objective="observed_edges",
+    )
+    assert count % 32 == 0
+    assert sum(quotas.values()) == count
+    assert sum(anchor_regular.values()) == count // 32
+    effective = Counter(anchor["edges"])
+    effective.update(loss_units)
+    assert set(effective.values()) == {count}
+
+
+def test_equal_edge_solver_accounts_for_anchor_loss_reduction() -> None:
+    anchor = {
+        "edges": Counter(
+            {
+                "red-left": 8,
+                "red-right": 8,
+                "white-left": 4,
+                "yellow_white-right": 4,
+            }
+        )
+    }
+    units = solve_equal_edge_loss_units(
+        ("red-left", "red-right", "white-left", "yellow_white-right"),
+        anchor,
+        record_count=256,
+    )
+    assert units == {
+        "red-left": 248,
+        "red-right": 248,
+        "white-left": 252,
+        "yellow_white-right": 252,
+    }
 
 
 def test_largest_remainder_is_exact_and_deterministic() -> None:

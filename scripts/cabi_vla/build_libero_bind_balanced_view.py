@@ -146,6 +146,39 @@ def solve_regular_edge_loss_units(
     return dict(sorted(loss_units.items()))
 
 
+def solve_equal_edge_loss_units(
+    regular_edges: Sequence[str],
+    anchor: Mapping[str, Counter[str]],
+    *,
+    record_count: int,
+) -> dict[str, int] | None:
+    """Allocate equal effective action-loss mass to every observed edge.
+
+    This objective removes the target-to-source shortcut induced by balancing
+    source and target marginals on an incomplete 3x2 observation graph. The
+    anchor contribution is included exactly in quarter-loss units.
+    """
+
+    edge_count = len(regular_edges)
+    if edge_count == 0:
+        raise ValueError("at least one regular edge is required")
+    total_loss_units = 4 * record_count
+    if total_loss_units % edge_count:
+        return None
+    desired_edge = total_loss_units // edge_count
+    loss_units = {
+        edge: desired_edge - int(anchor["edges"][edge])
+        for edge in regular_edges
+    }
+    expected_regular_units = total_loss_units - sum(anchor["edges"].values())
+    if (
+        any(value < 0 for value in loss_units.values())
+        or sum(loss_units.values()) != expected_regular_units
+    ):
+        return None
+    return dict(sorted(loss_units.items()))
+
+
 def choose_anchor_record_quotas(
     edge_loss_units: Mapping[str, int],
     *,
@@ -195,6 +228,7 @@ def plan_balanced_edge_quotas(
     *,
     minimum_record_count: int,
     anchor_period: int,
+    balance_objective: str = "factor_marginals",
 ) -> tuple[
     int,
     dict[str, int],
@@ -210,11 +244,20 @@ def plan_balanced_edge_quotas(
             record_count=record_count,
             anchor_period=anchor_period,
         )
-        loss_units = solve_regular_edge_loss_units(
-            regular_edges,
-            anchor,
-            record_count=record_count,
-        )
+        if balance_objective == "factor_marginals":
+            loss_units = solve_regular_edge_loss_units(
+                regular_edges,
+                anchor,
+                record_count=record_count,
+            )
+        elif balance_objective == "observed_edges":
+            loss_units = solve_equal_edge_loss_units(
+                regular_edges,
+                anchor,
+                record_count=record_count,
+            )
+        else:
+            raise ValueError(f"unknown balance objective: {balance_objective!r}")
         if loss_units is None:
             continue
         allocation = choose_anchor_record_quotas(
@@ -336,6 +379,7 @@ def build_balanced_view(
     seed: int,
     minimum_record_count: int | None = None,
     preserve_source_records: bool = False,
+    balance_objective: str = "factor_marginals",
 ) -> dict[str, Any]:
     if output.exists():
         raise FileExistsError(f"refusing to overwrite output: {output}")
@@ -379,6 +423,7 @@ def build_balanced_view(
             regular_edges,
             minimum_record_count=requested_minimum,
             anchor_period=anchor_period,
+            balance_objective=balance_objective,
         )
         planned_stage_quotas = {
             edge: largest_remainder(edge_quotas[edge], stage_distribution)
@@ -450,6 +495,7 @@ def build_balanced_view(
 
     effective_source_loss_units = Counter(anchor["sources"])
     effective_target_loss_units = Counter(anchor["targets"])
+    effective_edge_loss_units = Counter(anchor["edges"])
     regular_sources: Counter[str] = Counter()
     regular_targets: Counter[str] = Counter()
     for edge, count in edge_quotas.items():
@@ -465,6 +511,7 @@ def build_balanced_view(
         units = 1 if index % anchor_period == 0 else 4
         effective_source_loss_units[source_id] += units
         effective_target_loss_units[target_id] += units
+        effective_edge_loss_units[edge] += units
         regular_stage_loss_units[edge][str(row["teacher_phase"])] += units
         regular_macro_phase_loss_units[edge][str(row["macro_phase"])] += units
         if index % anchor_period == 0:
@@ -486,6 +533,7 @@ def build_balanced_view(
         "loss_unit_denominator": 4,
         "action_loss_reduction": "mean_over_supervised_examples_per_microbatch",
         "balance_granularity": "teacher_phase",
+        "balance_objective": balance_objective,
         "stage_distribution": stage_distribution,
         "stage_quotas": stage_quotas,
         "anchor_stage_quotas": anchor_stage_quotas,
@@ -507,14 +555,20 @@ def build_balanced_view(
         "effective_supervised_target_loss_units": dict(
             sorted(effective_target_loss_units.items())
         ),
+        "effective_supervised_edge_loss_units": dict(
+            sorted(effective_edge_loss_units.items())
+        ),
         "heldout_action_records_loaded": False,
         "source_record_coverage": coverage,
     }
-    if (
-        len(set(effective_source_loss_units.values())) != 1
-        or len(set(effective_target_loss_units.values())) != 1
-    ):
-        raise AssertionError("effective action-loss mass is not factor balanced")
+    if balance_objective == "factor_marginals":
+        if (
+            len(set(effective_source_loss_units.values())) != 1
+            or len(set(effective_target_loss_units.values())) != 1
+        ):
+            raise AssertionError("effective action-loss mass is not factor balanced")
+    elif len(set(effective_edge_loss_units.values())) != 1:
+        raise AssertionError("effective action-loss mass is not edge balanced")
 
     staging = output.parent / f".{output.name}.staging-{os.getpid()}"
     staging.mkdir(parents=True, exist_ok=False)
@@ -544,6 +598,11 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=20260722)
     parser.add_argument("--minimum-record-count", type=int)
     parser.add_argument("--preserve-source-records", action="store_true")
+    parser.add_argument(
+        "--balance-objective",
+        choices=("factor_marginals", "observed_edges"),
+        default="factor_marginals",
+    )
     return parser.parse_args(args)
 
 
@@ -556,6 +615,7 @@ def main() -> None:
         seed=args.seed,
         minimum_record_count=args.minimum_record_count,
         preserve_source_records=args.preserve_source_records,
+        balance_objective=args.balance_objective,
     )
     print(json.dumps(report, sort_keys=True))
 

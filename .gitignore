@@ -246,6 +246,19 @@ docs/pi0oft_integration_notes.md
 -e 
 wandb/
 test_data.py
+
+# CABI-VLA reproducibility artifacts are part of the research implementation.
+!configs/experiments/
+configs/experiments/*
+!configs/experiments/cabi_vla_libero_bind.yaml
+!tests/
+tests/*
+!tests/model/
+tests/model/*
+!tests/model/test_cabi_binding.py
+!tests/dataloader/
+tests/dataloader/*
+!tests/dataloader/test_libero_bind_dataset.py
 test_e2e.py
 tokenizer.model
 train_pi0oft_20k.sh

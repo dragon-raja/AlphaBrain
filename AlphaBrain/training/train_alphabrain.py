@@ -805,8 +805,17 @@ class VLATrainer(TrainerUtils):
                 # add learning rate
                 metrics["learning_rate"] = self.lr_scheduler.get_last_lr()[0] # see lr group in yaml.trainer.learning_rate
 
-                # add epoch info
-                metrics["epoch"] = round(self.completed_steps / len(self.vla_train_dataloader), 2)
+                # One optimizer step consumes gradient_accumulation_steps microbatches.
+                # Report data exposure rather than the optimizer-step / loader-length ratio.
+                microbatches_seen = (
+                    self.completed_steps * self.accelerator.gradient_accumulation_steps
+                )
+                metrics["examples_seen"] = microbatches_seen * int(
+                    self.config.datasets.vla_data.per_device_batch_size
+                ) * self.accelerator.num_processes
+                metrics["epoch"] = round(
+                    microbatches_seen / max(len(self.vla_train_dataloader), 1), 2
+                )
 
                 # add step info
                 metrics["step"] = self.completed_steps
@@ -1054,13 +1063,13 @@ class VLATrainer(TrainerUtils):
         log_dict = {
             "action_dit_loss": action_loss.item(),
         }
-        for k in ("action_mse", "cond_mse"):
+        for k in ("action_mse", "cond_mse", "flow_matching_loss"):
             v = output_dict.get(k)
             if v is None:
                 continue
             log_dict[k] = v.item() if isinstance(v, torch.Tensor) else v
         for k, v in output_dict.items():
-            if not k.startswith("fresh_"):
+            if not k.startswith(("fresh_", "cabi_")):
                 continue
             if isinstance(v, torch.Tensor) and v.numel() != 1:
                 continue

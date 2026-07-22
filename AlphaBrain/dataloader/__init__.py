@@ -66,15 +66,17 @@ def build_dataloader(cfg, dataloader_module="lerobot_datasets_oxe"): # TODO now 
             vla_dataset.save_dataset_statistics(output_dir / "dataset_statistics.json")
         return vla_train_dataloader
     elif dataloader_module == "paligemma_datasets":
-        from AlphaBrain.dataloader.paligemma_datasets import get_pi0_dataset as get_pi0_dataloader
-        from AlphaBrain.dataloader.lerobot_datasets import collate_fn
+        from AlphaBrain.dataloader.paligemma_datasets import (
+            get_pi0_dataset as get_pi0_dataloader,
+            pi0_collate_fn,
+        )
         vla_dataset_cfg = cfg.datasets.vla_data
         dataset = get_pi0_dataloader(data_cfg=vla_dataset_cfg)
         ordering = _seeded_shuffle_options(cfg, vla_dataset_cfg)
         vla_train_dataloader = DataLoader(
             dataset,
             batch_size=cfg.datasets.vla_data.per_device_batch_size,
-            collate_fn=collate_fn,
+            collate_fn=pi0_collate_fn,
             num_workers=4,
             drop_last=True,
             persistent_workers=True,

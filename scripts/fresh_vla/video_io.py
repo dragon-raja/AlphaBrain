@@ -83,3 +83,62 @@ def write_h264_video(
             container.close()
         temporary.unlink(missing_ok=True)
         raise
+
+
+def write_av1_video(
+    path: Path,
+    frames: Iterable[np.ndarray],
+    *,
+    fps: float = 10.0,
+    crf: int = 35,
+    cpu_used: int = 8,
+) -> None:
+    """Atomically write an AV1 WebM fallback for Chromium/VS Code viewers."""
+    if fps <= 0:
+        raise ValueError("video fps must be positive")
+    iterator = iter(frames)
+    try:
+        first = _rgb_frame(next(iterator))
+    except StopIteration as error:
+        raise ValueError(f"cannot write empty video: {path}") from error
+
+    original_height, original_width = first.shape[:2]
+    first = _pad_even(first)
+    height, width = first.shape[:2]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.av1.tmp")
+    container = None
+    try:
+        container = av.open(str(temporary), mode="w", format="webm")
+        stream = container.add_stream(
+            "libaom-av1",
+            rate=Fraction(str(fps)).limit_denominator(1000),
+        )
+        stream.width = width
+        stream.height = height
+        stream.pix_fmt = "yuv420p"
+        stream.options = {
+            "crf": str(crf),
+            "cpu-used": str(cpu_used),
+            "row-mt": "1",
+        }
+
+        def encode(frame: np.ndarray) -> None:
+            video_frame = av.VideoFrame.from_ndarray(frame, format="rgb24")
+            for packet in stream.encode(video_frame):
+                container.mux(packet)
+
+        encode(first)
+        for frame in iterator:
+            value = _rgb_frame(frame, width=original_width, height=original_height)
+            encode(_pad_even(value))
+        for packet in stream.encode():
+            container.mux(packet)
+        container.close()
+        container = None
+        os.replace(temporary, path)
+    except Exception:
+        if container is not None:
+            container.close()
+        temporary.unlink(missing_ok=True)
+        raise

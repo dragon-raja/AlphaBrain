@@ -15,7 +15,7 @@ Pi0 expects:
 
 import json
 import logging
-from typing import Optional, Dict, List
+from typing import Any, Mapping, Optional, Dict, List
 from pathlib import Path
 from dataclasses import dataclass
 
@@ -123,6 +123,17 @@ class Pi0DataTransform:
         feedback_key = self.config.feedback_horizon_key
         if feedback_key in sample:
             result[feedback_key] = int(sample[feedback_key])
+
+        for key in (
+            "action_supervised",
+            "cabi_tetrad_id",
+            "cabi_corner",
+            "sample_id",
+            "edge_id",
+            "canonical_state_index",
+        ):
+            if key in sample:
+                result[key] = sample[key]
         
         return result
 
@@ -276,6 +287,138 @@ class FreshEpisodeWindowDataset:
         }
 
 
+class LiberoBindTrainingDataset:
+    """Mix full-trajectory BC windows with action-free fourth-corner tetrads."""
+
+    def __init__(
+        self,
+        root: Path | str,
+        *,
+        split: str = "train",
+        anchor_period: int = 1,
+    ) -> None:
+        self.root = Path(root)
+        manifest_path = self.root / "manifest.json"
+        records_path = self.root / "records.jsonl"
+        anchors_path = self.root / "anchors.npz"
+        missing = [str(path) for path in (manifest_path, records_path, anchors_path) if not path.is_file()]
+        if missing:
+            raise FileNotFoundError(f"incomplete LIBERO-Bind training view: {missing}")
+        if anchor_period <= 0:
+            raise ValueError("anchor_period must be positive")
+
+        self.manifest = json.loads(manifest_path.read_text())
+        self.source_collection = Path(self.manifest["source_collection"])
+        self.action_horizon = int(self.manifest["action_horizon"])
+        self.action_dim = int(self.manifest.get("action_dim", 7))
+        self.anchor_period = int(anchor_period)
+        self.edge_instructions = dict(self.manifest["edge_instructions"])
+        self.records = [
+            json.loads(line)
+            for line in records_path.read_text().splitlines()
+            if line.strip() and json.loads(line)["split"] == split
+        ]
+        self.tetrads = [row for row in self.manifest["tetrads"] if row["split"] == split]
+        if not self.records:
+            raise ValueError(f"no LIBERO-Bind action windows for split={split!r}")
+        if not self.tetrads:
+            raise ValueError(f"no LIBERO-Bind tetrads for split={split!r}")
+        self.anchors_path = anchors_path
+        self._anchors = None
+        self._episode_path = None
+        self._episode = None
+
+    @staticmethod
+    def _anchor_key(edge_id: str, state_index: int, field: str) -> str:
+        return f"{edge_id}__state_{state_index:02d}__{field}"
+
+    def _load_episode(self, relative_path: str) -> dict[str, np.ndarray]:
+        path = self.source_collection / relative_path
+        if path != self._episode_path:
+            if self._episode is not None:
+                self._episode.close()
+            self._episode = np.load(path, allow_pickle=False)
+            self._episode_path = path
+        return self._episode
+
+    def _action_chunk(self, actions: np.ndarray, start: int) -> np.ndarray:
+        chunk = np.asarray(actions[start : start + self.action_horizon], dtype=np.float32)
+        if len(chunk) < self.action_horizon:
+            chunk = np.concatenate(
+                [
+                    chunk,
+                    np.zeros(
+                        (self.action_horizon - len(chunk), actions.shape[1]),
+                        dtype=np.float32,
+                    ),
+                ]
+            )
+        return chunk
+
+    def _action_example(self, row: Mapping[str, Any]) -> dict:
+        episode = self._load_episode(row["episode_file"])
+        frame = int(row["frame_index"])
+        return {
+            "image": [np.asarray(episode["agentview"][frame]), np.asarray(episode["wrist"][frame])],
+            "lang": row["language_instruction"],
+            "action": self._action_chunk(episode["actions"], frame),
+            "state": np.asarray(episode["robot_state"][frame], dtype=np.float32),
+            "action_supervised": True,
+            "sample_id": row["sample_id"],
+            "edge_id": row["edge_id"],
+            "canonical_state_index": int(row["canonical_state_index"]),
+        }
+
+    def _anchor_example(
+        self,
+        tetrad: Mapping[str, Any],
+        corner_name: str,
+        *,
+        instance_id: str,
+    ) -> dict:
+        if self._anchors is None:
+            self._anchors = np.load(self.anchors_path, allow_pickle=False)
+        corner = tetrad["corners"][corner_name]
+        physical_edge = corner["physical_edge"]
+        instruction_edge = corner["instruction_edge"]
+        state_index = int(tetrad["canonical_state_index"])
+        field = lambda name: self._anchors[
+            self._anchor_key(physical_edge, state_index, name)
+        ]
+        supervised = bool(corner["action_supervised"])
+        action = (
+            np.asarray(field("action"), dtype=np.float32)
+            if supervised
+            else np.zeros((self.action_horizon, self.action_dim), dtype=np.float32)
+        )
+        return {
+            "image": [np.asarray(field("agentview")), np.asarray(field("wrist"))],
+            "lang": self.edge_instructions[instruction_edge],
+            "action": action,
+            "state": np.asarray(field("state"), dtype=np.float32),
+            "action_supervised": supervised,
+            "cabi_tetrad_id": instance_id,
+            "cabi_corner": corner_name,
+            "sample_id": f"{instance_id}--{corner_name}",
+            "edge_id": instruction_edge,
+            "canonical_state_index": state_index,
+        }
+
+    def __len__(self) -> int:
+        return len(self.records)
+
+    def __getitem__(self, index: int) -> list[dict]:
+        bundle = [self._action_example(self.records[index])]
+        if index % self.anchor_period == 0:
+            tetrad = self.tetrads[(index // self.anchor_period) % len(self.tetrads)]
+            instance_id = f"{tetrad['tetrad_id']}--item-{index:07d}"
+            for corner in ("base", "source_anchor", "target_anchor", "fourth_anchor"):
+                bundle.append(
+                    self._anchor_example(tetrad, corner, instance_id=instance_id)
+                )
+        return bundle
+
+
 def get_pi0_dataset(data_cfg, mode="train", **kwargs):
     """
     Get dataset for PaliGemmaOFT training.
@@ -291,7 +434,13 @@ def get_pi0_dataset(data_cfg, mode="train", **kwargs):
     """
     dataset_format = getattr(data_cfg, 'dataset_format', 'lerobot')
     action_horizon = getattr(data_cfg, 'action_horizon', 50)
-    if dataset_format in {'fresh_snapshot', 'fresh_episode_window'}:
+    if dataset_format == 'libero_bind':
+        base_dataset = LiberoBindTrainingDataset(
+            getattr(data_cfg, 'data_root_dir'),
+            split=getattr(data_cfg, 'split', mode),
+            anchor_period=int(getattr(data_cfg, 'cabi_anchor_period', 1)),
+        )
+    elif dataset_format in {'fresh_snapshot', 'fresh_episode_window'}:
         configured_tasks = getattr(data_cfg, 'snapshot_tasks', ('grasp_slip',))
         dataset_class = FreshSnapshotDataset if dataset_format == 'fresh_snapshot' else FreshEpisodeWindowDataset
         base_dataset = dataset_class(
@@ -354,11 +503,28 @@ class Pi0DatasetWrapper:
     
     def __getitem__(self, idx):
         sample = self.base_dataset[idx]
+        if isinstance(sample, list):
+            return [self.transform(value) for value in sample]
         return self.transform(sample)
     
     def __iter__(self):
         for sample in self.base_dataset:
-            yield self.transform(sample)
+            if isinstance(sample, list):
+                yield [self.transform(value) for value in sample]
+            else:
+                yield self.transform(sample)
+
+
+def pi0_collate_fn(batch):
+    """Flatten optional CABI bundles while preserving normal Pi0 batches."""
+
+    flattened = []
+    for item in batch:
+        if isinstance(item, list):
+            flattened.extend(item)
+        else:
+            flattened.append(item)
+    return flattened
 
 
 # ── LIBERO-specific config ──

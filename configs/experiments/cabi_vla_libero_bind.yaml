@@ -1,0 +1,199 @@
+defaults:
+  trainer: default
+
+seed: 41
+
+environment:
+  wandb_mode: disabled
+
+paths:
+  deepspeed_config: configs/deepspeed/accelerate_1gpu_simple.yaml
+
+common:
+  output_root_dir: /share/longjunyu/cabi-vla/runs
+  num_gpus: 1
+  main_process_port: 29710
+
+cabi_bind_common: &cabi_bind_common
+  model: paligemma_pi05
+  dataset: libero_paligemma
+  trainer_defaults: default
+  num_gpus: 1
+  main_process_port: 29710
+  framework_name: PaliGemmaPi05
+  data_root: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v5-loss-balanced
+  dataset_mix: cabi_libero_bind
+  deepspeed_config: configs/deepspeed/accelerate_1gpu_simple.yaml
+  wandb_mode: disabled
+  training:
+    per_device_batch_size: 1
+    gradient_accumulation_steps: 2
+    max_train_steps: 100
+    save_interval: 101
+    eval_interval: 101
+    freeze_modules: vlm_interface
+  trainer:
+    pretrained_checkpoint: /share/longjunyu/capt-vla/checkpoints/paligemma-pi0-libero-all4suite
+    logging_frequency: 1
+    learning_rate:
+      base: 1.0e-04
+      flow_matching_head: 5.0e-05
+      vlm_interface: 0.0
+    num_warmup_steps: 100
+    lr_scheduler_type: cosine_with_min_lr
+    scheduler_specific_kwargs:
+      min_lr: 1.0e-05
+    optimizer:
+      name: AdamW
+      betas: [0.9, 0.95]
+      eps: 1.0e-08
+      weight_decay: 1.0e-10
+    gradient_clipping: 1.0
+    ema:
+      enabled: false
+  datasets:
+    vla_data:
+      dataloader_module: paligemma_datasets
+      dataset_format: libero_bind
+      data_root_dir: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v5-loss-balanced
+      split: train
+      action_horizon: 10
+      action_dim: 7
+      state_dim: 8
+      include_state: false
+      cabi_anchor_period: 8
+      per_device_batch_size: 1
+      shuffle: true
+  extra_args: []
+
+cabi_bind_framework_bc: &cabi_bind_framework_bc
+  paligemma:
+    base_vlm: /share/longjunyu/alphabrain/pretrained_models/paligemma-3b-pt-224
+    attn_implementation: sdpa
+    discrete_state_input: false
+    num_images: 3
+    image_mask: [true, true, false]
+    max_token_len: 48
+  action_model:
+    action_dim: 7
+    action_horizon: 10
+    future_action_window_size: 9
+    num_inference_steps: 10
+    fresh_tail_weight: 1.0
+  normalization:
+    enabled: true
+    action_mean: [0.06278156, 0.08684081, -0.09037306, 0.00054074, 0.00564338, -0.00522910, -0.04964072]
+    action_std: [0.33552372, 0.37844700, 0.44472861, 0.03924354, 0.06339297, 0.07797027, 0.99876714]
+
+cabi_bind_framework_full: &cabi_bind_framework_full
+  <<: *cabi_bind_framework_bc
+  cabi:
+    enabled: true
+    binding_dim: 128
+    transport_rank: 32
+    temperature: 1.0
+    residual_scale: 0.1
+    single_weight: 0.25
+    anchor_weight: 0.5
+    commutator_weight: 0.1
+    cycle_weight: 0.1
+    specificity_weight: 0.1
+    orthogonality_weight: 0.01
+    flow_transport_weight: 0.5
+
+cabi_bind_framework_identifiable: &cabi_bind_framework_identifiable
+  <<: *cabi_bind_framework_bc
+  cabi:
+    enabled: true
+    binding_dim: 128
+    transport_rank: 32
+    temperature: 1.0
+    residual_scale: 0.1
+    single_weight: 0.25
+    anchor_weight: 0.5
+    commutator_weight: 0.1
+    cycle_weight: 0.1
+    specificity_weight: 0.1
+    orthogonality_weight: 0.01
+    flow_transport_weight: 0.5
+    intervention_margin: 0.1
+    intervention_identifiability_weight: 0.5
+    attention_separation_weight: 0.05
+
+cabi_bind_framework_causal_contrastive: &cabi_bind_framework_causal_contrastive
+  <<: *cabi_bind_framework_bc
+  cabi:
+    enabled: true
+    binding_dim: 128
+    transport_rank: 32
+    temperature: 1.0
+    residual_scale: 0.1
+    tie_read_write_attention: true
+    role_state_residual: true
+    single_weight: 0.25
+    anchor_weight: 0.5
+    commutator_weight: 0.1
+    cycle_weight: 0.1
+    specificity_weight: 0.1
+    orthogonality_weight: 0.01
+    flow_transport_weight: 0.5
+    intervention_margin: 0.1
+    intervention_identifiability_weight: 0.5
+    attention_separation_weight: 0.05
+    contrastive_temperature: 0.1
+    causal_factor_contrastive_weight: 0.1
+
+cabi_bind_framework_grounded_contrastive: &cabi_bind_framework_grounded_contrastive
+  <<: *cabi_bind_framework_bc
+  cabi:
+    enabled: true
+    binding_dim: 128
+    transport_rank: 32
+    temperature: 1.0
+    residual_scale: 0.1
+    tie_read_write_attention: true
+    role_state_residual: true
+    single_weight: 0.25
+    anchor_weight: 0.5
+    commutator_weight: 0.1
+    cycle_weight: 0.1
+    specificity_weight: 0.1
+    orthogonality_weight: 0.01
+    flow_transport_weight: 0.5
+    intervention_margin: 0.1
+    intervention_identifiability_weight: 0.5
+    attention_separation_weight: 0.05
+    contrastive_temperature: 0.1
+    causal_factor_contrastive_weight: 0.1
+    counterfactual_attention_grounding_weight: 0.05
+
+modes:
+  cabi_bind_pi05_bc_smoke:
+    <<: *cabi_bind_common
+    run_id: cabi_bind_pi05_bc_smoke
+    framework:
+      <<: *cabi_bind_framework_bc
+
+  cabi_bind_pi05_full_smoke:
+    <<: *cabi_bind_common
+    run_id: cabi_bind_pi05_full_smoke
+    framework:
+      <<: *cabi_bind_framework_full
+
+  cabi_bind_pi05_identifiable_smoke:
+    <<: *cabi_bind_common
+    run_id: cabi_bind_pi05_identifiable_smoke
+    framework:
+      <<: *cabi_bind_framework_identifiable
+
+  cabi_bind_pi05_causal_contrastive_smoke:
+    <<: *cabi_bind_common
+    run_id: cabi_bind_pi05_causal_contrastive_smoke
+    framework:
+      <<: *cabi_bind_framework_causal_contrastive
+
+  cabi_bind_pi05_grounded_contrastive_smoke:
+    <<: *cabi_bind_common
+    run_id: cabi_bind_pi05_grounded_contrastive_smoke
+    framework:
+      <<: *cabi_bind_framework_grounded_contrastive

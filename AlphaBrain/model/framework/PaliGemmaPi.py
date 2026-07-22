@@ -32,6 +32,14 @@ from AlphaBrain.model.framework.base_framework import BaseFramework
 from AlphaBrain.model.modules.vlm import get_vlm_model
 from AlphaBrain.model.modules.action_model.pi0_flow_matching_head.pi0_action_head import Pi0FlowMatchingHead
 from AlphaBrain.model.modules.action_model.fresh_loss import feedback_weighted_flow_loss
+from AlphaBrain.model.modules.action_model.cabi_binding import (
+    BindingState,
+    CausalBindingAdapter,
+    cabi_closure_losses,
+    group_cabi_tetrads,
+    prefix_modality_masks,
+    select_binding_state,
+)
 from AlphaBrain.model.tools import FRAMEWORK_REGISTRY
 from AlphaBrain.training.trainer_utils.trainer_tools import resize_images
 
@@ -118,6 +126,69 @@ class PaliGemmaPi(BaseFramework):
             logger.info(f"[prefix_proj] Added projection: VLM hidden={vlm_hidden_size} → expert_width={expert_width}")
         else:
             self.prefix_proj = None
+
+        # CABI is a training-time causal binding objective with ordinary
+        # single-pass inference. V0 is intentionally restricted to PaliGemma,
+        # whose visual/language prefix boundary is explicit and auditable.
+        cabi_cfg = getattr(config.framework, 'cabi', None)
+        self.cabi_enabled = bool(cabi_cfg is not None and getattr(cabi_cfg, 'enabled', False))
+        self.cabi_adapter = None
+        self.cabi_loss_weights = {}
+        self.cabi_flow_transport_weight = 0.0
+        if self.cabi_enabled:
+            if vlm_type != "paligemma":
+                raise ValueError("CABI v0 currently requires the PaliGemma prefix interface")
+            cabi_hidden_size = getattr(self.vlm_interface, 'hidden_size', vlm_hidden_size)
+            if cabi_hidden_size is None:
+                raise ValueError("cannot determine the CABI prefix hidden dimension")
+            self.cabi_adapter = CausalBindingAdapter(
+                hidden_dim=int(cabi_hidden_size),
+                binding_dim=int(getattr(cabi_cfg, 'binding_dim', 128)),
+                transport_rank=int(getattr(cabi_cfg, 'transport_rank', 32)),
+                temperature=float(getattr(cabi_cfg, 'temperature', 1.0)),
+                residual_scale=float(getattr(cabi_cfg, 'residual_scale', 0.1)),
+                tie_read_write_attention=bool(
+                    getattr(cabi_cfg, 'tie_read_write_attention', False)
+                ),
+                role_state_residual=bool(
+                    getattr(cabi_cfg, 'role_state_residual', False)
+                ),
+            )
+            self.cabi_loss_weights = {
+                "single_source": float(getattr(cabi_cfg, 'single_weight', 1.0)),
+                "single_target": float(getattr(cabi_cfg, 'single_weight', 1.0)),
+                "fourth_anchor": float(getattr(cabi_cfg, 'anchor_weight', 1.0)),
+                "commutator": float(getattr(cabi_cfg, 'commutator_weight', 0.1)),
+                "cycle": float(getattr(cabi_cfg, 'cycle_weight', 0.1)),
+                "specificity": float(getattr(cabi_cfg, 'specificity_weight', 0.1)),
+                "orthogonality": float(getattr(cabi_cfg, 'orthogonality_weight', 0.01)),
+                "intervention_identifiability": float(
+                    getattr(cabi_cfg, 'intervention_identifiability_weight', 0.0)
+                ),
+                "attention_separation": float(
+                    getattr(cabi_cfg, 'attention_separation_weight', 0.0)
+                ),
+                "causal_factor_contrastive": float(
+                    getattr(cabi_cfg, 'causal_factor_contrastive_weight', 0.0)
+                ),
+                "counterfactual_attention_grounding": float(
+                    getattr(cabi_cfg, 'counterfactual_attention_grounding_weight', 0.0)
+                ),
+            }
+            self.cabi_intervention_margin = float(
+                getattr(cabi_cfg, 'intervention_margin', 0.1)
+            )
+            self.cabi_contrastive_temperature = float(
+                getattr(cabi_cfg, 'contrastive_temperature', 0.1)
+            )
+            self.cabi_flow_transport_weight = float(
+                getattr(cabi_cfg, 'flow_transport_weight', 1.0)
+            )
+            logger.info(
+                "[CABI] enabled: binding_dim=%d, transport_rank=%d",
+                self.cabi_adapter.binding_dim,
+                self.cabi_adapter.transport_rank,
+            )
 
         # ── Action dimension settings ──
         self.action_dim = action_cfg.action_dim
@@ -286,6 +357,102 @@ class PaliGemmaPi(BaseFramework):
             elif hasattr(vlm.model, 'model'):
                 return vlm.model.model
         raise AttributeError("Cannot find language model in VLM interface")
+
+    def _apply_cabi_prefix(
+        self,
+        prefix_embs: torch.Tensor,
+        prefix_pad_masks: torch.Tensor,
+        *,
+        language_token_count: int,
+    ) -> tuple[torch.Tensor, Optional[BindingState]]:
+        if not self.cabi_enabled:
+            return prefix_embs, None
+        vision_mask, language_mask = prefix_modality_masks(
+            prefix_pad_masks,
+            language_token_count=language_token_count,
+        )
+        binding_state = self.cabi_adapter(
+            prefix_embs,
+            vision_mask,
+            language_mask,
+        )
+        return binding_state.tokens, binding_state
+
+    def _compute_cabi_closure(
+        self,
+        binding_state: Optional[BindingState],
+        examples: List[dict],
+    ) -> tuple[Optional[torch.Tensor], dict[str, torch.Tensor]]:
+        if binding_state is None:
+            return None, {}
+        grouped = group_cabi_tetrads(examples)
+        if not grouped:
+            return None, {}
+        losses = cabi_closure_losses(
+            self.cabi_adapter,
+            base=select_binding_state(binding_state, grouped["base"]),
+            source_anchor=select_binding_state(binding_state, grouped["source_anchor"]),
+            target_anchor=select_binding_state(binding_state, grouped["target_anchor"]),
+            fourth_anchor=select_binding_state(binding_state, grouped["fourth_anchor"]),
+            intervention_margin=self.cabi_intervention_margin,
+            contrastive_temperature=self.cabi_contrastive_temperature,
+        )
+        weighted = sum(self.cabi_loss_weights[name] * value for name, value in losses.items())
+        return weighted, dict(losses)
+
+    def _compute_cabi_transport_flow(
+        self,
+        binding_state: Optional[BindingState],
+        examples: List[dict],
+        *,
+        actions: torch.Tensor,
+        prefix_pad_masks: torch.Tensor,
+        prefix_att_masks: torch.Tensor,
+        vlm_language_model: nn.Module,
+        state: Optional[torch.Tensor],
+    ) -> Optional[torch.Tensor]:
+        if binding_state is None or self.cabi_flow_transport_weight == 0.0:
+            return None
+        grouped = group_cabi_tetrads(examples)
+        if not grouped:
+            return None
+
+        base = select_binding_state(binding_state, grouped["base"])
+        source_anchor = select_binding_state(binding_state, grouped["source_anchor"])
+        target_anchor = select_binding_state(binding_state, grouped["target_anchor"])
+        source_swap = self.cabi_adapter.transport(base, source_anchor, [0])
+        target_swap = self.cabi_adapter.transport(base, target_anchor, [1])
+
+        base_indices = torch.as_tensor(grouped["base"], device=actions.device)
+        source_indices = torch.as_tensor(grouped["source_anchor"], device=actions.device)
+        target_indices = torch.as_tensor(grouped["target_anchor"], device=actions.device)
+        source_actions = actions.index_select(0, source_indices)
+        target_actions = actions.index_select(0, target_indices)
+        noise = self.flow_matching_head.sample_noise(source_actions.shape, actions.device)
+        time = self.flow_matching_head.sample_time(len(source_actions), actions.device)
+        selected_state = None if state is None else state.index_select(0, base_indices)
+        common = {
+            "prefix_pad_masks": prefix_pad_masks.index_select(0, base_indices),
+            "prefix_att_masks": prefix_att_masks.index_select(0, base_indices),
+            "vlm_language_model": vlm_language_model,
+            "state": selected_state,
+            "noise": noise,
+            "time": time,
+        }
+        source_loss = self.flow_matching_head.compute_loss(
+            prefix_embs=source_swap.tokens,
+            actions=source_actions,
+            **common,
+        )
+        target_loss = self.flow_matching_head.compute_loss(
+            prefix_embs=target_swap.tokens,
+            actions=target_actions,
+            **common,
+        )
+        if self._action_dim_mask is not None:
+            source_loss = source_loss[:, :, self._action_dim_mask]
+            target_loss = target_loss[:, :, self._action_dim_mask]
+        return 0.5 * (source_loss.mean() + target_loss.mean())
 
     def _prepare_prefix(self, examples):
         """
@@ -549,6 +716,14 @@ class PaliGemmaPi(BaseFramework):
 
         # Encode prefix
         prefix_embs, prefix_pad_masks, prefix_att_masks = self._prepare_prefix(examples)
+        language_token_count = int(
+            getattr(getattr(self.config.framework, 'paligemma', None), 'max_token_len', 48)
+        )
+        prefix_embs, binding_state = self._apply_cabi_prefix(
+            prefix_embs,
+            prefix_pad_masks,
+            language_token_count=language_token_count,
+        )
 
         vlm_type = self._detect_vlm_type(self.config)
 
@@ -563,6 +738,15 @@ class PaliGemmaPi(BaseFramework):
                 state=state,
                 actions=actions,
             )
+            cabi_transport_flow = self._compute_cabi_transport_flow(
+                binding_state,
+                examples,
+                actions=actions,
+                prefix_pad_masks=prefix_pad_masks,
+                prefix_att_masks=prefix_att_masks,
+                vlm_language_model=vlm_lm,
+                state=state,
+            )
         else:
             # Prefix cache path for non-PaliGemma VLMs (Llama, etc.)
             loss = self.flow_matching_head.compute_loss_prefix_cache(
@@ -572,18 +756,28 @@ class PaliGemmaPi(BaseFramework):
                 state=state,
                 actions=actions,
             )
+            cabi_transport_flow = None
 
         # Apply action mask: only compute loss on valid dims (e.g. first 7 of 32)
         # loss shape: [B, horizon, action_dim]
         if hasattr(self, '_action_dim_mask') and self._action_dim_mask is not None:
             loss = loss[:, :, self._action_dim_mask]  # [B, horizon, num_valid_dims]
 
+        action_supervised = torch.as_tensor(
+            [bool(ex.get("action_supervised", True)) for ex in examples],
+            device=loss.device,
+            dtype=torch.bool,
+        )
+        if not torch.any(action_supervised):
+            raise ValueError("a Pi0.5 training batch requires at least one supervised action")
+        loss = loss[action_supervised]
+
         feedback_horizon = None
         if all(self.feedback_horizon_key in ex for ex in examples):
             feedback_horizon = torch.as_tensor(
                 [ex[self.feedback_horizon_key] for ex in examples],
                 device=loss.device,
-            )
+            )[action_supervised]
 
         loss_mean, fresh_metrics = feedback_weighted_flow_loss(
             loss,
@@ -591,8 +785,20 @@ class PaliGemmaPi(BaseFramework):
             tail_weight=self.fresh_tail_weight,
             weighting_mode=self.fresh_weighting_mode,
         )
-        output = {"action_loss": loss_mean, "flow_matching_loss": loss_mean.item()}
+        total_loss = loss_mean
+        cabi_loss, cabi_metrics = self._compute_cabi_closure(binding_state, examples)
+        if cabi_loss is not None:
+            total_loss = total_loss + cabi_loss
+        if cabi_transport_flow is not None:
+            total_loss = total_loss + self.cabi_flow_transport_weight * cabi_transport_flow
+
+        output = {"action_loss": total_loss, "flow_matching_loss": loss_mean.item()}
         output.update({f"fresh_{key}": value.item() for key, value in fresh_metrics.items()})
+        if cabi_loss is not None:
+            output["cabi_loss"] = cabi_loss.item()
+            output.update({f"cabi_{key}": value.item() for key, value in cabi_metrics.items()})
+        if cabi_transport_flow is not None:
+            output["cabi_transport_flow"] = cabi_transport_flow.item()
         return output
 
     def _maybe_remap_gripper(self, actions: torch.Tensor) -> torch.Tensor:
@@ -759,6 +965,11 @@ class PaliGemmaPi(BaseFramework):
         prefix_pad_masks = torch.cat(pad_list, dim=1)
         att_tensor = torch.tensor(att_list, dtype=torch.bool, device=device)
         prefix_att_masks = att_tensor[None, :].expand(batch_size, -1)
+        prefix_embs, _ = self._apply_cabi_prefix(
+            prefix_embs,
+            prefix_pad_masks,
+            language_token_count=masks_t.shape[1],
+        )
 
         vlm_lm = self._get_vlm_language_model()
 

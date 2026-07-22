@@ -30,6 +30,7 @@ to measure that stronger setting.
 | [Factored Diffusion Policies](https://arxiv.org/abs/2605.22596) | one diffusion network composes task factors with null-token dropout and additive scores | CABI must beat a factor-dropout control, show that learned visual role binding matters, and retain ordinary single-pass inference |
 | [Robust Skills, Brittle Grounding](https://arxiv.org/abs/2602.24143) | diagnoses failure on held-out object-region combinations while grasping skill remains intact | this paper establishes the failure mode, not a remedy; CABI must improve held-out source-target behavior under the same decomposed source-selection and task-success metrics |
 | [OA-WAM](https://arxiv.org/abs/2605.06481) | enforces object addressability with externally extracted identity/content slots and causal slot swaps | CABI cannot claim object addressability alone; it must show action-free combinatorial transfer in a pretrained VLA without a world head, external segmentation pipeline, or inference-time slot interface |
+| [Action with Visual Primitives](https://arxiv.org/abs/2605.22183) | inserts a spatially grounded VLM-to-action interface and reports strong real-robot spatial-compositional transfer | CABI cannot claim the first explicit solution to VLA spatial grounding; it must achieve held-out source-target transfer without kinematic primitive labels, hand-eye projection, an autoregressive primitive decoder, or two-stage inference |
 | [entity-factored control policies](https://arxiv.org/abs/2203.05960) | explicit entities improve compositional control | CABI must work on pretrained VLA tokens and beat an equal-data entity/fixed-slot control |
 | programmatic/neurosymbolic grounding | source, target, and skills are explicitly composed | CABI has no program executor at inference and learns a distributed transport algebra |
 | [temporal representation alignment](https://openreview.net/forum?id=yaS3JWQRQ6) | auxiliary representation learning improves compositional robot instruction following | CABI must isolate simultaneous source-target recombination rather than long-horizon skill concatenation |
@@ -79,6 +80,18 @@ VLA prefix, needs no explicit object slot at inference, and transfers behavior f
 action-free fourth corner. If those conditions do not survive ablation, the novelty
 claim must be withdrawn rather than reframed after the result.
 
+The June 2026 revision of Action with Visual Primitives is an even closer capability
+neighbor. AVP predicts source/destination visual primitives between the VLM and a
+flow-matching action expert, supervised by projecting end-effector kinematics through
+calibrated cameras. It reports large real-robot gains, including unseen direct spatial
+transitions. CABI therefore has no defensible claim to inventing a grounded
+VLM/action-expert interface or to solving spatial compositionality in general. Its
+remaining distinction is supervision and execution: an action-free fourth-corner
+constraint, no primitive coordinates or camera calibration, and one normal policy
+pass. If AVP code becomes available, an equal-backbone primitive-supervision upper
+bound is required before submission; its current "code coming soon" status does not
+block the present falsification gate.
+
 The February 2026 Robust Skills, Brittle Grounding study makes the problem statement
 stronger but narrows the empirical obligation. It reports that held-out object-region
 pairings can destroy instruction-conditioned reach while leaving generic grasp motion
@@ -118,6 +131,7 @@ not language-to-entity role composition.
 | explicit slot advantage | fixed hand slots equal CABI | `fixed_slot_iit` control |
 | generic regularization | equal-data consistency equals CABI | `pi05_equal_data` control |
 | generic factorized diffusion | factor null-token dropout and score composition equal CABI | `factor_null_dropout` control with identical action data |
+| explicit spatial supervision | kinematic visual primitives equal or exceed CABI | AVP-style primitive upper bound when public code is available; disclose its extra labels and two-stage inference |
 | latent metric without behavior | low closure error but unchanged success | behavioral gate overrides representation metrics |
 | intervention-only inference | gain disappears on normal forward pass | normal-pass evaluation is mandatory |
 | additive toy dynamics | synthetic pass fails on contact-rich policy | no positive claim before LIBERO full-task success |

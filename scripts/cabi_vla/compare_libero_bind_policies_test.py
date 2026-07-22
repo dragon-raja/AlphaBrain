@@ -34,6 +34,8 @@ class CompareLiberoBindPoliciesTest(unittest.TestCase):
         result = paired_state_bootstrap({0: 0.0, 1: 1.0}, {0: 1.0, 1: 1.0}, samples=100)
         self.assertEqual(result["difference"], 0.5)
         self.assertEqual(result["state_count"], 2)
+        self.assertEqual(result["baseline_ci95_low"], 0.0)
+        self.assertEqual(result["method_ci95_low"], 1.0)
 
     def test_clear_ood_gain_advances_to_controls(self) -> None:
         result = compare_payloads(payload(False), payload(True), bootstrap_samples=100)

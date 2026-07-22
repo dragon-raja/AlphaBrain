@@ -72,8 +72,14 @@ def action_transport_metrics(
     }
 
 
-def anchor_key(edge_id: str, state_index: int, field: str) -> str:
-    return f"{edge_id}__state_{state_index:02d}__{field}"
+def anchor_key(
+    edge_id: str,
+    state_index: int,
+    field: str,
+    decision_point: str | None = None,
+) -> str:
+    decision = "" if decision_point is None else f"{decision_point}__"
+    return f"{edge_id}__state_{state_index:02d}__{decision}{field}"
 
 
 def corner_example(
@@ -81,18 +87,26 @@ def corner_example(
     instructions: Mapping[str, str],
     corner: Mapping[str, object],
     state_index: int,
+    decision_point: str | None = None,
 ) -> dict:
     physical = str(corner["physical_edge"])
     instruction = str(corner["instruction_edge"])
     return {
         "image": [
-            np.asarray(anchors[anchor_key(physical, state_index, "agentview")]),
-            np.asarray(anchors[anchor_key(physical, state_index, "wrist")]),
+            np.asarray(
+                anchors[
+                    anchor_key(physical, state_index, "agentview", decision_point)
+                ]
+            ),
+            np.asarray(
+                anchors[anchor_key(physical, state_index, "wrist", decision_point)]
+            ),
         ],
         "lang": instructions[instruction],
         "language": instructions[instruction],
         "state": np.asarray(
-            anchors[anchor_key(physical, state_index, "state")], dtype=np.float32
+            anchors[anchor_key(physical, state_index, "state", decision_point)],
+            dtype=np.float32,
         ),
     }
 
@@ -135,6 +149,7 @@ def main() -> None:
             for seed in args.seeds:
                 for tetrad in tetrads:
                     state_index = int(tetrad["canonical_state_index"])
+                    decision_point = tetrad.get("decision_point")
                     corners = tetrad["corners"]
                     examples = [
                         corner_example(
@@ -142,6 +157,7 @@ def main() -> None:
                             manifest["edge_instructions"],
                             corners[name],
                             state_index,
+                            None if decision_point is None else str(decision_point),
                         )
                         for name in CORNER_ORDER
                     ]
@@ -167,6 +183,9 @@ def main() -> None:
                                     str(corners[name]["physical_edge"]),
                                     state_index,
                                     "action",
+                                    None
+                                    if decision_point is None
+                                    else str(decision_point),
                                 )
                             ],
                             dtype=np.float32,

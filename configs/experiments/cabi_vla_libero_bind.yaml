@@ -21,7 +21,7 @@ cabi_bind_common: &cabi_bind_common
   num_gpus: 1
   main_process_port: 29710
   framework_name: PaliGemmaPi05
-  data_root: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v5-loss-balanced
+  data_root: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v7-coverage-phase-loss-balanced
   dataset_mix: cabi_libero_bind
   deepspeed_config: configs/deepspeed/accelerate_1gpu_simple.yaml
   wandb_mode: disabled
@@ -55,13 +55,13 @@ cabi_bind_common: &cabi_bind_common
     vla_data:
       dataloader_module: paligemma_datasets
       dataset_format: libero_bind
-      data_root_dir: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v5-loss-balanced
+      data_root_dir: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v7-coverage-phase-loss-balanced
       split: train
       action_horizon: 10
       action_dim: 7
       state_dim: 8
       include_state: false
-      cabi_anchor_period: 8
+      cabi_anchor_period: 32
       per_device_batch_size: 1
       shuffle: true
   extra_args: []
@@ -167,6 +167,31 @@ cabi_bind_framework_grounded_contrastive: &cabi_bind_framework_grounded_contrast
     causal_factor_contrastive_weight: 0.1
     counterfactual_attention_grounding_weight: 0.05
 
+cabi_bind_framework_decision_closure: &cabi_bind_framework_decision_closure
+  <<: *cabi_bind_framework_grounded_contrastive
+  cabi:
+    enabled: true
+    binding_dim: 128
+    transport_rank: 32
+    temperature: 1.0
+    residual_scale: 0.1
+    tie_read_write_attention: true
+    role_state_residual: true
+    single_weight: 0.25
+    anchor_weight: 0.5
+    commutator_weight: 0.1
+    cycle_weight: 0.1
+    specificity_weight: 0.1
+    orthogonality_weight: 0.01
+    flow_transport_weight: 0.5
+    decoder_closure_weight: 0.25
+    intervention_margin: 0.1
+    intervention_identifiability_weight: 0.5
+    attention_separation_weight: 0.05
+    contrastive_temperature: 0.1
+    causal_factor_contrastive_weight: 0.1
+    counterfactual_attention_grounding_weight: 0.05
+
 modes:
   cabi_bind_pi05_bc_smoke:
     <<: *cabi_bind_common
@@ -197,3 +222,9 @@ modes:
     run_id: cabi_bind_pi05_grounded_contrastive_smoke
     framework:
       <<: *cabi_bind_framework_grounded_contrastive
+
+  cabi_bind_pi05_decision_closure_smoke:
+    <<: *cabi_bind_common
+    run_id: cabi_bind_pi05_decision_closure_smoke
+    framework:
+      <<: *cabi_bind_framework_decision_closure

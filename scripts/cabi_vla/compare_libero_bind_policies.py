@@ -39,13 +39,22 @@ def paired_state_bootstrap(
     states = sorted(set(baseline) & set(method))
     if not states or set(baseline) != set(method):
         raise ValueError("paired bootstrap requires identical non-empty state groups")
-    differences = np.asarray([method[state] - baseline[state] for state in states])
+    baseline_values = np.asarray([baseline[state] for state in states], dtype=np.float64)
+    method_values = np.asarray([method[state] for state in states], dtype=np.float64)
+    differences = method_values - baseline_values
     rng = np.random.default_rng(seed)
-    draws = rng.choice(differences, size=(samples, len(states)), replace=True).mean(axis=1)
+    indices = rng.integers(0, len(states), size=(samples, len(states)))
+    baseline_draws = baseline_values[indices].mean(axis=1)
+    method_draws = method_values[indices].mean(axis=1)
+    difference_draws = differences[indices].mean(axis=1)
     return {
         "difference": float(differences.mean()),
-        "ci95_low": float(np.quantile(draws, 0.025)),
-        "ci95_high": float(np.quantile(draws, 0.975)),
+        "ci95_low": float(np.quantile(difference_draws, 0.025)),
+        "ci95_high": float(np.quantile(difference_draws, 0.975)),
+        "baseline_ci95_low": float(np.quantile(baseline_draws, 0.025)),
+        "baseline_ci95_high": float(np.quantile(baseline_draws, 0.975)),
+        "method_ci95_low": float(np.quantile(method_draws, 0.025)),
+        "method_ci95_high": float(np.quantile(method_draws, 0.975)),
         "state_count": len(states),
     }
 

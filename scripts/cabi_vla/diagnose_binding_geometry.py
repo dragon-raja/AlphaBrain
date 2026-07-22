@@ -156,6 +156,7 @@ def main() -> None:
         with torch.inference_mode():
             for index, tetrad in enumerate(tetrads, start=1):
                 state_index = int(tetrad["canonical_state_index"])
+                decision_point = tetrad.get("decision_point")
                 corners = tetrad["corners"]
                 examples = [
                     corner_example(
@@ -163,6 +164,7 @@ def main() -> None:
                         manifest["edge_instructions"],
                         corners[name],
                         state_index,
+                        None if decision_point is None else str(decision_point),
                     )
                     for name in CORNER_ORDER
                 ]
@@ -170,6 +172,7 @@ def main() -> None:
                     {
                         "tetrad_id": tetrad["tetrad_id"],
                         "canonical_state_index": state_index,
+                        "decision_point": decision_point,
                         "withheld_edge": str(corners["fourth_anchor"]["instruction_edge"]),
                         **diagnose_tetrad(model, examples),
                     }
@@ -178,7 +181,7 @@ def main() -> None:
                     print(f"binding_geometry {index}/{len(tetrads)}", flush=True)
 
     metric_names = [name for name in rows[0] if name not in {
-        "tetrad_id", "canonical_state_index", "withheld_edge"
+        "tetrad_id", "canonical_state_index", "decision_point", "withheld_edge"
     }]
     payload = {
         "schema_version": 1,

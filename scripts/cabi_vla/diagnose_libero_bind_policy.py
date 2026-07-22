@@ -145,8 +145,14 @@ def policy_example(
     }
 
 
-def anchor_key(edge_id: str, state_index: int, field: str) -> str:
-    return f"{edge_id}__state_{state_index:02d}__{field}"
+def anchor_key(
+    edge_id: str,
+    state_index: int,
+    field: str,
+    decision_point: str | None = None,
+) -> str:
+    decision = "" if decision_point is None else f"{decision_point}__"
+    return f"{edge_id}__state_{state_index:02d}__{decision}{field}"
 
 
 def request_actions(
@@ -211,10 +217,19 @@ def run_instruction_sensitivity(
     seeds: Sequence[int],
 ) -> dict[str, Any]:
     edges = sorted(manifest["edge_instructions"])
+    decision_point = (
+        "source_select" if "source_select" in manifest.get("decision_points", {}) else None
+    )
     with np.load(training_view / manifest["anchors_file"], allow_pickle=False) as anchors:
-        agent = np.asarray(anchors[anchor_key(physical_edge, state_index, "agentview")])
-        wrist = np.asarray(anchors[anchor_key(physical_edge, state_index, "wrist")])
-        state = np.asarray(anchors[anchor_key(physical_edge, state_index, "state")])
+        agent = np.asarray(
+            anchors[anchor_key(physical_edge, state_index, "agentview", decision_point)]
+        )
+        wrist = np.asarray(
+            anchors[anchor_key(physical_edge, state_index, "wrist", decision_point)]
+        )
+        state = np.asarray(
+            anchors[anchor_key(physical_edge, state_index, "state", decision_point)]
+        )
         examples = [
             policy_example(agent, wrist, state, manifest["edge_instructions"][edge])
             for edge in edges
@@ -226,6 +241,7 @@ def run_instruction_sensitivity(
     return {
         "physical_edge": physical_edge,
         "canonical_state_index": state_index,
+        "decision_point": decision_point,
         "shared_observation": True,
         "shared_flow_noise_within_seed": True,
         "action_labels_loaded": False,

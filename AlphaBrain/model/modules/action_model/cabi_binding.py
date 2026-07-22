@@ -102,6 +102,52 @@ def group_cabi_tetrads(
     return {corner: tuple(indices) for corner, indices in aligned.items()}
 
 
+def cabi_transport_role_mask(
+    examples: Sequence[Mapping[str, object]],
+    grouped: Mapping[str, Sequence[int]],
+    *,
+    device: torch.device,
+    dtype: torch.dtype,
+) -> torch.Tensor:
+    """Return active source/target transport losses for each aligned tetrad.
+
+    Legacy tetrads omit ``cabi_transport_roles`` and therefore supervise both
+    roles. Decision-point tetrads can activate only the role whose action
+    mechanism is identifiable at that observation.
+    """
+
+    if set(grouped) != set(CABI_CORNER_NAMES):
+        raise ValueError("grouped tetrads must contain every CABI corner")
+    group_count = len(grouped["base"])
+    if any(len(grouped[corner]) != group_count for corner in CABI_CORNER_NAMES):
+        raise ValueError("grouped CABI corners must be aligned")
+
+    def normalized_roles(example: Mapping[str, object]) -> tuple[str, ...]:
+        value = example.get("cabi_transport_roles", ROLE_NAMES)
+        if isinstance(value, str):
+            roles = (value,)
+        else:
+            roles = tuple(str(role) for role in value)
+        unknown = sorted(set(roles) - set(ROLE_NAMES))
+        if unknown:
+            raise ValueError(f"unknown CABI transport roles: {unknown}")
+        if not roles:
+            raise ValueError("a CABI tetrad requires at least one transport role")
+        return roles
+
+    masks = []
+    for aligned_index in range(group_count):
+        corner_roles = {
+            normalized_roles(examples[grouped[corner][aligned_index]])
+            for corner in CABI_CORNER_NAMES
+        }
+        if len(corner_roles) != 1:
+            raise ValueError("all corners in a CABI tetrad must share transport roles")
+        active = corner_roles.pop()
+        masks.append([float(role in active) for role in ROLE_NAMES])
+    return torch.tensor(masks, device=device, dtype=dtype)
+
+
 def _validate_token_masks(
     tokens: torch.Tensor,
     vision_mask: torch.Tensor,

@@ -3,6 +3,26 @@
 Status date: 2026-07-22
 Primary behavioral execution horizon: `K=3`
 
+## Coverage-corrected v10 gate
+
+The v7 view preserves all original windows and balances source exposure at the
+fine teacher-phase level. The 11,000-update v10 run covers this 20,352-item view
+only once. Plain BC solves `0/4` supervised state-0 tasks; CABI solves `1/4`.
+The formal orchestration decision is `BASELINE_INVALID`, and no validation
+rollout was started.
+
+CABI increases same-image source sensitivity from `4.65e-5` to `5.49e-3` and
+target sensitivity from `9.55e-6` to `2.40e-2`, but observed-corner MSE remains
+`0.176` and neither held-out edge succeeds. These values are diagnostic only.
+
+A clean 33,000-update v10b BC/static-CABI comparison now runs on v7. This gives
+each method about 3.24 shuffled data passes, matching the exposure that produced
+the earlier fitted checkpoint while retaining the corrected coverage.
+
+The optional decision-point functional-closure amendment is implemented and
+smoke-tested but is not active in v10b. Its preregistration and leakage audit are
+recorded in `preregistration_amendment_decision_closure.md`.
+
 ## Frozen evidence
 
 - LIBERO-Bind v0 uses 50 canonical state groups with group-preserving

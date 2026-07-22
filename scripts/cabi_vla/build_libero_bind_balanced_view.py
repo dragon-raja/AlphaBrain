@@ -13,6 +13,18 @@ import numpy as np
 
 
 MACRO_PHASES = ("approach", "grasp", "lift", "transport", "place")
+TEACHER_PHASES = (
+    "episode_start",
+    "approach_above",
+    "approach_grasp",
+    "close_gripper",
+    "lift",
+    "transport",
+    "lower",
+    "release",
+    "retract",
+    "settle",
+)
 
 
 def edge_factors(edge_id: str) -> tuple[str, str]:
@@ -229,18 +241,69 @@ def largest_remainder(total: int, probabilities: Mapping[str, float]) -> dict[st
 def common_stage_distribution(
     records_by_edge_stage: Mapping[str, Mapping[str, Sequence[Mapping[str, Any]]]],
 ) -> dict[str, float]:
+    stages = sorted(
+        set().union(*(set(by_stage) for by_stage in records_by_edge_stage.values()))
+    )
+    if not stages:
+        raise ValueError("cannot balance an empty stage set")
     distributions = []
     for by_stage in records_by_edge_stage.values():
         total = sum(len(rows) for rows in by_stage.values())
+        if total == 0:
+            raise ValueError("every edge requires at least one source record")
         distributions.append(
-            {phase: len(by_stage.get(phase, ())) / total for phase in MACRO_PHASES}
+            {stage: len(by_stage.get(stage, ())) / total for stage in stages}
         )
     averaged = {
-        phase: float(np.mean([row[phase] for row in distributions]))
-        for phase in MACRO_PHASES
+        stage: float(np.mean([row[stage] for row in distributions]))
+        for stage in stages
     }
     normalizer = sum(averaged.values())
     return {phase: value / normalizer for phase, value in averaged.items()}
+
+
+def stage_quotas_cover_source(
+    stage_quotas: Mapping[str, Mapping[str, int]],
+    records_by_edge_stage: Mapping[str, Mapping[str, Sequence[Mapping[str, Any]]]],
+) -> bool:
+    return all(
+        int(stage_quotas[edge][stage]) >= len(rows)
+        for edge, by_stage in records_by_edge_stage.items()
+        for stage, rows in by_stage.items()
+    )
+
+
+def source_record_coverage(
+    source_rows: Sequence[Mapping[str, Any]],
+    selected_rows: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    source_ids = [str(row["sample_id"]) for row in source_rows]
+    if len(source_ids) != len(set(source_ids)):
+        raise ValueError("source training view contains duplicate sample ids")
+    selected_ids = {str(row["sample_id"]) for row in selected_rows}
+    missing = set(source_ids) - selected_ids
+
+    def episode_start_states(rows: Sequence[Mapping[str, Any]]) -> dict[str, list[int]]:
+        states: dict[str, set[int]] = defaultdict(set)
+        for row in rows:
+            if str(row.get("teacher_phase")) == "episode_start":
+                states[str(row["edge_id"])].add(int(row["canonical_state_index"]))
+        return {
+            edge: sorted(values)
+            for edge, values in sorted(states.items())
+        }
+
+    source_starts = episode_start_states(source_rows)
+    selected_starts = episode_start_states(selected_rows)
+    return {
+        "source_record_count": len(source_ids),
+        "preserved_source_record_count": len(set(source_ids) & selected_ids),
+        "missing_source_record_count": len(missing),
+        "all_source_records_preserved": not missing,
+        "source_episode_start_states": source_starts,
+        "selected_episode_start_states": selected_starts,
+        "all_episode_start_states_preserved": source_starts == selected_starts,
+    }
 
 
 def repeat_deterministically(
@@ -271,6 +334,8 @@ def build_balanced_view(
     *,
     anchor_period: int,
     seed: int,
+    minimum_record_count: int | None = None,
+    preserve_source_records: bool = False,
 ) -> dict[str, Any]:
     if output.exists():
         raise FileExistsError(f"refusing to overwrite output: {output}")
@@ -284,7 +349,7 @@ def build_balanced_view(
     collection = Path(manifest["source_collection"])
     phase_cache: dict[str, np.ndarray] = {}
     grouped: dict[str, dict[str, list[dict[str, Any]]]] = {
-        edge: {phase: [] for phase in MACRO_PHASES} for edge in regular_edges
+        edge: {phase: [] for phase in TEACHER_PHASES} for edge in regular_edges
     }
     for row in records:
         episode_file = str(row["episode_file"])
@@ -293,36 +358,51 @@ def build_balanced_view(
                 phase_cache[episode_file] = np.asarray(episode["phase"])
         frame = int(row["frame_index"])
         phase = str(phase_cache[episode_file][frame])
-        stage = macro_phase(phase)
+        if phase not in TEACHER_PHASES:
+            raise ValueError(f"unsupported teacher phase: {phase!r}")
         value = dict(row)
         value["teacher_phase"] = phase
-        value["macro_phase"] = stage
-        grouped[str(row["edge_id"])][stage].append(value)
+        value["macro_phase"] = macro_phase(phase)
+        grouped[str(row["edge_id"])][phase].append(value)
 
-    (
-        record_count,
-        edge_quotas,
-        anchor_regular_quotas,
-        edge_loss_units,
-        anchor,
-    ) = plan_balanced_edge_quotas(
-        manifest,
-        regular_edges,
-        minimum_record_count=len(records),
-        anchor_period=anchor_period,
-    )
     stage_distribution = common_stage_distribution(grouped)
+    requested_minimum = max(len(records), int(minimum_record_count or 0))
+    for _ in range(8):
+        (
+            record_count,
+            edge_quotas,
+            anchor_regular_quotas,
+            edge_loss_units,
+            anchor,
+        ) = plan_balanced_edge_quotas(
+            manifest,
+            regular_edges,
+            minimum_record_count=requested_minimum,
+            anchor_period=anchor_period,
+        )
+        planned_stage_quotas = {
+            edge: largest_remainder(edge_quotas[edge], stage_distribution)
+            for edge in regular_edges
+        }
+        if not preserve_source_records or stage_quotas_cover_source(
+            planned_stage_quotas, grouped
+        ):
+            break
+        requested_minimum = max(record_count + 1, requested_minimum * 2)
+    else:
+        raise RuntimeError("could not build a balanced view that preserves source coverage")
+
     rng = np.random.default_rng(seed)
     anchor_selected = []
     nonanchor_selected = []
     stage_quotas: dict[str, dict[str, int]] = {}
     anchor_stage_quotas: dict[str, dict[str, int]] = {}
     for edge in regular_edges:
-        stage_quotas[edge] = largest_remainder(edge_quotas[edge], stage_distribution)
+        stage_quotas[edge] = planned_stage_quotas[edge]
         anchor_stage_quotas[edge] = largest_remainder(
             anchor_regular_quotas[edge], stage_distribution
         )
-        for stage in MACRO_PHASES:
+        for stage in TEACHER_PHASES:
             if anchor_stage_quotas[edge][stage] > stage_quotas[edge][stage]:
                 raise AssertionError("anchor-stage quota exceeds total stage quota")
             chosen = repeat_deterministically(
@@ -352,6 +432,17 @@ def build_balanced_view(
         next(anchor_iterator) if index % anchor_period == 0 else next(nonanchor_iterator)
         for index in range(record_count)
     ]
+    source_rows = [
+        row
+        for edge in regular_edges
+        for stage in TEACHER_PHASES
+        for row in grouped[edge][stage]
+    ]
+    coverage = source_record_coverage(source_rows, selected)
+    if preserve_source_records and not coverage["all_source_records_preserved"]:
+        raise AssertionError("coverage-preserving sampler dropped source records")
+    if preserve_source_records and not coverage["all_episode_start_states_preserved"]:
+        raise AssertionError("coverage-preserving sampler dropped episode-start states")
     for index, row in enumerate(selected):
         row["source_sample_id"] = row["sample_id"]
         row["sample_id"] = f"{row['sample_id']}--balanced-{index:06d}"
@@ -366,6 +457,7 @@ def build_balanced_view(
         regular_sources[source_id] += count
         regular_targets[target_id] += count
     regular_stage_loss_units: dict[str, Counter[str]] = defaultdict(Counter)
+    regular_macro_phase_loss_units: dict[str, Counter[str]] = defaultdict(Counter)
     actual_anchor_regular = Counter()
     for index, row in enumerate(selected):
         edge = str(row["edge_id"])
@@ -373,29 +465,37 @@ def build_balanced_view(
         units = 1 if index % anchor_period == 0 else 4
         effective_source_loss_units[source_id] += units
         effective_target_loss_units[target_id] += units
-        regular_stage_loss_units[edge][str(row["macro_phase"])] += units
+        regular_stage_loss_units[edge][str(row["teacher_phase"])] += units
+        regular_macro_phase_loss_units[edge][str(row["macro_phase"])] += units
         if index % anchor_period == 0:
             actual_anchor_regular[edge] += 1
     if dict(sorted(actual_anchor_regular.items())) != anchor_regular_quotas:
         raise AssertionError("anchor-index edge allocation drifted from its plan")
 
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "source_view": str(source),
         "seed": seed,
         "anchor_period": anchor_period,
         "record_count": record_count,
+        "requested_minimum_record_count": int(minimum_record_count or 0),
+        "preserve_source_records": preserve_source_records,
         "edge_quotas": edge_quotas,
         "anchor_regular_edge_quotas": anchor_regular_quotas,
         "regular_edge_loss_units": edge_loss_units,
         "loss_unit_denominator": 4,
         "action_loss_reduction": "mean_over_supervised_examples_per_microbatch",
+        "balance_granularity": "teacher_phase",
         "stage_distribution": stage_distribution,
         "stage_quotas": stage_quotas,
         "anchor_stage_quotas": anchor_stage_quotas,
         "regular_stage_loss_units": {
             edge: dict(sorted(values.items()))
             for edge, values in sorted(regular_stage_loss_units.items())
+        },
+        "regular_macro_phase_loss_units": {
+            edge: dict(sorted(values.items()))
+            for edge, values in sorted(regular_macro_phase_loss_units.items())
         },
         "regular_source_exposure": dict(sorted(regular_sources.items())),
         "regular_target_exposure": dict(sorted(regular_targets.items())),
@@ -408,6 +508,7 @@ def build_balanced_view(
             sorted(effective_target_loss_units.items())
         ),
         "heldout_action_records_loaded": False,
+        "source_record_coverage": coverage,
     }
     if (
         len(set(effective_source_loss_units.values())) != 1
@@ -441,6 +542,8 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--anchor-period", type=int, default=8)
     parser.add_argument("--seed", type=int, default=20260722)
+    parser.add_argument("--minimum-record-count", type=int)
+    parser.add_argument("--preserve-source-records", action="store_true")
     return parser.parse_args(args)
 
 
@@ -451,6 +554,8 @@ def main() -> None:
         args.output,
         anchor_period=args.anchor_period,
         seed=args.seed,
+        minimum_record_count=args.minimum_record_count,
+        preserve_source_records=args.preserve_source_records,
     )
     print(json.dumps(report, sort_keys=True))
 

@@ -36,6 +36,7 @@ from AlphaBrain.model.modules.action_model.cabi_binding import (
     BindingState,
     CausalBindingAdapter,
     cabi_closure_losses,
+    cabi_transport_role_mask,
     group_cabi_tetrads,
     prefix_modality_masks,
     select_binding_state,
@@ -135,6 +136,7 @@ class PaliGemmaPi(BaseFramework):
         self.cabi_adapter = None
         self.cabi_loss_weights = {}
         self.cabi_flow_transport_weight = 0.0
+        self.cabi_decoder_closure_weight = 0.0
         if self.cabi_enabled:
             if vlm_type != "paligemma":
                 raise ValueError("CABI v0 currently requires the PaliGemma prefix interface")
@@ -183,6 +185,9 @@ class PaliGemmaPi(BaseFramework):
             )
             self.cabi_flow_transport_weight = float(
                 getattr(cabi_cfg, 'flow_transport_weight', 1.0)
+            )
+            self.cabi_decoder_closure_weight = float(
+                getattr(cabi_cfg, 'decoder_closure_weight', 0.0)
             )
             logger.info(
                 "[CABI] enabled: binding_dim=%d, transport_rank=%d",
@@ -452,7 +457,118 @@ class PaliGemmaPi(BaseFramework):
         if self._action_dim_mask is not None:
             source_loss = source_loss[:, :, self._action_dim_mask]
             target_loss = target_loss[:, :, self._action_dim_mask]
-        return 0.5 * (source_loss.mean() + target_loss.mean())
+        per_role_loss = torch.stack(
+            [
+                source_loss.flatten(1).mean(dim=1),
+                target_loss.flatten(1).mean(dim=1),
+            ],
+            dim=1,
+        )
+        role_mask = cabi_transport_role_mask(
+            examples,
+            grouped,
+            device=per_role_loss.device,
+            dtype=per_role_loss.dtype,
+        )
+        return (per_role_loss * role_mask).sum() / role_mask.sum()
+
+    def _compute_cabi_decoder_closure(
+        self,
+        binding_state: Optional[BindingState],
+        examples: List[dict],
+        *,
+        flow_outputs: Optional[dict[str, torch.Tensor]],
+        prefix_pad_masks: torch.Tensor,
+        prefix_att_masks: torch.Tensor,
+        vlm_language_model: nn.Module,
+        state: Optional[torch.Tensor],
+    ) -> Optional[torch.Tensor]:
+        """Match the normal fourth corner to its action-free causal composition."""
+
+        if (
+            binding_state is None
+            or self.cabi_decoder_closure_weight == 0.0
+            or flow_outputs is None
+        ):
+            return None
+        grouped = group_cabi_tetrads(examples)
+        if not grouped:
+            return None
+
+        base = select_binding_state(binding_state, grouped["base"])
+        source_anchor = select_binding_state(binding_state, grouped["source_anchor"])
+        fourth_anchor = select_binding_state(binding_state, grouped["fourth_anchor"])
+        source_swap = self.cabi_adapter.transport(base, source_anchor, [0])
+        target_on_source = self.cabi_adapter.transport(source_anchor, fourth_anchor, [1])
+        source_then_target = self.cabi_adapter.transport(source_swap, fourth_anchor, [1])
+
+        role_mask = cabi_transport_role_mask(
+            examples,
+            grouped,
+            device=binding_state.tokens.device,
+            dtype=binding_state.tokens.dtype,
+        ).to(dtype=torch.bool)
+        source_only = role_mask[:, 0] & ~role_mask[:, 1]
+        target_only = role_mask[:, 1] & ~role_mask[:, 0]
+        if torch.any(~(source_only | target_only | role_mask.all(dim=1))):
+            raise ValueError("invalid CABI decoder-closure role mask")
+
+        def choose(
+            source_value: torch.Tensor,
+            target_value: torch.Tensor,
+            both_value: torch.Tensor,
+        ) -> torch.Tensor:
+            source_shape = (len(source_only),) + (1,) * (source_value.ndim - 1)
+            target_shape = (len(target_only),) + (1,) * (target_value.ndim - 1)
+            return torch.where(
+                source_only.reshape(source_shape),
+                source_value,
+                torch.where(target_only.reshape(target_shape), target_value, both_value),
+            )
+
+        base_indices = torch.as_tensor(grouped["base"], device=binding_state.tokens.device)
+        source_indices = torch.as_tensor(
+            grouped["source_anchor"], device=binding_state.tokens.device
+        )
+        fourth_indices = torch.as_tensor(
+            grouped["fourth_anchor"], device=binding_state.tokens.device
+        )
+        composed_tokens = choose(
+            source_swap.tokens,
+            target_on_source.tokens,
+            source_then_target.tokens,
+        )
+        composed_pad_masks = choose(
+            prefix_pad_masks.index_select(0, base_indices),
+            prefix_pad_masks.index_select(0, source_indices),
+            prefix_pad_masks.index_select(0, base_indices),
+        )
+        composed_att_masks = choose(
+            prefix_att_masks.index_select(0, base_indices),
+            prefix_att_masks.index_select(0, source_indices),
+            prefix_att_masks.index_select(0, base_indices),
+        )
+        composed_state = None
+        if state is not None:
+            composed_state = choose(
+                state.index_select(0, base_indices),
+                state.index_select(0, source_indices),
+                state.index_select(0, base_indices),
+            )
+        composed_prediction = self.flow_matching_head.predict_flow(
+            prefix_embs=composed_tokens,
+            prefix_pad_masks=composed_pad_masks,
+            prefix_att_masks=composed_att_masks,
+            vlm_language_model=vlm_language_model,
+            state=composed_state,
+            noisy_actions=flow_outputs["noisy_actions"].index_select(0, fourth_indices),
+            time=flow_outputs["time"].index_select(0, fourth_indices),
+        )
+        normal_prediction = flow_outputs["prediction"].index_select(0, fourth_indices)
+        if self._action_dim_mask is not None:
+            composed_prediction = composed_prediction[:, :, self._action_dim_mask]
+            normal_prediction = normal_prediction[:, :, self._action_dim_mask]
+        return F.mse_loss(composed_prediction, normal_prediction)
 
     def _prepare_prefix(self, examples):
         """
@@ -730,18 +846,33 @@ class PaliGemmaPi(BaseFramework):
         if vlm_type == "paligemma":
             # Traditional joint attention path for PaliGemma
             vlm_lm = self._get_vlm_language_model()
-            loss = self.flow_matching_head.compute_loss(
+            flow_result = self.flow_matching_head.compute_loss(
                 prefix_embs=prefix_embs,
                 prefix_pad_masks=prefix_pad_masks,
                 prefix_att_masks=prefix_att_masks,
                 vlm_language_model=vlm_lm,
                 state=state,
                 actions=actions,
+                return_outputs=self.cabi_decoder_closure_weight != 0.0,
             )
+            if isinstance(flow_result, tuple):
+                loss, flow_outputs = flow_result
+            else:
+                loss = flow_result
+                flow_outputs = None
             cabi_transport_flow = self._compute_cabi_transport_flow(
                 binding_state,
                 examples,
                 actions=actions,
+                prefix_pad_masks=prefix_pad_masks,
+                prefix_att_masks=prefix_att_masks,
+                vlm_language_model=vlm_lm,
+                state=state,
+            )
+            cabi_decoder_closure = self._compute_cabi_decoder_closure(
+                binding_state,
+                examples,
+                flow_outputs=flow_outputs,
                 prefix_pad_masks=prefix_pad_masks,
                 prefix_att_masks=prefix_att_masks,
                 vlm_language_model=vlm_lm,
@@ -757,6 +888,7 @@ class PaliGemmaPi(BaseFramework):
                 actions=actions,
             )
             cabi_transport_flow = None
+            cabi_decoder_closure = None
 
         # Apply action mask: only compute loss on valid dims (e.g. first 7 of 32)
         # loss shape: [B, horizon, action_dim]
@@ -791,6 +923,8 @@ class PaliGemmaPi(BaseFramework):
             total_loss = total_loss + cabi_loss
         if cabi_transport_flow is not None:
             total_loss = total_loss + self.cabi_flow_transport_weight * cabi_transport_flow
+        if cabi_decoder_closure is not None:
+            total_loss = total_loss + self.cabi_decoder_closure_weight * cabi_decoder_closure
 
         output = {"action_loss": total_loss, "flow_matching_loss": loss_mean.item()}
         output.update({f"fresh_{key}": value.item() for key, value in fresh_metrics.items()})
@@ -799,6 +933,8 @@ class PaliGemmaPi(BaseFramework):
             output.update({f"cabi_{key}": value.item() for key, value in cabi_metrics.items()})
         if cabi_transport_flow is not None:
             output["cabi_transport_flow"] = cabi_transport_flow.item()
+        if cabi_decoder_closure is not None:
+            output["cabi_decoder_closure"] = cabi_decoder_closure.item()
         return output
 
     def _maybe_remap_gripper(self, actions: torch.Tensor) -> torch.Tensor:

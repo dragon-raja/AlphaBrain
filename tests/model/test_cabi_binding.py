@@ -5,6 +5,7 @@ import torch
 from AlphaBrain.model.modules.action_model.cabi_binding import (
     CausalBindingAdapter,
     cabi_closure_losses,
+    cabi_transport_role_mask,
     group_cabi_tetrads,
     prefix_modality_masks,
     select_binding_state,
@@ -154,3 +155,47 @@ def test_tetrad_grouping_rejects_incomplete_groups() -> None:
         assert "incomplete" in str(error)
     else:
         raise AssertionError("incomplete tetrads must fail")
+
+
+def test_transport_role_mask_defaults_to_both_and_supports_decision_points() -> None:
+    examples = []
+    for group, roles in (("legacy", None), ("source", ["source"])):
+        for corner in ("base", "source_anchor", "target_anchor", "fourth_anchor"):
+            example = {"cabi_tetrad_id": group, "cabi_corner": corner}
+            if roles is not None:
+                example["cabi_transport_roles"] = roles
+            examples.append(example)
+    grouped = group_cabi_tetrads(examples)
+    mask = cabi_transport_role_mask(
+        examples,
+        grouped,
+        device=torch.device("cpu"),
+        dtype=torch.float32,
+    )
+    torch.testing.assert_close(mask, torch.tensor([[1.0, 1.0], [1.0, 0.0]]))
+
+
+def test_transport_role_mask_rejects_corner_metadata_mismatch() -> None:
+    examples = []
+    for corner in ("base", "source_anchor", "target_anchor", "fourth_anchor"):
+        examples.append(
+            {
+                "cabi_tetrad_id": "a",
+                "cabi_corner": corner,
+                "cabi_transport_roles": [
+                    "target" if corner == "fourth_anchor" else "source"
+                ],
+            }
+        )
+    grouped = group_cabi_tetrads(examples)
+    try:
+        cabi_transport_role_mask(
+            examples,
+            grouped,
+            device=torch.device("cpu"),
+            dtype=torch.float32,
+        )
+    except ValueError as error:
+        assert "share transport roles" in str(error)
+    else:
+        raise AssertionError("mismatched decision-point roles must fail")

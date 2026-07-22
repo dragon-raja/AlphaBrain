@@ -2,10 +2,19 @@ import numpy as np
 
 from diagnose_libero_bind_policy import (
     action_chunk,
+    anchor_key,
     factor_sensitivity,
     progress_bin,
     summarize_teacher_rows,
 )
+
+
+def test_diagnostic_anchor_key_supports_decision_views() -> None:
+    assert anchor_key("red-left", 0, "state") == "red-left__state_00__state"
+    assert (
+        anchor_key("red-left", 0, "state", "source_select")
+        == "red-left__state_00__source_select__state"
+    )
 
 
 def test_factor_sensitivity_separates_source_and_target_interventions() -> None:

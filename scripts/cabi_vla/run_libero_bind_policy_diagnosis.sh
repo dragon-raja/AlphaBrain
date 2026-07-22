@@ -3,7 +3,7 @@ set -euo pipefail
 
 REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 PYTHON=${CABI_TRAIN_PYTHON:-$REPO_ROOT/.venv/bin/python}
-TRAINING_VIEW=${CABI_DATA_ROOT:-/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v5-loss-balanced}
+TRAINING_VIEW=${CABI_DATA_ROOT:-/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v7-coverage-phase-loss-balanced}
 OUTPUT_ROOT=${CABI_DIAGNOSTIC_OUTPUT_ROOT:-/share/longjunyu/cabi-vla/diagnostics}
 STATE_INDICES=${CABI_DIAGNOSTIC_STATE_INDICES:-0}
 FRAME_STRIDE=${CABI_DIAGNOSTIC_FRAME_STRIDE:-20}

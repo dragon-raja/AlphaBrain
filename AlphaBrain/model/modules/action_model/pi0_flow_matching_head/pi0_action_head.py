@@ -274,6 +274,42 @@ class Pi0FlowMatchingHead(nn.Module):
 
         return embs, pad_masks, att_masks, adarms_cond
 
+    def predict_flow(
+        self,
+        prefix_embs: torch.Tensor,
+        prefix_pad_masks: torch.Tensor,
+        prefix_att_masks: torch.Tensor,
+        vlm_language_model: nn.Module,
+        state: Optional[torch.Tensor],
+        noisy_actions: torch.Tensor,
+        time: torch.Tensor,
+    ) -> torch.Tensor:
+        """Predict the flow vector at an explicitly supplied action-time probe."""
+
+        suffix_embs, suffix_pad_masks, suffix_att_masks, adarms_cond = self.embed_suffix(
+            state, noisy_actions, time
+        )
+
+        if prefix_embs.dtype == torch.bfloat16:
+            suffix_embs = suffix_embs.to(dtype=torch.bfloat16)
+
+        pad_masks = torch.cat([prefix_pad_masks, suffix_pad_masks], dim=1)
+        att_masks = torch.cat([prefix_att_masks, suffix_att_masks], dim=1)
+        att_2d_masks = make_att_2d_masks(pad_masks, att_masks)
+        position_ids = torch.cumsum(pad_masks, dim=1) - 1
+
+        att_2d_masks_4d = att_2d_masks[:, None, :, :]
+        att_2d_masks_4d = torch.where(att_2d_masks_4d, 0.0, -2.3819763e38)
+
+        suffix_out = self._shared_forward(
+            vlm_language_model,
+            prefix_embs, suffix_embs,
+            att_2d_masks_4d, position_ids,
+            [None, adarms_cond],
+        )
+        suffix_out = suffix_out[:, -self.action_horizon:].float()
+        return self.action_out_proj(suffix_out)
+
     def compute_loss(
         self,
         prefix_embs: torch.Tensor,
@@ -284,7 +320,8 @@ class Pi0FlowMatchingHead(nn.Module):
         actions: torch.Tensor,
         noise: Optional[torch.Tensor] = None,
         time: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
+        return_outputs: bool = False,
+    ) -> torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """
         Compute flow matching training loss.
 
@@ -306,35 +343,23 @@ class Pi0FlowMatchingHead(nn.Module):
         time_expanded = time[:, None, None]
         x_t = time_expanded * noise + (1 - time_expanded) * actions
         u_t = noise - actions
-
-        suffix_embs, suffix_pad_masks, suffix_att_masks, adarms_cond = self.embed_suffix(state, x_t, time)
-
-        # Cast to match VLM dtype
-        if prefix_embs.dtype == torch.bfloat16:
-            suffix_embs = suffix_embs.to(dtype=torch.bfloat16)
-
-        # Build combined attention masks
-        pad_masks = torch.cat([prefix_pad_masks, suffix_pad_masks], dim=1)
-        att_masks = torch.cat([prefix_att_masks, suffix_att_masks], dim=1)
-        att_2d_masks = make_att_2d_masks(pad_masks, att_masks)
-        position_ids = torch.cumsum(pad_masks, dim=1) - 1
-
-        att_2d_masks_4d = att_2d_masks[:, None, :, :]
-        att_2d_masks_4d = torch.where(att_2d_masks_4d, 0.0, -2.3819763e38)
-
-        # Shared forward: VLM language model + action expert
-        suffix_out = self._shared_forward(
-            vlm_language_model,
-            prefix_embs, suffix_embs,
-            att_2d_masks_4d, position_ids,
-            [None, adarms_cond],
+        v_t = self.predict_flow(
+            prefix_embs=prefix_embs,
+            prefix_pad_masks=prefix_pad_masks,
+            prefix_att_masks=prefix_att_masks,
+            vlm_language_model=vlm_language_model,
+            state=state,
+            noisy_actions=x_t,
+            time=time,
         )
-
-        suffix_out = suffix_out[:, -self.action_horizon:]
-        suffix_out = suffix_out.float()
-        v_t = self.action_out_proj(suffix_out)
-
-        return F.mse_loss(u_t, v_t, reduction="none")
+        loss = F.mse_loss(u_t, v_t, reduction="none")
+        if not return_outputs:
+            return loss
+        return loss, {
+            "prediction": v_t,
+            "noisy_actions": x_t,
+            "time": time,
+        }
 
     def compute_loss_prefix_cache(
         self,

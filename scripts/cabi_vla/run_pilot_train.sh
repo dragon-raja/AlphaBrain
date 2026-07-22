@@ -6,7 +6,7 @@ CONFIG=${CABI_TRAIN_CONFIG:-$REPO_ROOT/configs/experiments/cabi_vla_libero_bind.
 PYTHON=${CABI_TRAIN_PYTHON:-$REPO_ROOT/.venv/bin/python}
 PRETRAINED_MODELS_DIR=${PRETRAINED_MODELS_DIR:-/share/longjunyu/alphabrain/pretrained_models}
 OUTPUT_ROOT=${CABI_TRAIN_OUTPUT_ROOT:-/share/longjunyu/cabi-vla/runs}
-DATA_ROOT=${CABI_DATA_ROOT:-/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v5-loss-balanced}
+DATA_ROOT=${CABI_DATA_ROOT:-/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v7-coverage-phase-loss-balanced}
 
 MODE=${1:?usage: run_pilot_train.sh MODE SEED GPU_ID [STEPS]}
 SEED=${2:?usage: run_pilot_train.sh MODE SEED GPU_ID [STEPS]}

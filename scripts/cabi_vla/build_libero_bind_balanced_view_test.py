@@ -1,9 +1,12 @@
 from collections import Counter
 
 from build_libero_bind_balanced_view import (
+    common_stage_distribution,
     largest_remainder,
     macro_phase,
     plan_balanced_edge_quotas,
+    source_record_coverage,
+    stage_quotas_cover_source,
 )
 
 
@@ -78,3 +81,58 @@ def test_macro_phase_mapping_covers_teacher_controller() -> None:
     assert macro_phase("lift") == "lift"
     assert macro_phase("transport") == "transport"
     assert macro_phase("release") == "place"
+
+
+def test_stage_coverage_requires_room_for_every_source_record() -> None:
+    grouped = {
+        "red-left": {
+            "approach": [{"sample_id": "a"}, {"sample_id": "b"}],
+            "grasp": [{"sample_id": "c"}],
+        }
+    }
+    assert stage_quotas_cover_source(
+        {"red-left": {"approach": 2, "grasp": 1}}, grouped
+    )
+    assert not stage_quotas_cover_source(
+        {"red-left": {"approach": 1, "grasp": 2}}, grouped
+    )
+
+
+def test_common_distribution_keeps_fine_grained_phases_separate() -> None:
+    distribution = common_stage_distribution(
+        {
+            "red-left": {"episode_start": [1], "approach_grasp": [1, 2, 3]},
+            "white-left": {"episode_start": [1, 2], "approach_grasp": [1, 2]},
+        }
+    )
+    assert distribution == {"approach_grasp": 0.625, "episode_start": 0.375}
+
+
+def test_source_coverage_audits_episode_start_states() -> None:
+    source = [
+        {
+            "sample_id": "start-0",
+            "edge_id": "red-left",
+            "canonical_state_index": 0,
+            "teacher_phase": "episode_start",
+        },
+        {
+            "sample_id": "start-1",
+            "edge_id": "red-left",
+            "canonical_state_index": 1,
+            "teacher_phase": "episode_start",
+        },
+        {
+            "sample_id": "lift-0",
+            "edge_id": "red-left",
+            "canonical_state_index": 0,
+            "teacher_phase": "lift",
+        },
+    ]
+    complete = source_record_coverage(source, list(reversed(source)))
+    assert complete["all_source_records_preserved"]
+    assert complete["all_episode_start_states_preserved"]
+
+    incomplete = source_record_coverage(source, source[1:])
+    assert incomplete["missing_source_record_count"] == 1
+    assert not incomplete["all_episode_start_states_preserved"]

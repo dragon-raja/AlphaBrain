@@ -128,6 +128,8 @@ class Pi0DataTransform:
             "action_supervised",
             "cabi_tetrad_id",
             "cabi_corner",
+            "cabi_transport_roles",
+            "cabi_decision_point",
             "sample_id",
             "edge_id",
             "canonical_state_index",
@@ -329,8 +331,14 @@ class LiberoBindTrainingDataset:
         self._episode = None
 
     @staticmethod
-    def _anchor_key(edge_id: str, state_index: int, field: str) -> str:
-        return f"{edge_id}__state_{state_index:02d}__{field}"
+    def _anchor_key(
+        edge_id: str,
+        state_index: int,
+        field: str,
+        decision_point: str | None = None,
+    ) -> str:
+        decision = "" if decision_point is None else f"{decision_point}__"
+        return f"{edge_id}__state_{state_index:02d}__{decision}{field}"
 
     def _load_episode(self, relative_path: str) -> dict[str, np.ndarray]:
         path = self.source_collection / relative_path
@@ -382,8 +390,14 @@ class LiberoBindTrainingDataset:
         physical_edge = corner["physical_edge"]
         instruction_edge = corner["instruction_edge"]
         state_index = int(tetrad["canonical_state_index"])
+        decision_point = tetrad.get("decision_point")
         field = lambda name: self._anchors[
-            self._anchor_key(physical_edge, state_index, name)
+            self._anchor_key(
+                physical_edge,
+                state_index,
+                name,
+                None if decision_point is None else str(decision_point),
+            )
         ]
         supervised = bool(corner["action_supervised"])
         action = (
@@ -402,6 +416,16 @@ class LiberoBindTrainingDataset:
             "sample_id": f"{instance_id}--{corner_name}",
             "edge_id": instruction_edge,
             "canonical_state_index": state_index,
+            **(
+                {"cabi_transport_roles": list(tetrad["transport_roles"])}
+                if "transport_roles" in tetrad
+                else {}
+            ),
+            **(
+                {"cabi_decision_point": str(tetrad["decision_point"])}
+                if "decision_point" in tetrad
+                else {}
+            ),
         }
 
     def __len__(self) -> int:

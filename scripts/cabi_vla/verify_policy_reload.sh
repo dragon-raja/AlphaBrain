@@ -68,6 +68,8 @@ import numpy as np
 socket, anchors_path = sys.argv[1:]
 with np.load(anchors_path, allow_pickle=False) as anchors:
     prefix = "red-left__state_00__"
+    if prefix + "action" not in anchors:
+        prefix += "source_select__"
     target_actions = np.asarray(anchors[prefix + "action"], dtype=np.float32)
     example = {
         "image": [np.asarray(anchors[prefix + "agentview"]), np.asarray(anchors[prefix + "wrist"])],

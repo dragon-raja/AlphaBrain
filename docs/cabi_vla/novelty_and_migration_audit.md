@@ -28,6 +28,8 @@ to measure that stronger setting.
 | [Interchange Intervention Training](https://proceedings.mlr.press/v162/geiger22a.html) | hidden interventions align a network with a causal abstraction | CABI must learn multimodal bindings and demonstrate fourth-corner transfer without counterfactual action labels |
 | [Distributed Alignment Search](https://arxiv.org/abs/2303.02536) | learns distributed intervention subspaces instead of fixed neurons | CABI must bind visual entities from language and improve policy behavior, not only recover an interpretable subspace |
 | [Factored Diffusion Policies](https://arxiv.org/abs/2605.22596) | one diffusion network composes task factors with null-token dropout and additive scores | CABI must beat a factor-dropout control, show that learned visual role binding matters, and retain ordinary single-pass inference |
+| [Robust Skills, Brittle Grounding](https://arxiv.org/abs/2602.24143) | diagnoses failure on held-out object-region combinations while grasping skill remains intact | this paper establishes the failure mode, not a remedy; CABI must improve held-out source-target behavior under the same decomposed source-selection and task-success metrics |
+| [OA-WAM](https://arxiv.org/abs/2605.06481) | enforces object addressability with externally extracted identity/content slots and causal slot swaps | CABI cannot claim object addressability alone; it must show action-free combinatorial transfer in a pretrained VLA without a world head, external segmentation pipeline, or inference-time slot interface |
 | [entity-factored control policies](https://arxiv.org/abs/2203.05960) | explicit entities improve compositional control | CABI must work on pretrained VLA tokens and beat an equal-data entity/fixed-slot control |
 | programmatic/neurosymbolic grounding | source, target, and skills are explicitly composed | CABI has no program executor at inference and learns a distributed transport algebra |
 | [temporal representation alignment](https://openreview.net/forum?id=yaS3JWQRQ6) | auxiliary representation learning improves compositional robot instruction following | CABI must isolate simultaneous source-target recombination rather than long-horizon skill concatenation |
@@ -69,6 +71,21 @@ role* from three action-labelled corners plus an action-free fourth corner, and 
 that binding under an ordinary inference pass. A fair factor-null-dropout baseline is
 mandatory before any submission-level claim.
 
+The May 2026 OA-WAM paper independently makes generic "object-addressable policy"
+claims indefensible. It uses foundation-model segmentation and tracking, persistent
+identity/content slots, a world-prediction head, and an address-only attention pathway.
+CABI remains distinct only if its role binding is learned directly over a pretrained
+VLA prefix, needs no explicit object slot at inference, and transfers behavior from an
+action-free fourth corner. If those conditions do not survive ablation, the novelty
+claim must be withdrawn rather than reframed after the result.
+
+The February 2026 Robust Skills, Brittle Grounding study makes the problem statement
+stronger but narrows the empirical obligation. It reports that held-out object-region
+pairings can destroy instruction-conditioned reach while leaving generic grasp motion
+partly intact. CABI must therefore report correct-source reach and source-target task
+success separately; smooth motion or grasp-anything success is not evidence of
+compositional grounding.
+
 The related-work search must be rerun before submission. A new paper that combines
 learned visual role queries, activation transport, and unlabelled tetrad closure would
 invalidate or narrow the claim.
@@ -105,6 +122,7 @@ not language-to-entity role composition.
 | intervention-only inference | gain disappears on normal forward pass | normal-pass evaluation is mandatory |
 | additive toy dynamics | synthetic pass fails on contact-rich policy | no positive claim before LIBERO full-task success |
 | benchmark overfitting | gain only in one scene or one held-out edge | both edges, then a preregistered second scene |
+| static-factor timing mismatch | role geometry closes but source selection and target placement remain unchanged | supervise source transport at the approach decision and target transport at the pre-transport decision; compare with the original single-anchor method |
 
 ## Theory target
 

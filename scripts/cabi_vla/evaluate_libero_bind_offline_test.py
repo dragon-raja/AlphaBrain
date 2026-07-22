@@ -4,10 +4,20 @@ import unittest
 
 import numpy as np
 
-from evaluate_libero_bind_offline import action_transport_metrics
+from evaluate_libero_bind_offline import action_transport_metrics, anchor_key
 
 
 class ActionTransportMetricsTest(unittest.TestCase):
+    def test_anchor_key_is_backward_compatible_and_decision_aware(self) -> None:
+        self.assertEqual(
+            anchor_key("red-left", 3, "action"),
+            "red-left__state_03__action",
+        )
+        self.assertEqual(
+            anchor_key("red-left", 3, "action", "source_select"),
+            "red-left__state_03__source_select__action",
+        )
+
     def test_perfect_additive_fourth_corner_has_zero_transport_error(self) -> None:
         base = np.asarray([[0.1, 0.2]], np.float32)
         source = np.asarray([[0.3, 0.2]], np.float32)

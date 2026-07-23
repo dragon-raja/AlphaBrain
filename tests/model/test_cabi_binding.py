@@ -10,6 +10,9 @@ from AlphaBrain.model.modules.action_model.cabi_binding import (
     prefix_modality_masks,
     select_binding_state,
 )
+from AlphaBrain.model.modules.action_model.counterfactual_action_completion import (
+    counterfactual_fourth_actions,
+)
 
 
 def make_inputs(batch: int = 3, tokens: int = 12, hidden: int = 24):
@@ -199,3 +202,67 @@ def test_transport_role_mask_rejects_corner_metadata_mismatch() -> None:
         assert "share transport roles" in str(error)
     else:
         raise AssertionError("mismatched decision-point roles must fail")
+
+
+def test_counterfactual_fourth_actions_complete_parallelogram() -> None:
+    actions = torch.tensor(
+        [
+            [[1.0, 2.0]],
+            [[4.0, 7.0]],
+            [[2.0, 5.0]],
+            [[99.0, 99.0]],
+            [[-3.0, 1.0]],
+            [[0.0, 8.0]],
+            [[-1.0, 4.0]],
+            [[99.0, 99.0]],
+        ]
+    )
+    grouped = {
+        "base": (0, 4),
+        "source_anchor": (1, 5),
+        "target_anchor": (2, 6),
+        "fourth_anchor": (3, 7),
+    }
+
+    completed, fourth = counterfactual_fourth_actions(actions, grouped)
+
+    torch.testing.assert_close(
+        completed,
+        torch.tensor([[[5.0, 10.0]], [[2.0, 11.0]]]),
+    )
+    torch.testing.assert_close(fourth, torch.tensor([3, 7]))
+
+
+def test_counterfactual_completion_commutes_with_affine_normalization() -> None:
+    raw = torch.randn(4, 5, 3)
+    mean = torch.tensor([0.2, -0.4, 0.7])
+    std = torch.tensor([0.5, 2.0, 1.5])
+    grouped = {
+        "base": (0,),
+        "source_anchor": (1,),
+        "target_anchor": (2,),
+        "fourth_anchor": (3,),
+    }
+
+    raw_completed, _ = counterfactual_fourth_actions(raw, grouped)
+    normalized_completed, _ = counterfactual_fourth_actions(
+        (raw - mean) / std, grouped
+    )
+
+    torch.testing.assert_close(normalized_completed, (raw_completed - mean) / std)
+
+
+def test_counterfactual_completion_rejects_misaligned_groups() -> None:
+    actions = torch.zeros(4, 2, 1)
+    grouped = {
+        "base": (0,),
+        "source_anchor": (1, 2),
+        "target_anchor": (2,),
+        "fourth_anchor": (3,),
+    }
+    try:
+        counterfactual_fourth_actions(actions, grouped)
+    except ValueError as error:
+        assert "aligned" in str(error)
+    else:
+        raise AssertionError("misaligned counterfactual groups must fail")

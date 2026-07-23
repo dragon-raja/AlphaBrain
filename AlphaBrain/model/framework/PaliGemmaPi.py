@@ -41,6 +41,9 @@ from AlphaBrain.model.modules.action_model.cabi_binding import (
     prefix_modality_masks,
     select_binding_state,
 )
+from AlphaBrain.model.modules.action_model.counterfactual_action_completion import (
+    counterfactual_fourth_actions,
+)
 from AlphaBrain.model.tools import FRAMEWORK_REGISTRY
 from AlphaBrain.training.trainer_utils.trainer_tools import resize_images
 
@@ -193,6 +196,32 @@ class PaliGemmaPi(BaseFramework):
                 "[CABI] enabled: binding_dim=%d, transport_rank=%d",
                 self.cabi_adapter.binding_dim,
                 self.cabi_adapter.transport_rank,
+            )
+
+        completion_cfg = getattr(
+            config.framework, "counterfactual_action_completion", None
+        )
+        self.counterfactual_action_completion_enabled = bool(
+            completion_cfg is not None
+            and getattr(completion_cfg, "enabled", False)
+        )
+        self.counterfactual_action_completion_weight = float(
+            getattr(completion_cfg, "weight", 1.0)
+            if completion_cfg is not None
+            else 0.0
+        )
+        if self.counterfactual_action_completion_enabled:
+            if vlm_type != "paligemma":
+                raise ValueError(
+                    "counterfactual action completion currently requires PaliGemma"
+                )
+            if self.counterfactual_action_completion_weight <= 0.0:
+                raise ValueError(
+                    "counterfactual action completion weight must be positive"
+                )
+            logger.info(
+                "[CAFC] enabled: weight=%.3f",
+                self.counterfactual_action_completion_weight,
             )
 
         # ── Action dimension settings ──
@@ -570,6 +599,43 @@ class PaliGemmaPi(BaseFramework):
             normal_prediction = normal_prediction[:, :, self._action_dim_mask]
         return F.mse_loss(composed_prediction, normal_prediction)
 
+    def _compute_counterfactual_action_completion(
+        self,
+        examples: List[dict],
+        *,
+        actions: torch.Tensor,
+        prefix_embs: torch.Tensor,
+        prefix_pad_masks: torch.Tensor,
+        prefix_att_masks: torch.Tensor,
+        vlm_language_model: nn.Module,
+        state: Optional[torch.Tensor],
+    ) -> Optional[torch.Tensor]:
+        """Supervise an action-free fourth corner from three observed actions."""
+
+        if not self.counterfactual_action_completion_enabled:
+            return None
+        grouped = group_cabi_tetrads(examples)
+        if not grouped:
+            return None
+
+        pseudo_actions, fourth_indices = counterfactual_fourth_actions(
+            actions, grouped
+        )
+        selected_state = (
+            None if state is None else state.index_select(0, fourth_indices)
+        )
+        completion_loss = self.flow_matching_head.compute_loss(
+            prefix_embs=prefix_embs.index_select(0, fourth_indices),
+            prefix_pad_masks=prefix_pad_masks.index_select(0, fourth_indices),
+            prefix_att_masks=prefix_att_masks.index_select(0, fourth_indices),
+            vlm_language_model=vlm_language_model,
+            state=selected_state,
+            actions=pseudo_actions,
+        )
+        if self._action_dim_mask is not None:
+            completion_loss = completion_loss[:, :, self._action_dim_mask]
+        return completion_loss.mean()
+
     def _prepare_prefix(self, examples):
         """
         Prepare prefix embeddings from examples.
@@ -878,6 +944,17 @@ class PaliGemmaPi(BaseFramework):
                 vlm_language_model=vlm_lm,
                 state=state,
             )
+            counterfactual_action_completion = (
+                self._compute_counterfactual_action_completion(
+                    examples,
+                    actions=actions,
+                    prefix_embs=prefix_embs,
+                    prefix_pad_masks=prefix_pad_masks,
+                    prefix_att_masks=prefix_att_masks,
+                    vlm_language_model=vlm_lm,
+                    state=state,
+                )
+            )
         else:
             # Prefix cache path for non-PaliGemma VLMs (Llama, etc.)
             loss = self.flow_matching_head.compute_loss_prefix_cache(
@@ -889,6 +966,7 @@ class PaliGemmaPi(BaseFramework):
             )
             cabi_transport_flow = None
             cabi_decoder_closure = None
+            counterfactual_action_completion = None
 
         # Apply action mask: only compute loss on valid dims (e.g. first 7 of 32)
         # loss shape: [B, horizon, action_dim]
@@ -925,6 +1003,11 @@ class PaliGemmaPi(BaseFramework):
             total_loss = total_loss + self.cabi_flow_transport_weight * cabi_transport_flow
         if cabi_decoder_closure is not None:
             total_loss = total_loss + self.cabi_decoder_closure_weight * cabi_decoder_closure
+        if counterfactual_action_completion is not None:
+            total_loss = total_loss + (
+                self.counterfactual_action_completion_weight
+                * counterfactual_action_completion
+            )
 
         output = {"action_loss": total_loss, "flow_matching_loss": loss_mean.item()}
         output.update({f"fresh_{key}": value.item() for key, value in fresh_metrics.items()})
@@ -935,6 +1018,10 @@ class PaliGemmaPi(BaseFramework):
             output["cabi_transport_flow"] = cabi_transport_flow.item()
         if cabi_decoder_closure is not None:
             output["cabi_decoder_closure"] = cabi_decoder_closure.item()
+        if counterfactual_action_completion is not None:
+            output["counterfactual_action_completion"] = (
+                counterfactual_action_completion.item()
+            )
         return output
 
     def _maybe_remap_gripper(self, actions: torch.Tensor) -> torch.Tensor:

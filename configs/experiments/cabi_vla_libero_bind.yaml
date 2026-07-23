@@ -246,6 +246,18 @@ cabi_bind_framework_action_bridge_closure: &cabi_bind_framework_action_bridge_cl
     causal_factor_contrastive_weight: 0.1
     counterfactual_attention_grounding_weight: 0.05
 
+cabi_bind_framework_action_completion: &cabi_bind_framework_action_completion
+  <<: *cabi_bind_framework_bc
+  counterfactual_action_completion:
+    enabled: true
+    weight: 1.0
+
+cabi_bind_framework_action_bridge_completion: &cabi_bind_framework_action_bridge_completion
+  <<: *cabi_bind_framework_action_bridge
+  counterfactual_action_completion:
+    enabled: true
+    weight: 1.0
+
 modes:
   cabi_bind_pi05_bc_smoke:
     <<: *cabi_bind_common
@@ -294,3 +306,15 @@ modes:
     run_id: cabi_bind_pi05_action_bridge_closure_smoke
     framework:
       <<: *cabi_bind_framework_action_bridge_closure
+
+  cabi_bind_pi05_action_completion_smoke:
+    <<: *cabi_bind_common
+    run_id: cabi_bind_pi05_action_completion_smoke
+    framework:
+      <<: *cabi_bind_framework_action_completion
+
+  cabi_bind_pi05_action_bridge_completion_smoke:
+    <<: *cabi_bind_common
+    run_id: cabi_bind_pi05_action_bridge_completion_smoke
+    framework:
+      <<: *cabi_bind_framework_action_bridge_completion

@@ -1069,7 +1069,7 @@ class VLATrainer(TrainerUtils):
                 continue
             log_dict[k] = v.item() if isinstance(v, torch.Tensor) else v
         for k, v in output_dict.items():
-            if not k.startswith(("fresh_", "cabi_")):
+            if not k.startswith(("fresh_", "cabi_", "counterfactual_")):
                 continue
             if isinstance(v, torch.Tensor) and v.numel() != 1:
                 continue

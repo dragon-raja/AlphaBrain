@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "claim": "NO_END_TO_END_COMPOSITIONAL_MIGRATION",
+  "formal_gate": {
+    "decision": "BASELINE_INVALID",
+    "reason": "NO_H20_CAFC_ARM_HAS_A_VALID_OBSERVED_EXACT_COMPARISON",
+    "full_validation_started": false,
+    "decision_horizon": 3
+  },
+  "program_decision": "STOP_HORIZON_EXTENSION",
+  "training": {
+    "seed": 41,
+    "steps_per_arm": 33000,
+    "action_horizon": 20,
+    "cafc_batches_per_cafc_arm": 1013,
+    "all_metrics_finite": true
+  },
+  "data": {
+    "view": "/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v15-decision-observed-edge-phase-loss-balanced-h20",
+    "record_count": 22464,
+    "tetrad_count": 128,
+    "non_action_anchors_copied_unchanged": 828,
+    "observed_action_anchors": 276,
+    "heldout_action_anchors": 0,
+    "fourth_corner_actions_loaded": false
+  },
+  "state0_k3": {
+    "bc_h20": {
+      "observed_task_success": [2, 4],
+      "heldout_task_success": [0, 2],
+      "observed_source_success": [2, 4],
+      "heldout_source_success": [0, 2],
+      "mean_progress": 0.375
+    },
+    "bridge_h20": {
+      "observed_task_success": [4, 4],
+      "heldout_task_success": [0, 2],
+      "observed_source_success": [4, 4],
+      "heldout_source_success": [0, 2],
+      "mean_progress": 0.6666666666666666
+    },
+    "cafc_h20": {
+      "observed_task_success": [1, 4],
+      "heldout_task_success": [0, 2],
+      "observed_source_success": [1, 4],
+      "heldout_source_success": [1, 2],
+      "mean_progress": 0.3333333333333333
+    },
+    "bridge_cafc_h20": {
+      "observed_task_success": [2, 4],
+      "heldout_task_success": [0, 2],
+      "observed_source_success": [2, 4],
+      "heldout_source_success": [2, 2],
+      "mean_progress": 0.5833333333333334
+    }
+  },
+  "target_select_diagnostics": {
+    "bc_h20": {
+      "target_effect_cosine": 0.3037717870085853,
+      "target_instruction_sensitivity": 0.5665132800738016,
+      "teacher_chunk_mse": 0.020338310932488248
+    },
+    "bridge_h20": {
+      "target_effect_cosine": 0.07494468503736224,
+      "target_instruction_sensitivity": 0.554233577516344,
+      "teacher_chunk_mse": 0.017073227554013866
+    },
+    "cafc_h20": {
+      "target_effect_cosine": 0.9612893189740301,
+      "target_instruction_sensitivity": 0.5457336703936259,
+      "teacher_chunk_mse": 0.018793367926037766
+    },
+    "bridge_cafc_h20": {
+      "target_effect_cosine": 0.9625994940765131,
+      "target_instruction_sensitivity": 0.5565007527669271,
+      "teacher_chunk_mse": 0.01548097257019667
+    }
+  },
+  "target_handoff_k3": {
+    "formal_gate_metric": false,
+    "bc_h20": {
+      "final_xy_distance": [0.5904296975090559, 0.5933190203958485],
+      "transport_success": [0, 2],
+      "task_success": [0, 2]
+    },
+    "bridge_h20": {
+      "final_xy_distance": [0.5906345416994035, 0.5988272674191766],
+      "transport_success": [0, 2],
+      "task_success": [0, 2]
+    },
+    "cafc_h20": {
+      "final_xy_distance": [0.5699706779581699, 0.1531873697010946],
+      "transport_success": [0, 2],
+      "task_success": [0, 2]
+    },
+    "bridge_cafc_h20": {
+      "final_xy_distance": [0.12101537578001205, 0.13953550788928226],
+      "transport_success": [0, 2],
+      "task_success": [0, 2]
+    },
+    "bridge_cafc_h10_reference": {
+      "final_xy_distance": [0.1186068042911933, 0.141905736015456],
+      "transport_success": [0, 2],
+      "task_success": [0, 2]
+    }
+  },
+  "replication": {
+    "seeds_42_43_run": false,
+    "sealed_validation_test_run": false,
+    "reason": "SEED41_DID_NOT_CLEAR_THE_PREREGISTERED_STATE0_GATE"
+  },
+  "artifacts": {
+    "formal_decision": "/share/longjunyu/cabi-vla/comparisons/cafc_h20_migration_seed41_v15_orchestration.json",
+    "handoff_summary": "/share/longjunyu/cabi-vla/comparisons/cafc_h20_target_handoff_seed41_v15.json",
+    "state0_evaluation_root": "/share/longjunyu/cabi-vla/evaluations",
+    "paired_video_glob": "/share/longjunyu/cabi-vla/comparisons/cafc_h20_*_paired_h264_av1"
+  }
+}

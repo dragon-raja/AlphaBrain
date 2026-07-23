@@ -1,7 +1,40 @@
 # CABI-VLA Experimental Status
 
-Status date: 2026-07-22
+Status date: 2026-07-23
 Primary behavioral execution horizon: `K=3`
+
+## Current final CAFC gate
+
+The H=10 Counterfactual Action-Field Completion (CAFC) run learned a local
+held-out target effect and induced target-directed motion, but achieved 0/2
+held-out task success. A single preregistered H=20 continuation amendment has
+now completed with four equal-budget, seed-41, 33,000-update arms.
+
+| H=20 arm | Observed task success | Held-out task success |
+|---|---:|---:|
+| BC | 2/4 | 0/2 |
+| Action Bridge | 4/4 | 0/2 |
+| CAFC | 1/4 | 0/2 |
+| Action Bridge + CAFC | 2/4 | 0/2 |
+
+The formal gate decision is `BASELINE_INVALID` because neither CAFC arm
+retains 3/4 observed success. This label does not mean the benchmark is
+unlearnable: Action Bridge reaches 4/4 observed success. The program decision
+is `STOP_HORIZON_EXTENSION`: no validation, seeds 42/43, sealed test, or
+H=30/40/50 sweep is permitted.
+
+CAFC-H20 and Bridge+CAFC-H20 retain target-effect cosine `0.961/0.963`, but
+their fixed-`K=3` teacher-prefix handoff episodes still achieve 0/2 transport
+and 0/2 task success. Bridge+CAFC's H=20 final target distances are effectively
+unchanged from H=10. The method learns a local action relation but does not
+produce state-conditioned continuation under repeated policy queries.
+
+The complete result and machine-readable record are in
+`cafc_h20_seed41_v15_result.md` and
+`results/cafc_h20_seed41_v15.json`. All state-0 and handoff videos are encoded
+as both H.264 MP4 and AV1 WebM.
+
+The sections below are retained as historical calibration provenance.
 
 ## Coverage-corrected v10 gate
 

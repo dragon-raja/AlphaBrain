@@ -258,6 +258,60 @@ cabi_bind_framework_action_bridge_completion: &cabi_bind_framework_action_bridge
     enabled: true
     weight: 1.0
 
+# H=20 is a single preregistered continuation amendment. Every exact control
+# receives the same horizon so that decoder capacity is not credited to CAFC.
+cabi_bind_common_h20: &cabi_bind_common_h20
+  <<: *cabi_bind_common
+  datasets:
+    vla_data:
+      dataloader_module: paligemma_datasets
+      dataset_format: libero_bind
+      data_root_dir: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v15-decision-observed-edge-phase-loss-balanced-h20
+      split: train
+      action_horizon: 20
+      action_dim: 7
+      state_dim: 8
+      include_state: false
+      cabi_anchor_period: 32
+      per_device_batch_size: 1
+      shuffle: true
+
+cabi_bind_framework_bc_h20: &cabi_bind_framework_bc_h20
+  <<: *cabi_bind_framework_bc
+  action_model:
+    action_dim: 7
+    action_horizon: 20
+    future_action_window_size: 19
+    num_inference_steps: 10
+    fresh_tail_weight: 1.0
+
+cabi_bind_framework_action_bridge_h20: &cabi_bind_framework_action_bridge_h20
+  <<: *cabi_bind_framework_action_bridge
+  action_model:
+    action_dim: 7
+    action_horizon: 20
+    future_action_window_size: 19
+    num_inference_steps: 10
+    fresh_tail_weight: 1.0
+
+cabi_bind_framework_action_completion_h20: &cabi_bind_framework_action_completion_h20
+  <<: *cabi_bind_framework_action_completion
+  action_model:
+    action_dim: 7
+    action_horizon: 20
+    future_action_window_size: 19
+    num_inference_steps: 10
+    fresh_tail_weight: 1.0
+
+cabi_bind_framework_action_bridge_completion_h20: &cabi_bind_framework_action_bridge_completion_h20
+  <<: *cabi_bind_framework_action_bridge_completion
+  action_model:
+    action_dim: 7
+    action_horizon: 20
+    future_action_window_size: 19
+    num_inference_steps: 10
+    fresh_tail_weight: 1.0
+
 modes:
   cabi_bind_pi05_bc_smoke:
     <<: *cabi_bind_common
@@ -318,3 +372,27 @@ modes:
     run_id: cabi_bind_pi05_action_bridge_completion_smoke
     framework:
       <<: *cabi_bind_framework_action_bridge_completion
+
+  cabi_bind_pi05_bc_h20_smoke:
+    <<: *cabi_bind_common_h20
+    run_id: cabi_bind_pi05_bc_h20_smoke
+    framework:
+      <<: *cabi_bind_framework_bc_h20
+
+  cabi_bind_pi05_action_bridge_h20_smoke:
+    <<: *cabi_bind_common_h20
+    run_id: cabi_bind_pi05_action_bridge_h20_smoke
+    framework:
+      <<: *cabi_bind_framework_action_bridge_h20
+
+  cabi_bind_pi05_action_completion_h20_smoke:
+    <<: *cabi_bind_common_h20
+    run_id: cabi_bind_pi05_action_completion_h20_smoke
+    framework:
+      <<: *cabi_bind_framework_action_completion_h20
+
+  cabi_bind_pi05_action_bridge_completion_h20_smoke:
+    <<: *cabi_bind_common_h20
+    run_id: cabi_bind_pi05_action_bridge_completion_h20_smoke
+    framework:
+      <<: *cabi_bind_framework_action_bridge_completion_h20

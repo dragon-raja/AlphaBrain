@@ -155,6 +155,19 @@ def anchor_key(
     return f"{edge_id}__state_{state_index:02d}__{decision}{field}"
 
 
+def resolve_decision_point(
+    manifest: Mapping[str, Any], requested: str
+) -> str | None:
+    decision_points = manifest.get("decision_points", {})
+    if requested == "auto":
+        return "source_select" if "source_select" in decision_points else None
+    if requested not in decision_points:
+        raise ValueError(
+            f"decision point {requested!r} is absent from the training view"
+        )
+    return requested
+
+
 def request_actions(
     connection: Client,
     examples: Sequence[Mapping[str, Any]],
@@ -215,11 +228,9 @@ def run_instruction_sensitivity(
     state_index: int,
     physical_edge: str,
     seeds: Sequence[int],
+    decision_point: str | None,
 ) -> dict[str, Any]:
     edges = sorted(manifest["edge_instructions"])
-    decision_point = (
-        "source_select" if "source_select" in manifest.get("decision_points", {}) else None
-    )
     with np.load(training_view / manifest["anchors_file"], allow_pickle=False) as anchors:
         agent = np.asarray(
             anchors[anchor_key(physical_edge, state_index, "agentview", decision_point)]
@@ -351,6 +362,11 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--seeds", type=int, nargs="+", default=[20260722, 20260723, 20260724])
     parser.add_argument("--sensitivity-physical-edge", default="red-left")
+    parser.add_argument(
+        "--decision-point",
+        choices=("auto", "source_select", "target_select"),
+        default="auto",
+    )
     return parser.parse_args(args)
 
 
@@ -365,6 +381,7 @@ def main() -> None:
         state_indices=set(args.state_indices),
         frame_stride=args.frame_stride,
     )
+    decision_point = resolve_decision_point(manifest, args.decision_point)
     connection = Client(str(args.policy_socket), family="AF_UNIX", authkey=b"fresh-vla-local")
     identity = dict(connection.recv())
     try:
@@ -375,6 +392,7 @@ def main() -> None:
             state_index=args.state_indices[0],
             physical_edge=args.sensitivity_physical_edge,
             seeds=args.seeds,
+            decision_point=decision_point,
         )
         teacher_forcing = run_teacher_forcing(
             connection,

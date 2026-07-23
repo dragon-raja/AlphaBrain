@@ -5,6 +5,7 @@ from diagnose_libero_bind_policy import (
     anchor_key,
     factor_sensitivity,
     progress_bin,
+    resolve_decision_point,
     summarize_teacher_rows,
 )
 
@@ -15,6 +16,18 @@ def test_diagnostic_anchor_key_supports_decision_views() -> None:
         anchor_key("red-left", 0, "state", "source_select")
         == "red-left__state_00__source_select__state"
     )
+
+
+def test_decision_point_resolution_is_explicit_and_backward_compatible() -> None:
+    manifest = {"decision_points": {"source_select": {}, "target_select": {}}}
+    assert resolve_decision_point(manifest, "auto") == "source_select"
+    assert resolve_decision_point(manifest, "target_select") == "target_select"
+    try:
+        resolve_decision_point({"decision_points": {}}, "target_select")
+    except ValueError as error:
+        assert "absent" in str(error)
+    else:
+        raise AssertionError("an absent explicit decision point must fail")
 
 
 def test_factor_sensitivity_separates_source_and_target_interventions() -> None:

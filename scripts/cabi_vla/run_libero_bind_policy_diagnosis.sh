@@ -8,6 +8,7 @@ OUTPUT_ROOT=${CABI_DIAGNOSTIC_OUTPUT_ROOT:-/share/longjunyu/cabi-vla/diagnostics
 STATE_INDICES=${CABI_DIAGNOSTIC_STATE_INDICES:-0}
 FRAME_STRIDE=${CABI_DIAGNOSTIC_FRAME_STRIDE:-20}
 SEEDS=${CABI_DIAGNOSTIC_SEEDS:-20260722 20260723 20260724}
+DECISION_POINT=${CABI_DIAGNOSTIC_DECISION_POINT:-auto}
 SERVER_TIMEOUT=${CABI_POLICY_SERVER_TIMEOUT:-600}
 
 CHECKPOINT=${1:?usage: run_libero_bind_policy_diagnosis.sh CHECKPOINT RUN_NAME GPU_ID}
@@ -20,6 +21,10 @@ if [[ ! "$RUN_NAME" =~ ^[A-Za-z0-9_.-]+$ ]]; then
 fi
 if [[ ! "$FRAME_STRIDE" =~ ^[1-9][0-9]*$ ]]; then
   echo "CABI_DIAGNOSTIC_FRAME_STRIDE must be a positive integer" >&2
+  exit 2
+fi
+if [[ "$DECISION_POINT" != auto && "$DECISION_POINT" != source_select && "$DECISION_POINT" != target_select ]]; then
+  echo "CABI_DIAGNOSTIC_DECISION_POINT must be auto, source_select, or target_select" >&2
   exit 2
 fi
 if [[ ! -s "$CHECKPOINT/model.safetensors" ]]; then
@@ -87,4 +92,5 @@ read -r -a seed_args <<<"$SEEDS"
   --output "$OUTPUT" \
   --state-indices "${state_args[@]}" \
   --frame-stride "$FRAME_STRIDE" \
+  --decision-point "$DECISION_POINT" \
   --seeds "${seed_args[@]}"

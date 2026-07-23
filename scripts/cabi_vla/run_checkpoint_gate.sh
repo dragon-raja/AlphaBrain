@@ -36,6 +36,56 @@ if [[ ! -s "$CHECKPOINT/model.safetensors" || ! -s "$CHECKPOINT/framework_config
   exit 1
 fi
 
+RUN_ROOT=$(dirname "$CHECKPOINT")
+METRICS=$RUN_ROOT/metrics.jsonl
+TRAINING_VIEW=$(dirname "$ANCHORS")
+echo "stage=training_invariants"
+"$PYTHON" - "$CHECKPOINT/framework_config.yaml" "$TRAINING_VIEW/manifest.json" "$METRICS" <<'PY'
+import json
+import math
+import sys
+
+import yaml
+
+config_path, manifest_path, metrics_path = sys.argv[1:]
+config = yaml.safe_load(open(config_path))
+manifest = json.load(open(manifest_path))
+model_horizon = int(config["framework"]["action_model"]["action_horizon"])
+data_horizon = int(manifest["action_horizon"])
+if model_horizon != data_horizon:
+    raise ValueError(
+        f"checkpoint/data horizon mismatch: model={model_horizon} data={data_horizon}"
+    )
+
+cafc_enabled = bool(
+    config.get("framework", {})
+    .get("counterfactual_action_completion", {})
+    .get("enabled", False)
+)
+cafc_values = []
+with open(metrics_path) as stream:
+    for line in stream:
+        row = json.loads(line)
+        if "counterfactual_action_completion" in row:
+            cafc_values.append(float(row["counterfactual_action_completion"]))
+if cafc_enabled and not cafc_values:
+    raise ValueError("CAFC checkpoint contains no sampled CAFC training batch")
+if any(not math.isfinite(value) for value in cafc_values):
+    raise ValueError("CAFC metrics contain a non-finite value")
+print(
+    json.dumps(
+        {
+            "model_horizon": model_horizon,
+            "data_horizon": data_horizon,
+            "cafc_enabled": cafc_enabled,
+            "cafc_batches": len(cafc_values),
+            "cafc_all_finite": all(math.isfinite(value) for value in cafc_values),
+        },
+        sort_keys=True,
+    )
+)
+PY
+
 cd "$REPO_ROOT"
 echo "stage=reload checkpoint=$CHECKPOINT"
 CABI_RELOAD_ANCHORS="$ANCHORS" \

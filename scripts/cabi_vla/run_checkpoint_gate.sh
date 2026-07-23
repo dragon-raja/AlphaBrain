@@ -63,11 +63,20 @@ cafc_enabled = bool(
     .get("enabled", False)
 )
 cafc_values = []
+steps = []
 with open(metrics_path) as stream:
     for line in stream:
         row = json.loads(line)
+        steps.append(int(row["step"]))
         if "counterfactual_action_completion" in row:
             cafc_values.append(float(row["counterfactual_action_completion"]))
+expected_steps = int(config["trainer"]["max_train_steps"])
+if steps != list(range(1, expected_steps + 1)):
+    raise ValueError(
+        f"training metrics are incomplete or non-sequential: "
+        f"rows={len(steps)} last={steps[-1] if steps else None} "
+        f"expected={expected_steps}"
+    )
 if cafc_enabled and not cafc_values:
     raise ValueError("CAFC checkpoint contains no sampled CAFC training batch")
 if any(not math.isfinite(value) for value in cafc_values):
@@ -77,6 +86,8 @@ print(
         {
             "model_horizon": model_horizon,
             "data_horizon": data_horizon,
+            "completed_steps": len(steps),
+            "expected_steps": expected_steps,
             "cafc_enabled": cafc_enabled,
             "cafc_batches": len(cafc_values),
             "cafc_all_finite": all(math.isfinite(value) for value in cafc_values),

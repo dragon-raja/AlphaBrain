@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "name": "libero_bind_camera_pose_grid_v1",
+  "camera_name": "agentview",
+  "table_plane_z": 0.48,
+  "design": "one_factor_at_a_time",
+  "fixed_variables": {
+    "wrist_camera": "unchanged",
+    "field_of_view": "unchanged",
+    "execution_horizon": 3,
+    "max_steps": 320
+  },
+  "poses": [
+    {
+      "name": "baseline",
+      "azimuth_deg": 0.0,
+      "elevation_deg": 0.0,
+      "radius_scale": 1.0
+    },
+    {
+      "name": "az_m30",
+      "azimuth_deg": -30.0,
+      "elevation_deg": 0.0,
+      "radius_scale": 1.0
+    },
+    {
+      "name": "az_m15",
+      "azimuth_deg": -15.0,
+      "elevation_deg": 0.0,
+      "radius_scale": 1.0
+    },
+    {
+      "name": "az_p15",
+      "azimuth_deg": 15.0,
+      "elevation_deg": 0.0,
+      "radius_scale": 1.0
+    },
+    {
+      "name": "az_p30",
+      "azimuth_deg": 30.0,
+      "elevation_deg": 0.0,
+      "radius_scale": 1.0
+    },
+    {
+      "name": "el_m12",
+      "azimuth_deg": 0.0,
+      "elevation_deg": -12.0,
+      "radius_scale": 1.0
+    },
+    {
+      "name": "el_p12",
+      "azimuth_deg": 0.0,
+      "elevation_deg": 12.0,
+      "radius_scale": 1.0
+    },
+    {
+      "name": "rad_085",
+      "azimuth_deg": 0.0,
+      "elevation_deg": 0.0,
+      "radius_scale": 0.85
+    },
+    {
+      "name": "rad_0925",
+      "azimuth_deg": 0.0,
+      "elevation_deg": 0.0,
+      "radius_scale": 0.925
+    },
+    {
+      "name": "rad_1075",
+      "azimuth_deg": 0.0,
+      "elevation_deg": 0.0,
+      "radius_scale": 1.075
+    },
+    {
+      "name": "rad_115",
+      "azimuth_deg": 0.0,
+      "elevation_deg": 0.0,
+      "radius_scale": 1.15
+    }
+  ]
+}

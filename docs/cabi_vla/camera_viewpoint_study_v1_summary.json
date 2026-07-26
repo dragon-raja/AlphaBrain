@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "study": "libero_bind_external_camera_pose_sensitivity",
+  "status": "complete",
+  "decision": "KEEP_CANONICAL_CAMERA",
+  "valid_episode_count": 132,
+  "av1_video_count": 31,
+  "fixed_policy": {
+    "checkpoint": "/share/longjunyu/cabi-vla/runs/cabi_bind_pi05_action_bridge_h20_smoke_seed41_steps33000_h20-bridge-edge-balanced-3epoch-v15/final_model",
+    "execution_horizon": 3,
+    "max_steps": 320,
+    "seed": 20260722
+  },
+  "camera_qc": {
+    "baseline_agent_mae_max": 0.0,
+    "perturbed_agent_mae_min": 9.778991284013605,
+    "wrist_mae_max": 0.0
+  },
+  "coarse_state0": {
+    "baseline_success": [4, 4],
+    "best_nonbaseline_poses": [
+      "rad_0925",
+      "rad_1075"
+    ],
+    "best_nonbaseline_success": [2, 4]
+  },
+  "confirmation_states1to4": {
+    "baseline_success": [11, 16],
+    "rad_0925_success": [4, 16],
+    "rad_1075_success": [8, 16],
+    "rad_0925_success_delta_pp": -43.75,
+    "rad_0925_paired_bootstrap_ci95_pp": [-50.0, -31.25],
+    "rad_1075_success_delta_pp": -18.75,
+    "rad_1075_paired_bootstrap_ci95_pp": [-37.5, 0.0]
+  },
+  "selected_states0to4": {
+    "baseline_success": [15, 20],
+    "rad_0925_success": [6, 20],
+    "rad_1075_success": [10, 20]
+  },
+  "heldout_states5to9": {
+    "baseline_success": [11, 20],
+    "task_conditioned_rule_success": [10, 20],
+    "success_delta_pp": -5.0,
+    "paired_bootstrap_ci95_pp": [-15.0, 0.0],
+    "baseline_progress": 0.75,
+    "task_conditioned_rule_progress": 0.7375,
+    "baseline_capped_steps": 217.85,
+    "task_conditioned_rule_capped_steps": 220.15
+  },
+  "supported_findings": [
+    "No tested global camera pose improves average closed-loop task success.",
+    "Viewpoint sensitivity is anisotropic and object/task conditioned.",
+    "A near view accelerates successful yellow-white trajectories but reduces held-out reliability.",
+    "The current static task-conditioned camera rule fails its reliability gate."
+  ],
+  "recommended_next_step": "TRAIN_VIEWPOINT_ROBUSTNESS_WITH_SE3_AUGMENTATION_AND_CAMERA_EXTRINSICS",
+  "artifacts_root": "/share/longjunyu/cabi-vla/camera-viewpoint-study-v1"
+}

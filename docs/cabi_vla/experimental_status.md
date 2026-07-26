@@ -1,7 +1,22 @@
 # CABI-VLA Experimental Status
 
-Status date: 2026-07-23
+Status date: 2026-07-26
 Primary behavioral execution horizon: `K=3`
+
+## Camera viewpoint sensitivity
+
+A fixed-policy camera study now evaluates 132 valid closed-loop episodes across
+ten train states. The canonical `agentview` remains the best global fixed
+camera. On states 0-4 it reaches 15/20 success, versus 6/20 at radius 0.925x
+and 10/20 at radius 1.075x. A frozen task-conditioned near-camera rule then
+reaches 10/20 on held-out states 5-9, versus 11/20 for canonical.
+
+The response is strongly task conditioned: radius 0.925x accelerates successful
+`yellow_white-right` trajectories but loses reliability and harms other edges.
+The decision is `KEEP_CANONICAL_CAMERA`; future work should train viewpoint
+robustness rather than continue inference-time pose search. Full protocol,
+curves, AV1 videos, statistics, and limitations are in
+`camera_viewpoint_sensitivity_study.md`.
 
 ## Current final CAFC gate
 

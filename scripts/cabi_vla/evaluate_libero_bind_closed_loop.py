@@ -6,7 +6,7 @@ import json
 import os
 from multiprocessing.connection import Client
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Callable, Iterable, Mapping, Sequence
 
 import numpy as np
 
@@ -114,9 +114,23 @@ def run_episode(
     max_steps: int,
     seed: int,
     record_frames: bool,
+    environment_setup: Callable[[Any], Mapping[str, Any]] | None = None,
+    episode_setup: (
+        Callable[
+            [Any, Mapping[str, Any]],
+            tuple[Mapping[str, Any], Mapping[str, Any]],
+        ]
+        | None
+    ) = None,
 ) -> tuple[dict[str, Any], np.ndarray | None]:
+    setup_metadata: dict[str, Any] = {}
     env.reset()
+    if environment_setup is not None:
+        setup_metadata.update(environment_setup(env))
     observation = env.set_init_state(np.asarray(initial_state))
+    if episode_setup is not None:
+        observation, observation_metadata = episode_setup(env, observation)
+        setup_metadata.update(observation_metadata)
     for _ in range(8):
         observation, _, _, _ = env.step(np.asarray([0.0] * 6 + [-1.0], np.float32))
     source_object = str(edge["source_object"])
@@ -195,6 +209,7 @@ def run_episode(
         "completion_steps": steps,
         "inference_calls": inference_calls,
         "final_source_target_xy_distance": float(np.linalg.norm(source[:2] - target[:2])),
+        **setup_metadata,
     }
     frame_array = np.asarray(frames) if record_frames else None
     return row, frame_array

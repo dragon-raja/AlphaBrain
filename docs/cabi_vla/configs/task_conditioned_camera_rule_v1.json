@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "protocol": "frozen_task_conditioned_static_camera",
+  "name": "task_conditioned_static_radius_v1",
+  "selection_source": {
+    "evaluation": "/share/longjunyu/cabi-vla/camera-viewpoint-study-v1/bridge_h20_s41_states1to4_observed_k3_confirm_v1/camera_sweep_train.json",
+    "state_indices": [
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "selection_rule": {
+    "baseline_must_have_nonzero_success": true,
+    "candidate_success_must_not_decrease": true,
+    "minimum_successful_step_reduction_fraction": 0.2,
+    "fallback": "baseline"
+  },
+  "default_pose": "baseline",
+  "edge_pose": {
+    "yellow_white-right": "rad_0925"
+  },
+  "frozen_evaluation": {
+    "split": "train",
+    "state_indices": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "execution_horizon": 3,
+    "max_steps": 320
+  }
+}

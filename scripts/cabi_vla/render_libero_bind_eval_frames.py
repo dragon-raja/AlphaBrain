@@ -108,6 +108,11 @@ def render_evaluation(
                     "canonical_state_index": row["canonical_state_index"],
                     "execution_horizon": row["execution_horizon"],
                     "success": row["success"],
+                    **(
+                        {"camera_pose": row["camera_pose"]}
+                        if "camera_pose" in row
+                        else {}
+                    ),
                     "outputs": outputs,
                 }
             )

@@ -1,0 +1,275 @@
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+from typing import Any, Iterable, Mapping
+
+import numpy as np
+
+from collect_libero_bind_teacher import load_state_bank
+from evaluate_libero_bind_closed_loop import (
+    RemotePolicy,
+    parse_state_indices,
+    run_episode,
+)
+from libero_camera_pose import (
+    capture_camera_reference,
+    install_camera_pose,
+    load_camera_sweep_config,
+)
+
+
+def _atomic_write(path: Path, payload: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    os.replace(temporary, path)
+
+
+def _parse_names(
+    value: str,
+    *,
+    available: Iterable[str],
+    kind: str,
+) -> list[str]:
+    available_names = list(available)
+    if value == "all":
+        return available_names
+    names = [part.strip() for part in value.split(",") if part.strip()]
+    if not names or len(names) != len(set(names)):
+        raise ValueError(f"{kind} must be a non-empty unique list")
+    unknown = sorted(set(names) - set(available_names))
+    if unknown:
+        raise KeyError(f"unknown {kind}: {unknown}")
+    return names
+
+
+def make_camera_environment_setup(
+    reference: Mapping[str, Any],
+    pose: Mapping[str, Any],
+):
+    def setup(env: Any) -> Mapping[str, Any]:
+        metadata = install_camera_pose(env, reference, pose)
+        return {"camera_pose": str(pose["name"]), **metadata}
+
+    return setup
+
+
+def make_camera_observation_setup(
+    *,
+    pose_name: str,
+    baseline_images: dict[tuple[str, int, int], tuple[np.ndarray, np.ndarray]],
+    episode_key: tuple[str, int, int],
+):
+    def setup(
+        _env: Any,
+        observation: Mapping[str, Any],
+    ) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
+        agent = np.asarray(observation["agentview_image"])
+        wrist = np.asarray(observation["robot0_eye_in_hand_image"])
+        if pose_name == "baseline":
+            baseline_images[episode_key] = (agent.copy(), wrist.copy())
+        if episode_key not in baseline_images:
+            raise RuntimeError(
+                "baseline pose must run before perturbed poses for camera QC"
+            )
+        canonical_agent, canonical_wrist = baseline_images[episode_key]
+        metadata = {
+            "initial_agent_mae_from_baseline": float(
+                np.mean(
+                    np.abs(agent.astype(np.float64) - canonical_agent.astype(np.float64))
+                )
+            ),
+            "initial_wrist_mae_from_baseline": float(
+                np.mean(
+                    np.abs(wrist.astype(np.float64) - canonical_wrist.astype(np.float64))
+                )
+            ),
+            "initial_agent_sha256": hashlib.sha256(agent.tobytes()).hexdigest(),
+            "initial_wrist_sha256": hashlib.sha256(wrist.tobytes()).hexdigest(),
+        }
+        return observation, metadata
+
+    return setup
+
+
+def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Controlled fixed-policy LIBERO-Bind camera viewpoint evaluation"
+    )
+    parser.add_argument("--suite-root", type=Path, required=True)
+    parser.add_argument("--policy-socket", type=Path, required=True)
+    parser.add_argument("--camera-config", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--split", choices=("train", "val", "test"), default="train")
+    parser.add_argument("--state-indices")
+    parser.add_argument("--edges", default="all")
+    parser.add_argument("--poses", default="all")
+    parser.add_argument("--execution-horizons", type=int, nargs="+", default=[3])
+    parser.add_argument("--max-steps", type=int, default=320)
+    parser.add_argument("--seed", type=int, default=20260722)
+    parser.add_argument("--frame-dir", type=Path)
+    parser.add_argument("--frame-poses", default="baseline")
+    parser.add_argument("--frame-edges", default="all")
+    parser.add_argument("--frame-episodes-per-edge", type=int, default=0)
+    return parser.parse_args(args)
+
+
+def main() -> None:
+    from libero.libero.envs import OffScreenRenderEnv
+
+    args = parse_args()
+    if args.output.exists():
+        raise FileExistsError(f"refusing to overwrite evaluation: {args.output}")
+    if any(value not in (1, 2, 3) for value in args.execution_horizons):
+        raise ValueError("execution horizons must be selected from 1, 2, 3")
+    if args.frame_episodes_per_edge < 0:
+        raise ValueError("frame episodes per edge must be non-negative")
+
+    manifest = json.loads((args.suite_root / "manifest.json").read_text())
+    states = load_state_bank(Path(manifest["canonical_init_states"]))
+    state_indices = parse_state_indices(args.state_indices, manifest, args.split)
+    config = load_camera_sweep_config(args.camera_config)
+    pose_by_name = {str(pose["name"]): pose for pose in config["poses"]}
+    pose_names = _parse_names(
+        args.poses,
+        available=pose_by_name,
+        kind="camera poses",
+    )
+    if "baseline" not in pose_names:
+        raise ValueError("camera sweep must include baseline for paired image QC")
+    pose_names = ["baseline", *[name for name in pose_names if name != "baseline"]]
+    poses = [pose_by_name[name] for name in pose_names]
+
+    edge_by_name = {str(edge["edge_id"]): edge for edge in manifest["edges"]}
+    edge_names = _parse_names(args.edges, available=edge_by_name, kind="edges")
+    edges = [edge_by_name[name] for name in edge_names]
+    frame_poses = set(
+        _parse_names(args.frame_poses, available=pose_by_name, kind="frame poses")
+    )
+    frame_edges = set(
+        _parse_names(args.frame_edges, available=edge_by_name, kind="frame edges")
+    )
+
+    policy = RemotePolicy(args.policy_socket)
+    if max(args.execution_horizons) > policy.horizon:
+        raise ValueError("execution horizon exceeds policy chunk")
+    rows = []
+    baseline_images: dict[tuple[str, int, int], tuple[np.ndarray, np.ndarray]] = {}
+    expected = (
+        len(edges) * len(poses) * len(state_indices) * len(args.execution_horizons)
+    )
+    partial = args.output.with_name(f"{args.output.stem}.partial{args.output.suffix}")
+    try:
+        for edge in edges:
+            env = OffScreenRenderEnv(
+                bddl_file_name=edge["bddl"],
+                camera_heights=224,
+                camera_widths=224,
+                horizon=args.max_steps + 16,
+                ignore_done=True,
+            )
+            try:
+                env.seed(args.seed)
+                # The constructor has already built and forwarded the MuJoCo model.
+                # Avoid an extra reset here so baseline episodes preserve the exact
+                # reset / RNG sequence used by the canonical closed-loop evaluator.
+                reference = capture_camera_reference(
+                    env,
+                    camera_name=config["camera_name"],
+                    table_plane_z=config["table_plane_z"],
+                )
+                for pose in poses:
+                    environment_setup = make_camera_environment_setup(reference, pose)
+                    for execution_horizon in args.execution_horizons:
+                        for state_position, state_index in enumerate(state_indices):
+                            episode_key = (
+                                str(edge["edge_id"]),
+                                int(state_index),
+                                int(execution_horizon),
+                            )
+                            record = (
+                                args.frame_dir is not None
+                                and pose["name"] in frame_poses
+                                and edge["edge_id"] in frame_edges
+                                and state_position < args.frame_episodes_per_edge
+                            )
+                            metrics, frames = run_episode(
+                                env,
+                                policy,
+                                states[state_index],
+                                edge,
+                                execution_horizon=execution_horizon,
+                                max_steps=args.max_steps,
+                                seed=args.seed,
+                                record_frames=record,
+                                environment_setup=environment_setup,
+                                episode_setup=make_camera_observation_setup(
+                                    pose_name=str(pose["name"]),
+                                    baseline_images=baseline_images,
+                                    episode_key=episode_key,
+                                ),
+                            )
+                            row = {
+                                "edge_id": edge["edge_id"],
+                                "source_id": edge["source_id"],
+                                "target_id": edge["target_id"],
+                                "action_supervised": bool(edge["action_supervised"]),
+                                "canonical_state_index": state_index,
+                                "split": args.split,
+                                "execution_horizon": execution_horizon,
+                                **metrics,
+                            }
+                            if frames is not None:
+                                args.frame_dir.mkdir(parents=True, exist_ok=True)
+                                frame_file = (
+                                    f"{pose['name']}--{edge['edge_id']}--"
+                                    f"state-{state_index:02d}--k{execution_horizon}.npz"
+                                )
+                                np.savez_compressed(args.frame_dir / frame_file, frames=frames)
+                                row["frame_file"] = frame_file
+                            rows.append(row)
+                            _atomic_write(
+                                partial,
+                                {
+                                    "status": "partial",
+                                    "expected_episode_count": expected,
+                                    "camera_config": config,
+                                    "policy_identity": policy.identity,
+                                    "rows": rows,
+                                },
+                            )
+                            print(json.dumps(row, sort_keys=True), flush=True)
+            finally:
+                env.close()
+    finally:
+        policy.close()
+
+    payload = {
+        "schema_version": 1,
+        "status": "complete",
+        "study": "libero_bind_external_camera_pose_sweep",
+        "suite": str(args.suite_root),
+        "camera_config_path": str(args.camera_config),
+        "camera_config": config,
+        "split": args.split,
+        "state_indices": state_indices,
+        "edges": edge_names,
+        "poses": pose_names,
+        "execution_horizons": args.execution_horizons,
+        "max_steps": args.max_steps,
+        "seed": args.seed,
+        "expected_episode_count": expected,
+        "policy_identity": policy.identity,
+        "rows": rows,
+    }
+    _atomic_write(args.output, payload)
+    partial.unlink(missing_ok=True)
+    print(json.dumps({"output": str(args.output), "episode_count": len(rows)}))
+
+
+if __name__ == "__main__":
+    main()

@@ -74,8 +74,24 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def configure_torch_threads(torch_module) -> None:
+    intraop = os.environ.get("FRESH_TORCH_NUM_THREADS")
+    interop = os.environ.get("FRESH_TORCH_INTEROP_THREADS")
+    if intraop is not None:
+        value = int(intraop)
+        if value < 1:
+            raise ValueError("FRESH_TORCH_NUM_THREADS must be positive")
+        torch_module.set_num_threads(value)
+    if interop is not None:
+        value = int(interop)
+        if value < 1:
+            raise ValueError("FRESH_TORCH_INTEROP_THREADS must be positive")
+        torch_module.set_num_interop_threads(value)
+
+
 def main() -> None:
     args = parse_args()
+    configure_torch_threads(torch)
     os.environ.setdefault("PRETRAINED_MODELS_DIR", "/share/longjunyu/alphabrain/pretrained_models")
     args.socket.unlink(missing_ok=True)
     model = BaseFramework.from_pretrained(

@@ -1,7 +1,29 @@
 # CABI-VLA Experimental Status
 
-Status date: 2026-07-26
+Status date: 2026-07-27
 Primary behavioral execution horizon: `K=3`
+
+## KYC camera conditioning gate
+
+The topology-level Pi0.5 adaptation of *Do You Know Where Your Camera Is?* is
+complete. Nine fixed-gate evaluations cover 4,680 closed-loop episodes over
+13 camera poses, ten held-out states, and four action-supervised tasks.
+
+On initially fully-supported observations, PoseAug-Control reaches 44.49%
+full-task success and KYC reaches 43.33%. The equal-seed, equal-state difference
+is -1.16 percentage points with crossed 95% CI [-7.03, +4.43]. The three
+fine-tuning-seed differences are -4.30, +1.79, and -0.96 points. Canonical
+success is preserved, but task success, transport, progress, and camera-relative
+degradation show no incremental benefit from measured Plucker rays.
+
+The formal decision is `KYC_NOT_REPRODUCED`. Camera RGB randomization remains
+useful: the seed-41 PoseAug-RGB context reaches 42.03% versus 12.89% for the
+fixed-view Base. The negative decision is limited to incremental camera metadata
+over a matched canonical-ray placebo in this Pi0.5/LIBERO-Bind setting; it is
+not a general refutation of the original RoboSuite/ManiSkill/SmolVLA result.
+Full FOV boundaries, dense curves, crossed statistics, AV1 videos, and
+limitations are in `kyc_camera_conditioning_validation.md` and
+`kyc_camera_study_v1_result.json`.
 
 ## Camera viewpoint sensitivity
 

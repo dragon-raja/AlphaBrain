@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "study": "kyc_camera_conditioning_on_cabi_enabled_pi05_libero_bind",
+  "result_date": "2026-07-27",
+  "decision": "KYC_NOT_REPRODUCED",
+  "interpretation": "Camera-pose RGB augmentation is beneficial, but measured Plucker rays do not add robust closed-loop value over a matched canonical-ray placebo in this fixed Pi0.5/LIBERO-Bind gate.",
+  "scope": {
+    "adaptation": "topology_level_pi05_adaptation",
+    "base_checkpoint_count": 1,
+    "fine_tuning_seeds": [
+      41,
+      42,
+      43
+    ],
+    "rollout_seeds": [
+      20260722
+    ],
+    "held_out_states": [
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49
+    ],
+    "tasks": [
+      "red-left",
+      "red-right",
+      "white-left",
+      "yellow_white-right"
+    ],
+    "camera_poses": 13,
+    "execution_horizon": 3,
+    "maximum_steps": 320,
+    "evaluation_rows_per_model": 520,
+    "evaluated_model_count": 9,
+    "total_gate_episodes": 4680,
+    "fully_supported_episodes_per_method_per_seed": 386
+  },
+  "bootstrap": {
+    "unit": "crossed_training_seed_x_canonical_state",
+    "resamples": 10000,
+    "seed": 20260727
+  },
+  "primary_fully_supported": {
+    "success": {
+      "poseaug_control": 0.44490392648287386,
+      "kyc": 0.4332985240879978,
+      "delta": -0.01160540239487608,
+      "ci95": [
+        -0.0702798663324979,
+        0.044291457811194646
+      ]
+    },
+    "transport_success": {
+      "poseaug_control": 0.592926761347814,
+      "kyc": 0.5764898357003622,
+      "delta": -0.01643692564745196,
+      "ci95": [
+        -0.08920930799220272,
+        0.05655214424951266
+      ]
+    },
+    "progress": {
+      "poseaug_control": 0.7043041631857422,
+      "kyc": 0.69229149262044,
+      "delta": -0.012012670565302147,
+      "ci95": [
+        -0.05485053780284044,
+        0.03447512009189638
+      ]
+    },
+    "capped_completion_steps": {
+      "poseaug_control": 233.74306599832917,
+      "kyc": 234.77823725981622,
+      "delta": 1.0351712614870512,
+      "ci95": [
+        -9.029541388192705,
+        11.83876026872737
+      ],
+      "lower_is_better": true
+    },
+    "success_by_seed": [
+      {
+        "seed": 41,
+        "poseaug_control": 0.47299498746867175,
+        "kyc": 0.4299498746867168,
+        "delta": -0.04304511278195488
+      },
+      {
+        "seed": 42,
+        "poseaug_control": 0.4589181286549707,
+        "kyc": 0.47677527151211363,
+        "delta": 0.01785714285714285
+      },
+      {
+        "seed": 43,
+        "poseaug_control": 0.40279866332497904,
+        "kyc": 0.3931704260651629,
+        "delta": -0.009628237259816198
+      }
+    ]
+  },
+  "canonical": {
+    "poseaug_control_success": 0.4333333333333333,
+    "kyc_success": 0.44999999999999996,
+    "delta": 0.016666666666666666,
+    "ci95": [
+      -0.125,
+      0.18333333333333332
+    ]
+  },
+  "canonical_relative_supported_noncanonical": {
+    "poseaug_control": 0.012896671826625388,
+    "kyc": -0.01874355005159958,
+    "kyc_minus_poseaug_control": -0.031640221878224975,
+    "ci95": [
+      -0.2093184823271414,
+      0.10434202463880286
+    ]
+  },
+  "poseaug_rgb_seed41_context": {
+    "weighting": "equal_canonical_state",
+    "poseaug_rgb": 0.42032163742690065,
+    "kyc": 0.4299498746867168,
+    "delta": 0.009628237259816205,
+    "ci95": [
+      -0.10559784878863825,
+      0.1268389724310777
+    ]
+  },
+  "seed41_context_success": {
+    "base": 0.1288638262322473,
+    "pm_fixed": 0.2903299916457811,
+    "poseaug_rgb": 0.42032163742690054,
+    "poseaug_control": 0.47299498746867163,
+    "kyc": 0.4299498746867168
+  },
+  "fully_supported_axis_success_delta": {
+    "azimuth_deg": -0.0023809523809523725,
+    "elevation_deg": 0.017261904761904756,
+    "radius_scale": -0.07833333333333331
+  },
+  "preregistered_gate": {
+    "passed": false,
+    "criteria": {
+      "supported_effect": false,
+      "canonical_preserved": true,
+      "kyc_seed41_strictly_better_than_poseaug_rgb_seed41": true,
+      "behavioral_success_improved": false
+    },
+    "supported_success_delta_threshold": 0.1,
+    "canonical_regression_floor": -0.05
+  },
+  "fov_audit": {
+    "scene_records": 4680,
+    "object_observations": 9360,
+    "target_visible_with_projection": 4152,
+    "target_fully_occluded_with_projection": 255,
+    "target_geometrically_out_of_view": 273,
+    "target_boundaries": {
+      "azimuth": "no true out-of-sensor event through +/-180 degrees; patch support and occlusion fail first",
+      "elevation": "no true out-of-sensor event from -40 to +50 degrees; center-out and occlusion fail first",
+      "radius_left": "geometrically out of view at or below 0.775x",
+      "radius_right": "geometrically out of view at or below 0.800x"
+    }
+  },
+  "artifacts": {
+    "report": "docs/cabi_vla/kyc_camera_conditioning_validation.md",
+    "preregistration": "docs/cabi_vla/kyc_camera_conditioning_preregistration.md",
+    "raw_gate": "/share/longjunyu/cabi-vla/kyc-camera-eval-v1/gate",
+    "final_cross_seed_summary": "/share/longjunyu/cabi-vla/kyc-camera-eval-v1/analysis/gate_seed_summary_final/summary.json",
+    "fov_analysis": "/share/longjunyu/cabi-vla/camera-viewpoint-study-v2/fov_guard_test40-49_v5_analysis_v3",
+    "control_av1": "/share/longjunyu/cabi-vla/kyc-camera-eval-v1/gate/poseaug_control_s41_gate/videos_av1",
+    "kyc_av1": "/share/longjunyu/cabi-vla/kyc-camera-eval-v1/gate/kyc_s41_gate/videos_av1"
+  },
+  "limitations": [
+    "This is a Pi0.5 topology-level adaptation, not a numerical reproduction of the original SmolVLA, RoboSuite, or ManiSkill experiments.",
+    "Inference is conditional on one base checkpoint, one rollout seed, four tasks, and a frozen camera-pose set.",
+    "Fully supported describes the settled initial observation, not every frame in the rollout.",
+    "No mismatched-ray arm was run, so the comparison does not uniquely identify Plucker geometry over every pose-varying side channel.",
+    "Base and PM-Fixed are contextual arms because their training exposure is not fully matched to the primary pair."
+  ]
+}

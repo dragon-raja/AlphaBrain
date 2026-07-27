@@ -144,13 +144,14 @@ def load_pi0_weights(
         for key, value in openpi_state.items()
     )
     direct_coverage = direct_shape_matches / max(len(model_state), 1)
+    direct_source_coverage = direct_shape_matches / max(len(openpi_state), 1)
     native_prefixes = (
         "flow_matching_head.",
         "vlm_interface.",
         "paligemma_vl_interface.",
     )
     is_alphabrain_checkpoint = (
-        direct_coverage >= 0.95
+        direct_source_coverage >= 0.95
         and any(key.startswith(native_prefixes) for key in openpi_state)
     )
 
@@ -202,7 +203,11 @@ def load_pi0_weights(
     if verbose:
         logger.info(f"Weight loading summary:")
         logger.info(f"  Source format:  {source_format}")
-        logger.info(f"  Direct coverage: {direct_coverage * 100:.1f}%")
+        logger.info(
+            "  Direct coverage: "
+            f"target={direct_coverage * 100:.1f}% "
+            f"source={direct_source_coverage * 100:.1f}%"
+        )
         logger.info(f"  Matched:        {len(matched)}/{len(model_state)}")
         logger.info(f"  Missing:        {len(missing)}")
         logger.info(f"  Unexpected:     {len(unexpected)}")
@@ -224,6 +229,7 @@ def load_pi0_weights(
     return {
         "source_format": source_format,
         "direct_coverage": direct_coverage,
+        "direct_source_coverage": direct_source_coverage,
         "matched": matched,
         "missing": missing,
         "unexpected": unexpected,

@@ -16,6 +16,7 @@ from evaluate_libero_bind_closed_loop import (
     run_episode,
 )
 from libero_camera_pose import (
+    camera_task_visibility,
     capture_camera_reference,
     install_camera_pose,
     load_camera_sweep_config,
@@ -61,11 +62,15 @@ def make_camera_environment_setup(
 def make_camera_observation_setup(
     *,
     pose_name: str,
+    camera_name: str,
+    edge: Mapping[str, Any],
+    resolution: int,
+    minimum_visible_pixels: int,
     baseline_images: dict[tuple[str, int, int], tuple[np.ndarray, np.ndarray]],
     episode_key: tuple[str, int, int],
 ):
     def setup(
-        _env: Any,
+        env: Any,
         observation: Mapping[str, Any],
     ) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
         agent = np.asarray(observation["agentview_image"])
@@ -90,6 +95,16 @@ def make_camera_observation_setup(
             ),
             "initial_agent_sha256": hashlib.sha256(agent.tobytes()).hexdigest(),
             "initial_wrist_sha256": hashlib.sha256(wrist.tobytes()).hexdigest(),
+            **camera_task_visibility(
+                env,
+                observation,
+                camera_name=camera_name,
+                source_object=str(edge["source_object"]),
+                target_object=str(edge["target_object"]),
+                height=resolution,
+                width=resolution,
+                minimum_pixels=minimum_visible_pixels,
+            ),
         }
         return observation, metadata
 
@@ -110,6 +125,8 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--poses", default="all")
     parser.add_argument("--execution-horizons", type=int, nargs="+", default=[3])
     parser.add_argument("--max-steps", type=int, default=320)
+    parser.add_argument("--resolution", type=int, default=224)
+    parser.add_argument("--minimum-visible-pixels", type=int, default=64)
     parser.add_argument("--seed", type=int, default=20260722)
     parser.add_argument("--frame-dir", type=Path)
     parser.add_argument("--frame-poses", default="baseline")
@@ -128,6 +145,10 @@ def main() -> None:
         raise ValueError("execution horizons must be selected from 1, 2, 3")
     if args.frame_episodes_per_edge < 0:
         raise ValueError("frame episodes per edge must be non-negative")
+    if args.resolution <= 0:
+        raise ValueError("resolution must be positive")
+    if args.minimum_visible_pixels <= 0:
+        raise ValueError("minimum-visible-pixels must be positive")
 
     manifest = json.loads((args.suite_root / "manifest.json").read_text())
     states = load_state_bank(Path(manifest["canonical_init_states"]))
@@ -167,8 +188,8 @@ def main() -> None:
         for edge in edges:
             env = OffScreenRenderEnv(
                 bddl_file_name=edge["bddl"],
-                camera_heights=224,
-                camera_widths=224,
+                camera_heights=args.resolution,
+                camera_widths=args.resolution,
                 horizon=args.max_steps + 16,
                 ignore_done=True,
             )
@@ -209,6 +230,10 @@ def main() -> None:
                                 environment_setup=environment_setup,
                                 episode_setup=make_camera_observation_setup(
                                     pose_name=str(pose["name"]),
+                                    camera_name=config["camera_name"],
+                                    edge=edge,
+                                    resolution=args.resolution,
+                                    minimum_visible_pixels=args.minimum_visible_pixels,
                                     baseline_images=baseline_images,
                                     episode_key=episode_key,
                                 ),
@@ -261,6 +286,8 @@ def main() -> None:
         "poses": pose_names,
         "execution_horizons": args.execution_horizons,
         "max_steps": args.max_steps,
+        "resolution": args.resolution,
+        "minimum_visible_pixels": args.minimum_visible_pixels,
         "seed": args.seed,
         "expected_episode_count": expected,
         "policy_identity": policy.identity,

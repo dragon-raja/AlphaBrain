@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "name": "libero_bind_camera_pose_train_random_v1",
+  "camera_name": "agentview",
+  "table_plane_z": 0.48,
+  "design": "fixed_episode_camera_pool_joint_randomization",
+  "purpose": "Shared RGB-only and KYC training distribution with identical actions, images, sample order, and camera poses.",
+  "seed": 20260727,
+  "poses_per_episode": 4,
+  "baseline_probability": 0.1,
+  "ranges": {
+    "azimuth_deg": [-30.0, 30.0],
+    "elevation_deg": [-15.0, 15.0],
+    "radius_scale": [0.95, 1.15]
+  },
+  "fixed_variables": {
+    "wrist_camera": "unchanged",
+    "field_of_view": "unchanged",
+    "resolution": 224,
+    "policy_image_transform": "rot180"
+  }
+}

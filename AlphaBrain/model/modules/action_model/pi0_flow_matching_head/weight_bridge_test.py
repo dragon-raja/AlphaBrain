@@ -29,6 +29,14 @@ class _OpenPiModel(torch.nn.Module):
         self.flow_matching_head.action_in_proj = torch.nn.Linear(3, 2)
 
 
+class _ExtendedNativeModel(_NativeModel):
+    def __init__(self) -> None:
+        super().__init__()
+        self.camera_conditioner = torch.nn.ModuleList(
+            torch.nn.Linear(2, 2) for _ in range(20)
+        )
+
+
 class WeightBridgeTest(unittest.TestCase):
     def test_tied_lm_head_seeds_embedding_aliases(self) -> None:
         weight = torch.randn(5, 3)
@@ -110,6 +118,24 @@ class WeightBridgeTest(unittest.TestCase):
         self.assertEqual(summary["source_format"], "openpi_bridge")
         torch.testing.assert_close(target.flow_matching_head.action_in_proj.weight, weight)
         torch.testing.assert_close(target.flow_matching_head.action_in_proj.bias, bias)
+
+    def test_native_checkpoint_allows_new_target_modules(self) -> None:
+        source = _NativeModel()
+        with torch.no_grad():
+            source.flow_matching_head.weight.fill_(0.375)
+            source.flow_matching_head.bias.fill_(-0.125)
+        target = _ExtendedNativeModel()
+
+        with tempfile.TemporaryDirectory() as temporary:
+            checkpoint = Path(temporary) / "model.safetensors"
+            save_file(dict(source.state_dict()), checkpoint)
+            summary = load_pi0_weights(target, str(checkpoint), verbose=False)
+
+        self.assertLess(summary["direct_coverage"], 0.95)
+        self.assertEqual(summary["direct_source_coverage"], 1.0)
+        self.assertEqual(summary["source_format"], "alphabrain_native")
+        for key, value in source.state_dict().items():
+            torch.testing.assert_close(target.state_dict()[key], value)
 
 
 if __name__ == "__main__":

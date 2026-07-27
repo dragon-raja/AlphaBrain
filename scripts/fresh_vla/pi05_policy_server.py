@@ -24,8 +24,31 @@ def runtime_identity(torch_module, device_index: int = 0) -> dict[str, str | Non
 
 
 def validate_policy_example(example: dict) -> None:
-    if set(example) != {"image", "lang", "language", "state"}:
+    required = {"image", "lang", "language", "state"}
+    optional = {
+        "camera_intrinsics",
+        "camera_to_world_opencv",
+        "camera_intrinsics_by_view",
+        "camera_to_world_opencv_by_view",
+    }
+    missing = required - set(example)
+    unexpected = set(example) - required - optional
+    if missing or unexpected:
         raise ValueError(f"unexpected policy example keys: {sorted(example)}")
+    paired = (
+        ("camera_intrinsics", "camera_to_world_opencv"),
+        ("camera_intrinsics_by_view", "camera_to_world_opencv_by_view"),
+    )
+    for left, right in paired:
+        if (left in example) != (right in example):
+            raise ValueError(f"camera metadata requires both {left} and {right}")
+    if "camera_intrinsics" in example:
+        intrinsics = np.asarray(example["camera_intrinsics"])
+        camera_to_world = np.asarray(example["camera_to_world_opencv"])
+        if intrinsics.shape != (3, 3) or camera_to_world.shape != (4, 4):
+            raise ValueError("invalid single-view camera matrix shapes")
+        if not np.all(np.isfinite(intrinsics)) or not np.all(np.isfinite(camera_to_world)):
+            raise ValueError("camera matrices must be finite")
 
 
 def coupled_flow_noise(

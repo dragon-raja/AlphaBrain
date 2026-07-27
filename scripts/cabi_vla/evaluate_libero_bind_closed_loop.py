@@ -30,8 +30,12 @@ def stable_seed(*parts: object) -> int:
     return int.from_bytes(digest[:4], "little")
 
 
-def policy_example(observation: Mapping[str, Any], language: str) -> dict[str, Any]:
-    return {
+def policy_example(
+    observation: Mapping[str, Any],
+    language: str,
+    metadata: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    example = {
         "image": [
             upright_image(observation["agentview_image"]),
             upright_image(observation["robot0_eye_in_hand_image"]),
@@ -40,6 +44,9 @@ def policy_example(observation: Mapping[str, Any], language: str) -> dict[str, A
         "language": language,
         "state": robot_state(observation),
     }
+    if metadata is not None:
+        example.update(metadata)
+    return example
 
 
 class RemotePolicy:
@@ -59,12 +66,13 @@ class RemotePolicy:
         language: str,
         *,
         seed: int,
+        metadata: Mapping[str, Any] | None = None,
     ) -> np.ndarray:
         self.connection.send(
             {
                 "op": "predict",
                 "seed": int(seed),
-                "example": policy_example(observation, language),
+                "example": policy_example(observation, language, metadata),
             }
         )
         response = self.connection.recv()
@@ -128,11 +136,21 @@ def run_episode(
     if environment_setup is not None:
         setup_metadata.update(environment_setup(env))
     observation = env.set_init_state(np.asarray(initial_state))
+    for _ in range(8):
+        observation, _, _, _ = env.step(np.asarray([0.0] * 6 + [-1.0], np.float32))
     if episode_setup is not None:
         observation, observation_metadata = episode_setup(env, observation)
         setup_metadata.update(observation_metadata)
-    for _ in range(8):
-        observation, _, _, _ = env.step(np.asarray([0.0] * 6 + [-1.0], np.float32))
+    camera_policy_metadata = {
+        key: setup_metadata[key]
+        for key in (
+            "camera_intrinsics",
+            "camera_to_world_opencv",
+            "camera_intrinsics_by_view",
+            "camera_to_world_opencv_by_view",
+        )
+        if key in setup_metadata
+    }
     source_object = str(edge["source_object"])
     target_object = str(edge["target_object"])
     initial_source_z = float(observation[f"{source_object}_pos"][2])
@@ -160,6 +178,7 @@ def run_episode(
             observation,
             str(edge["language_instruction"]),
             seed=stable_seed(seed, edge["edge_id"], execution_horizon, inference_calls),
+            metadata=camera_policy_metadata or None,
         )
         inference_calls += 1
         for action in chunk[:execution_horizon]:

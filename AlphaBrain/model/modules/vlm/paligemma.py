@@ -57,9 +57,15 @@ class PaliGemmaVLM(nn.Module):
 
     def get_image_features(self, pixel_values):
         """SigLIP vision encoding → projected to language dim."""
-        vision_outputs = self.vision_tower(pixel_values=pixel_values)
-        image_features = vision_outputs.last_hidden_state
-        return self.multi_modal_projector(image_features)
+        return self.project_vision_features(self.get_vision_features(pixel_values))
+
+    def get_vision_features(self, pixel_values):
+        """Return SigLIP tokens before the multimodal projector."""
+        return self.vision_tower(pixel_values=pixel_values).last_hidden_state
+
+    def project_vision_features(self, vision_features):
+        """Project SigLIP tokens into the Gemma hidden space."""
+        return self.multi_modal_projector(vision_features)
 
 
 class _PaliGemma_VL_Interface(nn.Module):
@@ -112,11 +118,18 @@ class _PaliGemma_VL_Interface(nn.Module):
         image_masks: List[torch.Tensor],
         lang_tokens: torch.Tensor,
         lang_masks: torch.Tensor,
+        image_embeddings: Optional[List[torch.Tensor]] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         embs, pad_masks, att_mask_list = [], [], []
 
-        for img, img_mask in zip(images, image_masks):
-            img_emb = self.embed_image(img)
+        if image_embeddings is not None and len(image_embeddings) != len(images):
+            raise ValueError("image_embeddings must align with images")
+        for image_index, (img, img_mask) in enumerate(zip(images, image_masks)):
+            img_emb = (
+                self.embed_image(img)
+                if image_embeddings is None
+                else image_embeddings[image_index]
+            )
             bsize, num_img_embs = img_emb.shape[:2]
             embs.append(img_emb)
             pad_masks.append(img_mask[:, None].expand(bsize, num_img_embs))

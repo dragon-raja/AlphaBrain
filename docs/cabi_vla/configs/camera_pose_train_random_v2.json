@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "name": "libero_bind_camera_pose_train_random_v2",
+  "camera_name": "agentview",
+  "table_plane_z": 0.48,
+  "design": "fixed_episode_camera_pool_joint_randomization",
+  "purpose": "Broader KYC training distribution shared exactly by the pose-augmentation control and matched-ray arm.",
+  "seed": 20260727,
+  "poses_per_episode": 6,
+  "baseline_probability": 0.05,
+  "ranges": {
+    "azimuth_deg": [-60.0, 60.0],
+    "elevation_deg": [-25.0, 25.0],
+    "radius_scale": [0.9, 1.25]
+  },
+  "fixed_variables": {
+    "wrist_camera": "unchanged",
+    "field_of_view": "unchanged",
+    "resolution": 224,
+    "policy_image_transform": "rot180",
+    "raymap_transform": "mujoco_upright"
+  }
+}

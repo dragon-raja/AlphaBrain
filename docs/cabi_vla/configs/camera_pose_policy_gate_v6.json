@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "name": "libero_bind_camera_pose_policy_gate_v6",
+  "camera_name": "agentview",
+  "table_plane_z": 0.48,
+  "design": "one_factor_train_edge_and_fov_boundary_gate",
+  "purpose": "Compare camera-conditioned policies at the randomization support edge and at visibility-critical out-of-support poses.",
+  "fixed_variables": {
+    "wrist_camera": "unchanged",
+    "field_of_view": "unchanged",
+    "execution_horizon": 3,
+    "max_steps": 320,
+    "resolution": 224,
+    "minimum_visible_pixels": 64
+  },
+  "one_factor_axes": [
+    {
+      "parameter": "azimuth_deg",
+      "values": [-90.0, -60.0, 0.0, 60.0, 90.0]
+    },
+    {
+      "parameter": "elevation_deg",
+      "values": [-32.0, -25.0, 0.0, 25.0, 32.0]
+    },
+    {
+      "parameter": "radius_scale",
+      "values": [0.75, 0.9, 1.0, 1.25, 1.4]
+    }
+  ]
+}

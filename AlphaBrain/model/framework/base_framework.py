@@ -31,6 +31,27 @@ from AlphaBrain.model.framework.__init__ import build_framework
 
 logger = initialize_overwatch(__name__)
 
+_CRITICAL_CHECKPOINT_PREFIXES = (
+    "camera_conditioner.",
+    "flow_matching_head.",
+    "vlm_interface.model.multi_modal_projector.",
+)
+
+
+def _critical_state_dict_mismatches(
+    missing_keys,
+    unexpected_keys,
+) -> tuple[list[str], list[str]]:
+    """Return mismatches that must never be silently randomized or discarded."""
+
+    def critical(key: str) -> bool:
+        return any(key.startswith(prefix) for prefix in _CRITICAL_CHECKPOINT_PREFIXES)
+
+    return (
+        sorted(key for key in missing_keys if critical(key)),
+        sorted(key for key in unexpected_keys if critical(key)),
+    )
+
 
 # PreTrainedModel, AutoModel, PretrainedConfig,  are so good, find sometime to study them
 # TODO: find sometime to merge yaml config with transformer config
@@ -191,10 +212,22 @@ class BaseFramework(PreTrainedModel):
                 common_keys = model_keys.intersection(checkpoint_keys)
                 missing_keys = model_keys - common_keys
                 unexpected_keys = checkpoint_keys - common_keys
+                critical_missing, critical_unexpected = (
+                    _critical_state_dict_mismatches(
+                        missing_keys,
+                        unexpected_keys,
+                    )
+                )
                 if missing_keys:
                     logger.warning(f"Missing keys in state_dict ({len(missing_keys)}): {missing_keys}")
                 if unexpected_keys:
                     logger.warning(f"Unexpected keys in state_dict ({len(unexpected_keys)}): {unexpected_keys}")
+                if critical_missing or critical_unexpected:
+                    raise RuntimeError(
+                        "checkpoint has critical state-dict mismatches: "
+                        f"missing={critical_missing}, "
+                        f"unexpected={critical_unexpected}"
+                    ) from e
                 # Fall back to non-strict loading for cross-framework weight loading (e.g. openpi → AlphaBrain)
                 logger.warning(f"Strict loading failed, falling back to non-strict (missing={len(missing_keys)}, unexpected={len(unexpected_keys)})")
                 FrameworkModel.load_state_dict(model_state_dict, strict=False)

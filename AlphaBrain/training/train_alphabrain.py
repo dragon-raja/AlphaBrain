@@ -689,14 +689,28 @@ class VLATrainer(TrainerUtils):
                 os.makedirs(qwen_pretrained_dir, exist_ok=True)
                 self.model.llama_vl_interface.model.config.save_pretrained(qwen_pretrained_dir)
                 self.model.llama_vl_interface.processor.save_pretrained(qwen_pretrained_dir)
-            elif hasattr(self.model, 'paligemma_vl_interface'):
-                qwen_pretrained_dir = os.path.join(checkpoint_dir_path, "qwen_pretrained")
-                os.makedirs(qwen_pretrained_dir, exist_ok=True)
-                self.model.paligemma_vl_interface.model.config.save_pretrained(qwen_pretrained_dir)
-                self.model.paligemma_vl_interface.processor.save_pretrained(qwen_pretrained_dir)
-            elif getattr(self.config.framework, 'name', '') in ('CosmosPolicy',):
-                # CosmosPolicy: 保存config.json和t5_embeddings
-                self._save_cosmos_policy_extras(checkpoint_dir_path)
+            else:
+                model_for_assets = self.accelerator.unwrap_model(self.model)
+                if (
+                    hasattr(self.config.framework, "paligemma")
+                    and hasattr(model_for_assets, "vlm_interface")
+                    and getattr(model_for_assets, "_hf_tokenizer", None) is not None
+                ):
+                    paligemma_pretrained_dir = os.path.join(
+                        checkpoint_dir_path,
+                        "vlm_pretrained",
+                    )
+                    os.makedirs(paligemma_pretrained_dir, exist_ok=True)
+                    model_for_assets._hf_tokenizer.save_pretrained(
+                        paligemma_pretrained_dir
+                    )
+                    logger.info(
+                        "Saved PaliGemma tokenizer assets to "
+                        f"{paligemma_pretrained_dir}"
+                    )
+                elif getattr(self.config.framework, 'name', '') in ('CosmosPolicy',):
+                    # CosmosPolicy: 保存config.json和t5_embeddings
+                    self._save_cosmos_policy_extras(checkpoint_dir_path)
 
             # lpt0309: 保存training metadata
             summary_data = {
@@ -1137,11 +1151,6 @@ class VLATrainer(TrainerUtils):
                 self.model.qwen_vl_interface.processor.save_pretrained(qwen_pretrained_dir)
                 logger.info(f"[lpt0309] Saved Qwen config + processor to {qwen_pretrained_dir}")
 
-            elif getattr(self.config.framework, 'name', '') in ('CosmosPolicy',):
-                # CosmosPolicy: 保存config.json和t5_embeddings
-                self._save_cosmos_policy_extras(final_checkpoint)
-
-
             elif hasattr(self.model, 'llama_vl_interface'):
                 llama_pretrained_dir = os.path.join(final_checkpoint, "qwen_pretrained")
                 os.makedirs(llama_pretrained_dir, exist_ok=True)
@@ -1149,12 +1158,28 @@ class VLATrainer(TrainerUtils):
                 self.model.llama_vl_interface.processor.save_pretrained(llama_pretrained_dir)
                 logger.info(f"[lpt0319] Saved Llama config + processor to {llama_pretrained_dir}")
 
-            elif hasattr(self.model, 'paligemma_vl_interface'):
-                paligemma_pretrained_dir = os.path.join(final_checkpoint, "qwen_pretrained")
-                os.makedirs(paligemma_pretrained_dir, exist_ok=True)
-                self.model.paligemma_vl_interface.model.config.save_pretrained(paligemma_pretrained_dir)
-                self.model.paligemma_vl_interface.processor.save_pretrained(paligemma_pretrained_dir)
-                logger.info(f"Saved PaliGemma config + processor to {paligemma_pretrained_dir}")
+            else:
+                model_for_assets = self.accelerator.unwrap_model(self.model)
+                if (
+                    hasattr(self.config.framework, "paligemma")
+                    and hasattr(model_for_assets, "vlm_interface")
+                    and getattr(model_for_assets, "_hf_tokenizer", None) is not None
+                ):
+                    paligemma_pretrained_dir = os.path.join(
+                        final_checkpoint,
+                        "vlm_pretrained",
+                    )
+                    os.makedirs(paligemma_pretrained_dir, exist_ok=True)
+                    model_for_assets._hf_tokenizer.save_pretrained(
+                        paligemma_pretrained_dir
+                    )
+                    logger.info(
+                        "Saved PaliGemma tokenizer assets to "
+                        f"{paligemma_pretrained_dir}"
+                    )
+                elif getattr(self.config.framework, 'name', '') in ('CosmosPolicy',):
+                    # CosmosPolicy: 保存config.json和t5_embeddings
+                    self._save_cosmos_policy_extras(final_checkpoint)
 
             logger.info(f"[lpt0309] Training complete. Self-contained final model saved at {final_checkpoint}")
 

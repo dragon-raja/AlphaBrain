@@ -133,9 +133,18 @@ class Pi0DataTransform:
             "sample_id",
             "edge_id",
             "canonical_state_index",
+            "camera_pose",
         ):
             if key in sample:
                 result[key] = sample[key]
+        for key in (
+            "camera_intrinsics",
+            "camera_to_world_opencv",
+            "camera_intrinsics_by_view",
+            "camera_to_world_opencv_by_view",
+        ):
+            if key in sample:
+                result[key] = np.asarray(sample[key], dtype=np.float32)
         
         return result
 
@@ -329,6 +338,99 @@ class LiberoBindTrainingDataset:
         self._anchors = None
         self._episode_path = None
         self._episode = None
+        self._camera_view_path = None
+        self._camera_view = None
+        self.camera_training_view = self.manifest.get("camera_training_view")
+        if self.camera_training_view is not None:
+            self._validate_camera_training_records()
+
+    def _validate_camera_training_records(self) -> None:
+        """Fail before training if randomized images and calibration disagree."""
+
+        rows_by_shard: dict[str, list[Mapping[str, Any]]] = {}
+        for index, row in enumerate(self.records):
+            required = {
+                "camera_view_file",
+                "camera_view_index",
+                "camera_intrinsics",
+                "camera_to_world_opencv",
+            }
+            missing = sorted(required - set(row))
+            if missing:
+                raise ValueError(
+                    f"camera training record {index} is missing fields: {missing}"
+                )
+            intrinsics = np.asarray(row["camera_intrinsics"], dtype=np.float64)
+            camera_to_world = np.asarray(
+                row["camera_to_world_opencv"],
+                dtype=np.float64,
+            )
+            if (
+                intrinsics.shape != (3, 3)
+                or camera_to_world.shape != (4, 4)
+                or not np.all(np.isfinite(intrinsics))
+                or not np.all(np.isfinite(camera_to_world))
+            ):
+                raise ValueError(
+                    f"camera training record {index} has invalid calibration"
+                )
+            rotation = camera_to_world[:3, :3]
+            if (
+                not np.allclose(rotation.T @ rotation, np.eye(3), atol=1e-5)
+                or not np.isclose(np.linalg.det(rotation), 1.0, atol=1e-5)
+                or not np.allclose(
+                    camera_to_world[3],
+                    [0.0, 0.0, 0.0, 1.0],
+                )
+            ):
+                raise ValueError(
+                    f"camera training record {index} has an invalid rigid transform"
+                )
+            relative = Path(str(row["camera_view_file"]))
+            if relative.is_absolute() or ".." in relative.parts:
+                raise ValueError(
+                    f"camera training record {index} has an unsafe shard path"
+                )
+            rows_by_shard.setdefault(str(relative), []).append(row)
+
+        for relative, rows in sorted(rows_by_shard.items()):
+            path = self.root / relative
+            if not path.is_file():
+                raise FileNotFoundError(f"missing camera training shard: {path}")
+            with np.load(path, allow_pickle=False) as archive:
+                required_arrays = {"agentview", "wrist", "robot_state"}
+                if set(archive.files) != required_arrays:
+                    raise ValueError(
+                        f"camera training shard {path} has unexpected arrays: "
+                        f"{sorted(archive.files)}"
+                    )
+                agentview = archive["agentview"]
+                wrist = archive["wrist"]
+                robot_state = archive["robot_state"]
+                count = len(agentview)
+                if (
+                    agentview.shape != (count, 224, 224, 3)
+                    or wrist.shape != (count, 224, 224, 3)
+                    or robot_state.shape != (count, 8)
+                    or agentview.dtype != np.uint8
+                    or wrist.dtype != np.uint8
+                    or not np.all(np.isfinite(robot_state))
+                ):
+                    raise ValueError(
+                        f"camera training shard {path} has invalid array schema"
+                    )
+                for row in rows:
+                    camera_index = int(row["camera_view_index"])
+                    if not 0 <= camera_index < count:
+                        raise IndexError(
+                            f"camera index {camera_index} is outside "
+                            f"{path} length {count}"
+                        )
+        logger.info(
+            "Validated %d randomized-camera records across %d shards",
+            len(self.records),
+            len(rows_by_shard),
+        )
 
     @staticmethod
     def _anchor_key(
@@ -349,6 +451,27 @@ class LiberoBindTrainingDataset:
             self._episode_path = path
         return self._episode
 
+    def _load_camera_view(self, relative_path: str) -> dict[str, np.ndarray]:
+        path = self.root / relative_path
+        if path != self._camera_view_path:
+            if self._camera_view is not None:
+                self._camera_view.close()
+            self._camera_view = np.load(path, allow_pickle=False)
+            self._camera_view_path = path
+        return self._camera_view
+
+    @staticmethod
+    def _camera_metadata(row: Mapping[str, Any]) -> dict[str, Any]:
+        keys = (
+            "camera_pose",
+            "camera_intrinsics",
+            "camera_to_world_opencv",
+            "camera_azimuth_deg",
+            "camera_elevation_deg",
+            "camera_radius_scale",
+        )
+        return {key: row[key] for key in keys if key in row}
+
     def _action_chunk(self, actions: np.ndarray, start: int) -> np.ndarray:
         chunk = np.asarray(actions[start : start + self.action_horizon], dtype=np.float32)
         if len(chunk) < self.action_horizon:
@@ -366,15 +489,28 @@ class LiberoBindTrainingDataset:
     def _action_example(self, row: Mapping[str, Any]) -> dict:
         episode = self._load_episode(row["episode_file"])
         frame = int(row["frame_index"])
+        agentview = np.asarray(episode["agentview"][frame])
+        wrist = np.asarray(episode["wrist"][frame])
+        state = np.asarray(episode["robot_state"][frame], dtype=np.float32)
+        if "camera_view_file" in row:
+            camera_view = self._load_camera_view(str(row["camera_view_file"]))
+            camera_index = int(row["camera_view_index"])
+            agentview = np.asarray(camera_view["agentview"][camera_index])
+            wrist = np.asarray(camera_view["wrist"][camera_index])
+            state = np.asarray(
+                camera_view["robot_state"][camera_index],
+                dtype=np.float32,
+            )
         return {
-            "image": [np.asarray(episode["agentview"][frame]), np.asarray(episode["wrist"][frame])],
+            "image": [agentview, wrist],
             "lang": row["language_instruction"],
             "action": self._action_chunk(episode["actions"], frame),
-            "state": np.asarray(episode["robot_state"][frame], dtype=np.float32),
+            "state": state,
             "action_supervised": True,
             "sample_id": row["sample_id"],
             "edge_id": row["edge_id"],
             "canonical_state_index": int(row["canonical_state_index"]),
+            **self._camera_metadata(row),
         }
 
     def _anchor_example(
@@ -405,7 +541,7 @@ class LiberoBindTrainingDataset:
             if supervised
             else np.zeros((self.action_horizon, self.action_dim), dtype=np.float32)
         )
-        return {
+        example = {
             "image": [np.asarray(field("agentview")), np.asarray(field("wrist"))],
             "lang": self.edge_instructions[instruction_edge],
             "action": action,
@@ -427,6 +563,21 @@ class LiberoBindTrainingDataset:
                 else {}
             ),
         }
+        if self.camera_training_view is not None:
+            baseline = self.camera_training_view["baseline_camera"]
+            example.update(
+                {
+                    "camera_pose": "baseline",
+                    "camera_intrinsics": baseline["camera_intrinsics"],
+                    "camera_to_world_opencv": baseline[
+                        "camera_to_world_opencv"
+                    ],
+                    "camera_azimuth_deg": 0.0,
+                    "camera_elevation_deg": 0.0,
+                    "camera_radius_scale": 1.0,
+                }
+            )
+        return example
 
     def __len__(self) -> int:
         return len(self.records)

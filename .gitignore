@@ -251,6 +251,7 @@ test_data.py
 !configs/experiments/
 configs/experiments/*
 !configs/experiments/cabi_vla_libero_bind.yaml
+!configs/experiments/kyc_libero_bind.yaml
 !tests/
 tests/*
 !tests/model/

@@ -21,8 +21,10 @@ Training: flow matching loss (MSE between predicted and target velocity fields)
 Inference: iterative denoising from Gaussian noise (default 10 steps)
 """
 
-from typing import List, Optional, Tuple
 import logging
+import math
+from typing import List, Optional, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -130,6 +132,105 @@ class PaliGemmaPi(BaseFramework):
             logger.info(f"[prefix_proj] Added projection: VLM hidden={vlm_hidden_size} → expert_width={expert_width}")
         else:
             self.prefix_proj = None
+
+        # KYC-style camera conditioning. The external camera's Plucker ray map
+        # is encoded independently and late-fused with its SigLIP patch tokens.
+        camera_cfg = getattr(config.framework, "camera_conditioning", None)
+        self.camera_conditioning_enabled = bool(
+            camera_cfg is not None and getattr(camera_cfg, "enabled", False)
+        )
+        self.camera_conditioned_view_indices = tuple(
+            int(value)
+            for value in (
+                getattr(camera_cfg, "conditioned_view_indices", [0])
+                if camera_cfg is not None
+                else []
+            )
+        )
+        self.camera_image_transform = str(
+            getattr(camera_cfg, "image_transform", "none")
+            if camera_cfg is not None
+            else "none"
+        )
+        self.camera_conditioning_mode = str(
+            getattr(camera_cfg, "mode", "real")
+            if camera_cfg is not None
+            else "real"
+        )
+        self.camera_joint_crop_min_scale = float(
+            getattr(camera_cfg, "joint_crop_min_scale", 1.0)
+            if camera_cfg is not None
+            else 1.0
+        )
+        self.camera_canonical_intrinsics = (
+            getattr(camera_cfg, "canonical_intrinsics", None)
+            if camera_cfg is not None
+            else None
+        )
+        self.camera_canonical_to_world = (
+            getattr(camera_cfg, "canonical_camera_to_world_opencv", None)
+            if camera_cfg is not None
+            else None
+        )
+        self.camera_conditioner = None
+        if self.camera_conditioning_enabled:
+            if vlm_type != "paligemma":
+                raise ValueError("KYC camera conditioning currently requires PaliGemma")
+            if not self.camera_conditioned_view_indices:
+                raise ValueError("conditioned_view_indices cannot be empty")
+            if len(set(self.camera_conditioned_view_indices)) != len(
+                self.camera_conditioned_view_indices
+            ):
+                raise ValueError("conditioned_view_indices must be unique")
+            if any(value < 0 for value in self.camera_conditioned_view_indices):
+                raise ValueError("conditioned_view_indices must be non-negative")
+            if self.camera_image_transform not in {
+                "none",
+                "rot180",
+                "mujoco_upright",
+            }:
+                raise ValueError(
+                    "camera image_transform must be none, rot180, or "
+                    "mujoco_upright"
+                )
+            if self.camera_conditioning_mode not in {"real", "canonical"}:
+                raise ValueError("camera conditioning mode must be real or canonical")
+            if not 0.0 < self.camera_joint_crop_min_scale <= 1.0:
+                raise ValueError("joint_crop_min_scale must be in (0, 1]")
+            if self.camera_conditioning_mode == "canonical":
+                if (
+                    self.camera_canonical_intrinsics is None
+                    or self.camera_canonical_to_world is None
+                ):
+                    raise ValueError(
+                        "canonical camera mode requires canonical calibration"
+                    )
+            from AlphaBrain.model.modules.vlm.camera_conditioning import (
+                PluckerLateFusion,
+            )
+
+            encoder_channels = tuple(
+                int(value)
+                for value in getattr(
+                    camera_cfg,
+                    "encoder_channels",
+                    [64, 128, 256, 512, 512],
+                )
+            )
+            vision_hidden_dim = int(
+                self.vlm_interface.model.vision_tower.config.hidden_size
+            )
+            self.camera_conditioner = PluckerLateFusion(
+                rgb_hidden_dim=vision_hidden_dim,
+                encoder_channels=encoder_channels,
+            )
+            logger.info(
+                "[KYC] Plucker late fusion enabled for views=%s, "
+                "image_transform=%s, mode=%s",
+                self.camera_conditioned_view_indices,
+                self.camera_image_transform,
+                self.camera_conditioning_mode,
+            )
 
         # CABI is a training-time causal binding objective with ordinary
         # single-pass inference. V0 is intentionally restricted to PaliGemma,
@@ -320,10 +421,16 @@ class PaliGemmaPi(BaseFramework):
         _local_tok = os.environ.get("PALIGEMMA_TOKENIZER_PATH")
         _pretrained_dir = os.environ.get("PRETRAINED_MODELS_DIR", "data/pretrained_models")
         _local_pg = os.path.join(_pretrained_dir, "paligemma-3b-pt-224")
-        tokenizer_dirs = ([_local_tok] if _local_tok else []) + [
-            _local_pg,
-            "google/paligemma-3b-pt-224",
-        ]
+        configured_pg = None
+        paligemma_cfg = getattr(self.config.framework, "paligemma", None)
+        if paligemma_cfg is not None:
+            configured_pg = getattr(paligemma_cfg, "base_vlm", None)
+        candidates = (
+            ([_local_tok] if _local_tok else [])
+            + ([configured_pg] if configured_pg else [])
+            + [_local_pg, "google/paligemma-3b-pt-224"]
+        )
+        tokenizer_dirs = list(dict.fromkeys(candidates))
         for td in tokenizer_dirs:
             try:
                 from transformers import AutoTokenizer
@@ -698,22 +805,58 @@ class PaliGemmaPi(BaseFramework):
             return img
 
         all_view_tensors = []  # list of [num_views, 3, 224, 224] per sample
+        all_crop_boxes = []
         for ex in examples:
             img = ex["image"]
             if isinstance(img, (list, tuple)):
                 views = [_process_single_img(v) for v in img]
             else:
                 views = [_process_single_img(img)]
+            crop_boxes = []
+            cropped_views = []
+            for view in views:
+                if self.training and self.camera_joint_crop_min_scale < 1.0:
+                    minimum_side = int(
+                        math.ceil(224 * self.camera_joint_crop_min_scale)
+                    )
+                    side = int(
+                        torch.randint(
+                            minimum_side,
+                            225,
+                            (1,),
+                        ).item()
+                    )
+                    top = int(torch.randint(0, 225 - side, (1,)).item())
+                    left = int(torch.randint(0, 225 - side, (1,)).item())
+                    view = TF.resized_crop(
+                        view,
+                        top,
+                        left,
+                        side,
+                        side,
+                        [224, 224],
+                        antialias=True,
+                    )
+                    crop_boxes.append((top, left, side, side))
+                else:
+                    crop_boxes.append((0, 0, 224, 224))
+                cropped_views.append(view)
+            views = cropped_views
 
-            # Pad to cfg_num_images with zero images if configured
+            # Match the configured image slots exactly.
             # Note: zero uint8 image [0,0,0] after normalize (x/255 - 0.5)/0.5 = -1.0
             # So padding images should be all -1.0 to match openpi's np.zeros_like behavior
-            if cfg_num_images is not None and len(views) < cfg_num_images:
-                pad_img = torch.full((3, 224, 224), -1.0, dtype=views[0].dtype)
-                while len(views) < cfg_num_images:
-                    views.append(pad_img)
+            if cfg_num_images is not None:
+                views = views[:cfg_num_images]
+                crop_boxes = crop_boxes[:cfg_num_images]
+                if len(views) < cfg_num_images:
+                    pad_img = torch.full((3, 224, 224), -1.0, dtype=views[0].dtype)
+                    while len(views) < cfg_num_images:
+                        views.append(pad_img)
+                        crop_boxes.append((0, 0, 224, 224))
 
             all_view_tensors.append(torch.stack(views))  # [V, 3, 224, 224]
+            all_crop_boxes.append(crop_boxes)
 
         num_views = all_view_tensors[0].shape[0]
         # Stack all views across batch: [B, V, 3, 224, 224]
@@ -804,15 +947,149 @@ class PaliGemmaPi(BaseFramework):
         # Encode prefix through VLM (multi-view: pass each view separately)
         view_tensors = pixel_values  # [B, V, 3, 224, 224]
         images_list = [view_tensors[:, v] for v in range(num_views)]  # list of [B, 3, 224, 224]
+        image_embeddings = None
+        if self.camera_conditioning_enabled:
+            image_embeddings = []
+            for view_index, image_tensor in enumerate(images_list):
+                vision_features = (
+                    self.vlm_interface.model.get_vision_features(image_tensor)
+                )
+                if view_index in self.camera_conditioned_view_indices:
+                    vision_features = self._apply_camera_conditioning(
+                        vision_features,
+                        examples,
+                        view_index=view_index,
+                        height=image_tensor.shape[-2],
+                        width=image_tensor.shape[-1],
+                        crop_boxes=[
+                            boxes[view_index] for boxes in all_crop_boxes
+                        ],
+                    )
+                image_embeddings.append(
+                    self.vlm_interface.model.project_vision_features(
+                        vision_features
+                    )
+                )
 
         prefix_embs, prefix_pad_masks, prefix_att_masks = self.vlm_interface.encode_prefix(
             images=images_list,
             image_masks=masks_list,
             lang_tokens=token_ids,
             lang_masks=token_masks,
+            image_embeddings=image_embeddings,
         )
 
         return prefix_embs, prefix_pad_masks, prefix_att_masks
+
+    @staticmethod
+    def _camera_matrix_for_view(example, key: str, view_index: int):
+        by_view_key = f"{key}_by_view"
+        if by_view_key in example:
+            values = example[by_view_key]
+            if view_index >= len(values):
+                raise ValueError(
+                    f"{by_view_key} does not contain view index {view_index}"
+                )
+            return values[view_index]
+        if view_index == 0 and key in example:
+            return example[key]
+        raise KeyError(f"missing {key} for conditioned view {view_index}")
+
+    def _apply_camera_conditioning(
+        self,
+        image_embeddings: torch.Tensor,
+        examples,
+        *,
+        view_index: int,
+        height: int,
+        width: int,
+        crop_boxes,
+    ) -> torch.Tensor:
+        from AlphaBrain.model.modules.vlm.camera_conditioning import (
+            plucker_raymap,
+            transform_raymap,
+        )
+
+        if self.camera_conditioning_mode == "canonical":
+            intrinsics = np.repeat(
+                np.asarray(
+                    self.camera_canonical_intrinsics,
+                    dtype=np.float32,
+                )[None],
+                len(examples),
+                axis=0,
+            )
+            camera_to_world = np.repeat(
+                np.asarray(
+                    self.camera_canonical_to_world,
+                    dtype=np.float32,
+                )[None],
+                len(examples),
+                axis=0,
+            )
+        else:
+            intrinsics = np.stack(
+                [
+                    np.asarray(
+                        self._camera_matrix_for_view(
+                            example,
+                            "camera_intrinsics",
+                            view_index,
+                        ),
+                        dtype=np.float32,
+                    )
+                    for example in examples
+                ]
+            )
+            camera_to_world = np.stack(
+                [
+                    np.asarray(
+                        self._camera_matrix_for_view(
+                            example,
+                            "camera_to_world_opencv",
+                            view_index,
+                        ),
+                        dtype=np.float32,
+                    )
+                    for example in examples
+                ]
+            )
+        device = image_embeddings.device
+        raymap = plucker_raymap(
+            torch.as_tensor(intrinsics, device=device, dtype=torch.float32),
+            torch.as_tensor(camera_to_world, device=device, dtype=torch.float32),
+            height=height,
+            width=width,
+        )
+        raymap = transform_raymap(
+            raymap,
+            image_transform=self.camera_image_transform,
+        )
+        full_box = (0, 0, height, width)
+        if any(tuple(box) != full_box for box in crop_boxes):
+            cropped_raymaps = []
+            for sample_index, box in enumerate(crop_boxes):
+                top, left, crop_height, crop_width = map(int, box)
+                cropped = raymap[
+                    sample_index : sample_index + 1,
+                    :,
+                    top : top + crop_height,
+                    left : left + crop_width,
+                ]
+                cropped_raymaps.append(
+                    F.interpolate(
+                        cropped,
+                        size=(height, width),
+                        mode="bilinear",
+                        align_corners=False,
+                    )
+                )
+            raymap = torch.cat(cropped_raymaps, dim=0)
+        conditioner_dtype = next(self.camera_conditioner.parameters()).dtype
+        return self.camera_conditioner(
+            image_embeddings,
+            raymap.to(dtype=conditioner_dtype),
+        )
 
     def _prepare_prefix_generic(self, examples):
         """
@@ -1102,96 +1379,21 @@ class PaliGemmaPi(BaseFramework):
             actions_np = actions.cpu().float().numpy()
             return {"normalized_actions": actions_np.tolist()}
 
-        # Traditional PaliGemma inference path below
-        # Bypass _prepare_prefix — use openpi-style embed_prefix directly
-        # Inline PaligemmaTokenizer logic (matches openpi's PaligemmaTokenizer)
-        # to avoid importing openpi which pulls in jax as a top-level dependency.
-        import torchvision.transforms.functional as TF
-        import numpy as np_
-        import math as _math
-
-        # Ensure tokenizer is initialized (reuse existing _init_tokenizer)
-        if self._tokenizer is None and not hasattr(self, '_hf_tokenizer'):
-            self._init_tokenizer()
-
-        paligemma_cfg = getattr(self.config.framework, 'paligemma', None)
-        _PREDICT_MAX_LEN = getattr(paligemma_cfg, 'max_token_len', 48) if paligemma_cfg is not None else 48
-
-        def _tokenize_openpi_style(text, max_len=_PREDICT_MAX_LEN):
-            """Tokenize text in openpi PaligemmaTokenizer format: BOS + cleaned_text + newline, padded to max_len."""
-            cleaned = str(text).strip().replace("_", " ").replace("\n", " ")
-            if hasattr(self, '_hf_tokenizer') and self._hf_tokenizer is not None:
-                bos_id = self._hf_tokenizer.bos_token_id
-                text_ids = self._hf_tokenizer.encode(cleaned, add_special_tokens=False)
-                newline_ids = self._hf_tokenizer.encode("\n", add_special_tokens=False)
-                ids = ([bos_id] if bos_id is not None else []) + text_ids + newline_ids
-            else:
-                ids = self._tokenizer.encode(cleaned, add_bos=True) + self._tokenizer.encode("\n")
-            tokens_len = len(ids)
-            if tokens_len < max_len:
-                mask = [True] * tokens_len + [False] * (max_len - tokens_len)
-                ids = ids + [0] * (max_len - tokens_len)
-            else:
-                ids = ids[:max_len]
-                mask = [True] * max_len
-            return np_.asarray(ids), np_.asarray(mask)
-
-        def _proc_img(im):
-            t = torch.from_numpy(im.copy()).float()
-            if t.ndim == 3 and t.shape[-1] == 3:
-                t = t.permute(2, 0, 1)
-            t = t / 255.0
-            t = TF.resize(t, [224, 224], antialias=True)
-            t = TF.normalize(t, mean=[0.5]*3, std=[0.5]*3)
-            return t
-
-        batch_size = len(examples)
-        images_by_example = [
-            ex['image'] if isinstance(ex['image'], list) else [ex['image']]
-            for ex in examples
-        ]
-        max_image_count = min(3, max(len(images) for images in images_by_example))
-        _dtype = next(self.parameters()).dtype
-        img_tensors, img_masks_list = [], []
-        for image_index in range(3):
-            images = []
-            masks = []
-            for example_images in images_by_example:
-                if image_index < min(len(example_images), max_image_count):
-                    images.append(_proc_img(example_images[image_index]))
-                    masks.append(True)
-                else:
-                    images.append(torch.full((3, 224, 224), -1.0))
-                    masks.append(False)
-            img_tensors.append(torch.stack(images).to(device).to(_dtype))
-            img_masks_list.append(torch.tensor(masks, dtype=torch.bool, device=device))
-
-        token_rows = [_tokenize_openpi_style(ex['lang']) for ex in examples]
-        tokens_t = torch.tensor(np_.stack([row[0] for row in token_rows]), dtype=torch.long).to(device)
-        masks_t = torch.tensor(np_.stack([row[1] for row in token_rows]), dtype=torch.bool).to(device)
-
-        embs_list, pad_list, att_list = [], [], []
-        for img_t, img_m in zip(img_tensors, img_masks_list):
-            img_emb = self.vlm_interface.model.get_image_features(img_t)
-            bsize, n_embs = img_emb.shape[:2]
-            embs_list.append(img_emb)
-            pad_list.append(img_m[:, None].expand(bsize, n_embs))
-            att_list += [0] * n_embs
-
-        lang_emb = self.vlm_interface.model.embed_tokens(tokens_t)
-        lang_emb = lang_emb * _math.sqrt(lang_emb.shape[-1])
-        embs_list.append(lang_emb)
-        pad_list.append(masks_t)
-        att_list += [0] * lang_emb.shape[1]
-
-        prefix_embs = torch.cat(embs_list, dim=1)
-        prefix_pad_masks = torch.cat(pad_list, dim=1)
-        att_tensor = torch.tensor(att_list, dtype=torch.bool, device=device)
-        prefix_att_masks = att_tensor[None, :].expand(batch_size, -1)
+        # Training and inference must share the exact image/token/camera path.
+        prefix_embs, prefix_pad_masks, prefix_att_masks = (
+            self._prepare_prefix_paligemma(examples)
+        )
+        language_token_count = int(
+            getattr(
+                getattr(self.config.framework, "paligemma", None),
+                "max_token_len",
+                48,
+            )
+        )
         prefix_embs, _ = self._apply_cabi_prefix(
             prefix_embs,
             prefix_pad_masks,
-            language_token_count=masks_t.shape[1],
+            language_token_count=language_token_count,
         )
 
         vlm_lm = self._get_vlm_language_model()

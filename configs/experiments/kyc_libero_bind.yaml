@@ -1,0 +1,183 @@
+defaults:
+  trainer: default
+
+seed: 41
+
+environment:
+  wandb_mode: disabled
+
+kyc_mode_common: &kyc_mode_common
+  model: paligemma_pi05
+  dataset: libero_paligemma
+  trainer_defaults: default
+  num_gpus: 1
+  framework_name: PaliGemmaPi05
+  dataset_mix: cabi_libero_bind
+  output_root_dir: /share/longjunyu/cabi-vla/kyc-runs
+  wandb_mode: disabled
+  training:
+    per_device_batch_size: 1
+    gradient_accumulation_steps: 2
+    max_train_steps: 33000
+    save_interval: 33001
+    eval_interval: 33001
+    freeze_modules: vlm_interface
+  trainer:
+    pretrained_checkpoint: /share/longjunyu/cabi-vla/runs/cabi_bind_pi05_action_bridge_h20_smoke_seed41_steps33000_h20-bridge-edge-balanced-3epoch-v15/final_model
+    logging_frequency: 10
+    learning_rate:
+      action_model: 1.0e-04
+      base: 1.0e-04
+      flow_matching_head: 5.0e-05
+      vlm_interface: 0.0
+    num_warmup_steps: 100
+    lr_scheduler_type: cosine_with_min_lr
+    scheduler_specific_kwargs:
+      min_lr: 1.0e-05
+    optimizer:
+      name: AdamW
+      betas: [0.9, 0.95]
+      eps: 1.0e-08
+      weight_decay: 1.0e-10
+    gradient_clipping: 1.0
+    ema:
+      enabled: false
+  datasets:
+    vla_data: &kyc_dataset_common
+      dataloader_module: paligemma_datasets
+      dataset_format: libero_bind
+      split: train
+      action_horizon: 20
+      action_dim: 7
+      state_dim: 8
+      include_state: false
+      cabi_anchor_period: 32
+      per_device_batch_size: 1
+      shuffle: true
+
+kyc_framework_common: &kyc_framework_common
+  paligemma:
+    base_vlm: /share/longjunyu/alphabrain/pretrained_models/paligemma-3b-pt-224
+    attn_implementation: sdpa
+    discrete_state_input: false
+    num_images: 3
+    image_mask: [true, true, false]
+    max_token_len: 48
+  action_expert:
+    width: 1024
+    depth: 18
+    mlp_dim: 4096
+    num_heads: 8
+    num_kv_heads: 1
+    head_dim: 256
+    precision: bfloat16
+  action_model:
+    fresh_tail_weight: 1.0
+    fresh_weighting_mode: suffix
+    feedback_horizon_key: feedback_horizon
+    action_dim: 7
+    action_horizon: 20
+    future_action_window_size: 19
+    past_action_window_size: 0
+    num_inference_steps: 10
+    noise_beta_alpha: 1.5
+    noise_beta_beta: 1.0
+    state_dim: 7
+  normalization:
+    enabled: true
+    action_mean: [0.06278156, 0.08684081, -0.09037306, 0.00054074, 0.00564338, -0.00522910, -0.04964072]
+    action_std: [0.33552372, 0.37844700, 0.44472861, 0.03924354, 0.06339297, 0.07797027, 0.99876714]
+  cabi:
+    enabled: true
+    binding_dim: 128
+    transport_rank: 32
+    temperature: 1.0
+    residual_scale: 1.0
+    tie_read_write_attention: true
+    role_state_residual: true
+    single_weight: 0.25
+    anchor_weight: 0.5
+    commutator_weight: 0.1
+    cycle_weight: 0.1
+    specificity_weight: 0.1
+    orthogonality_weight: 0.01
+    flow_transport_weight: 0.5
+    intervention_margin: 0.1
+    intervention_identifiability_weight: 0.5
+    attention_separation_weight: 0.05
+    contrastive_temperature: 0.1
+    causal_factor_contrastive_weight: 0.1
+    counterfactual_attention_grounding_weight: 0.05
+
+kyc_camera_common: &kyc_camera_common
+  enabled: true
+  conditioned_view_indices: [0]
+  image_transform: mujoco_upright
+  joint_crop_min_scale: 0.8
+  encoder_channels: [64, 128, 256, 512, 512]
+  canonical_intrinsics:
+    - [270.3919189857867, 0.0, 112.0]
+    - [0.0, 270.3919189857867, 112.0]
+    - [0.0, 0.0, 1.0]
+  canonical_camera_to_world_opencv:
+    - [-1.7233905013069872e-06, 0.5287697435529835, -0.8487653140297038, 0.6065773716836134]
+    - [0.9999999999985034, 7.823149652530503e-07, -1.5430955956352577e-06, 0.0]
+    - [-1.5194045527300304e-07, -0.848765314031093, -0.5287697435535403, 0.96]
+    - [0.0, 0.0, 0.0, 1.0]
+
+modes:
+  kyc_poseaug_rgb_h20:
+    <<: *kyc_mode_common
+    run_id: kyc_poseaug_rgb_h20
+    data_root: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+    framework:
+      <<: *kyc_framework_common
+      camera_conditioning:
+        enabled: false
+        joint_crop_min_scale: 0.8
+    datasets:
+      vla_data:
+        <<: *kyc_dataset_common
+        data_root_dir: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+
+  kyc_pm_fixed_h20:
+    <<: *kyc_mode_common
+    run_id: kyc_pm_fixed_h20
+    data_root: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v15-decision-observed-edge-phase-loss-balanced-h20
+    framework:
+      <<: *kyc_framework_common
+      camera_conditioning:
+        <<: *kyc_camera_common
+        mode: canonical
+    datasets:
+      vla_data:
+        <<: *kyc_dataset_common
+        data_root_dir: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v15-decision-observed-edge-phase-loss-balanced-h20
+
+  kyc_poseaug_control_h20:
+    <<: *kyc_mode_common
+    run_id: kyc_poseaug_control_h20
+    data_root: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+    framework:
+      <<: *kyc_framework_common
+      camera_conditioning:
+        <<: *kyc_camera_common
+        mode: canonical
+    datasets:
+      vla_data:
+        <<: *kyc_dataset_common
+        data_root_dir: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+
+  kyc_real_h20:
+    <<: *kyc_mode_common
+    run_id: kyc_real_h20
+    data_root: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+    framework:
+      <<: *kyc_framework_common
+      camera_conditioning:
+        <<: *kyc_camera_common
+        mode: real
+    datasets:
+      vla_data:
+        <<: *kyc_dataset_common
+        data_root_dir: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20

@@ -15,6 +15,8 @@ EDGES=${CABI_EVAL_EDGES:-all}
 POSES=${CABI_CAMERA_POSES:-all}
 HORIZONS=${CABI_EVAL_HORIZONS:-3}
 MAX_STEPS=${CABI_EVAL_MAX_STEPS:-320}
+RESOLUTION=${CABI_CAMERA_RESOLUTION:-224}
+MINIMUM_VISIBLE_PIXELS=${CABI_CAMERA_MINIMUM_VISIBLE_PIXELS:-64}
 EVAL_SEED=${CABI_EVAL_SEED:-20260722}
 FRAME_POSES=${CABI_CAMERA_FRAME_POSES:-baseline}
 FRAME_EDGES=${CABI_CAMERA_FRAME_EDGES:-all}
@@ -35,6 +37,10 @@ if [[ "$SPLIT" != train && "$SPLIT" != val && "$SPLIT" != test ]]; then
 fi
 if [[ ! "$MAX_STEPS" =~ ^[1-9][0-9]*$ ]]; then
   echo "CABI_EVAL_MAX_STEPS must be a positive integer" >&2
+  exit 2
+fi
+if [[ ! "$RESOLUTION" =~ ^[1-9][0-9]*$ || ! "$MINIMUM_VISIBLE_PIXELS" =~ ^[1-9][0-9]*$ ]]; then
+  echo "camera resolution and minimum visible pixels must be positive integers" >&2
   exit 2
 fi
 if [[ ! "$FRAME_EPISODES" =~ ^[0-9]+$ ]]; then
@@ -149,6 +155,8 @@ PYTHONDONTWRITEBYTECODE=1 \
   --poses "$POSES" \
   --execution-horizons "${horizon_args[@]}" \
   --max-steps "$MAX_STEPS" \
+  --resolution "$RESOLUTION" \
+  --minimum-visible-pixels "$MINIMUM_VISIBLE_PIXELS" \
   --seed "$EVAL_SEED" \
   "${state_args[@]}" \
   "${frame_args[@]}"

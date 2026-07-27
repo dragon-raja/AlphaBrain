@@ -538,12 +538,17 @@ def visibility_phase(
     point: Mapping[str, Any],
     *,
     minimum_patch_support: int,
+    object_scope: str = "task",
 ) -> str:
-    pixels = int(point["task_visible_pixels_min"])
-    projected_pixels = int(point["task_projected_pixels_in_frame_min"])
-    patches = int(point["task_visible_patch_support_min"])
-    centers = bool(point["task_center_in_frame_all"])
-    clipping = float(point["task_fov_clipping_fraction_max"])
+    if object_scope not in OBJECT_SCOPES:
+        raise ValueError(f"unknown object scope: {object_scope}")
+    pixels = int(point[f"{object_scope}_visible_pixels_min"])
+    projected_pixels = int(
+        point[f"{object_scope}_projected_pixels_in_frame_min"]
+    )
+    patches = int(point[f"{object_scope}_visible_patch_support_min"])
+    centers = bool(point[f"{object_scope}_center_in_frame_all"])
+    clipping = float(point[f"{object_scope}_fov_clipping_fraction_max"])
     if projected_pixels == 0:
         return "geometrically_out_of_view"
     if pixels == 0:
@@ -566,9 +571,12 @@ def plot_phase_map(
     output: Path,
     *,
     minimum_patch_support: int,
+    object_scope: str = "task",
 ) -> None:
     if minimum_patch_support <= 0:
         raise ValueError("minimum_patch_support must be positive")
+    if object_scope not in OBJECT_SCOPES:
+        raise ValueError(f"unknown object scope: {object_scope}")
     axes = sorted({str(point["sweep_axis"]) for point in points})
     edges = sorted({str(point["edge_id"]) for point in points})
     if not axes or not edges:
@@ -586,7 +594,11 @@ def plot_phase_map(
         "white",
     )
     draw = ImageDraw.Draw(canvas)
-    draw.text((18, 12), "Worst-case task visibility across test snapshots", fill="black")
+    draw.text(
+        (18, 12),
+        f"Worst-case {object_scope} visibility across test snapshots",
+        fill="black",
+    )
     legend_x = 18
     for phase, color in PHASE_COLORS.items():
         draw.rectangle((legend_x, 36, legend_x + 16, 50), fill=color)
@@ -665,6 +677,7 @@ def plot_phase_map(
                 phase = visibility_phase(
                     point,
                     minimum_patch_support=minimum_patch_support,
+                    object_scope=object_scope,
                 )
                 left_px = pixel_x(left_value)
                 draw.rectangle(
@@ -1042,6 +1055,12 @@ def main(args: Iterable[str] | None = None) -> None:
             points,
             staging / "camera_fov_phase_map.png",
             minimum_patch_support=parsed.minimum_patch_support,
+        )
+        plot_phase_map(
+            points,
+            staging / "camera_fov_phase_map_target.png",
+            minimum_patch_support=parsed.minimum_patch_support,
+            object_scope="target",
         )
         edge_plot_dir = staging / "curves_by_edge"
         edge_plot_dir.mkdir()

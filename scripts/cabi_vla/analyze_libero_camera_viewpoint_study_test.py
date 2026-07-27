@@ -274,6 +274,10 @@ class CameraViewpointStudyTest(unittest.TestCase):
                 self.assertEqual(image.format, "PNG")
                 self.assertGreater(image.width, 600)
                 self.assertGreater(image.height, 150)
+            with Image.open(output / "camera_fov_phase_map_target.png") as image:
+                self.assertEqual(image.format, "PNG")
+                self.assertGreater(image.width, 600)
+                self.assertGreater(image.height, 150)
             with Image.open(output / "curves_by_edge" / "red-left.png") as image:
                 self.assertEqual(image.format, "PNG")
                 self.assertGreater(image.width, 500)

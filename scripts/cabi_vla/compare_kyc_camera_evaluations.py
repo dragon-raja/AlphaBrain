@@ -29,8 +29,14 @@ METRICS = (
     "lift_success",
     "transport_success",
     "target_placement_success",
+    "completion_steps",
 )
-SUBGOAL_METRICS = METRICS[2:]
+SUBGOAL_METRICS = (
+    "source_selection_success",
+    "lift_success",
+    "transport_success",
+    "target_placement_success",
+)
 TRAINING_SUPPORT = {
     "azimuth": (-60.0, 60.0),
     "azimuth_deg": (-60.0, 60.0),

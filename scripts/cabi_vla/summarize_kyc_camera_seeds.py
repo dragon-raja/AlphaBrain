@@ -97,7 +97,7 @@ def paired_seed_state_bootstrap(
     resamples: int,
     seed: int = BOOTSTRAP_SEED,
 ) -> dict[str, Any]:
-    """Hierarchically resample training seeds and paired snapshot groups."""
+    """Cross-resample training seeds and paired snapshot groups."""
     if resamples <= 0:
         raise ValueError("resamples must be positive")
     if not differences:
@@ -273,11 +273,15 @@ def summarize_seed_pairs(
                     raise ValueError(f"scope {scope!r}, seed {seed} is not paired")
                 control_values = []
                 kyc_values = []
+                control_values_by_state: dict[int, list[float]] = defaultdict(list)
+                kyc_values_by_state: dict[int, list[float]] = defaultdict(list)
                 for key in sorted(by_method["poseaug_control"]):
                     control_value = float(by_method["poseaug_control"][key][metric])
                     kyc_value = float(by_method["kyc"][key][metric])
                     control_values.append(control_value)
                     kyc_values.append(kyc_value)
+                    control_values_by_state[int(key[1])].append(control_value)
+                    kyc_values_by_state[int(key[1])].append(kyc_value)
                     grouped_differences[int(key[1])].append(
                         kyc_value - control_value
                     )
@@ -287,10 +291,33 @@ def summarize_seed_pairs(
                 seed_metrics.append(
                     {
                         "seed": seed,
-                        "poseaug_control": float(np.mean(control_values)),
-                        "kyc": float(np.mean(kyc_values)),
-                        "delta": float(np.mean(kyc_values) - np.mean(control_values)),
+                        "poseaug_control": float(
+                            np.mean(
+                                [
+                                    np.mean(control_values_by_state[state])
+                                    for state in sorted(control_values_by_state)
+                                ]
+                            )
+                        ),
+                        "kyc": float(
+                            np.mean(
+                                [
+                                    np.mean(kyc_values_by_state[state])
+                                    for state in sorted(kyc_values_by_state)
+                                ]
+                            )
+                        ),
+                        "delta": float(
+                            np.mean(
+                                [
+                                    np.mean(kyc_values_by_state[state])
+                                    - np.mean(control_values_by_state[state])
+                                    for state in sorted(control_values_by_state)
+                                ]
+                            )
+                        ),
                         "episode_count_per_method": len(control_values),
+                        "state_count": len(control_values_by_state),
                     }
                 )
             state_clustered = paired_group_bootstrap(
@@ -313,7 +340,7 @@ def summarize_seed_pairs(
                 "ci95_high": paired["ci95_high"],
                 "paired_state_count": paired["state_count"],
                 "training_seed_count": paired["seed_count"],
-                "bootstrap_unit": "training_seed_x_canonical_state",
+                "bootstrap_unit": "crossed_training_seed_x_canonical_state",
                 "fixed_seed_state_clustered_ci95_low": state_clustered[
                     "ci95_low"
                 ],
@@ -324,6 +351,113 @@ def summarize_seed_pairs(
             }
         summaries.append(result)
     return summaries
+
+
+def summarize_canonical_relative_success(
+    seed_rows: Mapping[int, Sequence[Mapping[str, Any]]],
+    *,
+    bootstrap_resamples: int,
+) -> dict[str, Any]:
+    """Measure supported non-canonical success relative to each method's baseline."""
+
+    method_differences: dict[
+        str,
+        dict[int, dict[int, list[float]]],
+    ] = {
+        "poseaug_control": defaultdict(lambda: defaultdict(list)),
+        "kyc": defaultdict(lambda: defaultdict(list)),
+    }
+    per_seed = {"poseaug_control": [], "kyc": []}
+    for seed, rows in sorted(seed_rows.items()):
+        for method in method_differences:
+            method_rows = [row for row in rows if row["method"] == method]
+            states = sorted(
+                {int(row["canonical_state_index"]) for row in method_rows}
+            )
+            seed_differences = []
+            for state in states:
+                state_rows = [
+                    row
+                    for row in method_rows
+                    if int(row["canonical_state_index"]) == state
+                ]
+                canonical = [
+                    float(row["success"])
+                    for row in state_rows
+                    if str(row["camera_pose"]) == "baseline"
+                ]
+                supported_noncanonical = [
+                    float(row["success"])
+                    for row in state_rows
+                    if str(row["camera_pose"]) != "baseline"
+                    and scope_matches(row, "fully_supported")
+                ]
+                if not canonical or not supported_noncanonical:
+                    raise ValueError(
+                        "canonical-relative success requires canonical and "
+                        f"supported non-canonical rows for seed={seed}, "
+                        f"method={method!r}, state={state}"
+                    )
+                difference = float(
+                    np.mean(supported_noncanonical) - np.mean(canonical)
+                )
+                method_differences[method][seed][state].append(difference)
+                seed_differences.append(difference)
+            per_seed[method].append(
+                {
+                    "seed": seed,
+                    "success_degradation": float(np.mean(seed_differences)),
+                    "state_count": len(seed_differences),
+                }
+            )
+
+    methods = {}
+    for method, differences in method_differences.items():
+        summary = paired_seed_state_bootstrap(
+            differences,
+            resamples=bootstrap_resamples,
+            seed=BOOTSTRAP_SEED,
+        )
+        methods[method] = {
+            "success_degradation": summary["delta"],
+            "ci95_low": summary["ci95_low"],
+            "ci95_high": summary["ci95_high"],
+            "training_seed_count": summary["seed_count"],
+            "state_count": summary["state_count"],
+            "per_seed": per_seed[method],
+        }
+
+    comparison: dict[int, dict[int, list[float]]] = defaultdict(
+        lambda: defaultdict(list)
+    )
+    for seed in sorted(method_differences["poseaug_control"]):
+        for state in sorted(method_differences["poseaug_control"][seed]):
+            comparison[seed][state].append(
+                float(method_differences["kyc"][seed][state][0])
+                - float(method_differences["poseaug_control"][seed][state][0])
+            )
+    relative = paired_seed_state_bootstrap(
+        comparison,
+        resamples=bootstrap_resamples,
+        seed=BOOTSTRAP_SEED,
+    )
+    return {
+        "scope": "fully_supported_noncanonical",
+        "definition": (
+            "state-balanced mean non-canonical success minus the same "
+            "method's canonical success; values closer to zero indicate "
+            "less camera-pose degradation"
+        ),
+        "bootstrap_unit": "crossed_training_seed_x_canonical_state",
+        "methods": methods,
+        "kyc_minus_poseaug_control_degradation": {
+            "delta": relative["delta"],
+            "ci95_low": relative["ci95_low"],
+            "ci95_high": relative["ci95_high"],
+            "training_seed_count": relative["seed_count"],
+            "state_count": relative["state_count"],
+        },
+    }
 
 
 def load_seed_rows(
@@ -392,6 +526,10 @@ def main(args: Iterable[str] | None = None) -> None:
         seed_rows,
         bootstrap_resamples=parsed.bootstrap_resamples,
     )
+    canonical_relative_success = summarize_canonical_relative_success(
+        seed_rows,
+        bootstrap_resamples=parsed.bootstrap_resamples,
+    )
     context_seed = 41
     if context_seed not in kycs:
         raise ValueError("PoseAug-RGB context comparison requires KYC seed 41")
@@ -440,7 +578,7 @@ def main(args: Iterable[str] | None = None) -> None:
         },
         "fov_json": [str(path) for path in parsed.fov_json],
         "poseaug_rgb_evaluation": str(parsed.poseaug_rgb),
-        "paired_unit": "training_seed_x_canonical_state",
+        "paired_unit": "crossed_training_seed_x_canonical_state",
         "bootstrap_seed": BOOTSTRAP_SEED,
         "bootstrap_resamples": parsed.bootstrap_resamples,
         "minimum_patch_support": parsed.minimum_patch_support,
@@ -458,6 +596,7 @@ def main(args: Iterable[str] | None = None) -> None:
             },
         },
         "poseaug_rgb_context": rgb_context,
+        "canonical_relative_success": canonical_relative_success,
         "summaries": summaries,
     }
 

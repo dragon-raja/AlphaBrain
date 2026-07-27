@@ -6,6 +6,7 @@ from summarize_kyc_camera_seeds import (
     is_training_support,
     paired_group_bootstrap,
     paired_seed_state_bootstrap,
+    summarize_canonical_relative_success,
     summarize_context_pair,
     summarize_seed_pairs,
 )
@@ -38,6 +39,7 @@ def row(
         "lift_success": success,
         "transport_success": success,
         "target_placement_success": success,
+        "completion_steps": 100.0 if success else 320.0,
     }
 
 
@@ -66,7 +68,7 @@ class SummarizeKycCameraSeedsTest(unittest.TestCase):
         self.assertEqual(result["ci95_low"], 0.0)
         self.assertEqual(result["ci95_high"], 1.0)
 
-    def test_hierarchical_bootstrap_includes_seed_and_state_units(self) -> None:
+    def test_crossed_bootstrap_includes_seed_and_state_units(self) -> None:
         result = paired_seed_state_bootstrap(
             {
                 41: {0: [1.0], 1: [0.0]},
@@ -149,6 +151,28 @@ class SummarizeKycCameraSeedsTest(unittest.TestCase):
         self.assertEqual(
             len(by_scope["training_support"]["success"]["per_seed"]),
             2,
+        )
+        self.assertAlmostEqual(
+            by_scope["training_support"]["success"]["kyc_mean"]
+            - by_scope["training_support"]["success"]["poseaug_control_mean"],
+            by_scope["training_support"]["success"]["delta"],
+        )
+
+        degradation = summarize_canonical_relative_success(
+            seed_rows,
+            bootstrap_resamples=200,
+        )
+        self.assertEqual(
+            degradation["methods"]["poseaug_control"]["success_degradation"],
+            -0.5,
+        )
+        self.assertEqual(
+            degradation["methods"]["kyc"]["success_degradation"],
+            0.0,
+        )
+        self.assertEqual(
+            degradation["kyc_minus_poseaug_control_degradation"]["delta"],
+            0.5,
         )
 
 

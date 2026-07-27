@@ -119,7 +119,7 @@ Primary metrics:
 - full-task success;
 - grasp, lift, transport, and placement success;
 - progress;
-- completion steps;
+- capped completion steps, with failures assigned the 320-step budget;
 - success degradation relative to each method's canonical view.
 
 Inference units are test snapshot groups, not frames. Comparisons use paired
@@ -146,5 +146,18 @@ Recorded rollouts are delivered as AV1/WebM with contact sheets.
 Before results were observed, criterion 2 was operationalized as a strictly
 positive paired supported-pose success delta for KYC seed 41 versus
 PoseAug-RGB seed 41; a tie fails this contextual criterion. The primary
-KYC-versus-PoseAug-Control interval hierarchically resamples both training
-seeds and held-out snapshot groups.
+KYC-versus-PoseAug-Control interval independently cross-resamples fine-tuning
+seeds and held-out snapshot groups. Displayed marginal means use the same
+equal-seed, equal-state weighting as the primary delta.
+
+The resulting interval is conditional on one Bridge-H20 seed-41 initialization,
+one rollout/flow seed, the four selected tasks, and the frozen pose set; it is
+not an interval over base checkpoints, tasks, or arbitrary camera poses.
+`Fully supported` describes the settled initial observation and does not imply
+that both objects remain fully visible throughout a 320-step rollout.
+
+The primary KYC versus PoseAug-Control contrast identifies the incremental
+value of measured, pose-varying calibration over an otherwise matched
+canonical-ray branch. Without a shuffled or mismatched-ray arm, it does not by
+itself identify Plucker geometry as uniquely better than every possible
+pose-varying side channel.

@@ -39,6 +39,7 @@ def evaluation_row(
         "lift_success": success,
         "transport_success": success,
         "target_placement_success": success,
+        "completion_steps": 100 if success else 320,
     }
 
 

@@ -7,6 +7,8 @@ EVAL_ROOT=${KYC_CAMERA_EVAL_ROOT:-/share/longjunyu/cabi-vla/kyc-camera-eval-v1}
 BOUNDARY_FOV_ROOT=${KYC_BOUNDARY_FOV_ROOT:-/share/longjunyu/cabi-vla/camera-viewpoint-study-v2/fov_guard_test40-49_v5}
 DENSE_FOV_ROOT=${KYC_DENSE_FOV_ROOT:-/share/longjunyu/cabi-vla/camera-viewpoint-study-v2/fov_guard_policy_dense_state40_v6}
 PYTHON=${KYC_TRAIN_PYTHON:-$REPO_ROOT/.venv/bin/python}
+PLOT_PYTHON=${KYC_PLOT_PYTHON:-/share/longjunyu/capt-vla/envs/libero/bin/python}
+SEED_SUMMARY_DIR=${KYC_SEED_SUMMARY_DIR:-gate_seed_summary_final}
 
 wait_for_file() {
   local path=$1
@@ -172,7 +174,7 @@ for seed in 42 43; do
   fi
 done
 
-if [[ ! -e "$analysis_root/gate_seed_summary" ]]; then
+if [[ ! -e "$analysis_root/$SEED_SUMMARY_DIR" ]]; then
   "$PYTHON" scripts/cabi_vla/summarize_kyc_camera_seeds.py \
     --control "41=$(evaluation_path gate poseaug_control 41)" \
     --control "42=$(evaluation_path gate poseaug_control 42)" \
@@ -182,7 +184,17 @@ if [[ ! -e "$analysis_root/gate_seed_summary" ]]; then
     --kyc "43=$(evaluation_path gate kyc 43)" \
     --poseaug-rgb "$(evaluation_path gate poseaug_rgb 41)" \
     --fov-json "${fov_boundary[@]}" \
-    --output-dir "$analysis_root/gate_seed_summary"
+    --output-dir "$analysis_root/$SEED_SUMMARY_DIR"
+fi
+
+if [[ ! -e "$analysis_root/$SEED_SUMMARY_DIR/kyc_gate_summary.png" ]]; then
+  if [[ ! -x "$PLOT_PYTHON" ]]; then
+    echo "missing KYC plot Python: $PLOT_PYTHON" >&2
+    exit 1
+  fi
+  "$PLOT_PYTHON" scripts/cabi_vla/render_kyc_camera_gate_summary.py \
+    --summary "$analysis_root/$SEED_SUMMARY_DIR/summary.json" \
+    --output "$analysis_root/$SEED_SUMMARY_DIR/kyc_gate_summary.png"
 fi
 
 for method in poseaug_control kyc; do

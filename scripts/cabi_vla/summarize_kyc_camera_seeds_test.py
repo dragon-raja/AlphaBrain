@@ -84,14 +84,14 @@ class SummarizeKycCameraSeedsTest(unittest.TestCase):
         self.assertGreater(result["ci95_high"], 0.0)
 
     def test_poseaug_rgb_context_is_state_paired(self) -> None:
-        rows = []
-        for state in (0, 1):
-            rows.extend(
-                [
-                    row("poseaug_rgb", 41, state, "az_p60", 0.0, value=60.0),
-                    row("kyc", 41, state, "az_p60", 1.0, value=60.0),
-                ]
-            )
+        rows = [
+            row("poseaug_rgb", 41, 0, "az_p60", 0.0, value=60.0),
+            row("kyc", 41, 0, "az_p60", 1.0, value=60.0),
+            row("poseaug_rgb", 41, 1, "az_p60", 1.0, value=60.0),
+            row("kyc", 41, 1, "az_p60", 1.0, value=60.0),
+            row("poseaug_rgb", 41, 1, "az_p90", 1.0, value=90.0),
+            row("kyc", 41, 1, "az_p90", 1.0, value=90.0),
+        ]
         result = summarize_context_pair(
             rows,
             reference="poseaug_rgb",
@@ -100,8 +100,12 @@ class SummarizeKycCameraSeedsTest(unittest.TestCase):
             metric="success",
             bootstrap_resamples=100,
         )
-        self.assertEqual(result["delta"], 1.0)
+        self.assertEqual(result["weighting"], "equal_canonical_state")
+        self.assertEqual(result["reference_mean"], 0.5)
+        self.assertEqual(result["method_mean"], 1.0)
+        self.assertEqual(result["delta"], 0.5)
         self.assertEqual(result["paired_state_count"], 2)
+        self.assertEqual(result["episode_count_per_method"], 3)
 
     def test_seed_summary_reports_per_seed_and_group_delta(self) -> None:
         seed_rows = {}

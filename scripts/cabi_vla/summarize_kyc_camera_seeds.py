@@ -171,14 +171,15 @@ def summarize_context_pair(
             f"context comparison {method!r} vs {reference!r} is not paired"
         )
     grouped_differences: dict[int, list[float]] = defaultdict(list)
-    reference_values = []
-    method_values = []
+    reference_values_by_state: dict[int, list[float]] = defaultdict(list)
+    method_values_by_state: dict[int, list[float]] = defaultdict(list)
     for key in sorted(by_method[reference]):
         reference_value = float(by_method[reference][key][metric])
         method_value = float(by_method[method][key][metric])
-        reference_values.append(reference_value)
-        method_values.append(method_value)
-        grouped_differences[int(key[1])].append(method_value - reference_value)
+        state = int(key[1])
+        reference_values_by_state[state].append(reference_value)
+        method_values_by_state[state].append(method_value)
+        grouped_differences[state].append(method_value - reference_value)
     paired = paired_group_bootstrap(
         grouped_differences,
         resamples=bootstrap_resamples,
@@ -189,13 +190,30 @@ def summarize_context_pair(
         "metric": metric,
         "reference": reference,
         "method": method,
-        "reference_mean": float(np.mean(reference_values)),
-        "method_mean": float(np.mean(method_values)),
+        "weighting": "equal_canonical_state",
+        "reference_mean": float(
+            np.mean(
+                [
+                    np.mean(reference_values_by_state[state])
+                    for state in sorted(reference_values_by_state)
+                ]
+            )
+        ),
+        "method_mean": float(
+            np.mean(
+                [
+                    np.mean(method_values_by_state[state])
+                    for state in sorted(method_values_by_state)
+                ]
+            )
+        ),
         "delta": paired["delta"],
         "ci95_low": paired["ci95_low"],
         "ci95_high": paired["ci95_high"],
         "paired_state_count": paired["state_count"],
-        "episode_count_per_method": len(reference_values),
+        "episode_count_per_method": sum(
+            len(values) for values in reference_values_by_state.values()
+        ),
     }
 
 
@@ -568,7 +586,7 @@ def main(args: Iterable[str] | None = None) -> None:
         )
     )
     report = {
-        "schema_version": 3,
+        "schema_version": 4,
         "study": "kyc_camera_seed_summary",
         "control_evaluations": {
             str(seed): str(path) for seed, path in controls.items()

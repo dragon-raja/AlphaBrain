@@ -563,8 +563,9 @@ class LiberoBindTrainingDataset:
                 else {}
             ),
         }
-        if self.camera_training_view is not None:
-            baseline = self.camera_training_view["baseline_camera"]
+        camera_training_view = getattr(self, "camera_training_view", None)
+        if camera_training_view is not None:
+            baseline = camera_training_view["baseline_camera"]
             example.update(
                 {
                     "camera_pose": "baseline",

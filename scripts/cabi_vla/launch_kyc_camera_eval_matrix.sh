@@ -117,10 +117,19 @@ for specification in "${gate_jobs[@]}"; do
   read -r method seed gpu <<<"$specification"
   start_evaluation gate "$method" "$seed" "$gpu"
 done
+
+# Reuse GPU 0 for the fixed-pose module control as soon as the Base rollout
+# finishes. This keeps the primary eight-way gate fully parallel while still
+# evaluating every preregistered seed-41 context arm.
+wait_for_evaluation gate base 41 520
+wait_for_session_exit kyc-eval-gate-base-s41
+start_evaluation gate pm_fixed 41 0
+
 for specification in "${gate_jobs[@]}"; do
   read -r method seed _gpu <<<"$specification"
   wait_for_evaluation gate "$method" "$seed" 520
 done
+wait_for_evaluation gate pm_fixed 41 520
 
 fov_boundary=("$BOUNDARY_FOV_ROOT"/*.json)
 fov_dense=("$DENSE_FOV_ROOT"/*.json)
@@ -140,6 +149,7 @@ if [[ ! -e "$analysis_root/gate_s41" ]]; then
   "$PYTHON" scripts/cabi_vla/compare_kyc_camera_evaluations.py \
     --evaluation "base=$(evaluation_path gate base 41)" \
     --evaluation "poseaug_rgb=$(evaluation_path gate poseaug_rgb 41)" \
+    --evaluation "pm_fixed=$(evaluation_path gate pm_fixed 41)" \
     --evaluation "poseaug_control=$(evaluation_path gate poseaug_control 41)" \
     --evaluation "kyc=$(evaluation_path gate kyc 41)" \
     --fov-json "${fov_boundary[@]}" \

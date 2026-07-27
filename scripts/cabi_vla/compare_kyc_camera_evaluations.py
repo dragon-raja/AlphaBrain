@@ -855,7 +855,7 @@ def main(args: Iterable[str] | None = None) -> None:
         for split in ("observed", "withheld")
     }
     report = {
-        "schema_version": 2,
+        "schema_version": 3,
         "study": "kyc_camera_evaluation_comparison",
         "evaluations": {
             method: str(path)

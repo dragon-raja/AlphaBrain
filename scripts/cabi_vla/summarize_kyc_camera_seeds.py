@@ -568,7 +568,7 @@ def main(args: Iterable[str] | None = None) -> None:
         )
     )
     report = {
-        "schema_version": 2,
+        "schema_version": 3,
         "study": "kyc_camera_seed_summary",
         "control_evaluations": {
             str(seed): str(path) for seed, path in controls.items()

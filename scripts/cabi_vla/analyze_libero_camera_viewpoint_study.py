@@ -33,7 +33,18 @@ PHASE_COLORS = {
     "severe_clipping": "#ed7d31",
     "center_out": "#c050a0",
     "below_support": "#3d85c6",
-    "disappeared": "#222222",
+    "fully_occluded": "#777777",
+    "geometrically_out_of_view": "#222222",
+}
+PHASE_LABELS = {
+    "inside": "inside",
+    "partial_under_10": "partial <10%",
+    "partial_10_50": "partial 10-50%",
+    "severe_clipping": "severe clipping",
+    "center_out": "center outside",
+    "below_support": "below visual support",
+    "fully_occluded": "fully occluded",
+    "geometrically_out_of_view": "geometrically outside",
 }
 
 
@@ -69,6 +80,9 @@ def _validate_visibility_rows(rows: Sequence[Mapping[str, Any]]) -> None:
             {
                 f"{label}_center_in_frame",
                 f"{label}_fov_clipping_fraction",
+                f"{label}_projected_pixels_in_frame",
+                f"{label}_projected_patch_support",
+                f"{label}_external_occlusion_fraction",
                 f"{label}_visible_pixels",
                 f"{label}_visible_patch_support",
             }
@@ -87,8 +101,23 @@ def _validate_visibility_rows(rows: Sequence[Mapping[str, Any]]) -> None:
                 raise ValueError(f"visibility row {index} has clipping outside [0, 1]")
             pixels = int(row[f"{label}_visible_pixels"])
             patches = int(row[f"{label}_visible_patch_support"])
-            if pixels < 0 or patches < 0:
+            projected_pixels = int(row[f"{label}_projected_pixels_in_frame"])
+            projected_patches = int(row[f"{label}_projected_patch_support"])
+            occlusion = _finite_float(
+                row[f"{label}_external_occlusion_fraction"],
+                field=f"{label}_external_occlusion_fraction",
+            )
+            if (
+                pixels < 0
+                or patches < 0
+                or projected_pixels < 0
+                or projected_patches < 0
+            ):
                 raise ValueError(f"visibility row {index} has negative support")
+            if not 0.0 <= occlusion <= 1.0:
+                raise ValueError(
+                    f"visibility row {index} has occlusion outside [0, 1]"
+                )
 
 
 def _neutral_value(axis: str, baseline_rows: Sequence[Mapping[str, Any]]) -> float:
@@ -117,6 +146,21 @@ def _scope_values(
         ),
         f"{scope}_center_in_frame_all": all(
             bool(row[f"{label}_center_in_frame"])
+            for row in rows
+            for label in labels
+        ),
+        f"{scope}_projected_pixels_in_frame_min": min(
+            int(row[f"{label}_projected_pixels_in_frame"])
+            for row in rows
+            for label in labels
+        ),
+        f"{scope}_projected_patch_support_min": min(
+            int(row[f"{label}_projected_patch_support"])
+            for row in rows
+            for label in labels
+        ),
+        f"{scope}_external_occlusion_fraction_max": max(
+            float(row[f"{label}_external_occlusion_fraction"])
             for row in rows
             for label in labels
         ),
@@ -295,6 +339,7 @@ def _boundary_specs(
 ) -> list[tuple[str, str, str, float, Callable[[Mapping[str, Any]], bool]]]:
     clipping = f"{scope}_fov_clipping_fraction_max"
     center = f"{scope}_center_in_frame_all"
+    projected_pixels = f"{scope}_projected_pixels_in_frame_min"
     pixels = f"{scope}_visible_pixels_min"
     patches = f"{scope}_visible_patch_support_min"
     return [
@@ -335,11 +380,21 @@ def _boundary_specs(
             lambda point: int(point[patches]) < minimum_patch_support,
         ),
         (
-            "fully_disappeared",
+            "fully_occluded",
             pixels,
             "==",
             0.0,
-            lambda point: int(point[pixels]) == 0,
+            lambda point: (
+                int(point[projected_pixels]) > 0
+                and int(point[pixels]) == 0
+            ),
+        ),
+        (
+            "geometrically_out_of_view",
+            projected_pixels,
+            "==",
+            0.0,
+            lambda point: int(point[projected_pixels]) == 0,
         ),
     ]
 
@@ -485,11 +540,14 @@ def visibility_phase(
     minimum_patch_support: int,
 ) -> str:
     pixels = int(point["task_visible_pixels_min"])
+    projected_pixels = int(point["task_projected_pixels_in_frame_min"])
     patches = int(point["task_visible_patch_support_min"])
     centers = bool(point["task_center_in_frame_all"])
     clipping = float(point["task_fov_clipping_fraction_max"])
+    if projected_pixels == 0:
+        return "geometrically_out_of_view"
     if pixels == 0:
-        return "disappeared"
+        return "fully_occluded"
     if not centers:
         return "center_out"
     if pixels < PIXEL_BOUNDARY or patches < minimum_patch_support:
@@ -516,7 +574,7 @@ def plot_phase_map(
     if not axes or not edges:
         raise ValueError("phase map requires non-empty axes and edges")
 
-    width = 980
+    width = 1180
     legend_height = 72
     panel_header = 45
     row_height = 30
@@ -534,10 +592,10 @@ def plot_phase_map(
         draw.rectangle((legend_x, 36, legend_x + 16, 50), fill=color)
         draw.text(
             (legend_x + 21, 36),
-            phase.replace("_", " "),
+            PHASE_LABELS[phase],
             fill="#333333",
         )
-        legend_x += 125
+        legend_x += 143
 
     plot_left = 170
     plot_right = width - 35
@@ -673,7 +731,8 @@ def plot_curves(
         "center_out_of_frame": "#cc79a7",
         "below_64_visible_pixels": "#0072b2",
         "below_patch_support": "#009e73",
-        "fully_disappeared": "#000000",
+        "fully_occluded": "#777777",
+        "geometrically_out_of_view": "#000000",
     }
     for panel_index, key in enumerate(keys):
         edge_id, axis = key
@@ -943,13 +1002,22 @@ def main(args: Iterable[str] | None = None) -> None:
         policy_metric=parsed.policy_metric,
     )
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "study": "libero_camera_viewpoint_fov_boundaries",
         "fov_json": [str(path) for path in parsed.fov_json],
         "policy_json": [str(path) for path in parsed.policy_json],
         "aggregation": {
             "states": "worst_case",
             "task_objects": "worst_of_source_and_target",
+        },
+        "visibility_semantics": {
+            "geometrically_out_of_view": (
+                "isolated-object projected pixels inside the sensor equal zero"
+            ),
+            "fully_occluded": (
+                "isolated-object projection is inside the sensor but normal-scene "
+                "visible pixels equal zero"
+            ),
         },
         "minimum_visible_pixels": PIXEL_BOUNDARY,
         "minimum_patch_support": parsed.minimum_patch_support,

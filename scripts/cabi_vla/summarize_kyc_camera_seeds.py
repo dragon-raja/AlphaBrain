@@ -91,6 +91,114 @@ def paired_group_bootstrap(
     }
 
 
+def paired_seed_state_bootstrap(
+    differences: Mapping[int, Mapping[int, Sequence[float]]],
+    *,
+    resamples: int,
+    seed: int = BOOTSTRAP_SEED,
+) -> dict[str, Any]:
+    """Hierarchically resample training seeds and paired snapshot groups."""
+    if resamples <= 0:
+        raise ValueError("resamples must be positive")
+    if not differences:
+        raise ValueError("seed-state bootstrap requires at least one seed")
+    seeds = sorted(differences)
+    state_sets = [set(differences[train_seed]) for train_seed in seeds]
+    if not state_sets[0] or any(states != state_sets[0] for states in state_sets):
+        raise ValueError("every training seed must contain the same non-empty states")
+    states = sorted(state_sets[0])
+    if any(
+        not differences[train_seed][state]
+        for train_seed in seeds
+        for state in states
+    ):
+        raise ValueError("seed-state bootstrap groups cannot be empty")
+    matrix = np.asarray(
+        [
+            [
+                np.mean(differences[train_seed][state])
+                for state in states
+            ]
+            for train_seed in seeds
+        ],
+        dtype=np.float64,
+    )
+
+    if len(seeds) == 1 and len(states) == 1:
+        low = high = float(matrix[0, 0])
+    else:
+        rng = np.random.default_rng(seed)
+        draws = np.empty(resamples, dtype=np.float64)
+        for index in range(resamples):
+            sampled_seeds = rng.integers(0, len(seeds), size=len(seeds))
+            sampled_states = rng.integers(0, len(states), size=len(states))
+            draws[index] = matrix[np.ix_(sampled_seeds, sampled_states)].mean()
+        low, high = np.quantile(draws, [0.025, 0.975]).tolist()
+    return {
+        "delta": float(matrix.mean()),
+        "ci95_low": float(low),
+        "ci95_high": float(high),
+        "seed_count": len(seeds),
+        "state_count": len(states),
+    }
+
+
+def summarize_context_pair(
+    rows: Sequence[Mapping[str, Any]],
+    *,
+    reference: str,
+    method: str,
+    scope: str,
+    metric: str,
+    bootstrap_resamples: int,
+) -> dict[str, Any]:
+    selected = [row for row in rows if scope_matches(row, scope)]
+    by_method = {
+        name: {
+            (
+                row["edge_id"],
+                int(row["canonical_state_index"]),
+                int(row["execution_horizon"]),
+                row["camera_pose"],
+            ): row
+            for row in selected
+            if row["method"] == name
+        }
+        for name in (reference, method)
+    }
+    if not by_method[reference] or set(by_method[reference]) != set(by_method[method]):
+        raise ValueError(
+            f"context comparison {method!r} vs {reference!r} is not paired"
+        )
+    grouped_differences: dict[int, list[float]] = defaultdict(list)
+    reference_values = []
+    method_values = []
+    for key in sorted(by_method[reference]):
+        reference_value = float(by_method[reference][key][metric])
+        method_value = float(by_method[method][key][metric])
+        reference_values.append(reference_value)
+        method_values.append(method_value)
+        grouped_differences[int(key[1])].append(method_value - reference_value)
+    paired = paired_group_bootstrap(
+        grouped_differences,
+        resamples=bootstrap_resamples,
+        seed=BOOTSTRAP_SEED,
+    )
+    return {
+        "scope": scope,
+        "metric": metric,
+        "reference": reference,
+        "method": method,
+        "reference_mean": float(np.mean(reference_values)),
+        "method_mean": float(np.mean(method_values)),
+        "delta": paired["delta"],
+        "ci95_low": paired["ci95_low"],
+        "ci95_high": paired["ci95_high"],
+        "paired_state_count": paired["state_count"],
+        "episode_count_per_method": len(reference_values),
+    }
+
+
 def summarize_seed_pairs(
     seed_rows: Mapping[int, Sequence[Mapping[str, Any]]],
     *,
@@ -143,6 +251,10 @@ def summarize_seed_pairs(
         for metric in METRICS:
             seed_metrics = []
             grouped_differences: dict[int, list[float]] = defaultdict(list)
+            seed_state_differences: dict[
+                int,
+                dict[int, list[float]],
+            ] = defaultdict(lambda: defaultdict(list))
             for seed, rows in selected_by_seed.items():
                 by_method = {
                     method: {
@@ -169,6 +281,9 @@ def summarize_seed_pairs(
                     grouped_differences[int(key[1])].append(
                         kyc_value - control_value
                     )
+                    seed_state_differences[seed][int(key[1])].append(
+                        kyc_value - control_value
+                    )
                 seed_metrics.append(
                     {
                         "seed": seed,
@@ -178,8 +293,13 @@ def summarize_seed_pairs(
                         "episode_count_per_method": len(control_values),
                     }
                 )
-            paired = paired_group_bootstrap(
+            state_clustered = paired_group_bootstrap(
                 grouped_differences,
+                resamples=bootstrap_resamples,
+                seed=BOOTSTRAP_SEED,
+            )
+            paired = paired_seed_state_bootstrap(
+                seed_state_differences,
                 resamples=bootstrap_resamples,
                 seed=BOOTSTRAP_SEED,
             )
@@ -192,6 +312,14 @@ def summarize_seed_pairs(
                 "ci95_low": paired["ci95_low"],
                 "ci95_high": paired["ci95_high"],
                 "paired_state_count": paired["state_count"],
+                "training_seed_count": paired["seed_count"],
+                "bootstrap_unit": "training_seed_x_canonical_state",
+                "fixed_seed_state_clustered_ci95_low": state_clustered[
+                    "ci95_low"
+                ],
+                "fixed_seed_state_clustered_ci95_high": state_clustered[
+                    "ci95_high"
+                ],
                 "per_seed": seed_metrics,
             }
         summaries.append(result)
@@ -229,6 +357,7 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--control", action="append", required=True, metavar="SEED=JSON")
     parser.add_argument("--kyc", action="append", required=True, metavar="SEED=JSON")
+    parser.add_argument("--poseaug-rgb", type=Path, required=True)
     parser.add_argument("--fov-json", type=Path, nargs="+", required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--minimum-patch-support", type=int, default=4)
@@ -263,15 +392,45 @@ def main(args: Iterable[str] | None = None) -> None:
         seed_rows,
         bootstrap_resamples=parsed.bootstrap_resamples,
     )
+    context_seed = 41
+    if context_seed not in kycs:
+        raise ValueError("PoseAug-RGB context comparison requires KYC seed 41")
+    context_evaluations = {
+        "poseaug_rgb": json.loads(parsed.poseaug_rgb.read_text()),
+        "kyc": json.loads(kycs[context_seed].read_text()),
+    }
+    context_rows = join_episode_rows(
+        validate_paired_evaluations(context_evaluations),
+        index_fov_rows(fov_payloads),
+        minimum_patch_support=parsed.minimum_patch_support,
+    )
+    rgb_context = summarize_context_pair(
+        context_rows,
+        reference="poseaug_rgb",
+        method="kyc",
+        scope="fully_supported",
+        metric="success",
+        bootstrap_resamples=parsed.bootstrap_resamples,
+    )
     by_scope = {row["scope"]: row for row in summaries}
     supported = by_scope["fully_supported"]["success"]
     canonical = by_scope["canonical"]["success"]
-    gate_passed = (
-        (supported["delta"] >= 0.10 or supported["ci95_low"] > 0.0)
-        and canonical["delta"] >= -0.05
+    supported_effect = (
+        supported["delta"] >= 0.10 or supported["ci95_low"] > 0.0
+    )
+    canonical_preserved = canonical["delta"] >= -0.05
+    rgb_context_improved = rgb_context["delta"] > 0.0
+    behavioral_improvement = supported["delta"] > 0.0
+    gate_passed = all(
+        (
+            supported_effect,
+            canonical_preserved,
+            rgb_context_improved,
+            behavioral_improvement,
+        )
     )
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "study": "kyc_camera_seed_summary",
         "control_evaluations": {
             str(seed): str(path) for seed, path in controls.items()
@@ -280,7 +439,8 @@ def main(args: Iterable[str] | None = None) -> None:
             str(seed): str(path) for seed, path in kycs.items()
         },
         "fov_json": [str(path) for path in parsed.fov_json],
-        "paired_unit": "canonical_state_index",
+        "poseaug_rgb_evaluation": str(parsed.poseaug_rgb),
+        "paired_unit": "training_seed_x_canonical_state",
         "bootstrap_seed": BOOTSTRAP_SEED,
         "bootstrap_resamples": parsed.bootstrap_resamples,
         "minimum_patch_support": parsed.minimum_patch_support,
@@ -288,7 +448,16 @@ def main(args: Iterable[str] | None = None) -> None:
             "passed": gate_passed,
             "supported_success_delta_threshold": 0.10,
             "canonical_regression_floor": -0.05,
+            "criteria": {
+                "supported_effect": supported_effect,
+                "canonical_preserved": canonical_preserved,
+                "kyc_seed41_strictly_better_than_poseaug_rgb_seed41": (
+                    rgb_context_improved
+                ),
+                "behavioral_success_improved": behavioral_improvement,
+            },
         },
+        "poseaug_rgb_context": rgb_context,
         "summaries": summaries,
     }
 

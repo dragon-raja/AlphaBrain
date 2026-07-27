@@ -5,6 +5,8 @@ import unittest
 from summarize_kyc_camera_seeds import (
     is_training_support,
     paired_group_bootstrap,
+    paired_seed_state_bootstrap,
+    summarize_context_pair,
     summarize_seed_pairs,
 )
 
@@ -63,6 +65,41 @@ class SummarizeKycCameraSeedsTest(unittest.TestCase):
         self.assertEqual(result["state_count"], 2)
         self.assertEqual(result["ci95_low"], 0.0)
         self.assertEqual(result["ci95_high"], 1.0)
+
+    def test_hierarchical_bootstrap_includes_seed_and_state_units(self) -> None:
+        result = paired_seed_state_bootstrap(
+            {
+                41: {0: [1.0], 1: [0.0]},
+                42: {0: [0.0], 1: [-1.0]},
+            },
+            resamples=500,
+            seed=7,
+        )
+        self.assertEqual(result["delta"], 0.0)
+        self.assertEqual(result["seed_count"], 2)
+        self.assertEqual(result["state_count"], 2)
+        self.assertLess(result["ci95_low"], 0.0)
+        self.assertGreater(result["ci95_high"], 0.0)
+
+    def test_poseaug_rgb_context_is_state_paired(self) -> None:
+        rows = []
+        for state in (0, 1):
+            rows.extend(
+                [
+                    row("poseaug_rgb", 41, state, "az_p60", 0.0, value=60.0),
+                    row("kyc", 41, state, "az_p60", 1.0, value=60.0),
+                ]
+            )
+        result = summarize_context_pair(
+            rows,
+            reference="poseaug_rgb",
+            method="kyc",
+            scope="fully_supported",
+            metric="success",
+            bootstrap_resamples=100,
+        )
+        self.assertEqual(result["delta"], 1.0)
+        self.assertEqual(result["paired_state_count"], 2)
 
     def test_seed_summary_reports_per_seed_and_group_delta(self) -> None:
         seed_rows = {}

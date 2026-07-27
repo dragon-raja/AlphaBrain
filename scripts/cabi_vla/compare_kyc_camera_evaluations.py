@@ -151,6 +151,9 @@ def index_fov_rows(
             {
                 f"{label}_center_in_frame",
                 f"{label}_fov_clipping_fraction",
+                f"{label}_projected_pixels_in_frame",
+                f"{label}_projected_patch_support",
+                f"{label}_external_occlusion_fraction",
                 f"{label}_visible_pixels",
                 f"{label}_visible_patch_support",
             }
@@ -190,12 +193,29 @@ def index_fov_rows(
                     row[f"{label}_fov_clipping_fraction"],
                     field=f"{label}_fov_clipping_fraction",
                 )
+                projected_pixels = int(
+                    row[f"{label}_projected_pixels_in_frame"]
+                )
+                projected_patches = int(
+                    row[f"{label}_projected_patch_support"]
+                )
                 pixels = int(row[f"{label}_visible_pixels"])
                 patches = int(row[f"{label}_visible_patch_support"])
+                occlusion = _finite_float(
+                    row[f"{label}_external_occlusion_fraction"],
+                    field=f"{label}_external_occlusion_fraction",
+                )
                 if not 0.0 <= clipping <= 1.0:
                     raise ValueError(f"FOV key {key} has clipping outside [0, 1]")
-                if pixels < 0 or patches < 0:
+                if (
+                    projected_pixels < 0
+                    or projected_patches < 0
+                    or pixels < 0
+                    or patches < 0
+                ):
                     raise ValueError(f"FOV key {key} has negative support")
+                if not 0.0 <= occlusion <= 1.0:
+                    raise ValueError(f"FOV key {key} has occlusion outside [0, 1]")
             indexed[key] = row
     if not indexed:
         raise ValueError("FOV inputs contain no rows")
@@ -204,6 +224,7 @@ def index_fov_rows(
 
 def visibility_stratum(
     *,
+    task_min_projected_pixels_in_frame: int,
     task_min_visible_pixels: int,
     task_min_visible_patch_support: int,
     task_centers_in_frame: bool,
@@ -213,8 +234,10 @@ def visibility_stratum(
     """Classify one FOV sample with a deterministic most-severe-first precedence."""
     if minimum_patch_support <= 0:
         raise ValueError("minimum_patch_support must be positive")
+    if task_min_projected_pixels_in_frame == 0:
+        return "geometrically_out_of_view"
     if task_min_visible_pixels == 0:
-        return "disappeared"
+        return "fully_occluded"
     if not task_centers_in_frame:
         return "center_out"
     if (
@@ -259,10 +282,32 @@ def join_episode_rows(
             target_pixels = int(fov["target_visible_pixels"])
             source_patches = int(fov["source_visible_patch_support"])
             target_patches = int(fov["target_visible_patch_support"])
+            source_projected_pixels = int(
+                fov["source_projected_pixels_in_frame"]
+            )
+            target_projected_pixels = int(
+                fov["target_projected_pixels_in_frame"]
+            )
+            source_projected_patches = int(
+                fov["source_projected_patch_support"]
+            )
+            target_projected_patches = int(
+                fov["target_projected_patch_support"]
+            )
+            source_occlusion = float(fov["source_external_occlusion_fraction"])
+            target_occlusion = float(fov["target_external_occlusion_fraction"])
             centers_in_frame = bool(fov["source_center_in_frame"]) and bool(
                 fov["target_center_in_frame"]
             )
             task_clip = max(source_clip, target_clip)
+            task_projected_pixels = min(
+                source_projected_pixels,
+                target_projected_pixels,
+            )
+            task_projected_patches = min(
+                source_projected_patches,
+                target_projected_patches,
+            )
             task_pixels = min(source_pixels, target_pixels)
             task_patches = min(source_patches, target_patches)
             split = (
@@ -282,6 +327,12 @@ def join_episode_rows(
                 "sweep_value": float(fov["sweep_value"]),
                 "source_fov_clipping_fraction": source_clip,
                 "target_fov_clipping_fraction": target_clip,
+                "source_projected_pixels_in_frame": source_projected_pixels,
+                "target_projected_pixels_in_frame": target_projected_pixels,
+                "source_projected_patch_support": source_projected_patches,
+                "target_projected_patch_support": target_projected_patches,
+                "source_external_occlusion_fraction": source_occlusion,
+                "target_external_occlusion_fraction": target_occlusion,
                 "source_visible_pixels": source_pixels,
                 "target_visible_pixels": target_pixels,
                 "source_visible_patch_support": source_patches,
@@ -289,10 +340,17 @@ def join_episode_rows(
                 "source_center_in_frame": bool(fov["source_center_in_frame"]),
                 "target_center_in_frame": bool(fov["target_center_in_frame"]),
                 "task_max_fov_clipping_fraction": task_clip,
+                "task_min_projected_pixels_in_frame": task_projected_pixels,
+                "task_min_projected_patch_support": task_projected_patches,
+                "task_max_external_occlusion_fraction": max(
+                    source_occlusion,
+                    target_occlusion,
+                ),
                 "task_min_visible_pixels": task_pixels,
                 "task_min_visible_patch_support": task_patches,
                 "task_centers_in_frame": centers_in_frame,
                 "visibility_stratum": visibility_stratum(
+                    task_min_projected_pixels_in_frame=task_projected_pixels,
                     task_min_visible_pixels=task_pixels,
                     task_min_visible_patch_support=task_patches,
                     task_centers_in_frame=centers_in_frame,
@@ -791,7 +849,7 @@ def main(args: Iterable[str] | None = None) -> None:
         for split in ("observed", "withheld")
     }
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "study": "kyc_camera_evaluation_comparison",
         "evaluations": {
             method: str(path)
@@ -814,7 +872,8 @@ def main(args: Iterable[str] | None = None) -> None:
         "metrics": list(METRICS),
         "subgoal_metrics": list(SUBGOAL_METRICS),
         "visibility_strata_precedence": [
-            "disappeared",
+            "geometrically_out_of_view",
+            "fully_occluded",
             "center_out",
             "below_support",
             "severe_clipping",

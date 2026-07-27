@@ -26,8 +26,10 @@ def plucker_raymap(
     """Return OpenCV-convention Plucker rays as ``[B, 6, H, W]``.
 
     Channels are unit ray direction followed by moment ``origin x direction``.
-    Pixel coordinates refer to pixel centers, matching the KYC reference
-    implementation and project-page snippet.
+    Pixel coordinates refer to pixel centers. The released KYC README uses this
+    order, while its robosuite executable concatenates the same two triplets in
+    the reverse order. The encoder is trained from scratch, so this fixed
+    permutation preserves the available geometry but is recorded explicitly.
     """
 
     if intrinsics.ndim != 3 or intrinsics.shape[-2:] != (3, 3):

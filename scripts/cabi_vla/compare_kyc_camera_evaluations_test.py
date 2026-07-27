@@ -56,6 +56,9 @@ def fov_row(
     clipping: float = 0.0,
     pixels: int = 100,
     patches: int = 4,
+    projected_pixels: int = 100,
+    projected_patches: int = 4,
+    occlusion: float = 0.0,
     center: bool = True,
     axis: str = "azimuth_deg",
 ) -> dict:
@@ -72,10 +75,16 @@ def fov_row(
         "camera_radius_scale": 1.0,
         "source_center_in_frame": center,
         "source_fov_clipping_fraction": clipping,
+        "source_projected_pixels_in_frame": projected_pixels,
+        "source_projected_patch_support": projected_patches,
+        "source_external_occlusion_fraction": occlusion,
         "source_visible_pixels": pixels,
         "source_visible_patch_support": patches,
         "target_center_in_frame": True,
         "target_fov_clipping_fraction": 0.0,
+        "target_projected_pixels_in_frame": 120,
+        "target_projected_patch_support": 5,
+        "target_external_occlusion_fraction": 0.0,
         "target_visible_pixels": 120,
         "target_visible_patch_support": 5,
     }
@@ -101,15 +110,32 @@ class CompareKycCameraEvaluationsTest(unittest.TestCase):
 
     def test_fov_join_ignores_horizon_and_assigns_all_strata(self) -> None:
         cases = [
-            ("fully", 0.2, 100, 4, True, "fully_supported"),
-            ("severe", 0.7, 100, 4, True, "severe_clipping"),
-            ("center", 0.2, 100, 4, False, "center_out"),
-            ("below", 0.2, 63, 3, True, "below_support"),
-            ("gone", 1.0, 0, 0, False, "disappeared"),
+            ("fully", 0.2, 100, 4, 100, True, "fully_supported"),
+            ("severe", 0.7, 100, 4, 100, True, "severe_clipping"),
+            ("center", 0.2, 100, 4, 100, False, "center_out"),
+            ("below", 0.2, 63, 3, 100, True, "below_support"),
+            ("occluded", 0.0, 0, 0, 100, True, "fully_occluded"),
+            (
+                "outside",
+                1.0,
+                0,
+                0,
+                0,
+                False,
+                "geometrically_out_of_view",
+            ),
         ]
         evaluation_rows = []
         fov_rows = []
-        for index, (pose, clipping, pixels, patches, center, _expected) in enumerate(cases):
+        for index, (
+            pose,
+            clipping,
+            pixels,
+            patches,
+            projected_pixels,
+            center,
+            _expected,
+        ) in enumerate(cases):
             evaluation_rows.append(
                 evaluation_row(
                     "observed",
@@ -130,6 +156,9 @@ class CompareKycCameraEvaluationsTest(unittest.TestCase):
                     clipping=clipping,
                     pixels=pixels,
                     patches=patches,
+                    projected_pixels=projected_pixels,
+                    projected_patches=0 if projected_pixels == 0 else 4,
+                    occlusion=1.0 if pose == "occluded" else 0.0,
                     center=center,
                 )
             )

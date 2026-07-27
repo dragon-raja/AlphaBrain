@@ -176,6 +176,7 @@ if [[ ! -e "$analysis_root/gate_seed_summary" ]]; then
     --kyc "41=$(evaluation_path gate kyc 41)" \
     --kyc "42=$(evaluation_path gate kyc 42)" \
     --kyc "43=$(evaluation_path gate kyc 43)" \
+    --poseaug-rgb "$(evaluation_path gate poseaug_rgb 41)" \
     --fov-json "${fov_boundary[@]}" \
     --output-dir "$analysis_root/gate_seed_summary"
 fi

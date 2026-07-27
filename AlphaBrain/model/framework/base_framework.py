@@ -141,6 +141,7 @@ class BaseFramework(PreTrainedModel):
             FileNotFoundError: If underlying files are missing (surfaced earlier).
         """
         pretrained_checkpoint = Path(pretrained_checkpoint)
+        strict_checkpoint = bool(kwargs.pop("strict_checkpoint", False))
 
         # lpt0309: 支持自包含目录格式checkpoint（单一路径推断，无需base_vlm）
         if pretrained_checkpoint.is_dir():
@@ -212,6 +213,11 @@ class BaseFramework(PreTrainedModel):
                 common_keys = model_keys.intersection(checkpoint_keys)
                 missing_keys = model_keys - common_keys
                 unexpected_keys = checkpoint_keys - common_keys
+                if strict_checkpoint:
+                    raise RuntimeError(
+                        "strict checkpoint loading failed; native evaluation "
+                        "requires exact state-dict keys and tensor shapes"
+                    ) from e
                 critical_missing, critical_unexpected = (
                     _critical_state_dict_mismatches(
                         missing_keys,

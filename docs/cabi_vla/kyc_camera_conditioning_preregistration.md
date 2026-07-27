@@ -27,6 +27,14 @@ an AlphaBrain/Pi0.5 adaptation rather than an exact robot/data reproduction:
 the original SmolVLA policy head and benchmark are not used, and only the
 external view is camera-conditioned.
 
+The released KYC repository is internally inconsistent about Plucker channel
+order: its README snippet uses `[direction, origin x direction]`, while the
+robosuite executable uses the reverse concatenation. This experiment froze the
+README convention before training. Since the ray CNN is initialized and
+trained from scratch, the two definitions differ only by a fixed input-channel
+permutation; the result is a topology-level reproduction, not a bitwise
+reproduction of the robosuite source.
+
 ## Arms
 
 | Arm | Randomized RGB | Camera branch | Ray input | Role |
@@ -95,7 +103,8 @@ measure:
 - visible pixels;
 - visible 14x14 patch support;
 - external occlusion;
-- complete disappearance.
+- geometric out-of-sensor events from isolated-object projection;
+- complete external occlusion when the projection remains in sensor.
 
 Policy episodes are joined to these records before aggregation. Primary
 view-robustness claims use the fully supported stratum: both task objects have
@@ -133,3 +142,9 @@ camera conditioning. Failures after visual support is lost are boundary
 findings and cannot by themselves reject KYC.
 
 Recorded rollouts are delivered as AV1/WebM with contact sheets.
+
+Before results were observed, criterion 2 was operationalized as a strictly
+positive paired supported-pose success delta for KYC seed 41 versus
+PoseAug-RGB seed 41; a tie fails this contextual criterion. The primary
+KYC-versus-PoseAug-Control interval hierarchically resamples both training
+seeds and held-out snapshot groups.

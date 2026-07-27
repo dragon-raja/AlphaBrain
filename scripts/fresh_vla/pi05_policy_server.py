@@ -78,7 +78,10 @@ def main() -> None:
     args = parse_args()
     os.environ.setdefault("PRETRAINED_MODELS_DIR", "/share/longjunyu/alphabrain/pretrained_models")
     args.socket.unlink(missing_ok=True)
-    model = BaseFramework.from_pretrained(str(args.checkpoint))
+    model = BaseFramework.from_pretrained(
+        str(args.checkpoint),
+        strict_checkpoint=True,
+    )
     model = model.to(torch.bfloat16).to(args.device).eval()
     model.gripper_remap = False
     for parameter in model.parameters():

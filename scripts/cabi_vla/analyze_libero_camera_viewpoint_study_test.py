@@ -29,6 +29,12 @@ def visibility_row(
     target_pixels: int = 200,
     source_patches: int = 4,
     target_patches: int = 4,
+    source_projected_pixels: int = 200,
+    target_projected_pixels: int = 200,
+    source_projected_patches: int = 4,
+    target_projected_patches: int = 4,
+    source_occlusion: float = 0.0,
+    target_occlusion: float = 0.0,
     state: int = 0,
 ) -> dict:
     baseline = pose == "baseline"
@@ -43,10 +49,16 @@ def visibility_row(
         "camera_radius_scale": 1.0,
         "source_center_in_frame": source_center,
         "source_fov_clipping_fraction": source_clipping,
+        "source_projected_pixels_in_frame": source_projected_pixels,
+        "source_projected_patch_support": source_projected_patches,
+        "source_external_occlusion_fraction": source_occlusion,
         "source_visible_pixels": source_pixels,
         "source_visible_patch_support": source_patches,
         "target_center_in_frame": target_center,
         "target_fov_clipping_fraction": target_clipping,
+        "target_projected_pixels_in_frame": target_projected_pixels,
+        "target_projected_patch_support": target_projected_patches,
+        "target_external_occlusion_fraction": target_occlusion,
         "target_visible_pixels": target_pixels,
         "target_visible_patch_support": target_patches,
     }
@@ -56,6 +68,7 @@ class CameraViewpointStudyTest(unittest.TestCase):
     def test_visibility_phase_uses_most_severe_boundary(self) -> None:
         point = {
             "task_visible_pixels_min": 100,
+            "task_projected_pixels_in_frame_min": 100,
             "task_visible_patch_support_min": 5,
             "task_center_in_frame_all": True,
             "task_fov_clipping_fraction_max": 0.2,
@@ -72,7 +85,12 @@ class CameraViewpointStudyTest(unittest.TestCase):
         point["task_visible_pixels_min"] = 0
         self.assertEqual(
             visibility_phase(point, minimum_patch_support=4),
-            "disappeared",
+            "fully_occluded",
+        )
+        point["task_projected_pixels_in_frame_min"] = 0
+        self.assertEqual(
+            visibility_phase(point, minimum_patch_support=4),
+            "geometrically_out_of_view",
         )
 
     def test_sampled_intervals_preserve_non_monotonic_runs(self) -> None:
@@ -107,8 +125,17 @@ class CameraViewpointStudyTest(unittest.TestCase):
                 source_center=False,
                 source_pixels=0,
                 source_patches=0,
+                source_occlusion=1.0,
             ),
             visibility_row(2.0, state=1, target_pixels=40, target_patches=1),
+            visibility_row(
+                4.0,
+                source_center=False,
+                source_pixels=0,
+                source_patches=0,
+                source_projected_pixels=0,
+                source_projected_patches=0,
+            ),
         ]
         points, boundaries = analyze_payloads(
             [{"status": "complete", "rows": rows}],
@@ -147,14 +174,15 @@ class CameraViewpointStudyTest(unittest.TestCase):
                 (interval["start_value"], interval["end_value"])
                 for interval in low_pixels["intervals"]
             ],
-            [(2.0, 3.0)],
+            [(2.0, 4.0)],
         )
         expected_intervals = {
             "first_clipping": [(-2.0, -1.0), (1.0, 1.0), (3.0, 3.0)],
             "clipping_50_percent": [(3.0, 3.0)],
-            "center_out_of_frame": [(3.0, 3.0)],
-            "below_patch_support": [(2.0, 3.0)],
-            "fully_disappeared": [(3.0, 3.0)],
+            "center_out_of_frame": [(3.0, 4.0)],
+            "below_patch_support": [(2.0, 4.0)],
+            "fully_occluded": [(3.0, 3.0)],
+            "geometrically_out_of_view": [(4.0, 4.0)],
         }
         for boundary_name, expected in expected_intervals.items():
             boundary = next(

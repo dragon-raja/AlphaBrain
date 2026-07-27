@@ -46,6 +46,10 @@ start_evaluation() {
     return
   fi
   if [[ -e "$run_dir" ]]; then
+    if [[ "$scope" == gate ]] \
+      && tmux has-session -t kyc-eval-shard-accelerator 2>/dev/null; then
+      return
+    fi
     echo "incomplete evaluation requires inspection: $run_dir" >&2
     exit 1
   fi

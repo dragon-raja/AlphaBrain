@@ -140,6 +140,15 @@ def main() -> None:
     if len(config_hashes) != 1:
         raise ValueError("camera fragments use different randomization configs")
     camera_config_sha256 = config_hashes.pop()
+    epoch_replica_counts = {
+        int(manifest.get("camera_epoch_replicas", 1))
+        for manifest in manifests
+    }
+    if len(epoch_replica_counts) != 1:
+        raise ValueError("camera fragments use different epoch replica counts")
+    epoch_replicas = epoch_replica_counts.pop()
+    if epoch_replicas <= 0:
+        raise ValueError("camera epoch replica count must be positive")
     for fragment, manifest in zip(args.fragments, manifests):
         if Path(manifest["source_training_view"]).resolve() != args.training_view.resolve():
             raise ValueError(f"fragment uses a different training view: {fragment}")
@@ -165,7 +174,7 @@ def main() -> None:
         ):
             raise ValueError(f"fragment failed baseline image gate: {fragment}")
 
-    records_by_index = {}
+    records_by_key = {}
     shard_rows: dict[tuple[Path, Path], list[dict]] = defaultdict(list)
     fragment_record_hashes = {}
     for fragment, manifest in zip(args.fragments, manifests):
@@ -184,13 +193,18 @@ def main() -> None:
             raise ValueError(f"fragment record count mismatch: {fragment}")
         for row in records:
             index = int(row["source_record_index"])
-            if index in records_by_index:
-                raise ValueError(f"duplicate source record index: {index}")
+            epoch_replica = int(row.get("camera_epoch_replica", 0))
+            key = (index, epoch_replica)
+            if key in records_by_key:
+                raise ValueError(f"duplicate source record replica: {key}")
             if not 0 <= index < len(source_records):
                 raise IndexError(f"source record index outside source view: {index}")
+            if not 0 <= epoch_replica < epoch_replicas:
+                raise IndexError(
+                    f"camera epoch replica outside configured range: {key}"
+                )
             source_row = source_records[index]
             identity_keys = (
-                "sample_id",
                 "edge_id",
                 "episode_file",
                 "frame_index",
@@ -198,25 +212,32 @@ def main() -> None:
                 "language_instruction",
                 "split",
             )
+            source_sample_id = row.get("source_sample_id", row.get("sample_id"))
             mismatched = [
                 key
                 for key in identity_keys
                 if key in source_row and row.get(key) != source_row[key]
             ]
+            if source_sample_id != source_row.get("sample_id"):
+                mismatched.append("source_sample_id")
             if mismatched:
                 raise ValueError(
                     f"fragment row {index} does not match source fields: {mismatched}"
                 )
             _validate_camera_matrices(row, index=index)
             relative = _safe_relative_path(str(row["camera_view_file"]))
-            records_by_index[index] = row
+            records_by_key[key] = row
             shard_rows[(fragment, relative)].append(row)
 
-    expected_indices = set(range(len(source_records)))
-    actual_indices = set(records_by_index)
-    if actual_indices != expected_indices:
-        missing = sorted(expected_indices - actual_indices)
-        extra = sorted(actual_indices - expected_indices)
+    expected_keys = {
+        (index, epoch_replica)
+        for index in range(len(source_records))
+        for epoch_replica in range(epoch_replicas)
+    }
+    actual_keys = set(records_by_key)
+    if actual_keys != expected_keys:
+        missing = sorted(expected_keys - actual_keys)
+        extra = sorted(actual_keys - expected_keys)
         raise ValueError(
             f"camera fragments do not cover source records: "
             f"missing={missing[:10]}, extra={extra[:10]}"
@@ -249,8 +270,9 @@ def main() -> None:
 
         ordered_records = []
         for index in range(len(source_records)):
-            row = records_by_index[index]
-            ordered_records.append(row)
+            for epoch_replica in range(epoch_replicas):
+                row = records_by_key[(index, epoch_replica)]
+                ordered_records.append(row)
 
         records_text = "".join(
             json.dumps(row, sort_keys=True) + "\n" for row in ordered_records
@@ -324,6 +346,7 @@ def main() -> None:
                 "visibility_counts": dict(visibility_counts),
                 "record_count": len(ordered_records),
                 "unique_camera_shards": len(output_shards),
+                "camera_epoch_replicas": epoch_replicas,
             },
         }
         (staging / "manifest.json").write_text(

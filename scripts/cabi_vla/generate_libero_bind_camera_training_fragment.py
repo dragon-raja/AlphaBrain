@@ -19,6 +19,11 @@ from libero_camera_pose import (
     install_camera_pose,
     mujoco_camera_calibration,
 )
+from libero_scene_cues import (
+    SCENE_CUE_MODES,
+    capture_scene_cue_reference,
+    install_scene_cues,
+)
 
 
 def stable_uniform(seed: int, sample_id: str, field: str) -> float:
@@ -52,14 +57,36 @@ def load_randomization_config(path: Path) -> dict[str, Any]:
     resolution = int(fixed.get("resolution", 224))
     if resolution <= 0:
         raise ValueError("fixed_variables.resolution must be positive")
+    sampling_unit = str(
+        payload.get("sampling_unit", "fixed_episode_camera_pool")
+    )
+    if sampling_unit not in {"fixed_episode_camera_pool", "global_camera_catalog"}:
+        raise ValueError(
+            "sampling_unit must be fixed_episode_camera_pool or "
+            "global_camera_catalog"
+        )
     poses_per_episode = int(payload.get("poses_per_episode", 1))
     if poses_per_episode <= 0:
         raise ValueError("poses_per_episode must be positive")
+    camera_catalog_size = int(payload.get("camera_catalog_size", 1))
+    if camera_catalog_size <= 0:
+        raise ValueError("camera_catalog_size must be positive")
+    epoch_replicas = int(payload.get("epoch_replicas", 1))
+    if epoch_replicas <= 0:
+        raise ValueError("epoch_replicas must be positive")
+    scene_cue_mode = str(payload.get("scene_cue_mode", "fixed"))
+    if scene_cue_mode not in SCENE_CUE_MODES:
+        raise ValueError(f"scene_cue_mode must be one of {SCENE_CUE_MODES}")
     return {
         **payload,
         "seed": int(payload["seed"]),
         "baseline_probability": probability,
         "poses_per_episode": poses_per_episode,
+        "sampling_unit": sampling_unit,
+        "camera_catalog_size": camera_catalog_size,
+        "epoch_replicas": epoch_replicas,
+        "scene_cue_mode": scene_cue_mode,
+        "scene_cue_seed": int(payload.get("scene_cue_seed", payload["seed"])),
         "ranges": normalized_ranges,
         "camera_name": str(payload["camera_name"]),
         "table_plane_z": float(payload["table_plane_z"]),
@@ -109,13 +136,59 @@ def episode_camera_pool(
     ]
 
 
+def global_camera_catalog(*, config: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Return a nested deterministic catalog shared by every replay episode."""
+
+    count = int(config.get("camera_catalog_size", 1))
+    return [
+        sample_training_pose(
+            sample_id=f"global-camera-{index:04d}",
+            config=config,
+        )
+        for index in range(count)
+    ]
+
+
+def training_camera_pool(
+    *,
+    edge_id: str,
+    episode_file: str,
+    config: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    if config.get("sampling_unit", "fixed_episode_camera_pool") == (
+        "global_camera_catalog"
+    ):
+        return global_camera_catalog(config=config)
+    return episode_camera_pool(
+        edge_id=edge_id,
+        episode_file=episode_file,
+        config=config,
+    )
+
+
 def camera_variant_index(
     *,
     sample_id: str,
     config: Mapping[str, Any],
+    epoch_replica: int = 0,
 ) -> int:
-    count = int(config.get("poses_per_episode", 1))
-    unit = stable_uniform(int(config["seed"]), sample_id, "camera_variant")
+    if epoch_replica < 0:
+        raise ValueError("epoch_replica must be non-negative")
+    sampling_unit = config.get(
+        "sampling_unit",
+        "fixed_episode_camera_pool",
+    )
+    count = int(
+        config.get("camera_catalog_size", 1)
+        if sampling_unit == "global_camera_catalog"
+        else config.get("poses_per_episode", 1)
+    )
+    field = (
+        "camera_variant"
+        if sampling_unit == "fixed_episode_camera_pool" and epoch_replica == 0
+        else f"camera_variant_epoch_{epoch_replica}"
+    )
+    unit = stable_uniform(int(config["seed"]), sample_id, field)
     return min(int(unit * count), count - 1)
 
 
@@ -149,6 +222,19 @@ def _render_agentview(
 ) -> np.ndarray:
     raw = env.sim.render(
         camera_name=camera_name,
+        height=resolution,
+        width=resolution,
+    )
+    return upright_image(raw)
+
+
+def _render_wrist(
+    env: Any,
+    *,
+    resolution: int,
+) -> np.ndarray:
+    raw = env.sim.render(
+        camera_name="robot0_eye_in_hand",
         height=resolution,
         width=resolution,
     )
@@ -190,6 +276,9 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--minimum-visible-pixels", type=int, default=64)
     parser.add_argument("--seed", type=int, default=20260722)
+    parser.add_argument("--camera-catalog-size", type=int)
+    parser.add_argument("--epoch-replicas", type=int)
+    parser.add_argument("--scene-cue-mode", choices=SCENE_CUE_MODES)
     parser.add_argument(
         "--record-limit",
         type=int,
@@ -210,6 +299,16 @@ def main() -> None:
         raise ValueError("replay tolerances must be non-negative")
 
     config = load_randomization_config(args.camera_config)
+    if args.camera_catalog_size is not None:
+        if args.camera_catalog_size <= 0:
+            raise ValueError("camera-catalog-size must be positive")
+        config["camera_catalog_size"] = int(args.camera_catalog_size)
+    if args.epoch_replicas is not None:
+        if args.epoch_replicas <= 0:
+            raise ValueError("epoch-replicas must be positive")
+        config["epoch_replicas"] = int(args.epoch_replicas)
+    if args.scene_cue_mode is not None:
+        config["scene_cue_mode"] = str(args.scene_cue_mode)
     resolution = int(config["fixed_variables"]["resolution"])
     source_manifest = json.loads((args.training_view / "manifest.json").read_text())
     suite_manifest = json.loads((args.suite_root / "manifest.json").read_text())
@@ -247,7 +346,8 @@ def main() -> None:
     staging = args.output.parent / f".{args.output.name}.staging-{os.getpid()}"
     views_dir = staging / "camera_views"
     views_dir.mkdir(parents=True, exist_ok=False)
-    output_records: dict[int, dict[str, Any]] = {}
+    epoch_replicas = int(config["epoch_replicas"])
+    output_records: dict[tuple[int, int], dict[str, Any]] = {}
     replay_state_max_abs = 0.0
     replay_pose_max_abs = 0.0
     baseline_image_mae_max = 0.0
@@ -278,6 +378,7 @@ def main() -> None:
                     camera_name=config["camera_name"],
                     table_plane_z=config["table_plane_z"],
                 )
+                scene_reference = capture_scene_cue_reference(render_env)
                 _restore_reference(render_env, reference)
                 calibration = mujoco_camera_calibration(
                     render_env,
@@ -312,7 +413,7 @@ def main() -> None:
                 for episode_file, episode_rows in sorted(
                     by_edge_episode[edge_id].items()
                 ):
-                    camera_pool = episode_camera_pool(
+                    camera_pool = training_camera_pool(
                         edge_id=edge_id,
                         episode_file=episode_file,
                         config=config,
@@ -459,101 +560,155 @@ def main() -> None:
                                     baseline_audited = True
 
                                 for source_index, row in frame_rows[frame]:
-                                    variant_index = camera_variant_index(
-                                        sample_id=str(row["sample_id"]),
-                                        config=config,
-                                    )
-                                    pose = camera_pool[variant_index]
-                                    install_camera_pose(render_env, reference, pose)
-                                    image = _render_agentview(
-                                        render_env,
-                                        camera_name=config["camera_name"],
-                                        resolution=resolution,
-                                    )
-                                    camera = mujoco_camera_calibration(
-                                        render_env,
-                                        camera_name=config["camera_name"],
-                                        height=resolution,
-                                        width=resolution,
-                                    )
-                                    visibility = camera_task_visibility(
-                                        render_env,
-                                        observation,
-                                        camera_name=config["camera_name"],
-                                        source_object=str(edge["source_object"]),
-                                        target_object=str(edge["target_object"]),
-                                        height=resolution,
-                                        width=resolution,
-                                        minimum_pixels=args.minimum_visible_pixels,
-                                    )
-                                    visibility_counts[
-                                        "task_centers_in_frame"
-                                        if visibility["task_centers_in_frame"]
-                                        else "task_center_out_of_frame"
-                                    ] += 1
-                                    visibility_counts[
-                                        "task_objects_visible"
-                                        if visibility["task_objects_visible"]
-                                        else "task_object_under_minimum"
-                                    ] += 1
-
-                                    shard_index = len(rendered)
-                                    rendered.append(image)
-                                    rendered_wrist.append(
-                                        upright_image(
-                                            observation[
-                                                "robot0_eye_in_hand_image"
-                                            ]
+                                    for epoch_replica in range(epoch_replicas):
+                                        scene_metadata = install_scene_cues(
+                                            render_env,
+                                            scene_reference,
+                                            mode=str(config["scene_cue_mode"]),
+                                            seed=int(config["scene_cue_seed"]),
+                                            sample_id=(
+                                                f"{edge_id}::{episode_file}::"
+                                                f"epoch-{epoch_replica}"
+                                            ),
                                         )
-                                    )
-                                    rendered_state.append(
-                                        robot_state(observation)
-                                    )
-                                    output_row = {
-                                        **row,
-                                        "source_record_index": source_index,
-                                        "camera_view_file": (
-                                            f"camera_views/{edge_id}/"
-                                            f"{Path(episode_file).stem}.npz"
-                                        ),
-                                        "camera_view_index": shard_index,
-                                        "camera_pose": pose["name"],
-                                        "camera_pose_sampling_unit": (
-                                            "fixed_episode_camera_pool"
-                                        ),
-                                        "camera_variant_index": variant_index,
-                                        "camera_variants_per_episode": len(
-                                            camera_pool
-                                        ),
-                                        "camera_azimuth_deg": float(
-                                            pose["azimuth_deg"]
-                                        ),
-                                        "camera_elevation_deg": float(
-                                            pose["elevation_deg"]
-                                        ),
-                                        "camera_radius_scale": float(
-                                            pose["radius_scale"]
-                                        ),
-                                        "camera_intrinsics": np.asarray(
-                                            camera["intrinsics"]
-                                        ).tolist(),
-                                        "camera_to_world_opencv": np.asarray(
-                                            camera["camera_to_world_opencv"]
-                                        ).tolist(),
-                                        "camera_task_centers_in_frame": bool(
-                                            visibility["task_centers_in_frame"]
-                                        ),
-                                        "camera_task_objects_visible": bool(
-                                            visibility["task_objects_visible"]
-                                        ),
-                                    }
-                                    output_records[source_index] = output_row
-                                    shard_rows.append(
-                                        {
+                                        variant_index = camera_variant_index(
+                                            sample_id=str(row["sample_id"]),
+                                            config=config,
+                                            epoch_replica=epoch_replica,
+                                        )
+                                        pose = camera_pool[variant_index]
+                                        install_camera_pose(
+                                            render_env,
+                                            reference,
+                                            pose,
+                                        )
+                                        image = _render_agentview(
+                                            render_env,
+                                            camera_name=config["camera_name"],
+                                            resolution=resolution,
+                                        )
+                                        wrist = _render_wrist(
+                                            render_env,
+                                            resolution=resolution,
+                                        )
+                                        camera = mujoco_camera_calibration(
+                                            render_env,
+                                            camera_name=config["camera_name"],
+                                            height=resolution,
+                                            width=resolution,
+                                        )
+                                        visibility = camera_task_visibility(
+                                            render_env,
+                                            observation,
+                                            camera_name=config["camera_name"],
+                                            source_object=str(
+                                                edge["source_object"]
+                                            ),
+                                            target_object=str(
+                                                edge["target_object"]
+                                            ),
+                                            height=resolution,
+                                            width=resolution,
+                                            minimum_pixels=(
+                                                args.minimum_visible_pixels
+                                            ),
+                                        )
+                                        visibility_counts[
+                                            "task_centers_in_frame"
+                                            if visibility[
+                                                "task_centers_in_frame"
+                                            ]
+                                            else "task_center_out_of_frame"
+                                        ] += 1
+                                        visibility_counts[
+                                            "task_objects_visible"
+                                            if visibility[
+                                                "task_objects_visible"
+                                            ]
+                                            else "task_object_under_minimum"
+                                        ] += 1
+
+                                        shard_index = len(rendered)
+                                        rendered.append(image)
+                                        rendered_wrist.append(wrist)
+                                        rendered_state.append(
+                                            robot_state(observation)
+                                        )
+                                        source_sample_id = str(row["sample_id"])
+                                        sample_id = (
+                                            source_sample_id
+                                            if epoch_replicas == 1
+                                            else (
+                                                f"{source_sample_id}::"
+                                                f"camera-epoch-{epoch_replica:02d}"
+                                            )
+                                        )
+                                        output_row = {
+                                            **row,
+                                            "sample_id": sample_id,
+                                            "source_sample_id": source_sample_id,
                                             "source_record_index": source_index,
+                                            "camera_epoch_replica": epoch_replica,
+                                            "camera_view_file": (
+                                                f"camera_views/{edge_id}/"
+                                                f"{Path(episode_file).stem}.npz"
+                                            ),
                                             "camera_view_index": shard_index,
+                                            "camera_pose": pose["name"],
+                                            "camera_pose_sampling_unit": str(
+                                                config["sampling_unit"]
+                                            ),
+                                            "camera_variant_index": (
+                                                variant_index
+                                            ),
+                                            "camera_catalog_size": len(
+                                                camera_pool
+                                            ),
+                                            "camera_azimuth_deg": float(
+                                                pose["azimuth_deg"]
+                                            ),
+                                            "camera_elevation_deg": float(
+                                                pose["elevation_deg"]
+                                            ),
+                                            "camera_radius_scale": float(
+                                                pose["radius_scale"]
+                                            ),
+                                            "camera_intrinsics": np.asarray(
+                                                camera["intrinsics"]
+                                            ).tolist(),
+                                            "camera_to_world_opencv": np.asarray(
+                                                camera[
+                                                    "camera_to_world_opencv"
+                                                ]
+                                            ).tolist(),
+                                            "camera_task_centers_in_frame": bool(
+                                                visibility[
+                                                    "task_centers_in_frame"
+                                                ]
+                                            ),
+                                            "camera_task_objects_visible": bool(
+                                                visibility[
+                                                    "task_objects_visible"
+                                                ]
+                                            ),
+                                            **scene_metadata,
                                         }
-                                    )
+                                        output_records[
+                                            (source_index, epoch_replica)
+                                        ] = output_row
+                                        shard_rows.append(
+                                            {
+                                                "source_record_index": (
+                                                    source_index
+                                                ),
+                                                "camera_epoch_replica": (
+                                                    epoch_replica
+                                                ),
+                                                "camera_view_index": (
+                                                    shard_index
+                                                ),
+                                            }
+                                        )
                             if frame < max_frame:
                                 observation, _, _, _ = env.step(
                                     np.asarray(
@@ -587,7 +742,9 @@ def main() -> None:
                             {
                                 "edge_id": edge_id,
                                 "episode_file": episode_file,
-                                "rendered_records": len(episode_rows),
+                                "rendered_records": (
+                                    len(episode_rows) * epoch_replicas
+                                ),
                             },
                             sort_keys=True,
                         ),
@@ -597,7 +754,11 @@ def main() -> None:
                 render_env.close()
                 env.close()
 
-        ordered_records = [output_records[index] for index, _ in selected]
+        ordered_records = [
+            output_records[(index, epoch_replica)]
+            for index, _ in selected
+            for epoch_replica in range(epoch_replicas)
+        ]
         records_text = "".join(
             json.dumps(row, sort_keys=True) + "\n" for row in ordered_records
         )
@@ -612,7 +773,8 @@ def main() -> None:
                 (args.training_view / "records.jsonl").read_bytes()
             ).hexdigest(),
             "selected_edges": selected_edges,
-            "selected_record_count": len(selected),
+            "selected_source_record_count": len(selected),
+            "selected_record_count": len(ordered_records),
             "camera_config_path": str(args.camera_config),
             "camera_config": config,
             "camera_config_sha256": hashlib.sha256(
@@ -622,7 +784,9 @@ def main() -> None:
                     separators=(",", ":"),
                 ).encode()
             ).hexdigest(),
-            "camera_pose_sampling_unit": "fixed_episode_camera_pool",
+            "camera_pose_sampling_unit": str(config["sampling_unit"]),
+            "camera_epoch_replicas": epoch_replicas,
+            "scene_cue_mode": str(config["scene_cue_mode"]),
             "baseline_camera": baseline_camera,
             "replay_state_max_abs": replay_state_max_abs,
             "replay_pose_max_abs": replay_pose_max_abs,

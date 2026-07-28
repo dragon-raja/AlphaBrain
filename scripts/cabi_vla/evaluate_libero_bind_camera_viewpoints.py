@@ -20,6 +20,7 @@ from libero_camera_pose import (
     capture_camera_reference,
     install_camera_pose,
     load_camera_sweep_config,
+    mujoco_camera_calibration,
 )
 
 
@@ -51,10 +52,39 @@ def _parse_names(
 def make_camera_environment_setup(
     reference: Mapping[str, Any],
     pose: Mapping[str, Any],
+    *,
+    ray_pose: Mapping[str, Any] | None = None,
+    resolution: int = 224,
 ):
     def setup(env: Any) -> Mapping[str, Any]:
         metadata = install_camera_pose(env, reference, pose)
-        return {"camera_pose": str(pose["name"]), **metadata}
+        result = {
+            "camera_pose": str(pose["name"]),
+            "policy_ray_pose": str(
+                pose["name"] if ray_pose is None else ray_pose["name"]
+            ),
+            **metadata,
+        }
+        if ray_pose is not None:
+            install_camera_pose(env, reference, ray_pose)
+            calibration = mujoco_camera_calibration(
+                env,
+                camera_name=str(reference["camera_name"]),
+                height=resolution,
+                width=resolution,
+            )
+            result.update(
+                {
+                    "policy_camera_intrinsics": np.asarray(
+                        calibration["intrinsics"]
+                    ).tolist(),
+                    "policy_camera_to_world_opencv": np.asarray(
+                        calibration["camera_to_world_opencv"]
+                    ).tolist(),
+                }
+            )
+            install_camera_pose(env, reference, pose)
+        return result
 
     return setup
 
@@ -123,6 +153,12 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--state-indices")
     parser.add_argument("--edges", default="all")
     parser.add_argument("--poses", default="all")
+    parser.add_argument(
+        "--ray-mode",
+        choices=("correct", "canonical", "next_pose"),
+        default="correct",
+        help="camera calibration supplied to the policy while RGB stays fixed",
+    )
     parser.add_argument("--execution-horizons", type=int, nargs="+", default=[3])
     parser.add_argument("--max-steps", type=int, default=320)
     parser.add_argument("--resolution", type=int, default=224)
@@ -164,6 +200,8 @@ def main() -> None:
         raise ValueError("camera sweep must include baseline for paired image QC")
     pose_names = ["baseline", *[name for name in pose_names if name != "baseline"]]
     poses = [pose_by_name[name] for name in pose_names]
+    if args.ray_mode == "next_pose" and len(poses) < 2:
+        raise ValueError("next_pose ray mode requires at least two visual poses")
 
     edge_by_name = {str(edge["edge_id"]): edge for edge in manifest["edges"]}
     edge_names = _parse_names(args.edges, available=edge_by_name, kind="edges")
@@ -203,8 +241,19 @@ def main() -> None:
                     camera_name=config["camera_name"],
                     table_plane_z=config["table_plane_z"],
                 )
-                for pose in poses:
-                    environment_setup = make_camera_environment_setup(reference, pose)
+                for pose_index, pose in enumerate(poses):
+                    if args.ray_mode == "correct":
+                        ray_pose = None
+                    elif args.ray_mode == "canonical":
+                        ray_pose = pose_by_name["baseline"]
+                    else:
+                        ray_pose = poses[(pose_index + 1) % len(poses)]
+                    environment_setup = make_camera_environment_setup(
+                        reference,
+                        pose,
+                        ray_pose=ray_pose,
+                        resolution=args.resolution,
+                    )
                     for execution_horizon in args.execution_horizons:
                         for state_position, state_index in enumerate(state_indices):
                             episode_key = (
@@ -246,6 +295,7 @@ def main() -> None:
                                 "canonical_state_index": state_index,
                                 "split": args.split,
                                 "execution_horizon": execution_horizon,
+                                "ray_mode": args.ray_mode,
                                 **metrics,
                             }
                             if frames is not None:
@@ -285,6 +335,7 @@ def main() -> None:
         "edges": edge_names,
         "poses": pose_names,
         "execution_horizons": args.execution_horizons,
+        "ray_mode": args.ray_mode,
         "max_steps": args.max_steps,
         "resolution": args.resolution,
         "minimum_visible_pixels": args.minimum_visible_pixels,

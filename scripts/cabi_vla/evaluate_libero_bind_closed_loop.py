@@ -141,16 +141,18 @@ def run_episode(
     if episode_setup is not None:
         observation, observation_metadata = episode_setup(env, observation)
         setup_metadata.update(observation_metadata)
-    camera_policy_metadata = {
-        key: setup_metadata[key]
-        for key in (
-            "camera_intrinsics",
-            "camera_to_world_opencv",
-            "camera_intrinsics_by_view",
-            "camera_to_world_opencv_by_view",
-        )
-        if key in setup_metadata
-    }
+    camera_policy_metadata = {}
+    for key in (
+        "camera_intrinsics",
+        "camera_to_world_opencv",
+        "camera_intrinsics_by_view",
+        "camera_to_world_opencv_by_view",
+    ):
+        policy_key = f"policy_{key}"
+        if policy_key in setup_metadata:
+            camera_policy_metadata[key] = setup_metadata[policy_key]
+        elif key in setup_metadata:
+            camera_policy_metadata[key] = setup_metadata[key]
     source_object = str(edge["source_object"])
     target_object = str(edge["target_object"])
     initial_source_z = float(observation[f"{source_object}_pos"][2])

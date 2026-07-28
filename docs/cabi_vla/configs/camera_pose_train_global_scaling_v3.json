@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "name": "libero_bind_camera_pose_train_global_scaling_v3",
+  "camera_name": "agentview",
+  "table_plane_z": 0.48,
+  "design": "nested_global_camera_catalog_with_epoch_replicas",
+  "purpose": "Preregistered KYC Pi0.5 view-count scaling and scene-cue factorial.",
+  "seed": 20260728,
+  "sampling_unit": "global_camera_catalog",
+  "camera_catalog_size": 1000,
+  "epoch_replicas": 3,
+  "scene_cue_mode": "fixed",
+  "scene_cue_seed": 20260728,
+  "baseline_probability": 0.0,
+  "ranges": {
+    "azimuth_deg": [-60.0, 60.0],
+    "elevation_deg": [-25.0, 25.0],
+    "radius_scale": [0.9, 1.25]
+  },
+  "fixed_variables": {
+    "wrist_camera": "rendered_from_the_same_scene_intervention",
+    "field_of_view": "unchanged",
+    "resolution": 224,
+    "policy_image_transform": "rot180",
+    "raymap_transform": "mujoco_upright"
+  }
+}

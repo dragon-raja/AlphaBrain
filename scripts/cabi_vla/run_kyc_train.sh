@@ -5,6 +5,10 @@ REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 CONFIG=${KYC_TRAIN_CONFIG:-$REPO_ROOT/configs/experiments/kyc_libero_bind.yaml}
 PYTHON=${KYC_TRAIN_PYTHON:-$REPO_ROOT/.venv/bin/python}
 OUTPUT_ROOT=${KYC_OUTPUT_ROOT:-/share/longjunyu/cabi-vla/kyc-runs}
+DATA_ROOT_OVERRIDE=${KYC_DATA_ROOT_OVERRIDE:-}
+RUN_TAG=${KYC_RUN_TAG:-}
+WRIST_MODE=${KYC_WRIST_MODE:-on}
+CABI_ANCHOR_PERIOD=${KYC_CABI_ANCHOR_PERIOD:-32}
 
 ARM=${1:?usage: run_kyc_train.sh ARM SEED GPU_ID [STEPS]}
 SEED=${2:?usage: run_kyc_train.sh ARM SEED GPU_ID [STEPS]}
@@ -34,7 +38,27 @@ case "$ARM" in
     ;;
 esac
 
-RUN_ID="kyc_${ARM}_h20_seed${SEED}_steps${STEPS}"
+if [[ -n "$DATA_ROOT_OVERRIDE" ]]; then
+  DATA_ROOT=$DATA_ROOT_OVERRIDE
+fi
+if [[ "$WRIST_MODE" != on && "$WRIST_MODE" != off ]]; then
+  echo "KYC_WRIST_MODE must be on or off" >&2
+  exit 2
+fi
+if [[ ! "$CABI_ANCHOR_PERIOD" =~ ^[1-9][0-9]*$ ]]; then
+  echo "KYC_CABI_ANCHOR_PERIOD must be a positive integer" >&2
+  exit 2
+fi
+if [[ -n "$RUN_TAG" && ! "$RUN_TAG" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+  echo "KYC_RUN_TAG must contain only safe filename characters" >&2
+  exit 2
+fi
+
+tag_segment=""
+if [[ -n "$RUN_TAG" ]]; then
+  tag_segment="_${RUN_TAG}"
+fi
+RUN_ID="kyc_${ARM}${tag_segment}_h20_seed${SEED}_steps${STEPS}"
 OUTPUT_DIR="$OUTPUT_ROOT/$RUN_ID"
 KEEPALIVE_SESSION="gpu-keepalive-${GPU_ID}"
 KEEPALIVE_WAS_RUNNING=0
@@ -80,6 +104,11 @@ export ALPHABRAIN_DISABLE_AUTO_DOWNLOAD=1
 export NO_ALBUMENTATIONS_UPDATE=1
 export OMP_NUM_THREADS=${OMP_NUM_THREADS:-8}
 
+image_mask="[true,true,false]"
+if [[ "$WRIST_MODE" == off ]]; then
+  image_mask="[true,false,false]"
+fi
+
 CUDA_VISIBLE_DEVICES="$GPU_ID" "$PYTHON" -m accelerate.commands.launch \
   --config_file configs/deepspeed/accelerate_1gpu_simple.yaml \
   --num_processes 1 \
@@ -92,6 +121,8 @@ CUDA_VISIBLE_DEVICES="$GPU_ID" "$PYTHON" -m accelerate.commands.launch \
   "output_root_dir=$OUTPUT_ROOT" \
   "data_root=$DATA_ROOT" \
   "datasets.vla_data.data_root_dir=$DATA_ROOT" \
+  "datasets.vla_data.cabi_anchor_period=$CABI_ANCHOR_PERIOD" \
+  "framework.paligemma.image_mask=$image_mask" \
   "trainer.max_train_steps=$STEPS" \
   "trainer.save_interval=$((STEPS + 1))" \
   "trainer.eval_interval=$((STEPS + 1))" \

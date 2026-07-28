@@ -7,6 +7,9 @@ TRAINING_VIEW=${KYC_SOURCE_TRAINING_VIEW:-/share/longjunyu/cabi-vla/libero-bind-
 SUITE_ROOT=${KYC_SUITE_ROOT:-/share/longjunyu/cabi-vla/libero-bind-v0}
 CAMERA_CONFIG=${KYC_CAMERA_CONFIG:-$REPO_ROOT/docs/cabi_vla/configs/camera_pose_train_random_v2.json}
 FRAGMENT_ROOT=${KYC_FRAGMENT_ROOT:-/share/longjunyu/cabi-vla/camera-viewpoint-study-v2/training_fragments_v2}
+CAMERA_CATALOG_SIZE=${KYC_CAMERA_CATALOG_SIZE:-}
+EPOCH_REPLICAS=${KYC_EPOCH_REPLICAS:-}
+SCENE_CUE_MODE=${KYC_SCENE_CUE_MODE:-}
 
 EDGE=${1:?usage: run_kyc_camera_fragment.sh EDGE GPU_ID}
 GPU_ID=${2:?usage: run_kyc_camera_fragment.sh EDGE GPU_ID}
@@ -47,6 +50,19 @@ export MUJOCO_GL=egl
 export PYOPENGL_PLATFORM=egl
 export CUDA_VISIBLE_DEVICES="$GPU_ID"
 
+catalog_args=()
+if [[ -n "$CAMERA_CATALOG_SIZE" ]]; then
+  catalog_args=(--camera-catalog-size "$CAMERA_CATALOG_SIZE")
+fi
+replica_args=()
+if [[ -n "$EPOCH_REPLICAS" ]]; then
+  replica_args=(--epoch-replicas "$EPOCH_REPLICAS")
+fi
+scene_args=()
+if [[ -n "$SCENE_CUE_MODE" ]]; then
+  scene_args=(--scene-cue-mode "$SCENE_CUE_MODE")
+fi
+
 "$PYTHON" scripts/cabi_vla/generate_libero_bind_camera_training_fragment.py \
   --training-view "$TRAINING_VIEW" \
   --suite-root "$SUITE_ROOT" \
@@ -54,4 +70,7 @@ export CUDA_VISIBLE_DEVICES="$GPU_ID"
   --output "$OUTPUT" \
   --edges "$EDGE" \
   --baseline-image-mae-tolerance "${KYC_BASELINE_IMAGE_MAE_TOLERANCE:-1.0}" \
+  "${catalog_args[@]}" \
+  "${replica_args[@]}" \
+  "${scene_args[@]}" \
   2>&1 | tee "$LOG"

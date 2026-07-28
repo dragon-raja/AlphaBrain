@@ -34,6 +34,15 @@ if [[ -z "$budget" ]]; then
   exit 1
 fi
 
+stage_b2_summary="$SCALING_EVAL_ROOT/analysis/stage_b2_summary.json"
+while [[ ! -s "$stage_b2_summary" ]]; do
+  if ! tmux has-session -t kyc-scaling-stage-b2-pipeline 2>/dev/null; then
+    echo "Stage B2 confirmation pipeline stopped before its summary" >&2
+    exit 1
+  fi
+  sleep 60
+done
+
 cue_cell="n${budget}-cue"
 cue_view="$DATA_ROOT/views/libero-bind-kyc-${cue_cell}-h20"
 cue_session="kyc-data-build-${cue_cell}"

@@ -184,4 +184,11 @@ for catalog_size in 10 45 215 1000; do
   done
 done
 
+scaling_summary="$EVAL_ROOT/analysis/stage_b1_scaling_summary.json"
+if [[ ! -s "$scaling_summary" ]]; then
+  "$PYTHON" scripts/cabi_vla/summarize_kyc_scaling_stage_b1.py \
+    --analysis-root "$EVAL_ROOT/analysis" \
+    --output "$scaling_summary"
+fi
+
 echo "KYC camera generalization scaling and official positive control complete"

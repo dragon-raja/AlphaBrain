@@ -112,6 +112,13 @@ Stage B2 confirms seeds 42 and 43:
 - otherwise confirm `n = {10, 45}`, where the released paper predicts the
   largest data-efficiency effect.
 
+The qualifying budget is the one with the largest positive seed-41 gain,
+breaking ties toward the smaller catalog. Its neighbor minimizes absolute
+log-view-count distance, again breaking ties toward the smaller catalog. The
+mechanically selected Track C budget is added to the Stage B2 training set if
+it is not already present, so every factorial cell has matched seeds 41, 42,
+and 43.
+
 No budget is selected by test-state performance. Stage transitions use the
 frozen gate states and thresholds above.
 
@@ -151,6 +158,18 @@ At that frozen budget, run the complete seed-41 factorial:
 Confirm seeds 42 and 43 for the complete factorial if either preregistered
 interaction is at least 5 percentage points in seed 41. Otherwise confirm the
 two wrist-off cells, which most closely match the paper.
+
+The primary factorial evaluation is matched-distribution: fixed-scene
+policies are evaluated in the fixed scene and cue-randomized policies in
+cue-randomized scenes. Every seed-41 policy is additionally evaluated in the
+opposite scene as a secondary cross-scene control. This separates training
+augmentation from test-time cue removal; cross-scene results do not replace
+the matched primary estimands. Seeds 42 and 43 confirm only matched cells.
+
+The 5-point interaction trigger uses absolute interaction magnitude. If
+triggered, seeds 42 and 43 confirm all four matched cells. Otherwise they
+confirm fixed/cue-randomized wrist-off cells only. Fixed-scene wrist-on
+checkpoints and rollouts are reused from Track B rather than rerun.
 
 Primary interactions:
 
@@ -249,4 +268,3 @@ paper claim.
 The existing result is renamed:
 
 `KYC_INCREMENTAL_GAIN_NOT_OBSERVED_ON_PI05_LIBERO_BIND_FIXED_SCENE_WRIST_ON_HIGH_VIEW`.
-

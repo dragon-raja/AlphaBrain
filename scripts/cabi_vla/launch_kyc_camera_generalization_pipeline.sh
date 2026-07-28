@@ -169,6 +169,13 @@ wait_for_evaluation 1000 poseaug_control
 wait_for_evaluation 1000 kyc
 wait_for_official_matrix
 
+official_summary="$OFFICIAL_ROOT/analysis/official_act_summary.json"
+if [[ ! -s "$official_summary" ]]; then
+  "$PYTHON" scripts/cabi_vla/summarize_kyc_official_act.py \
+    --run-root "$OFFICIAL_ROOT" \
+    --output "$official_summary"
+fi
+
 if ! tmux has-session -t kyc-scaling-b1-eval-manager 2>/dev/null; then
   tmux new-session -d -s kyc-scaling-b1-eval-manager -c "$REPO_ROOT" \
     "exec bash scripts/cabi_vla/launch_kyc_scaling_stage_b1_eval.sh"

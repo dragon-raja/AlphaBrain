@@ -6,6 +6,7 @@ DATA_ROOT=${KYC_SCALING_DATA_ROOT:-/share/longjunyu/cabi-vla/kyc-scaling-v3}
 RUN_ROOT=${KYC_OUTPUT_ROOT:-$DATA_ROOT/runs}
 EVAL_ROOT=${KYC_SCALING_EVAL_ROOT:-$DATA_ROOT/eval/stage-b1}
 OFFICIAL_ROOT=${KYC_OFFICIAL_OUTPUT_ROOT:-/share/longjunyu/kyc-official-data/runs}
+OFFICIAL_AV1_ROOT=${KYC_OFFICIAL_AV1_ROOT:-/share/longjunyu/kyc-official-data/videos_av1_final}
 PYTHON=${KYC_TRAIN_PYTHON:-$REPO_ROOT/.venv/bin/python}
 SEED=${KYC_SCALING_SEED:-41}
 STEPS=${KYC_SCALING_STEPS:-33000}
@@ -174,6 +175,13 @@ if [[ ! -s "$official_summary" ]]; then
   "$PYTHON" scripts/cabi_vla/summarize_kyc_official_act.py \
     --run-root "$OFFICIAL_ROOT" \
     --output "$official_summary"
+fi
+if [[ ! -s "$OFFICIAL_AV1_ROOT/manifest.json" ]] \
+  && ! tmux has-session -t kyc-official-av1-transcode 2>/dev/null; then
+  tmux new-session -d -s kyc-official-av1-transcode -c "$REPO_ROOT" \
+    "export KYC_OFFICIAL_OUTPUT_ROOT='$OFFICIAL_ROOT'; \
+     export KYC_OFFICIAL_AV1_ROOT='$OFFICIAL_AV1_ROOT'; \
+     exec bash scripts/cabi_vla/transcode_kyc_official_final_videos.sh"
 fi
 
 if ! tmux has-session -t kyc-scaling-b1-eval-manager 2>/dev/null; then

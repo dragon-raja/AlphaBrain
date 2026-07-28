@@ -19,6 +19,8 @@ MAX_STEPS=${CABI_EVAL_MAX_STEPS:-320}
 RESOLUTION=${CABI_CAMERA_RESOLUTION:-224}
 MINIMUM_VISIBLE_PIXELS=${CABI_CAMERA_MINIMUM_VISIBLE_PIXELS:-64}
 EVAL_SEED=${CABI_EVAL_SEED:-20260722}
+SCENE_CUE_MODE=${CABI_SCENE_CUE_MODE:-fixed}
+SCENE_CUE_SEED=${CABI_SCENE_CUE_SEED:-20260728}
 FRAME_POSES=${CABI_CAMERA_FRAME_POSES:-baseline}
 FRAME_EDGES=${CABI_CAMERA_FRAME_EDGES:-all}
 FRAME_EPISODES=${CABI_EVAL_FRAME_EPISODES:-0}
@@ -46,6 +48,10 @@ if [[ ! "$RESOLUTION" =~ ^[1-9][0-9]*$ || ! "$MINIMUM_VISIBLE_PIXELS" =~ ^[1-9][
 fi
 if [[ ! "$FRAME_EPISODES" =~ ^[0-9]+$ ]]; then
   echo "CABI_EVAL_FRAME_EPISODES must be a non-negative integer" >&2
+  exit 2
+fi
+if [[ "$SCENE_CUE_MODE" != fixed && "$SCENE_CUE_MODE" != cue_randomized ]]; then
+  echo "CABI_SCENE_CUE_MODE must be fixed or cue_randomized" >&2
   exit 2
 fi
 if [[ ! -s "$CHECKPOINT/model.safetensors" ]]; then
@@ -160,5 +166,7 @@ PYTHONDONTWRITEBYTECODE=1 \
   --resolution "$RESOLUTION" \
   --minimum-visible-pixels "$MINIMUM_VISIBLE_PIXELS" \
   --seed "$EVAL_SEED" \
+  --scene-cue-mode "$SCENE_CUE_MODE" \
+  --scene-cue-seed "$SCENE_CUE_SEED" \
   "${state_args[@]}" \
   "${frame_args[@]}"

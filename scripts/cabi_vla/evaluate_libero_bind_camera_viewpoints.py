@@ -22,6 +22,11 @@ from libero_camera_pose import (
     load_camera_sweep_config,
     mujoco_camera_calibration,
 )
+from libero_scene_cues import (
+    SCENE_CUE_MODES,
+    capture_scene_cue_reference,
+    install_scene_cues,
+)
 
 
 def _atomic_write(path: Path, payload: Mapping[str, Any]) -> None:
@@ -54,15 +59,29 @@ def make_camera_environment_setup(
     pose: Mapping[str, Any],
     *,
     ray_pose: Mapping[str, Any] | None = None,
+    scene_reference: Mapping[str, Any] | None = None,
+    scene_cue_mode: str = "fixed",
+    scene_cue_seed: int = 0,
+    scene_sample_id: str = "",
     resolution: int = 224,
 ):
     def setup(env: Any) -> Mapping[str, Any]:
+        scene_metadata = {}
+        if scene_reference is not None:
+            scene_metadata = install_scene_cues(
+                env,
+                scene_reference,
+                mode=scene_cue_mode,
+                seed=scene_cue_seed,
+                sample_id=scene_sample_id,
+            )
         metadata = install_camera_pose(env, reference, pose)
         result = {
             "camera_pose": str(pose["name"]),
             "policy_ray_pose": str(
                 pose["name"] if ray_pose is None else ray_pose["name"]
             ),
+            **scene_metadata,
             **metadata,
         }
         if ray_pose is not None:
@@ -164,6 +183,12 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--resolution", type=int, default=224)
     parser.add_argument("--minimum-visible-pixels", type=int, default=64)
     parser.add_argument("--seed", type=int, default=20260722)
+    parser.add_argument(
+        "--scene-cue-mode",
+        choices=SCENE_CUE_MODES,
+        default="fixed",
+    )
+    parser.add_argument("--scene-cue-seed", type=int, default=20260728)
     parser.add_argument("--frame-dir", type=Path)
     parser.add_argument("--frame-poses", default="baseline")
     parser.add_argument("--frame-edges", default="all")
@@ -241,6 +266,7 @@ def main() -> None:
                     camera_name=config["camera_name"],
                     table_plane_z=config["table_plane_z"],
                 )
+                scene_reference = capture_scene_cue_reference(env)
                 for pose_index, pose in enumerate(poses):
                     if args.ray_mode == "correct":
                         ray_pose = None
@@ -248,14 +274,22 @@ def main() -> None:
                         ray_pose = pose_by_name["baseline"]
                     else:
                         ray_pose = poses[(pose_index + 1) % len(poses)]
-                    environment_setup = make_camera_environment_setup(
-                        reference,
-                        pose,
-                        ray_pose=ray_pose,
-                        resolution=args.resolution,
-                    )
                     for execution_horizon in args.execution_horizons:
                         for state_position, state_index in enumerate(state_indices):
+                            scene_sample_id = (
+                                f"{edge['edge_id']}::state-{state_index}::"
+                                f"k{execution_horizon}"
+                            )
+                            environment_setup = make_camera_environment_setup(
+                                reference,
+                                pose,
+                                ray_pose=ray_pose,
+                                scene_reference=scene_reference,
+                                scene_cue_mode=args.scene_cue_mode,
+                                scene_cue_seed=args.scene_cue_seed,
+                                scene_sample_id=scene_sample_id,
+                                resolution=args.resolution,
+                            )
                             episode_key = (
                                 str(edge["edge_id"]),
                                 int(state_index),
@@ -340,6 +374,8 @@ def main() -> None:
         "resolution": args.resolution,
         "minimum_visible_pixels": args.minimum_visible_pixels,
         "seed": args.seed,
+        "scene_cue_mode": args.scene_cue_mode,
+        "scene_cue_seed": args.scene_cue_seed,
         "expected_episode_count": expected,
         "policy_identity": policy.identity,
         "rows": rows,

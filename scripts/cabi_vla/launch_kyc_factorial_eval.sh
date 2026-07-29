@@ -4,6 +4,7 @@ set -euo pipefail
 REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 DATA_ROOT=${KYC_SCALING_DATA_ROOT:-/share/longjunyu/cabi-vla/kyc-scaling-v3}
 EVAL_ROOT=${KYC_FACTORIAL_EVAL_ROOT:-$DATA_ROOT/eval/factorial}
+SCALING_EVAL_ROOT=${KYC_SCALING_EVAL_ROOT:-$DATA_ROOT/eval/stage-b1}
 CATALOG_SIZE=${1:?usage: launch_kyc_factorial_eval.sh CATALOG_SIZE [SEED]}
 SEED=${2:-41}
 EXPECTED_EPISODES=520
@@ -95,6 +96,40 @@ wait_job() {
     sleep 30
   done
 }
+
+reuse_scaling_evaluation() {
+  local arm=$1
+  local arm_short
+  case "$arm" in
+    poseaug_control) arm_short=ctrl ;;
+    kyc) arm_short=kyc ;;
+  esac
+  local source_dir="$SCALING_EVAL_ROOT/n${CATALOG_SIZE}/n${CATALOG_SIZE}-${arm}-s${SEED}-fixed-wrist-on"
+  local source_result="$source_dir/camera_sweep_test.json"
+  local target_dir="$EVAL_ROOT/n${CATALOG_SIZE}/n${CATALOG_SIZE}-trfx-won-m${arm_short}-s${SEED}-evfx"
+  local target_result="$target_dir/camera_sweep_test.json"
+  if [[ -s "$target_result" ]]; then
+    return
+  fi
+  if [[ -e "$target_dir" || -L "$target_dir" ]]; then
+    echo "incomplete fixed/on reuse target requires inspection: $target_dir" >&2
+    exit 1
+  fi
+  if [[ ! -s "$source_result" ]] || ! jq -e \
+    --argjson expected "$EXPECTED_EPISODES" \
+    '.status == "complete" and (.rows | length) == $expected' \
+    "$source_result" >/dev/null; then
+    echo "missing complete Stage B1 fixed/on evaluation: $source_result" >&2
+    exit 1
+  fi
+  mkdir -p "$(dirname "$target_dir")"
+  ln -s "$source_dir" "$target_dir"
+  echo "reused Stage B1 fixed/on evaluation: arm=$arm seed=$SEED"
+}
+
+for arm in poseaug_control kyc; do
+  reuse_scaling_evaluation "$arm"
+done
 
 matched=(
   "fixed on poseaug_control fixed 0"

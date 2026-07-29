@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -27,46 +27,54 @@ def hierarchical_group_bootstrap(
 ) -> dict[str, Any]:
     training_seeds = sorted(gains_by_seed)
     if not training_seeds:
-        raise ValueError("hierarchical bootstrap has no seeds")
+        raise ValueError("crossed bootstrap has no seeds")
+    snapshot_groups = sorted(gains_by_seed[training_seeds[0]])
+    if not snapshot_groups:
+        raise ValueError("crossed bootstrap has no snapshot groups")
+    expected_groups = set(snapshot_groups)
+    for training_seed in training_seeds:
+        if set(gains_by_seed[training_seed]) != expected_groups:
+            raise ValueError(
+                "crossed bootstrap requires identical paired snapshot groups"
+            )
+    values = np.asarray(
+        [
+            [
+                gains_by_seed[training_seed][snapshot_group]
+                for snapshot_group in snapshot_groups
+            ]
+            for training_seed in training_seeds
+        ],
+        dtype=np.float64,
+    )
     rng = np.random.default_rng(seed)
     distribution = np.empty(resamples, dtype=np.float64)
     for index in range(resamples):
-        sampled_seeds = rng.choice(
-            training_seeds,
+        sampled_seed_indices = rng.integers(
+            0,
+            len(training_seeds),
             size=len(training_seeds),
-            replace=True,
         )
-        seed_means = []
-        for training_seed in sampled_seeds:
-            group_values = np.asarray(
-                list(gains_by_seed[int(training_seed)].values()),
-                dtype=np.float64,
-            )
-            sampled_groups = rng.choice(
-                group_values,
-                size=len(group_values),
-                replace=True,
-            )
-            seed_means.append(float(np.mean(sampled_groups)))
-        distribution[index] = float(np.mean(seed_means))
-    estimate = float(
-        np.mean(
-            [
-                np.mean(list(group_values.values()))
-                for group_values in gains_by_seed.values()
-            ]
+        sampled_group_indices = rng.integers(
+            0,
+            len(snapshot_groups),
+            size=len(snapshot_groups),
         )
-    )
+        distribution[index] = float(
+            values[np.ix_(sampled_seed_indices, sampled_group_indices)].mean()
+        )
+    estimate = float(values.mean())
     return {
         "delta": estimate,
         "ci95_low": float(np.quantile(distribution, 0.025)),
         "ci95_high": float(np.quantile(distribution, 0.975)),
         "training_seed_count": len(training_seeds),
         "snapshot_groups_per_seed": {
-            str(training_seed): len(gains_by_seed[training_seed])
+            str(training_seed): len(snapshot_groups)
             for training_seed in training_seeds
         },
         "bootstrap_resamples": resamples,
+        "bootstrap_scheme": "crossed_training_seed_and_snapshot_group",
     }
 
 

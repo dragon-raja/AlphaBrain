@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import csv
+import tempfile
 import unittest
+from pathlib import Path
 
 from summarize_kyc_scaling_stage_b1 import (
     budget_to_eighty_percent,
@@ -8,6 +11,7 @@ from summarize_kyc_scaling_stage_b1 import (
     normalized_log_auc,
     paired_group_bootstrap,
     select_factorial_budget,
+    summarize,
 )
 
 
@@ -77,6 +81,65 @@ class SummarizeKycScalingStageB1Test(unittest.TestCase):
         )
         self.assertEqual(result["snapshot_group_count"], 2)
         self.assertEqual(result["delta"], 0.5)
+
+    def test_summary_marks_absent_withheld_split_unavailable(self) -> None:
+        fields = (
+            "method",
+            "data_split",
+            "visibility_stratum",
+            "camera_azimuth_deg",
+            "camera_elevation_deg",
+            "camera_radius_scale",
+            "edge_id",
+            "canonical_state_index",
+            "execution_horizon",
+            "camera_pose",
+            "success",
+            "transport_success",
+            "progress",
+            "completion_steps",
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for budget in (10, 45):
+                output = root / f"n{budget}" / "episode_rows.csv"
+                output.parent.mkdir(parents=True)
+                with output.open("w", newline="") as stream:
+                    writer = csv.DictWriter(stream, fieldnames=fields)
+                    writer.writeheader()
+                    for method, success in (
+                        ("poseaug_control", 0.0),
+                        ("kyc", 1.0),
+                    ):
+                        writer.writerow(
+                            {
+                                "method": method,
+                                "data_split": "observed",
+                                "visibility_stratum": "fully_supported",
+                                "camera_azimuth_deg": 0.0,
+                                "camera_elevation_deg": 0.0,
+                                "camera_radius_scale": 1.0,
+                                "edge_id": "red-left",
+                                "canonical_state_index": 40,
+                                "execution_horizon": 3,
+                                "camera_pose": "baseline",
+                                "success": success,
+                                "transport_success": success,
+                                "progress": success,
+                                "completion_steps": 100,
+                            }
+                        )
+            result = summarize(
+                root,
+                budgets=(10, 45),
+                bootstrap_resamples=100,
+            )
+        for budget in ("10", "45"):
+            primary = result["budget_results"][budget]["primary"]
+            self.assertTrue(primary["all"]["available"])
+            self.assertTrue(primary["observed"]["available"])
+            self.assertFalse(primary["withheld"]["available"])
+            self.assertEqual(primary["withheld"]["methods"], {})
 
 
 if __name__ == "__main__":

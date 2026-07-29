@@ -178,6 +178,25 @@ def summarize(
             selected_rows = [
                 row for row in rows if primary_row(row, data_split=data_split)
             ]
+            if not selected_rows:
+                split_payload[data_split] = {
+                    "available": False,
+                    "definition": (
+                        "fully_supported_and_inside_training_camera_support"
+                    ),
+                    "reason": f"no {data_split} rows were included in this gate",
+                    "methods": {},
+                    "comparisons": {},
+                }
+                continue
+            selected_methods = {
+                str(row["method"]) for row in selected_rows
+            }
+            missing_methods = sorted(set(methods) - selected_methods)
+            if missing_methods:
+                raise ValueError(
+                    f"{data_split} split is missing methods: {missing_methods}"
+                )
             summaries = {
                 method: method_metrics(selected_rows, method=method)
                 for method in methods
@@ -198,6 +217,7 @@ def summarize(
                     for metric in METRICS
                 }
             split_payload[data_split] = {
+                "available": True,
                 "definition": (
                     "fully_supported_and_inside_training_camera_support"
                 ),

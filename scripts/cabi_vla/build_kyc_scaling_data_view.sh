@@ -79,7 +79,11 @@ while true; do
   for edge in "${EDGES[@]}"; do
     if [[ ! -s "$FRAGMENT_ROOT/$edge/manifest.json" ]]; then
       complete=0
-      break
+      session="kyc-data-${CELL}-${edge}"
+      if ! tmux has-session -t "$session" 2>/dev/null; then
+        echo "fragment stopped without a manifest: $edge (see $FRAGMENT_ROOT/logs/$edge.log)" >&2
+        exit 1
+      fi
     fi
   done
   [[ "$complete" == 1 ]] && break
@@ -97,4 +101,3 @@ done
   --fragments "${fragments[@]}"
 
 echo "complete: $OUTPUT"
-

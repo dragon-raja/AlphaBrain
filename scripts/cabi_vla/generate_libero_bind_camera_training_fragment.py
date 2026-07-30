@@ -23,6 +23,7 @@ from libero_scene_cues import (
     SCENE_CUE_MODES,
     capture_scene_cue_reference,
     install_scene_cues,
+    restore_scene_cues,
 )
 
 
@@ -198,6 +199,15 @@ def _restore_reference(env: Any, reference: Mapping[str, Any]) -> None:
     sim.model.cam_pos[camera_id] = np.asarray(reference["position"])
     sim.model.cam_quat[camera_id] = np.asarray(reference["quaternion"])
     sim.forward()
+
+
+def _restore_render_reference(
+    env: Any,
+    camera_reference: Mapping[str, Any],
+    scene_reference: Mapping[str, Any],
+) -> None:
+    restore_scene_cues(env, scene_reference)
+    _restore_reference(env, camera_reference)
 
 
 def _sync_render_state(source_env: Any, render_env: Any) -> None:
@@ -379,7 +389,11 @@ def main() -> None:
                     table_plane_z=config["table_plane_z"],
                 )
                 scene_reference = capture_scene_cue_reference(render_env)
-                _restore_reference(render_env, reference)
+                _restore_render_reference(
+                    render_env,
+                    reference,
+                    scene_reference,
+                )
                 calibration = mujoco_camera_calibration(
                     render_env,
                     camera_name=config["camera_name"],
@@ -531,7 +545,11 @@ def main() -> None:
 
                                 _sync_render_state(env, render_env)
                                 if not baseline_audited:
-                                    _restore_reference(render_env, reference)
+                                    _restore_render_reference(
+                                        render_env,
+                                        reference,
+                                        scene_reference,
+                                    )
                                     baseline_render = _render_agentview(
                                         render_env,
                                         camera_name=config["camera_name"],

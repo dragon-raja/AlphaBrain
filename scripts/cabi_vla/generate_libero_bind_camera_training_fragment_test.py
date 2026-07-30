@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import generate_libero_bind_camera_training_fragment as fragment_module
+
 from generate_libero_bind_camera_training_fragment import (
     camera_variant_index,
     episode_camera_pool,
@@ -139,3 +141,28 @@ def test_epoch_replicas_choose_deterministic_catalog_members() -> None:
     ]
     assert first == second
     assert len(set(first)) >= 2
+
+
+def test_render_reference_restores_scene_before_camera(monkeypatch) -> None:
+    calls = []
+    monkeypatch.setattr(
+        fragment_module,
+        "restore_scene_cues",
+        lambda env, reference: calls.append(("scene", reference)),
+    )
+    monkeypatch.setattr(
+        fragment_module,
+        "_restore_reference",
+        lambda env, reference: calls.append(("camera", reference)),
+    )
+    scene_reference = {"kind": "scene"}
+    camera_reference = {"kind": "camera"}
+    fragment_module._restore_render_reference(
+        object(),
+        camera_reference,
+        scene_reference,
+    )
+    assert calls == [
+        ("scene", scene_reference),
+        ("camera", camera_reference),
+    ]

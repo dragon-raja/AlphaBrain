@@ -1,0 +1,438 @@
+{
+  "figure": "docs/cabi_vla/assets/kyc_camera_generalization_v3/camera_pose_response_curves.png",
+  "methods": {
+    "base": {
+      "curves": {
+        "azimuth": {
+          "camera_values": [
+            -90.0,
+            -60.0,
+            0.0,
+            60.0,
+            90.0
+          ],
+          "poses": [
+            "az_m90",
+            "az_m60",
+            "baseline",
+            "az_p60",
+            "az_p90"
+          ],
+          "progress_percent": [
+            31.874999999999996,
+            38.125,
+            67.5,
+            12.5,
+            30.625000000000004
+          ],
+          "success_percent": [
+            5.0,
+            12.5,
+            50.0,
+            5.0,
+            7.5
+          ]
+        },
+        "elevation": {
+          "camera_values": [
+            -32.0,
+            -25.0,
+            0.0,
+            25.0,
+            32.0
+          ],
+          "poses": [
+            "el_m32",
+            "el_m25",
+            "baseline",
+            "el_p25",
+            "el_p32"
+          ],
+          "progress_percent": [
+            43.125,
+            45.0,
+            67.5,
+            36.25,
+            30.625000000000004
+          ],
+          "success_percent": [
+            17.5,
+            17.5,
+            50.0,
+            10.0,
+            5.0
+          ]
+        },
+        "radius": {
+          "camera_values": [
+            0.75,
+            0.9,
+            1.0,
+            1.25,
+            1.4
+          ],
+          "poses": [
+            "rad_0750",
+            "rad_0900",
+            "baseline",
+            "rad_1250",
+            "rad_1400"
+          ],
+          "progress_percent": [
+            33.125,
+            58.12500000000001,
+            67.5,
+            13.125,
+            3.125
+          ],
+          "success_percent": [
+            5.0,
+            27.500000000000004,
+            50.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "evaluation_count": 1,
+      "training_seed_count": 1
+    },
+    "kyc": {
+      "curves": {
+        "azimuth": {
+          "camera_values": [
+            -90.0,
+            -60.0,
+            0.0,
+            60.0,
+            90.0
+          ],
+          "poses": [
+            "az_m90",
+            "az_m60",
+            "baseline",
+            "az_p60",
+            "az_p90"
+          ],
+          "progress_percent": [
+            69.16666666666667,
+            66.25,
+            71.66666666666667,
+            67.91666666666667,
+            70.83333333333334
+          ],
+          "success_percent": [
+            45.83333333333333,
+            39.16666666666666,
+            44.99999999999999,
+            40.833333333333336,
+            43.333333333333336
+          ]
+        },
+        "elevation": {
+          "camera_values": [
+            -32.0,
+            -25.0,
+            0.0,
+            25.0,
+            32.0
+          ],
+          "poses": [
+            "el_m32",
+            "el_m25",
+            "baseline",
+            "el_p25",
+            "el_p32"
+          ],
+          "progress_percent": [
+            72.70833333333334,
+            68.95833333333333,
+            71.66666666666667,
+            68.54166666666667,
+            67.70833333333334
+          ],
+          "success_percent": [
+            48.333333333333336,
+            44.16666666666667,
+            44.99999999999999,
+            43.333333333333336,
+            35.833333333333336
+          ]
+        },
+        "radius": {
+          "camera_values": [
+            0.75,
+            0.9,
+            1.0,
+            1.25,
+            1.4
+          ],
+          "poses": [
+            "rad_0750",
+            "rad_0900",
+            "baseline",
+            "rad_1250",
+            "rad_1400"
+          ],
+          "progress_percent": [
+            61.24999999999999,
+            65.0,
+            71.66666666666667,
+            67.91666666666667,
+            66.25
+          ],
+          "success_percent": [
+            30.0,
+            32.5,
+            44.99999999999999,
+            40.833333333333336,
+            42.5
+          ]
+        }
+      },
+      "evaluation_count": 3,
+      "training_seed_count": 3
+    },
+    "poseaug_control": {
+      "curves": {
+        "azimuth": {
+          "camera_values": [
+            -90.0,
+            -60.0,
+            0.0,
+            60.0,
+            90.0
+          ],
+          "poses": [
+            "az_m90",
+            "az_m60",
+            "baseline",
+            "az_p60",
+            "az_p90"
+          ],
+          "progress_percent": [
+            68.54166666666667,
+            70.83333333333334,
+            70.625,
+            67.70833333333334,
+            66.04166666666667
+          ],
+          "success_percent": [
+            38.33333333333333,
+            44.166666666666664,
+            43.33333333333333,
+            41.66666666666667,
+            42.5
+          ]
+        },
+        "elevation": {
+          "camera_values": [
+            -32.0,
+            -25.0,
+            0.0,
+            25.0,
+            32.0
+          ],
+          "poses": [
+            "el_m32",
+            "el_m25",
+            "baseline",
+            "el_p25",
+            "el_p32"
+          ],
+          "progress_percent": [
+            71.66666666666669,
+            69.375,
+            70.625,
+            66.04166666666667,
+            70.62500000000001
+          ],
+          "success_percent": [
+            43.333333333333336,
+            41.66666666666667,
+            43.33333333333333,
+            37.5,
+            45.0
+          ]
+        },
+        "radius": {
+          "camera_values": [
+            0.75,
+            0.9,
+            1.0,
+            1.25,
+            1.4
+          ],
+          "poses": [
+            "rad_0750",
+            "rad_0900",
+            "baseline",
+            "rad_1250",
+            "rad_1400"
+          ],
+          "progress_percent": [
+            68.75,
+            67.70833333333334,
+            70.625,
+            70.625,
+            75.0
+          ],
+          "success_percent": [
+            39.166666666666664,
+            37.5,
+            43.33333333333333,
+            48.33333333333334,
+            49.166666666666664
+          ]
+        }
+      },
+      "evaluation_count": 3,
+      "training_seed_count": 3
+    },
+    "poseaug_rgb": {
+      "curves": {
+        "azimuth": {
+          "camera_values": [
+            -90.0,
+            -60.0,
+            0.0,
+            60.0,
+            90.0
+          ],
+          "poses": [
+            "az_m90",
+            "az_m60",
+            "baseline",
+            "az_p60",
+            "az_p90"
+          ],
+          "progress_percent": [
+            60.62499999999999,
+            60.0,
+            67.5,
+            62.5,
+            66.25
+          ],
+          "success_percent": [
+            40.0,
+            35.0,
+            42.5,
+            42.5,
+            40.0
+          ]
+        },
+        "elevation": {
+          "camera_values": [
+            -32.0,
+            -25.0,
+            0.0,
+            25.0,
+            32.0
+          ],
+          "poses": [
+            "el_m32",
+            "el_m25",
+            "baseline",
+            "el_p25",
+            "el_p32"
+          ],
+          "progress_percent": [
+            67.5,
+            62.5,
+            67.5,
+            65.625,
+            60.62499999999999
+          ],
+          "success_percent": [
+            40.0,
+            42.5,
+            42.5,
+            40.0,
+            35.0
+          ]
+        },
+        "radius": {
+          "camera_values": [
+            0.75,
+            0.9,
+            1.0,
+            1.25,
+            1.4
+          ],
+          "poses": [
+            "rad_0750",
+            "rad_0900",
+            "baseline",
+            "rad_1250",
+            "rad_1400"
+          ],
+          "progress_percent": [
+            45.625,
+            63.74999999999999,
+            67.5,
+            73.75,
+            75.0
+          ],
+          "success_percent": [
+            27.500000000000004,
+            42.5,
+            42.5,
+            50.0,
+            50.0
+          ]
+        }
+      },
+      "evaluation_count": 1,
+      "training_seed_count": 1
+    }
+  },
+  "schema_version": 1,
+  "status": "complete",
+  "study": "libero_bind_camera_pose_response_curves",
+  "training_support_success_amplitude_pp": {
+    "base": {
+      "azimuth": 45.0,
+      "elevation": 40.0,
+      "radius": 50.0
+    },
+    "kyc": {
+      "azimuth": 5.833333333333336,
+      "elevation": 1.6666666666666572,
+      "radius": 12.499999999999993
+    },
+    "poseaug_control": {
+      "azimuth": 2.499999999999993,
+      "elevation": 5.833333333333329,
+      "radius": 10.833333333333343
+    },
+    "poseaug_rgb": {
+      "azimuth": 7.5,
+      "elevation": 2.5,
+      "radius": 7.5
+    }
+  },
+  "visual_support_definition": "both source and target centers are inside the external image and each object has at least 64 visible pixels",
+  "visual_support_percent": {
+    "azimuth": [
+      95.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0
+    ],
+    "elevation": [
+      75.0,
+      75.0,
+      100.0,
+      100.0,
+      55.00000000000001
+    ],
+    "radius": [
+      0.0,
+      20.0,
+      100.0,
+      100.0,
+      100.0
+    ]
+  }
+}

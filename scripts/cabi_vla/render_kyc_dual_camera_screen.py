@@ -162,7 +162,10 @@ def render(
     causal_values = [100.0 * float(causal["conditions"][condition]["success"]) for condition in conditions]
     causal_colors = (COLORS["dual_fla"], "#8D99AE", "#6C757D")
     causal_bars = causal_axis.bar(np.arange(3), causal_values, color=causal_colors)
-    causal_axis.set_xticks(np.arange(3), ("Correct wrist ray", "Initial fixed ray", "One-step lagged ray"))
+    causal_axis.set_xticks(
+        np.arange(3),
+        ("Correct wrist ray", "Initial fixed ray", "Previous-call ray (K=3)"),
+    )
     causal_axis.set_ylabel("Closed-loop success (%)")
     causal_axis.set_title("(c) Same RGB, wrist-ray intervention")
     causal_axis.set_ylim(0.0, max(25.0, 1.20 * max(causal_values)))

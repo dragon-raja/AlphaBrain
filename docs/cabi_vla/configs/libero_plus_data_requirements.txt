@@ -1,0 +1,5 @@
+crc32c==2.8
+numpy==2.5.1
+pillow==11.3.0
+protobuf==7.35.1
+tfrecord==1.14.6

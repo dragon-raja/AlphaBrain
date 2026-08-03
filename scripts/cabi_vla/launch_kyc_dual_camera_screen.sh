@@ -9,6 +9,7 @@ RUN_ROOT=${KYC_DUAL_RUN_ROOT:-/share/longjunyu/cabi-vla/kyc-runs}
 EVAL_ROOT=${KYC_DUAL_EVAL_ROOT:-/share/longjunyu/cabi-vla/dual-camera-kyc-screen-v1}
 CAMERA_CONFIG=${KYC_DUAL_CAMERA_CONFIG:-$REPO_ROOT/docs/cabi_vla/configs/camera_pose_policy_gate_v6.json}
 SUMMARY="$EVAL_ROOT/summary.json"
+FIGURE="$EVAL_ROOT/dual_camera_screen.png"
 
 if [[ ! "$SEED" =~ ^[0-9]+$ || ! "$STEPS" =~ ^[1-9][0-9]*$ ]]; then
   echo "seed must be non-negative and steps must be positive" >&2
@@ -134,6 +135,18 @@ if [[ ! -s "$SUMMARY" ]]; then
     --wrist-intervention "initial=$EVAL_ROOT/dual-wrist-initial-s${SEED}-u${STEPS}/camera_sweep_test.json" \
     --wrist-intervention "lagged=$EVAL_ROOT/dual-wrist-lagged-s${SEED}-u${STEPS}/camera_sweep_test.json" \
     --output "$SUMMARY"
+fi
+
+if [[ ! -s "$FIGURE" ]]; then
+  PYTHONPATH="$REPO_ROOT/scripts/cabi_vla" "$REPO_ROOT/.venv/bin/python" \
+    scripts/cabi_vla/render_kyc_dual_camera_screen.py \
+    --summary "$SUMMARY" \
+    --evaluation "dual_rgb_fla=$EVAL_ROOT/dual-rgb-s${SEED}-u${STEPS}/camera_sweep_test.json" \
+    --evaluation "dual_control_fla=$EVAL_ROOT/dual-control-s${SEED}-u${STEPS}/camera_sweep_test.json" \
+    --evaluation "external_fla=$EVAL_ROOT/external-s${SEED}-u${STEPS}/camera_sweep_test.json" \
+    --evaluation "wrist_fla=$EVAL_ROOT/wrist-s${SEED}-u${STEPS}/camera_sweep_test.json" \
+    --evaluation "dual_fla=$EVAL_ROOT/dual-s${SEED}-u${STEPS}/camera_sweep_test.json" \
+    --output "$FIGURE"
 fi
 
 for label in dual-rgb dual-control dual; do

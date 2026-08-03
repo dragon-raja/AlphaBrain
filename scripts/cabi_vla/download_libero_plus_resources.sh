@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 DOWNLOAD_DIR=${LIBERO_PLUS_DOWNLOAD_DIR:-/workspace/.downloads/libero-plus}
 VERIFIED_DIR=${LIBERO_PLUS_VERIFIED_DIR:-/share/longjunyu/alphabrain/datasets/libero-plus/verified}
 CONNECTIONS=${LIBERO_PLUS_DOWNLOAD_CONNECTIONS:-16}
 MAX_ATTEMPTS=${LIBERO_PLUS_DOWNLOAD_ATTEMPTS:-30}
+RANGE_WORKERS=${LIBERO_PLUS_RANGE_WORKERS:-5}
 
 if ! command -v aria2c >/dev/null 2>&1; then
   echo "aria2c is required" >&2
@@ -16,6 +18,10 @@ if [[ ! "$CONNECTIONS" =~ ^[1-9][0-9]*$ || "$CONNECTIONS" -gt 32 ]]; then
 fi
 if [[ ! "$MAX_ATTEMPTS" =~ ^[1-9][0-9]*$ ]]; then
   echo "LIBERO_PLUS_DOWNLOAD_ATTEMPTS must be positive" >&2
+  exit 2
+fi
+if [[ ! "$RANGE_WORKERS" =~ ^[1-8]$ ]]; then
+  echo "LIBERO_PLUS_RANGE_WORKERS must be in [1, 8]" >&2
   exit 2
 fi
 
@@ -53,33 +59,64 @@ download_one() {
     exit 1
   fi
 
-  local attempt
-  for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
-    echo "download attempt $attempt/$MAX_ATTEMPTS: $filename"
-    if aria2c \
-      --continue=true \
-      --allow-overwrite=true \
-      --auto-file-renaming=false \
-      --file-allocation=none \
-      --max-connection-per-server="$CONNECTIONS" \
-      --split="$CONNECTIONS" \
-      --min-split-size=4M \
-      --max-tries=0 \
-      --retry-wait=5 \
-      --connect-timeout=60 \
-      --timeout=60 \
-      --console-log-level=warn \
-      --summary-interval=0 \
-      --download-result=hide \
-      --dir="$DOWNLOAD_DIR" \
-      --out="$filename" \
-      "$url" >>"$log" 2>&1; then
-      if [[ $(stat -c %s "$source" 2>/dev/null || true) == "$expected_size" ]]; then
-        break
+  if [[ -f "$source" && -f "$source.aria2" ]]; then
+    echo "repairing existing aria2 partial file: $filename"
+    python3 "$REPO_ROOT/scripts/cabi_vla/resume_aria2_ranges.py" \
+      --file "$source" \
+      --control "$source.aria2" \
+      --url "$url" \
+      --expected-size "$expected_size" \
+      --expected-sha256 "$expected_sha" \
+      --part-dir "$DOWNLOAD_DIR/range-parts-$filename" \
+      --workers "$RANGE_WORKERS"
+  fi
+
+  if ! verify_file "$source" "$expected_size" "$expected_sha"; then
+    local attempt
+    for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
+      echo "download attempt $attempt/$MAX_ATTEMPTS: $filename"
+      # Resolve the public Hugging Face LFS URL with curl first. aria2 handles
+      # fresh signed object URLs more reliably than the public redirect.
+      local resolved_url
+      if ! resolved_url=$(curl -fsSL --max-time 60 --range 0-1048575 \
+        -o /dev/null -w '%{url_effective}' "$url"); then
+        echo "object URL resolution failed for $filename; retrying" >&2
+        sleep 10
+        continue
       fi
-    fi
-    sleep 10
-  done
+      if [[ "$resolved_url" != https://* ]]; then
+        echo "failed to resolve HTTPS object URL for $filename" >&2
+        sleep 10
+        continue
+      fi
+      # aria2 rejects the inherited SOCKS-style ALL_PROXY value before applying
+      # the working HTTP(S) proxy variables. Keep HTTP(S)_PROXY and drop only
+      # ALL_PROXY for this subprocess.
+      if env -u all_proxy -u ALL_PROXY aria2c \
+        --continue=true \
+        --allow-overwrite=true \
+        --auto-file-renaming=false \
+        --file-allocation=none \
+        --max-connection-per-server="$CONNECTIONS" \
+        --split="$CONNECTIONS" \
+        --min-split-size=4M \
+        --max-tries=0 \
+        --retry-wait=5 \
+        --connect-timeout=60 \
+        --timeout=60 \
+        --console-log-level=warn \
+        --summary-interval=0 \
+        --download-result=hide \
+        --dir="$DOWNLOAD_DIR" \
+        --out="$filename" \
+        "$resolved_url" >>"$log" 2>&1; then
+        if [[ $(stat -c %s "$source" 2>/dev/null || true) == "$expected_size" ]]; then
+          break
+        fi
+      fi
+      sleep 10
+    done
+  fi
 
   if [[ $(stat -c %s "$source" 2>/dev/null || true) != "$expected_size" ]]; then
     echo "download did not reach expected size: $filename" >&2

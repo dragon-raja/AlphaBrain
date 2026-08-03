@@ -86,6 +86,7 @@ start_eval() {
   fi
   tmux new-session -d -s "$session" -c "$REPO_ROOT" \
     "exec env CABI_CAMERA_OUTPUT_ROOT='$EVAL_ROOT' CABI_EVAL_SPLIT=test \
+      CABI_CAMERA_CONFIG='$REPO_ROOT/docs/cabi_vla/configs/camera_pose_policy_gate_v6.json' \
       CABI_EVAL_STATE_INDICES=40,42,44,47,49 CABI_EVAL_EDGES=all \
       CABI_CAMERA_POSES=baseline,az_m60,az_p60,el_m25,el_p25,rad_0900,rad_1250 \
       CABI_EVAL_HORIZONS=3 CABI_EVAL_MAX_STEPS=320 \

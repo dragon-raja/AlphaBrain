@@ -89,6 +89,7 @@ def _download_range(
             [
                 "curl",
                 "-fsSL",
+                "--http1.1",
                 "--retry",
                 "20",
                 "--retry-all-errors",

@@ -1,0 +1,227 @@
+{
+  "artifacts": {
+    "diagnostics_figure": "docs/cabi_vla/assets/kyc_dual_camera_validation_v1/dual_camera_diagnostics.png",
+    "main_figure": "docs/cabi_vla/assets/kyc_dual_camera_validation_v1/dual_camera_screen.png",
+    "paired_contact_sheet": "docs/cabi_vla/assets/kyc_dual_camera_validation_v1/paired_control_dual_contact_sheet.jpg",
+    "report": "docs/cabi_vla/kyc_dual_camera_validation_result_zh.md",
+    "run_root": "/share/longjunyu/cabi-vla/dual-camera-kyc-screen-v1"
+  },
+  "causal_wrist_intervention": {
+    "correct": 0.15714285714285714,
+    "correct_minus_initial": {
+      "ci95": [
+        -0.07142857142857142,
+        0.06428571428571428
+      ],
+      "delta": -0.007142857142857143
+    },
+    "correct_minus_lagged": {
+      "ci95": [
+        -0.07142857142857142,
+        0.03571428571428571
+      ],
+      "delta": 0.0
+    },
+    "initial_fixed": 0.16428571428571428,
+    "lagged_previous_call": 0.15714285714285714
+  },
+  "decision": "DO_NOT_ADVANCE_FROM_DUAL_CAMERA_SCREEN",
+  "evaluation": {
+    "causal_episode_count": 280,
+    "episode_count_per_method": 140,
+    "execution_horizon": 3,
+    "method_episode_count": 700,
+    "pose_count": 7,
+    "snapshot_group_count": 5,
+    "total_closed_loop_episode_count": 980
+  },
+  "factorial_success_effects": {
+    "external_average": {
+      "ci95": [
+        -0.09285714285714286,
+        0.05714285714285714
+      ],
+      "delta": -0.017857142857142856
+    },
+    "interaction": {
+      "ci95": [
+        -0.06428571428571428,
+        0.014285714285714285
+      ],
+      "delta": -0.02142857142857143
+    },
+    "wrist_average": {
+      "ci95": [
+        -0.0642857142857143,
+        -0.0035714285714285713
+      ],
+      "delta": -0.03214285714285714
+    }
+  },
+  "gate": {
+    "baseline_valid": true,
+    "causal_wrist_use": false,
+    "geometry_gain": false,
+    "normal_view_preserved": false
+  },
+  "libero_plus": {
+    "assets": {
+      "archive_bytes": 6395849578,
+      "file_count": 448799,
+      "sha256": "96764a4bfbdaea98d4411598caeab235458318fe0f549611b93d1a323027b3cf",
+      "status": "complete"
+    },
+    "camparam_rlds": {
+      "archive_bytes": 16607835331,
+      "episode_count": 2876,
+      "external_camera_count_rounded_1e4": 1178,
+      "language_task_count": 40,
+      "sha256": "a99466a1bb7eab4d0c55094d64d53ef6794ee835ba0db003fcee3e3fa6568e73",
+      "shard_count": 256,
+      "status": "complete",
+      "step_count": 449053,
+      "terminal_success_count": 2876,
+      "wrist_rotation_span_deg_median": 20.46051173286449,
+      "wrist_translation_span_median": 0.3132479444410892
+    },
+    "closed_loop_policy_evaluation": {
+      "reason": "compatible Pi0.5-LIBERO checkpoint has not been verified",
+      "status": "not_started"
+    },
+    "download_staging": {
+      "approximate_size_gib": 22,
+      "cleanup_performed": false,
+      "path": "/workspace/.downloads/libero-plus"
+    },
+    "runtime": {
+      "extraction_workers": 8,
+      "smoke_external_shape": [
+        224,
+        224,
+        3
+      ],
+      "smoke_manifest": "/share/longjunyu/alphabrain/datasets/libero-plus/audit/runtime-smoke-agent-wrist.json",
+      "smoke_output": "/share/longjunyu/alphabrain/datasets/libero-plus/audit/runtime-smoke-agent-wrist.png",
+      "smoke_status": "complete",
+      "smoke_wrist_shape": [
+        224,
+        224,
+        3
+      ],
+      "source_commit": "4976dc30028e805ff8094b55501d532c48fec182",
+      "status": "complete"
+    },
+    "target_task": {
+      "benchmark_variant_count": 291,
+      "episode_count": 63,
+      "external_camera_count": 33,
+      "language": "put the cream cheese in the bowl",
+      "step_count": 6608,
+      "terminal_success_count": 63,
+      "variants": {
+        "background": 32,
+        "camera": 49,
+        "language": 48,
+        "layout": 43,
+        "light": 25,
+        "noise": 47,
+        "robot_init": 47
+      }
+    }
+  },
+  "methods": {
+    "control": {
+      "lift_success": 0.8214285714285714,
+      "source_selection_success": 0.5857142857142857,
+      "success": 0.20714285714285716,
+      "transport_success": 0.35
+    },
+    "dual": {
+      "lift_success": 0.7928571428571428,
+      "source_selection_success": 0.5214285714285715,
+      "success": 0.15714285714285714,
+      "transport_success": 0.29285714285714287
+    },
+    "external": {
+      "lift_success": 0.7857142857142857,
+      "source_selection_success": 0.5571428571428572,
+      "success": 0.2,
+      "transport_success": 0.2857142857142857
+    },
+    "rgb": {
+      "lift_success": 0.7642857142857142,
+      "source_selection_success": 0.5642857142857143,
+      "success": 0.15714285714285714,
+      "transport_success": 0.29285714285714287
+    },
+    "wrist": {
+      "lift_success": 0.7428571428571429,
+      "source_selection_success": 0.5714285714285714,
+      "success": 0.18571428571428572,
+      "transport_success": 0.35714285714285715
+    }
+  },
+  "paired_success_effects": {
+    "control_minus_rgb": {
+      "ci95": [
+        0.007142857142857143,
+        0.09285714285714285
+      ],
+      "delta": 0.05
+    },
+    "dual_minus_control": {
+      "ci95": [
+        -0.10714285714285714,
+        0.0
+      ],
+      "delta": -0.05
+    },
+    "external_minus_control": {
+      "ci95": [
+        -0.07142857142857142,
+        0.05714285714285714
+      ],
+      "delta": -0.007142857142857143
+    },
+    "wrist_minus_control": {
+      "ci95": [
+        -0.0642857142857143,
+        0.014285714285714285
+      ],
+      "delta": -0.02142857142857143
+    }
+  },
+  "schema_version": 1,
+  "status": "complete",
+  "study": "kyc_pi05_dual_camera_screen",
+  "training": {
+    "action_horizon": 20,
+    "record_count": 22464,
+    "seed": 41,
+    "training_updates": 2000,
+    "vision_adapter": "SigLIP rank-16 low-rank adapter"
+  },
+  "videos": {
+    "codec": "AV1/WebM",
+    "paired_count": 4,
+    "single_method_count": 36
+  },
+  "visibility": {
+    "all_task_objects_at_least_partially_visible_initial": 1.0,
+    "default_pose_dual_minus_control": {
+      "ci95": [
+        -0.25,
+        -0.05
+      ],
+      "delta": -0.15
+    },
+    "fully_visible_episode_count": 46,
+    "fully_visible_dual_minus_control": {
+      "ci95": [
+        -0.08,
+        0.15
+      ],
+      "delta": 0.03
+    }
+  }
+}

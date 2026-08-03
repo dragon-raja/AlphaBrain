@@ -13,6 +13,9 @@ def test_render_dual_camera_diagnostics(tmp_path: Path) -> None:
     payload = {
         "status": "complete",
         "study": "kyc_pi05_dual_camera_diagnostics",
+        "seed": 41,
+        "training_updates": 2000,
+        "execution_horizon": 3,
         "pose_order": poses,
         "overall": {
             method: {

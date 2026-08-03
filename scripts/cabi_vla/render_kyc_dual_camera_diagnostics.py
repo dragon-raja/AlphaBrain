@@ -62,7 +62,7 @@ def render(payload: Mapping[str, Any], *, output: Path) -> None:
 
     fig, axes = plt.subplots(2, 2, figsize=(16.0, 10.5))
     fig.subplots_adjust(
-        left=0.07,
+        left=0.16,
         right=0.98,
         top=0.90,
         bottom=0.10,
@@ -77,7 +77,11 @@ def render(payload: Mapping[str, Any], *, output: Path) -> None:
     fig.text(
         0.5,
         0.935,
-        "Matched initial observations and states; seed 41; 2,000 updates; K=3",
+        (
+            "Matched initial observations and states; "
+            f"seed {payload['seed']}; {int(payload['training_updates']):,} updates; "
+            f"K={int(payload['execution_horizon'])}"
+        ),
         ha="center",
         fontsize=9.5,
         color="#444444",
@@ -98,7 +102,7 @@ def render(payload: Mapping[str, Any], *, output: Path) -> None:
     visibility_axis.set_xticks(x, labels, rotation=20, ha="right")
     visibility_axis.set_ylim(-2.0, 104.0)
     visibility_axis.set_ylabel("Episode fraction (%)")
-    visibility_axis.set_title("(a) View boundary and object visibility")
+    visibility_axis.set_title("(a) Initial view boundary and object visibility")
     visibility_axis.legend(frameon=False, fontsize=8)
 
     subgoals = (
@@ -129,9 +133,9 @@ def render(payload: Mapping[str, Any], *, output: Path) -> None:
         ("external_at_real_wrist", "External | real wrist"),
         ("wrist_at_canonical_external", "Wrist | canonical external"),
         ("wrist_at_real_external", "Wrist | real external"),
-        ("external_average_main_effect", "External average effect"),
-        ("wrist_average_main_effect", "Wrist average effect"),
-        ("interaction", "External x wrist interaction"),
+        ("external_average_main_effect", "External mean effect"),
+        ("wrist_average_main_effect", "Wrist mean effect"),
+        ("interaction", "External x wrist"),
     )
     for effect_index, (key, label) in enumerate(effects):
         result = payload["factorial_effects"][key]["success"]

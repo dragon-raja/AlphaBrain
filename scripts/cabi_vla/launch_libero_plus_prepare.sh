@@ -9,6 +9,12 @@ RLDS_ROOT="$DATA_ROOT/extracted/camparam-rlds-v1"
 AUDIT="$DATA_ROOT/audit/camparam-rlds-v1.json"
 SCREEN_ROOT=${KYC_DUAL_EVAL_ROOT:-/share/longjunyu/cabi-vla/dual-camera-kyc-screen-v1}
 DATA_ENV=${LIBERO_PLUS_DATA_ENV:-/share/longjunyu/alphabrain/envs/libero-plus-data-v1}
+EXTRACTION_WORKERS=${LIBERO_PLUS_EXTRACTION_WORKERS:-8}
+RUNTIME_OVERLAY=${LIBERO_PLUS_RUNTIME_OVERLAY:-/share/longjunyu/alphabrain/envs/libero-plus-runtime-overlay-v1}
+RUNTIME_CONFIG=${LIBERO_PLUS_RUNTIME_CONFIG:-/share/longjunyu/alphabrain/envs/libero-plus-runtime-config-v1}
+RUNTIME_SMOKE=${LIBERO_PLUS_RUNTIME_SMOKE:-$DATA_ROOT/audit/runtime-smoke-agent-wrist.png}
+RUNTIME_SMOKE_MANIFEST=${RUNTIME_SMOKE%.*}.json
+BASE_PYTHON=${LIBERO_PLUS_BASE_PYTHON:-/share/longjunyu/capt-vla/envs/libero/bin/python}
 
 ASSETS_SIZE=6395849578
 ASSETS_SHA=96764a4bfbdaea98d4411598caeab235458318fe0f549611b93d1a323027b3cf
@@ -40,12 +46,29 @@ done
 "$REPO_ROOT/scripts/cabi_vla/create_libero_plus_data_env.sh" "$DATA_ENV"
 
 if [[ ! -s "$RUNTIME/libero_plus_runtime_manifest.json" ]]; then
+  mkdir -p "$(dirname "$RUNTIME")"
+  mapfile -t runtime_staging < <(
+    find "$(dirname "$RUNTIME")" -maxdepth 1 -mindepth 1 -type d \
+      -name ".$(basename "$RUNTIME").staging-*" -print
+  )
+  if (( ${#runtime_staging[@]} > 1 )); then
+    printf 'multiple interrupted runtime staging directories found:\n%s\n' \
+      "${runtime_staging[*]}" >&2
+    exit 1
+  fi
+  resume_args=()
+  if (( ${#runtime_staging[@]} == 1 )); then
+    resume_args=(--resume-staging "${runtime_staging[0]}")
+    echo "resuming interrupted LIBERO-Plus runtime: ${runtime_staging[0]}"
+  fi
   PYTHONPATH="$REPO_ROOT/scripts/cabi_vla" "$REPO_ROOT/.venv/bin/python" \
     "$REPO_ROOT/scripts/cabi_vla/prepare_libero_plus_runtime.py" \
     --source-repo /projects/LIBERO-plus \
     --assets-archive "$VERIFIED/assets.zip" \
     --output "$RUNTIME" \
-    --expected-sha256 "$ASSETS_SHA"
+    --expected-sha256 "$ASSETS_SHA" \
+    --workers "$EXTRACTION_WORKERS" \
+    "${resume_args[@]}"
 else
   echo "LIBERO-Plus runtime already prepared: $RUNTIME"
 fi
@@ -68,6 +91,20 @@ if [[ ! -s "$AUDIT" ]]; then
     --output "$AUDIT"
 else
   echo "LIBERO-Plus camparam audit already complete: $AUDIT"
+fi
+
+"$REPO_ROOT/scripts/cabi_vla/create_libero_plus_runtime_overlay.sh" "$RUNTIME_OVERLAY"
+if [[ ! -s "$RUNTIME_SMOKE" || ! -s "$RUNTIME_SMOKE_MANIFEST" ]]; then
+  MUJOCO_GL=egl PYOPENGL_PLATFORM=egl "$BASE_PYTHON" \
+    "$REPO_ROOT/scripts/cabi_vla/smoke_libero_plus_runtime.py" \
+    --runtime "$RUNTIME" \
+    --overlay "$RUNTIME_OVERLAY" \
+    --dataset-root "$RLDS_ROOT/libero_mix/1.0.0" \
+    --config-root "$RUNTIME_CONFIG" \
+    --output "$RUNTIME_SMOKE" \
+    --render-gpu 0
+else
+  echo "LIBERO-Plus runtime smoke already complete: $RUNTIME_SMOKE"
 fi
 
 echo "LIBERO-Plus resources, runtime, and data audit are complete"

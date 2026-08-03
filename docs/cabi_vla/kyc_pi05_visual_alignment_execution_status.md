@@ -2,69 +2,51 @@
 
 更新时间：2026-08-03
 
-## 已完成
+## 当前裁决
 
-- 三种子场景线索 × 腕部相机确认实验已完成；
-- wrist-on 的 Control/KYC 成功率约 30%，KYC 无稳定增益；
-- wrist-off 的所有方法成功率约 0–1%，判为 baseline invalid；
-- 新增 SigLIP MLP rank-16 原生低秩适配，共 54 层、4,713,984 参数；
-- 基础 SigLIP 权重键名保持不变，adapter 键进入自包含 checkpoint；
-- 视觉基础权重、语言模型和多模态 projector 保持冻结；
-- 两步真实 GPU 训练成功；54 个 `adapter_B` 张量全部得到非零更新；
-- 自包含 checkpoint 在 `strict_checkpoint=True` 下完整重载成功；
-- 视觉适配、相机分支与统计脚本共 11 项相关测试通过；
-- LIBERO-Plus 代码固定在 `/projects/LIBERO-plus`，commit
-  `4976dc30028e805ff8094b55501d532c48fec182`。
+双相机最终机制筛选已完成，裁决为：
 
-## 已完成的视觉对齐筛选
+> **DO_NOT_ADVANCE_FROM_DUAL_CAMERA_SCREEN**
 
-条件：随机场景线索、wrist-on、10 个全局相机训练位姿、seed 41。
+在完全匹配的训练和评测条件下，Control 成功率为 20.71%，External-KYC 为
+20.00%，Wrist-KYC 为 18.57%，Dual-KYC 为 15.71%。Dual 相对 Control 为
+`-5.00 pp`，95% CI `[-10.71,0.00] pp`；默认相机位姿为 `-15 pp`，95% CI
+`[-25,-5] pp`。正确腕部 ray 也没有优于初始固定或 previous-call ray。
 
-| 方法 | updates | GPU | 关键差异 |
-|---|---:|---:|---|
-| PoseAug-RGB+FLA | 2,000 | 2 | 无 ray |
-| PoseAug-Control+FLA | 2,000 | 3 | 固定默认 ray |
-| KYC+FLA | 2,000 | 4 | 实时匹配 ray |
+因此没有启动原协议中条件性的 33K updates、seeds 42/43 扩展。完整结果、图表和
+解释见 `docs/cabi_vla/kyc_dual_camera_validation_result_zh.md`。
 
-每个方法使用相同的 5 个 test snapshot group、4 条任务边和 7 个训练支持边界内
-相机位姿，共 140 个闭环 episode。KYC 另做相同观测下正确、默认和错配 ray 的
-动作因果诊断。
+## 已完成实验
 
-三种方法均已完成 `140/140`，合计 420 个闭环 episode。主要结果：
+- 五组训练：RGB、Control、External、Wrist、Dual；
+- 每组 2,000 updates、seed 41、完全相同 Pi0.5 初始化和 22,464 条训练记录；
+- 每组 140 个闭环 episode，五组共 700 个；
+- 正确、初始固定、previous-call 腕部 ray 干预共 280 个 episode；
+- 总计 980 个闭环 episode；
+- 36 个单方法和 4 个配对 AV1/WebM 视频；
+- 组级配对 bootstrap、子目标、视野边界和 2×2 因子统计均完成。
 
-- 全部支持位姿：RGB `19.29%`、Control `19.29%`、KYC `25.00%`；
-- 严格完整可见：RGB `21.74%`、Control `19.57%`、KYC `23.91%`；
-- 严格层级 KYC-Control 配对增量 `+5.00 pp`，95% CI
-  `[-4.00,+16.00] pp`；
-- 错配 ray 动作块 RMS `0.004275`，低于预注册门槛 `0.005`；
-- 最终裁决：`DO_NOT_ADVANCE_FROM_SCREEN`。
+## LIBERO-Plus
 
-详细中文报告：
-`docs/cabi_vla/kyc_pi05_visual_alignment_result_zh.md`。
+- 6.4GB assets 与 16.6GB camparam RLDS 均通过固定 SHA256；
+- runtime 固定到官方 commit `4976dc30028e805ff8094b55501d532c48fec182`；
+- 2,876 episodes、449,053 steps、40 tasks、256 shards 全量审计完成；
+- 目标任务有 63 episodes 和 33 个外部相机位姿；
+- 独立 Python overlay、MagickWand、非交互配置和真实双相机 MuJoCo smoke 通过；
+- prepare launcher 已可幂等恢复，不会重复下载或覆盖完整 runtime。
 
-## 进入完整训练的门槛
+## 尚未执行
 
-- RGB/Control 中至少一个完整任务成功率达到 20%；
-- KYC+FLA 相对 Control+FLA 提升至少 5 个百分点；
-- 错配 ray 相对正确 ray 的动作块 RMS 至少为 0.005；
-- 默认视角能力没有明显退化。
+LIBERO-Plus 上的 Pi0.5 闭环基线尚未执行，因为当前没有经过格式核验的标准
+Pi0.5-LIBERO checkpoint。当前 LIBERO-Bind 单任务模型与官方 40-task RLDS 分布
+不一致，强行评测不能产生可解释结论。
 
-本轮 baseline 有效；视觉适配将默认 ray 替换的动作 RMS 从约 `0.000710` 提高到
-`0.002878`，但 KYC 行为增益不确定、wrong-ray 因果响应未过门槛。因此不自动
-增加训练步数或 seeds。
+下一阶段应先核验 4 卡机已有约 9GB `pi05-libero`；兼容则迁移后跑 canonical 与
+291 个目标任务官方变体，不兼容再决定转换或训练标准基线。
 
-## LIBERO-Plus 资源
+## 镜像注意
 
-代码已经到位。以下大文件尚未通过代理下载：
-
-- `assets.zip`：6,395,849,578 bytes；
-- `libero_plus_camparam_rlds.zip`：16,607,835,331 bytes。
-
-目标目录：
-
-```text
-/share/longjunyu/alphabrain/datasets/libero-plus/archives/
-```
-
-Hugging Face 直连测试超时，代理测试可用。为避免消耗约 23 GB 代理流量，等待
-平台下载或跨机器传输。
+`/workspace/.downloads/libero-plus` 仍保留约 22GB 下载 staging；正式校验副本已经
+位于 `/share`。本轮未清理 staging，也未执行任何 image clean/apply。共享镜像前
+应先走既有 size-check、image-guard、clean dry-run 和 artifacts verify 流程，再由
+用户决定是否删除。

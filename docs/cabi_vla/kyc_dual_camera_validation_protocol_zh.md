@@ -1,5 +1,11 @@
 # Pi0.5 双相机 KYC 最终验证协议
 
+> 执行注记（2026-08-03）：本协议中的 33K updates、seeds 41/42/43 和
+> LIBERO-Plus 正式评测是通过 2K/seed-41 机制筛选后的条件扩展。本轮筛选完成
+> 980 个闭环 episode 后得到 `DO_NOT_ADVANCE_FROM_DUAL_CAMERA_SCREEN`，因此按
+> 预注册停止规则没有启动 33K/三种子扩展。最终结果见
+> `docs/cabi_vla/kyc_dual_camera_validation_result_zh.md`。
+
 ## 研究问题
 
 在外部相机与腕部相机同时存在的 Pi0.5 策略中，显式相机几何是否仍能提高跨位姿、跨背景任务泛化？增益来自外部相机、动态腕部相机，还是二者的一致几何坐标系？

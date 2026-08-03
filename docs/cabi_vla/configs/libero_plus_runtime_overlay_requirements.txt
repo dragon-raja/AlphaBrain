@@ -1,0 +1,6 @@
+Wand==0.6.13
+scikit-image==0.21.0
+h5py==3.11.0
+lazy_loader==0.4
+tifffile==2024.8.30
+PyWavelets==1.4.1

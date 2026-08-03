@@ -2,6 +2,12 @@
 
 更新时间：2026-07-30
 
+> **历史方案说明（2026-08-03）**：该文档保留实验提出时的假设与预注册顺序，
+> 不代表当前待办。视觉适配和双相机机制筛选均已完成，最终裁决为
+> `DO_NOT_ADVANCE_FROM_DUAL_CAMERA_SCREEN`；约 23GB 的 LIBERO-Plus assets 与
+> camparam RLDS 也已校验并进入运行时准备。当前状态与结果以
+> `docs/cabi_vla/kyc_dual_camera_validation_result_zh.md` 为准。
+
 ## 1. 当前判断
 
 现有结果还不能回答“KYC 对 Pi0.5 是否有效”，只能回答：

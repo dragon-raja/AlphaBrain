@@ -43,6 +43,9 @@ if [[ ! -s "$DIAGNOSTICS" ]]; then
     --training-metrics "external_fla=$RUN_ROOT/$(run_id external_fla)/metrics.jsonl" \
     --training-metrics "wrist_fla=$RUN_ROOT/$(run_id wrist_fla)/metrics.jsonl" \
     --training-metrics "dual_fla=$RUN_ROOT/$(run_id dual_fla)/metrics.jsonl" \
+    --seed "$SEED" \
+    --training-updates "$STEPS" \
+    --execution-horizon 3 \
     --output "$DIAGNOSTICS"
 fi
 

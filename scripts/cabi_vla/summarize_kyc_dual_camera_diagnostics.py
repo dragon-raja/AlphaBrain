@@ -247,6 +247,9 @@ def summarize(
     intervention_paths: Mapping[str, Path],
     training_metric_paths: Mapping[str, Path],
     bootstrap_resamples: int,
+    seed: int = 41,
+    training_updates: int = 2000,
+    execution_horizon: int = 3,
 ) -> dict[str, Any]:
     rows_by_method = {
         method: _load_rows(evaluation_paths[method], condition=method)
@@ -292,9 +295,9 @@ def summarize(
         "schema_version": 1,
         "status": "complete",
         "study": "kyc_pi05_dual_camera_diagnostics",
-        "seed": 41,
-        "training_updates": 2000,
-        "execution_horizon": 3,
+        "seed": seed,
+        "training_updates": training_updates,
+        "execution_horizon": execution_horizon,
         "inference_unit": "canonical_state_index",
         "pairing_audit": pairing,
         "causal_pairing_audit": causal_pairing,
@@ -331,6 +334,9 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--wrist-intervention", action="append", required=True)
     parser.add_argument("--training-metrics", action="append", required=True)
     parser.add_argument("--bootstrap-resamples", type=int, default=10_000)
+    parser.add_argument("--seed", type=int, default=41)
+    parser.add_argument("--training-updates", type=int, default=2000)
+    parser.add_argument("--execution-horizon", type=int, default=3)
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args(args)
 
@@ -367,6 +373,8 @@ def main() -> None:
         raise ValueError("exactly one training metric file is required for every method")
     if args.bootstrap_resamples <= 0:
         raise ValueError("bootstrap resamples must be positive")
+    if args.seed < 0 or args.training_updates <= 0 or args.execution_horizon <= 0:
+        raise ValueError("seed must be non-negative and budgets must be positive")
     if args.output.exists():
         raise FileExistsError(f"refusing to overwrite diagnostics: {args.output}")
 
@@ -375,6 +383,9 @@ def main() -> None:
         intervention_paths=intervention_paths,
         training_metric_paths=metric_paths,
         bootstrap_resamples=args.bootstrap_resamples,
+        seed=args.seed,
+        training_updates=args.training_updates,
+        execution_horizon=args.execution_horizon,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     temporary = args.output.with_name(f".{args.output.name}.{os.getpid()}.tmp")

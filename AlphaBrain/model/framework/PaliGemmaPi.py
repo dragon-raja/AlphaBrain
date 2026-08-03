@@ -206,6 +206,25 @@ class PaliGemmaPi(BaseFramework):
             if camera_cfg is not None
             else "real"
         )
+        configured_view_modes = (
+            getattr(camera_cfg, "view_modes", None)
+            if camera_cfg is not None
+            else None
+        )
+        if configured_view_modes is None:
+            self.camera_view_modes = {
+                view_index: self.camera_conditioning_mode
+                for view_index in self.camera_conditioned_view_indices
+            }
+        else:
+            configured_view_modes = tuple(str(value) for value in configured_view_modes)
+            if len(configured_view_modes) != len(self.camera_conditioned_view_indices):
+                raise ValueError(
+                    "camera view_modes must align with conditioned_view_indices"
+                )
+            self.camera_view_modes = dict(
+                zip(self.camera_conditioned_view_indices, configured_view_modes)
+            )
         self.camera_joint_crop_min_scale = float(
             getattr(camera_cfg, "joint_crop_min_scale", 1.0)
             if camera_cfg is not None
@@ -220,6 +239,21 @@ class PaliGemmaPi(BaseFramework):
             getattr(camera_cfg, "canonical_camera_to_world_opencv", None)
             if camera_cfg is not None
             else None
+        )
+        self.camera_canonical_intrinsics_by_view = (
+            getattr(camera_cfg, "canonical_intrinsics_by_view", None)
+            if camera_cfg is not None
+            else None
+        )
+        self.camera_canonical_to_world_by_view = (
+            getattr(camera_cfg, "canonical_camera_to_world_opencv_by_view", None)
+            if camera_cfg is not None
+            else None
+        )
+        self.camera_fusion_type = str(
+            getattr(camera_cfg, "fusion_type", "late_concat")
+            if camera_cfg is not None
+            else "late_concat"
         )
         self.camera_conditioner = None
         if self.camera_conditioning_enabled:
@@ -242,20 +276,26 @@ class PaliGemmaPi(BaseFramework):
                     "camera image_transform must be none, rot180, or "
                     "mujoco_upright"
                 )
-            if self.camera_conditioning_mode not in {"real", "canonical"}:
-                raise ValueError("camera conditioning mode must be real or canonical")
+            if any(
+                mode not in {"real", "canonical"}
+                for mode in self.camera_view_modes.values()
+            ):
+                raise ValueError("camera view modes must be real or canonical")
             if not 0.0 < self.camera_joint_crop_min_scale <= 1.0:
                 raise ValueError("joint_crop_min_scale must be in (0, 1]")
-            if self.camera_conditioning_mode == "canonical":
-                if (
-                    self.camera_canonical_intrinsics is None
-                    or self.camera_canonical_to_world is None
-                ):
-                    raise ValueError(
-                        "canonical camera mode requires canonical calibration"
+            for view_index, mode in self.camera_view_modes.items():
+                if mode == "canonical":
+                    self._canonical_camera_matrix_for_view(
+                        "camera_intrinsics",
+                        view_index,
+                    )
+                    self._canonical_camera_matrix_for_view(
+                        "camera_to_world_opencv",
+                        view_index,
                     )
             from AlphaBrain.model.modules.vlm.camera_conditioning import (
                 PluckerLateFusion,
+                PluckerResidualFusion,
             )
 
             encoder_channels = tuple(
@@ -269,16 +309,25 @@ class PaliGemmaPi(BaseFramework):
             vision_hidden_dim = int(
                 self.vlm_interface.model.vision_tower.config.hidden_size
             )
-            self.camera_conditioner = PluckerLateFusion(
+            fusion_classes = {
+                "late_concat": PluckerLateFusion,
+                "residual_zero": PluckerResidualFusion,
+            }
+            if self.camera_fusion_type not in fusion_classes:
+                raise ValueError(
+                    "camera fusion_type must be late_concat or residual_zero"
+                )
+            self.camera_conditioner = fusion_classes[self.camera_fusion_type](
                 rgb_hidden_dim=vision_hidden_dim,
                 encoder_channels=encoder_channels,
             )
             logger.info(
-                "[KYC] Plucker late fusion enabled for views=%s, "
-                "image_transform=%s, mode=%s",
+                "[KYC] Plucker fusion=%s enabled for views=%s, "
+                "image_transform=%s, view_modes=%s",
+                self.camera_fusion_type,
                 self.camera_conditioned_view_indices,
                 self.camera_image_transform,
-                self.camera_conditioning_mode,
+                self.camera_view_modes,
             )
 
         # CABI is a training-time causal binding objective with ordinary
@@ -1044,6 +1093,27 @@ class PaliGemmaPi(BaseFramework):
             return example[key]
         raise KeyError(f"missing {key} for conditioned view {view_index}")
 
+    def _canonical_camera_matrix_for_view(self, key: str, view_index: int):
+        if key == "camera_intrinsics":
+            by_view = self.camera_canonical_intrinsics_by_view
+            fallback = self.camera_canonical_intrinsics
+        elif key == "camera_to_world_opencv":
+            by_view = self.camera_canonical_to_world_by_view
+            fallback = self.camera_canonical_to_world
+        else:
+            raise KeyError(f"unsupported canonical camera key: {key}")
+        if by_view is not None:
+            if view_index >= len(by_view):
+                raise ValueError(
+                    f"canonical {key}_by_view does not contain view {view_index}"
+                )
+            return by_view[view_index]
+        if view_index == 0 and fallback is not None:
+            return fallback
+        raise ValueError(
+            f"canonical camera mode requires {key} for view {view_index}"
+        )
+
     def _apply_camera_conditioning(
         self,
         image_embeddings: torch.Tensor,
@@ -1059,10 +1129,14 @@ class PaliGemmaPi(BaseFramework):
             transform_raymap,
         )
 
-        if self.camera_conditioning_mode == "canonical":
+        camera_mode = self.camera_view_modes[view_index]
+        if camera_mode == "canonical":
             intrinsics = np.repeat(
                 np.asarray(
-                    self.camera_canonical_intrinsics,
+                    self._canonical_camera_matrix_for_view(
+                        "camera_intrinsics",
+                        view_index,
+                    ),
                     dtype=np.float32,
                 )[None],
                 len(examples),
@@ -1070,7 +1144,10 @@ class PaliGemmaPi(BaseFramework):
             )
             camera_to_world = np.repeat(
                 np.asarray(
-                    self.camera_canonical_to_world,
+                    self._canonical_camera_matrix_for_view(
+                        "camera_to_world_opencv",
+                        view_index,
+                    ),
                     dtype=np.float32,
                 )[None],
                 len(examples),

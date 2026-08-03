@@ -49,6 +49,22 @@ def validate_policy_example(example: dict) -> None:
             raise ValueError("invalid single-view camera matrix shapes")
         if not np.all(np.isfinite(intrinsics)) or not np.all(np.isfinite(camera_to_world)):
             raise ValueError("camera matrices must be finite")
+    if "camera_intrinsics_by_view" in example:
+        intrinsics = np.asarray(example["camera_intrinsics_by_view"])
+        camera_to_world = np.asarray(example["camera_to_world_opencv_by_view"])
+        if (
+            intrinsics.ndim != 3
+            or intrinsics.shape[1:] != (3, 3)
+            or camera_to_world.ndim != 3
+            or camera_to_world.shape[1:] != (4, 4)
+            or len(intrinsics) != len(camera_to_world)
+            or len(intrinsics) < 1
+        ):
+            raise ValueError("invalid by-view camera matrix shapes")
+        if not np.all(np.isfinite(intrinsics)) or not np.all(
+            np.isfinite(camera_to_world)
+        ):
+            raise ValueError("by-view camera matrices must be finite")
 
 
 def coupled_flow_noise(

@@ -1,0 +1,98 @@
+{
+  "calibration_source": {
+    "edge": "red-right",
+    "sample_count": 45,
+    "sample_rows_sha256": "ac0a048e4cf6490e7c19cda2ebc1e7e255acba4fd5b941acddcfea21cf5fd0af",
+    "sample_stride": 20,
+    "source_collection": "/share/longjunyu/cabi-vla/libero-bind-v0-train-v1",
+    "state_indices": [
+      0,
+      17,
+      34
+    ],
+    "suite_root": "/share/longjunyu/cabi-vla/libero-bind-v0"
+  },
+  "camera_convention": "opencv_camera_to_world",
+  "camera_name": "robot0_eye_in_hand",
+  "canonical_wrist_camera_to_world_opencv": [
+    [
+      -0.00045213437557350966,
+      -0.9986100722946183,
+      -0.052704070869748404,
+      -0.0006874013131868556
+    ],
+    [
+      -0.9999987440856644,
+      0.0003714472623683185,
+      0.001540731652490246,
+      0.001139532874583712
+    ],
+    [
+      -0.0015190133640396522,
+      0.05270470129569388,
+      -0.9986089860699889,
+      0.7787400239249928
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "eef_pose_convention": "xyz+xyzw",
+  "eef_to_wrist_opencv": [
+    [
+      1.6569208954125836e-05,
+      -0.9999999998448417,
+      5.981522130604766e-06,
+      0.05008758594689345
+    ],
+    [
+      0.9999999998100162,
+      1.656914753558371e-05,
+      -1.026794573676798e-05,
+      -6.773430429165261e-05
+    ],
+    [
+      1.0267846626426519e-05,
+      5.981692261292082e-06,
+      0.9999999999293956,
+      -0.09704528704417557
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "intrinsics": [
+    [
+      145.96124175821504,
+      0.0,
+      112.0
+    ],
+    [
+      0.0,
+      145.96124175821504,
+      112.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "quality": {
+    "max_rotation_residual_deg": 0.048077074151390856,
+    "max_translation_residual_m": 0.0012605435473021045,
+    "median_rotation_residual_deg": 0.0015884788516182954,
+    "median_translation_residual_m": 0.00012194062418979974,
+    "rotation_gate_deg": 0.1,
+    "translation_gate_m": 0.002
+  },
+  "resolution": 224,
+  "schema_version": 1,
+  "status": "validated"
+}

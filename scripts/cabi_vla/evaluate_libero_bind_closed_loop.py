@@ -130,6 +130,13 @@ def run_episode(
         ]
         | None
     ) = None,
+    policy_metadata_provider: (
+        Callable[
+            [Any, Mapping[str, Any], Mapping[str, Any]],
+            Mapping[str, Any],
+        ]
+        | None
+    ) = None,
 ) -> tuple[dict[str, Any], np.ndarray | None]:
     setup_metadata: dict[str, Any] = {}
     env.reset()
@@ -176,11 +183,16 @@ def run_episode(
     steps = 0
     inference_calls = 0
     while steps < max_steps and not success:
+        inference_metadata = dict(camera_policy_metadata)
+        if policy_metadata_provider is not None:
+            inference_metadata.update(
+                policy_metadata_provider(env, observation, setup_metadata)
+            )
         chunk = policy.predict(
             observation,
             str(edge["language_instruction"]),
             seed=stable_seed(seed, edge["edge_id"], execution_horizon, inference_calls),
-            metadata=camera_policy_metadata or None,
+            metadata=inference_metadata or None,
         )
         inference_calls += 1
         for action in chunk[:execution_horizon]:

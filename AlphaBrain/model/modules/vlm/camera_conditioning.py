@@ -199,3 +199,88 @@ class PluckerLateFusion(nn.Module):
             dim=-1,
         )
         return self.fusion(fused)
+
+
+class PluckerResidualFusion(nn.Module):
+    """Identity-preserving Plucker fusion for pretrained vision encoders.
+
+    The learned per-channel gate starts at zero, so enabling camera
+    conditioning does not perturb pretrained RGB tokens before optimization.
+    This is the same stability principle used by zero-initialized residual
+    adapters while retaining KYC's independent ray encoder.
+    """
+
+    def __init__(
+        self,
+        *,
+        rgb_hidden_dim: int,
+        encoder_channels: Sequence[int] = (64, 128, 256, 512, 512),
+    ) -> None:
+        super().__init__()
+        if rgb_hidden_dim <= 0:
+            raise ValueError("rgb_hidden_dim must be positive")
+        channels = tuple(int(value) for value in encoder_channels)
+        if len(channels) != 5 or any(value <= 0 for value in channels):
+            raise ValueError("encoder_channels must contain five positive values")
+
+        blocks: list[nn.Module] = []
+        in_channels = 6
+        for index, out_channels in enumerate(channels):
+            blocks.extend(
+                (
+                    nn.Conv2d(
+                        in_channels,
+                        out_channels,
+                        kernel_size=7 if index == 0 else 3,
+                        stride=2,
+                        padding=3 if index == 0 else 1,
+                        bias=False,
+                    ),
+                    FrozenAffineNorm2d(out_channels),
+                    nn.ReLU(inplace=True),
+                )
+            )
+            in_channels = out_channels
+        self.ray_encoder = nn.Sequential(*blocks)
+        self.ray_projection = nn.Conv2d(
+            channels[-1],
+            rgb_hidden_dim,
+            kernel_size=1,
+        )
+        self.ray_norm = nn.LayerNorm(
+            rgb_hidden_dim,
+            elementwise_affine=False,
+        )
+        self.gate = nn.Parameter(torch.zeros(rgb_hidden_dim))
+        self.rgb_hidden_dim = int(rgb_hidden_dim)
+
+    def forward(
+        self,
+        rgb_tokens: torch.Tensor,
+        raymap: torch.Tensor,
+    ) -> torch.Tensor:
+        if rgb_tokens.ndim != 3:
+            raise ValueError("rgb_tokens must have shape [B, N, D]")
+        if raymap.ndim != 4 or raymap.shape[1] != 6:
+            raise ValueError("raymap must have shape [B, 6, H, W]")
+        if rgb_tokens.shape[0] != raymap.shape[0]:
+            raise ValueError("RGB and ray-map batch sizes differ")
+        if rgb_tokens.shape[-1] != self.rgb_hidden_dim:
+            raise ValueError(
+                f"expected RGB hidden dim {self.rgb_hidden_dim}, "
+                f"got {rgb_tokens.shape[-1]}"
+            )
+
+        grid_size = math.isqrt(rgb_tokens.shape[1])
+        if grid_size * grid_size != rgb_tokens.shape[1]:
+            raise ValueError("RGB image token count must form a square grid")
+        camera_features = self.ray_encoder(raymap)
+        camera_features = F.adaptive_avg_pool2d(
+            camera_features,
+            output_size=(grid_size, grid_size),
+        )
+        camera_features = self.ray_projection(camera_features)
+        camera_tokens = camera_features.flatten(2).transpose(1, 2)
+        camera_tokens = self.ray_norm(camera_tokens).to(rgb_tokens.dtype)
+        gate = self.gate.to(dtype=rgb_tokens.dtype).reshape(1, 1, -1)
+        return rgb_tokens + gate * camera_tokens

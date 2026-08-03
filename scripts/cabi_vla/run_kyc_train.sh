@@ -44,6 +44,26 @@ case "$ARM" in
     MODE=kyc_real_fla_h20
     DATA_ROOT=/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
     ;;
+  dual_rgb_fla)
+    MODE=kyc_dual_rgb_fla_h20
+    DATA_ROOT=/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v18b-dual-camera-random-episode-pool-h20
+    ;;
+  dual_control_fla)
+    MODE=kyc_dual_control_fla_h20
+    DATA_ROOT=/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v18b-dual-camera-random-episode-pool-h20
+    ;;
+  external_fla)
+    MODE=kyc_external_fla_h20
+    DATA_ROOT=/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v18b-dual-camera-random-episode-pool-h20
+    ;;
+  wrist_fla)
+    MODE=kyc_wrist_fla_h20
+    DATA_ROOT=/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v18b-dual-camera-random-episode-pool-h20
+    ;;
+  dual_fla)
+    MODE=kyc_dual_fla_h20
+    DATA_ROOT=/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v18b-dual-camera-random-episode-pool-h20
+    ;;
   *)
     echo "unknown KYC arm: $ARM" >&2
     exit 2

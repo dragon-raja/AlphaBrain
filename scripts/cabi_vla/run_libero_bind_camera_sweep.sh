@@ -14,6 +14,7 @@ STATE_INDICES=${CABI_EVAL_STATE_INDICES:-}
 EDGES=${CABI_EVAL_EDGES:-all}
 POSES=${CABI_CAMERA_POSES:-all}
 RAY_MODE=${CABI_CAMERA_RAY_MODE:-correct}
+WRIST_RAY_MODE=${CABI_WRIST_RAY_MODE:-correct}
 HORIZONS=${CABI_EVAL_HORIZONS:-3}
 MAX_STEPS=${CABI_EVAL_MAX_STEPS:-320}
 RESOLUTION=${CABI_CAMERA_RESOLUTION:-224}
@@ -161,6 +162,7 @@ PYTHONDONTWRITEBYTECODE=1 \
   --edges "$EDGES" \
   --poses "$POSES" \
   --ray-mode "$RAY_MODE" \
+  --wrist-ray-mode "$WRIST_RAY_MODE" \
   --execution-horizons "${horizon_args[@]}" \
   --max-steps "$MAX_STEPS" \
   --resolution "$RESOLUTION" \

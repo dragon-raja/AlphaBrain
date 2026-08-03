@@ -103,9 +103,86 @@ def make_camera_environment_setup(
                 }
             )
             install_camera_pose(env, reference, pose)
+        else:
+            calibration = mujoco_camera_calibration(
+                env,
+                camera_name=str(reference["camera_name"]),
+                height=resolution,
+                width=resolution,
+            )
+            result.update(
+                {
+                    "policy_camera_intrinsics": np.asarray(
+                        calibration["intrinsics"]
+                    ).tolist(),
+                    "policy_camera_to_world_opencv": np.asarray(
+                        calibration["camera_to_world_opencv"]
+                    ).tolist(),
+                }
+            )
         return result
 
     return setup
+
+
+def make_dual_camera_metadata_provider(
+    *,
+    wrist_ray_mode: str,
+    resolution: int,
+):
+    initial_wrist: tuple[list[list[float]], list[list[float]]] | None = None
+    previous_wrist: tuple[list[list[float]], list[list[float]]] | None = None
+
+    def provide(
+        env: Any,
+        _observation: Mapping[str, Any],
+        setup_metadata: Mapping[str, Any],
+    ) -> Mapping[str, Any]:
+        nonlocal initial_wrist, previous_wrist
+        external_intrinsics = setup_metadata.get(
+            "policy_camera_intrinsics",
+            setup_metadata.get("camera_intrinsics"),
+        )
+        external_to_world = setup_metadata.get(
+            "policy_camera_to_world_opencv",
+            setup_metadata.get("camera_to_world_opencv"),
+        )
+        if external_intrinsics is None or external_to_world is None:
+            raise KeyError("external camera calibration is unavailable")
+
+        calibration = mujoco_camera_calibration(
+            env,
+            camera_name="robot0_eye_in_hand",
+            height=resolution,
+            width=resolution,
+        )
+        current_wrist = (
+            np.asarray(calibration["intrinsics"]).tolist(),
+            np.asarray(calibration["camera_to_world_opencv"]).tolist(),
+        )
+        if initial_wrist is None:
+            initial_wrist = current_wrist
+        if wrist_ray_mode == "correct":
+            selected_wrist = current_wrist
+        elif wrist_ray_mode == "initial":
+            selected_wrist = initial_wrist
+        elif wrist_ray_mode == "lagged":
+            selected_wrist = previous_wrist or current_wrist
+        else:
+            raise ValueError(f"unsupported wrist ray mode: {wrist_ray_mode}")
+        previous_wrist = current_wrist
+        return {
+            "camera_intrinsics_by_view": [
+                external_intrinsics,
+                selected_wrist[0],
+            ],
+            "camera_to_world_opencv_by_view": [
+                external_to_world,
+                selected_wrist[1],
+            ],
+        }
+
+    return provide
 
 
 def make_camera_observation_setup(
@@ -177,6 +254,12 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
         choices=("correct", "canonical", "next_pose"),
         default="correct",
         help="camera calibration supplied to the policy while RGB stays fixed",
+    )
+    parser.add_argument(
+        "--wrist-ray-mode",
+        choices=("correct", "initial", "lagged"),
+        default="correct",
+        help="wrist calibration supplied at each policy inference",
     )
     parser.add_argument("--execution-horizons", type=int, nargs="+", default=[3])
     parser.add_argument("--max-steps", type=int, default=320)
@@ -320,6 +403,12 @@ def main() -> None:
                                     baseline_images=baseline_images,
                                     episode_key=episode_key,
                                 ),
+                                policy_metadata_provider=(
+                                    make_dual_camera_metadata_provider(
+                                        wrist_ray_mode=args.wrist_ray_mode,
+                                        resolution=args.resolution,
+                                    )
+                                ),
                             )
                             row = {
                                 "edge_id": edge["edge_id"],
@@ -330,6 +419,7 @@ def main() -> None:
                                 "split": args.split,
                                 "execution_horizon": execution_horizon,
                                 "ray_mode": args.ray_mode,
+                                "wrist_ray_mode": args.wrist_ray_mode,
                                 **metrics,
                             }
                             if frames is not None:
@@ -370,6 +460,7 @@ def main() -> None:
         "poses": pose_names,
         "execution_horizons": args.execution_horizons,
         "ray_mode": args.ray_mode,
+        "wrist_ray_mode": args.wrist_ray_mode,
         "max_steps": args.max_steps,
         "resolution": args.resolution,
         "minimum_visible_pixels": args.minimum_visible_pixels,

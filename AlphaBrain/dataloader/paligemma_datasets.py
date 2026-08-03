@@ -386,6 +386,58 @@ class LiberoBindTrainingDataset:
                 raise ValueError(
                     f"camera training record {index} has an invalid rigid transform"
                 )
+            for key, shape in (
+                ("camera_intrinsics_by_view", (3, 3)),
+                ("camera_to_world_opencv_by_view", (4, 4)),
+            ):
+                if key not in row:
+                    continue
+                matrices = np.asarray(row[key], dtype=np.float64)
+                if (
+                    matrices.ndim != 3
+                    or matrices.shape[1:] != shape
+                    or len(matrices) < 1
+                    or not np.all(np.isfinite(matrices))
+                ):
+                    raise ValueError(
+                        f"camera training record {index} has invalid {key}"
+                    )
+                if key == "camera_to_world_opencv_by_view":
+                    for matrix in matrices:
+                        rotation = matrix[:3, :3]
+                        if (
+                            not np.allclose(
+                                rotation.T @ rotation,
+                                np.eye(3),
+                                atol=1e-5,
+                            )
+                            or not np.isclose(
+                                np.linalg.det(rotation),
+                                1.0,
+                                atol=1e-5,
+                            )
+                            or not np.allclose(
+                                matrix[3],
+                                [0.0, 0.0, 0.0, 1.0],
+                            )
+                        ):
+                            raise ValueError(
+                                f"camera training record {index} has a non-rigid "
+                                f"matrix in {key}"
+                            )
+            if (
+                ("camera_intrinsics_by_view" in row)
+                != ("camera_to_world_opencv_by_view" in row)
+            ):
+                raise ValueError(
+                    f"camera training record {index} has incomplete by-view calibration"
+                )
+            if "camera_intrinsics_by_view" in row and len(
+                row["camera_intrinsics_by_view"]
+            ) != len(row["camera_to_world_opencv_by_view"]):
+                raise ValueError(
+                    f"camera training record {index} has mismatched by-view calibration"
+                )
             relative = Path(str(row["camera_view_file"]))
             if relative.is_absolute() or ".." in relative.parts:
                 raise ValueError(
@@ -466,6 +518,8 @@ class LiberoBindTrainingDataset:
             "camera_pose",
             "camera_intrinsics",
             "camera_to_world_opencv",
+            "camera_intrinsics_by_view",
+            "camera_to_world_opencv_by_view",
             "camera_azimuth_deg",
             "camera_elevation_deg",
             "camera_radius_scale",
@@ -565,7 +619,17 @@ class LiberoBindTrainingDataset:
         }
         camera_training_view = getattr(self, "camera_training_view", None)
         if camera_training_view is not None:
-            baseline = camera_training_view["baseline_camera"]
+            anchor_key = f"{physical_edge}__state_{state_index:02d}"
+            if decision_point is not None:
+                anchor_key += f"__{decision_point}"
+            baselines_by_anchor = camera_training_view.get(
+                "baseline_cameras_by_anchor",
+                {},
+            )
+            baseline = baselines_by_anchor.get(
+                anchor_key,
+                camera_training_view["baseline_camera"],
+            )
             example.update(
                 {
                     "camera_pose": "baseline",
@@ -576,6 +640,14 @@ class LiberoBindTrainingDataset:
                     "camera_azimuth_deg": 0.0,
                     "camera_elevation_deg": 0.0,
                     "camera_radius_scale": 1.0,
+                    **{
+                        key: baseline[key]
+                        for key in (
+                            "camera_intrinsics_by_view",
+                            "camera_to_world_opencv_by_view",
+                        )
+                        if key in baseline
+                    },
                 }
             )
         return example

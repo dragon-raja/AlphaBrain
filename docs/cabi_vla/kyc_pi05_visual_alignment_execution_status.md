@@ -16,7 +16,7 @@
 - LIBERO-Plus 代码固定在 `/projects/LIBERO-plus`，commit
   `4976dc30028e805ff8094b55501d532c48fec182`。
 
-## 正在执行的筛选
+## 已完成的视觉对齐筛选
 
 条件：随机场景线索、wrist-on、10 个全局相机训练位姿、seed 41。
 
@@ -30,6 +30,18 @@
 相机位姿，共 140 个闭环 episode。KYC 另做相同观测下正确、默认和错配 ray 的
 动作因果诊断。
 
+三种方法均已完成 `140/140`，合计 420 个闭环 episode。主要结果：
+
+- 全部支持位姿：RGB `19.29%`、Control `19.29%`、KYC `25.00%`；
+- 严格完整可见：RGB `21.74%`、Control `19.57%`、KYC `23.91%`；
+- 严格层级 KYC-Control 配对增量 `+5.00 pp`，95% CI
+  `[-4.00,+16.00] pp`；
+- 错配 ray 动作块 RMS `0.004275`，低于预注册门槛 `0.005`；
+- 最终裁决：`DO_NOT_ADVANCE_FROM_SCREEN`。
+
+详细中文报告：
+`docs/cabi_vla/kyc_pi05_visual_alignment_result_zh.md`。
+
 ## 进入完整训练的门槛
 
 - RGB/Control 中至少一个完整任务成功率达到 20%；
@@ -37,8 +49,9 @@
 - 错配 ray 相对正确 ray 的动作块 RMS 至少为 0.005；
 - 默认视角能力没有明显退化。
 
-未通过时不自动增加训练步数或 seeds；先区分 baseline invalid、视觉适配有效但
-KYC 无增量，以及真实几何已被模型因果使用三种情况。
+本轮 baseline 有效；视觉适配将默认 ray 替换的动作 RMS 从约 `0.000710` 提高到
+`0.002878`，但 KYC 行为增益不确定、wrong-ray 因果响应未过门槛。因此不自动
+增加训练步数或 seeds。
 
 ## LIBERO-Plus 资源
 

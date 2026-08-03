@@ -77,7 +77,7 @@ def render(payload: Mapping[str, Any], *, output: Path) -> None:
     fig.text(
         0.5,
         0.935,
-        "Matched RGB and initial states; seed 41; 2,000 updates; K=3",
+        "Matched initial observations and states; seed 41; 2,000 updates; K=3",
         ha="center",
         fontsize=9.5,
         color="#444444",

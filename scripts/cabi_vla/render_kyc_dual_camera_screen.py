@@ -167,7 +167,7 @@ def render(
         ("Correct wrist ray", "Initial fixed ray", "Previous-call ray (K=3)"),
     )
     causal_axis.set_ylabel("Closed-loop success (%)")
-    causal_axis.set_title("(c) Same RGB, wrist-ray intervention")
+    causal_axis.set_title("(c) Matched initial observation, wrist-ray intervention")
     causal_axis.set_ylim(0.0, max(25.0, 1.20 * max(causal_values)))
     causal_axis.grid(axis="y", color="#D9DEE3", linewidth=0.8)
     causal_axis.set_axisbelow(True)

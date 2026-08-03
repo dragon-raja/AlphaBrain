@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
@@ -260,7 +261,7 @@ def inspect_dataset(
 
     rows: list[dict[str, Any]] = []
     actions: list[np.ndarray] = []
-    for shard in shards:
+    for shard_index, shard in enumerate(shards, start=1):
         for record_index, record in enumerate(_record_loader(shard)):
             row, action = inspect_record(
                 record,
@@ -270,6 +271,12 @@ def inspect_dataset(
             )
             rows.append(row)
             actions.append(action)
+        print(
+            f"audited shard {shard_index}/{len(shards)}: "
+            f"episodes={len(rows)} path={shard.name}",
+            file=sys.stderr,
+            flush=True,
+        )
     return {
         "schema_version": 1,
         "status": "complete",

@@ -20,6 +20,10 @@ case "$ARM" in
     MODE=kyc_poseaug_rgb_h20
     DATA_ROOT=/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
     ;;
+  poseaug_rgb_fla)
+    MODE=kyc_poseaug_rgb_fla_h20
+    DATA_ROOT=/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+    ;;
   pm_fixed)
     MODE=kyc_pm_fixed_h20
     DATA_ROOT=/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v15-decision-observed-edge-phase-loss-balanced-h20
@@ -28,8 +32,16 @@ case "$ARM" in
     MODE=kyc_poseaug_control_h20
     DATA_ROOT=/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
     ;;
+  poseaug_control_fla)
+    MODE=kyc_poseaug_control_fla_h20
+    DATA_ROOT=/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+    ;;
   kyc)
     MODE=kyc_real_h20
+    DATA_ROOT=/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+    ;;
+  kyc_fla)
+    MODE=kyc_real_fla_h20
     DATA_ROOT=/share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
     ;;
   *)

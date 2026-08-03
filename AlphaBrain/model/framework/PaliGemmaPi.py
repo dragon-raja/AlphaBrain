@@ -96,6 +96,55 @@ class PaliGemmaPi(BaseFramework):
             # Use existing VLM factory for Qwen/Llama/Florence etc.
             self.vlm_interface = get_vlm_model(config=config)
 
+        # Native visual low-rank adaptation keeps the original SigLIP weight
+        # keys and adds adapter keys directly to AlphaBrain checkpoints.
+        visual_adapter_cfg = getattr(config.framework, "visual_adapter", None)
+        self.visual_adapter_enabled = bool(
+            visual_adapter_cfg is not None
+            and getattr(visual_adapter_cfg, "enabled", False)
+        )
+        self.visual_adapter_summary = None
+        if self.visual_adapter_enabled:
+            if vlm_type != "paligemma":
+                raise ValueError(
+                    "visual low-rank adaptation currently requires PaliGemma"
+                )
+            adapter_type = str(
+                getattr(visual_adapter_cfg, "type", "siglip_low_rank")
+            )
+            if adapter_type != "siglip_low_rank":
+                raise ValueError(
+                    f"unsupported visual adapter type: {adapter_type}"
+                )
+            from AlphaBrain.model.modules.vlm.vision_low_rank_adapter import (
+                inject_siglip_low_rank_adapters,
+            )
+
+            self.visual_adapter_summary = inject_siglip_low_rank_adapters(
+                self.vlm_interface.model.vision_tower,
+                target_modules=tuple(
+                    str(value)
+                    for value in getattr(
+                        visual_adapter_cfg,
+                        "target_modules",
+                        ["mlp.fc1", "mlp.fc2"],
+                    )
+                ),
+                rank=int(getattr(visual_adapter_cfg, "rank", 16)),
+                alpha=float(getattr(visual_adapter_cfg, "alpha", 16.0)),
+                dropout=float(getattr(visual_adapter_cfg, "dropout", 0.0)),
+                freeze_base=bool(
+                    getattr(visual_adapter_cfg, "freeze_base", True)
+                ),
+            )
+            logger.info(
+                "[visual_adapter] type=%s layers=%d parameters=%d targets=%s",
+                adapter_type,
+                self.visual_adapter_summary.adapted_layer_count,
+                self.visual_adapter_summary.adapter_parameter_count,
+                self.visual_adapter_summary.target_modules,
+            )
+
         # ── Action Expert + Flow Matching Head ──
         expert_cfg = config.framework.action_expert
         action_cfg = config.framework.action_model

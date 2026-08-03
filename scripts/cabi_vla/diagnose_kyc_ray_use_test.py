@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from diagnose_kyc_ray_use import action_difference
+from diagnose_kyc_ray_use import action_difference, parse_args
 
 
 def test_identical_actions_have_zero_difference() -> None:
@@ -22,3 +22,20 @@ def test_action_difference_reports_first_and_full_chunk() -> None:
     assert np.isclose(metrics["first_action_rms"], np.sqrt(2.0))
     assert metrics["max_abs"] == 2.0
 
+
+def test_scene_cue_mode_is_configurable() -> None:
+    args = parse_args(
+        [
+            "--suite-root",
+            "/tmp/suite",
+            "--policy-socket",
+            "/tmp/policy.sock",
+            "--camera-config",
+            "/tmp/camera.json",
+            "--output",
+            "/tmp/result.json",
+            "--scene-cue-mode",
+            "cue_randomized",
+        ]
+    )
+    assert args.scene_cue_mode == "cue_randomized"

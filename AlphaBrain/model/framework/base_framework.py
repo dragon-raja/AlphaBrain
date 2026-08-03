@@ -45,7 +45,11 @@ def _critical_state_dict_mismatches(
     """Return mismatches that must never be silently randomized or discarded."""
 
     def critical(key: str) -> bool:
-        return any(key.startswith(prefix) for prefix in _CRITICAL_CHECKPOINT_PREFIXES)
+        return (
+            any(key.startswith(prefix) for prefix in _CRITICAL_CHECKPOINT_PREFIXES)
+            or key.endswith(".adapter_A")
+            or key.endswith(".adapter_B")
+        )
 
     return (
         sorted(key for key in missing_keys if critical(key)),

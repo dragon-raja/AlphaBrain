@@ -55,6 +55,36 @@ kyc_mode_common: &kyc_mode_common
       per_device_batch_size: 1
       shuffle: true
 
+kyc_visual_adapter_mode_common: &kyc_visual_adapter_mode_common
+  <<: *kyc_mode_common
+  training:
+    per_device_batch_size: 1
+    gradient_accumulation_steps: 2
+    max_train_steps: 33000
+    save_interval: 33001
+    eval_interval: 33001
+    freeze_modules: vlm_interface.model.language_model,vlm_interface.model.lm_head,vlm_interface.model.multi_modal_projector
+  trainer:
+    pretrained_checkpoint: /share/longjunyu/cabi-vla/runs/cabi_bind_pi05_action_bridge_h20_smoke_seed41_steps33000_h20-bridge-edge-balanced-3epoch-v15/final_model
+    logging_frequency: 10
+    learning_rate:
+      action_model: 1.0e-04
+      base: 1.0e-04
+      flow_matching_head: 5.0e-05
+      vlm_interface: 5.0e-04
+    num_warmup_steps: 100
+    lr_scheduler_type: cosine_with_min_lr
+    scheduler_specific_kwargs:
+      min_lr: 1.0e-05
+    optimizer:
+      name: AdamW
+      betas: [0.9, 0.95]
+      eps: 1.0e-08
+      weight_decay: 1.0e-10
+    gradient_clipping: 1.0
+    ema:
+      enabled: false
+
 kyc_framework_common: &kyc_framework_common
   paligemma:
     base_vlm: /share/longjunyu/alphabrain/pretrained_models/paligemma-3b-pt-224
@@ -125,6 +155,15 @@ kyc_camera_common: &kyc_camera_common
     - [-1.5194045527300304e-07, -0.848765314031093, -0.5287697435535403, 0.96]
     - [0.0, 0.0, 0.0, 1.0]
 
+kyc_visual_adapter_common: &kyc_visual_adapter_common
+  enabled: true
+  type: siglip_low_rank
+  target_modules: [mlp.fc1, mlp.fc2]
+  rank: 16
+  alpha: 16.0
+  dropout: 0.0
+  freeze_base: true
+
 modes:
   kyc_poseaug_rgb_h20:
     <<: *kyc_mode_common
@@ -174,6 +213,54 @@ modes:
     data_root: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
     framework:
       <<: *kyc_framework_common
+      camera_conditioning:
+        <<: *kyc_camera_common
+        mode: real
+    datasets:
+      vla_data:
+        <<: *kyc_dataset_common
+        data_root_dir: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+
+  kyc_poseaug_rgb_fla_h20:
+    <<: *kyc_visual_adapter_mode_common
+    run_id: kyc_poseaug_rgb_fla_h20
+    data_root: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+    framework:
+      <<: *kyc_framework_common
+      visual_adapter:
+        <<: *kyc_visual_adapter_common
+      camera_conditioning:
+        enabled: false
+        joint_crop_min_scale: 0.8
+    datasets:
+      vla_data:
+        <<: *kyc_dataset_common
+        data_root_dir: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+
+  kyc_poseaug_control_fla_h20:
+    <<: *kyc_visual_adapter_mode_common
+    run_id: kyc_poseaug_control_fla_h20
+    data_root: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+    framework:
+      <<: *kyc_framework_common
+      visual_adapter:
+        <<: *kyc_visual_adapter_common
+      camera_conditioning:
+        <<: *kyc_camera_common
+        mode: canonical
+    datasets:
+      vla_data:
+        <<: *kyc_dataset_common
+        data_root_dir: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+
+  kyc_real_fla_h20:
+    <<: *kyc_visual_adapter_mode_common
+    run_id: kyc_real_fla_h20
+    data_root: /share/longjunyu/cabi-vla/libero-bind-v0-train-view-v17-camera-random-episode-pool-h20
+    framework:
+      <<: *kyc_framework_common
+      visual_adapter:
+        <<: *kyc_visual_adapter_common
       camera_conditioning:
         <<: *kyc_camera_common
         mode: real

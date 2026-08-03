@@ -8,29 +8,47 @@ LIBERO_SOURCE=${CABI_LIBERO_SOURCE:-/share/longjunyu/capt-vla/vendor/LIBERO}
 LIBERO_CONFIG=${CABI_LIBERO_CONFIG:-/share/longjunyu/capt-vla/config/libero}
 SUITE_ROOT=${CABI_SUITE_ROOT:-/share/longjunyu/cabi-vla/libero-bind-v0}
 CAMERA_CONFIG=${CABI_CAMERA_CONFIG:-$REPO_ROOT/docs/cabi_vla/configs/camera_pose_policy_gate_v6.json}
-CHECKPOINT=${KYC_RAY_CHECKPOINT:-/share/longjunyu/cabi-vla/kyc-runs/kyc_kyc_h20_seed41_steps33000/final_model}
-OUTPUT=${KYC_RAY_OUTPUT:-/share/longjunyu/cabi-vla/kyc-scaling-v3/diagnostics/kyc_seed41_ray_use_v1.json}
-GPU_ID=${1:-0}
+OUTPUT_ROOT=${CABI_RAY_DIAGNOSTIC_ROOT:-/share/longjunyu/cabi-vla/kyc-ray-diagnostics}
+SPLIT=${CABI_EVAL_SPLIT:-test}
+STATE_INDICES=${CABI_EVAL_STATE_INDICES:-40,42,44,47,49}
+EDGES=${CABI_EVAL_EDGES:-all}
+POSES=${CABI_CAMERA_POSES:-baseline,az_m60,az_p60,el_m25,el_p25,rad_0900,rad_1250}
+RESOLUTION=${CABI_CAMERA_RESOLUTION:-224}
+EVAL_SEED=${CABI_EVAL_SEED:-20260722}
+SCENE_CUE_MODE=${CABI_SCENE_CUE_MODE:-cue_randomized}
+SCENE_CUE_SEED=${CABI_SCENE_CUE_SEED:-20260728}
+SERVER_TIMEOUT=${CABI_POLICY_SERVER_TIMEOUT:-600}
 
+CHECKPOINT=${1:?usage: run_kyc_ray_diagnostic.sh CHECKPOINT RUN_NAME GPU_ID}
+RUN_NAME=${2:?usage: run_kyc_ray_diagnostic.sh CHECKPOINT RUN_NAME GPU_ID}
+GPU_ID=${3:?usage: run_kyc_ray_diagnostic.sh CHECKPOINT RUN_NAME GPU_ID}
+
+if [[ ! "$RUN_NAME" =~ ^[A-Za-z0-9_.-]+$ || ${#RUN_NAME} -gt 64 ]]; then
+  echo "RUN_NAME must be at most 64 safe filename characters" >&2
+  exit 2
+fi
 if [[ ! "$GPU_ID" =~ ^[0-7]$ ]]; then
   echo "GPU_ID must be in [0, 7]" >&2
   exit 2
 fi
 if [[ ! -s "$CHECKPOINT/model.safetensors" ]]; then
-  echo "missing completed KYC checkpoint" >&2
-  exit 1
-fi
-if [[ -e "$OUTPUT" ]]; then
-  echo "refusing to overwrite ray diagnostic: $OUTPUT" >&2
+  echo "missing checkpoint: $CHECKPOINT/model.safetensors" >&2
   exit 1
 fi
 
-RUN_DIR=$(dirname "$OUTPUT")
-SOCKET="/tmp/kyc-ray-use-$$.sock"
-SERVER_LOG="$RUN_DIR/kyc_ray_policy_server.log"
+RUN_DIR="$OUTPUT_ROOT/$RUN_NAME"
+OUTPUT="$RUN_DIR/ray_use.json"
+SOCKET="/tmp/cabi-ray-${RUN_NAME:0:40}-$$.sock"
+SERVER_LOG="$RUN_DIR/policy_server.log"
 KEEPALIVE_SESSION="gpu-keepalive-${GPU_ID}"
-KEEPALIVE_WAS_RUNNING=0
 SERVER_PID=""
+KEEPALIVE_WAS_RUNNING=0
+
+if [[ -e "$OUTPUT" ]]; then
+  echo "refusing to overwrite existing diagnostic: $OUTPUT" >&2
+  exit 1
+fi
+mkdir -p "$RUN_DIR"
 
 cleanup() {
   if [[ -n "$SERVER_PID" ]]; then
@@ -51,7 +69,6 @@ if tmux has-session -t "$KEEPALIVE_SESSION" 2>/dev/null; then
   tmux kill-session -t "$KEEPALIVE_SESSION"
 fi
 
-mkdir -p "$RUN_DIR"
 cd "$REPO_ROOT"
 CUDA_VISIBLE_DEVICES="$GPU_ID" \
 PRETRAINED_MODELS_DIR=/share/longjunyu/alphabrain/pretrained_models \
@@ -62,7 +79,7 @@ PYTHONDONTWRITEBYTECODE=1 \
   --device cuda:0 >"$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
 
-for _ in $(seq 1 600); do
+for _ in $(seq 1 "$SERVER_TIMEOUT"); do
   [[ -S "$SOCKET" ]] && break
   if ! kill -0 "$SERVER_PID" 2>/dev/null; then
     tail -n 80 "$SERVER_LOG" >&2
@@ -86,8 +103,11 @@ PYTHONDONTWRITEBYTECODE=1 \
   --policy-socket "$SOCKET" \
   --camera-config "$CAMERA_CONFIG" \
   --output "$OUTPUT" \
-  --split test \
-  --state-indices 47,48,49 \
-  --edges red-left,red-right,white-left,yellow_white-right \
-  --poses baseline,az_m60,el_p25,rad_1250
-
+  --split "$SPLIT" \
+  --state-indices "$STATE_INDICES" \
+  --edges "$EDGES" \
+  --poses "$POSES" \
+  --resolution "$RESOLUTION" \
+  --seed "$EVAL_SEED" \
+  --scene-cue-mode "$SCENE_CUE_MODE" \
+  --scene-cue-seed "$SCENE_CUE_SEED"

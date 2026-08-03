@@ -22,6 +22,11 @@ from libero_camera_pose import (
     load_camera_sweep_config,
     mujoco_camera_calibration,
 )
+from libero_scene_cues import (
+    SCENE_CUE_MODES,
+    capture_scene_cue_reference,
+    install_scene_cues,
+)
 
 
 def action_difference(
@@ -104,6 +109,12 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--poses", default="all")
     parser.add_argument("--resolution", type=int, default=224)
     parser.add_argument("--seed", type=int, default=20260722)
+    parser.add_argument(
+        "--scene-cue-mode",
+        choices=SCENE_CUE_MODES,
+        default="fixed",
+    )
+    parser.add_argument("--scene-cue-seed", type=int, default=20260728)
     return parser.parse_args(args)
 
 
@@ -147,6 +158,7 @@ def main() -> None:
                     camera_name=config["camera_name"],
                     table_plane_z=config["table_plane_z"],
                 )
+                scene_reference = capture_scene_cue_reference(env)
                 calibrations = {
                     name: _calibration_for_pose(
                         env,
@@ -168,6 +180,16 @@ def main() -> None:
                     mismatch_name = pose_names[(pose_index + 1) % len(pose_names)]
                     for state_index in state_indices:
                         env.reset()
+                        scene_sample_id = (
+                            f"{edge_name}::state-{state_index}::{pose_name}"
+                        )
+                        scene_metadata = install_scene_cues(
+                            env,
+                            scene_reference,
+                            mode=args.scene_cue_mode,
+                            seed=args.scene_cue_seed,
+                            sample_id=scene_sample_id,
+                        )
                         install_camera_pose(env, reference, visual_pose)
                         observation = env.set_init_state(
                             np.asarray(states[state_index])
@@ -210,6 +232,7 @@ def main() -> None:
                             "canonical_state_index": int(state_index),
                             "visual_pose": pose_name,
                             "mismatched_ray_pose": mismatch_name,
+                            **scene_metadata,
                             "agent_sha256": hashlib.sha256(
                                 np.asarray(
                                     observation["agentview_image"]
@@ -246,6 +269,8 @@ def main() -> None:
         "edges": edge_names,
         "poses": pose_names,
         "seed": args.seed,
+        "scene_cue_mode": args.scene_cue_mode,
+        "scene_cue_seed": args.scene_cue_seed,
         "rows": rows,
     }
     _atomic_write(args.output, payload)
@@ -254,4 +279,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

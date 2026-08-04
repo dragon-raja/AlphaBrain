@@ -13,8 +13,12 @@ Pi0 expects:
   - actions: [B, action_horizon, action_dim] float32
 """
 
+import bisect
+import io
 import json
 import logging
+import struct
+from collections import OrderedDict
 from typing import Any, Mapping, Optional, Dict, List
 from pathlib import Path
 from dataclasses import dataclass
@@ -295,6 +299,188 @@ class FreshEpisodeWindowDataset:
             "action": np.asarray(row["action_chunk"], dtype=np.float32),
             "state": np.asarray(row["robot_state"], dtype=np.float32),
             self.feedback_output_key: feedback_horizon,
+        }
+
+
+class LiberoPlusTFRecordDataset:
+    """Random-access Pi0.5 windows over indexed LIBERO-Plus episode TFRecords."""
+
+    _FEATURES = (
+        "steps/action",
+        "steps/observation/image",
+        "steps/observation/wrist_image",
+        "steps/observation/state",
+    )
+
+    def __init__(
+        self,
+        root: Path | str,
+        *,
+        split: str = "train",
+        action_horizon: int = 10,
+        budget_fraction: float = 1.0,
+        source_data_root: Path | str | None = None,
+        episode_cache_size: int = 2,
+    ) -> None:
+        self.root = Path(root)
+        manifest_path = self.root / "manifest.json"
+        if not manifest_path.is_file():
+            raise FileNotFoundError(f"missing LIBERO-Plus training view: {manifest_path}")
+        self.manifest = json.loads(manifest_path.read_text())
+        if self.manifest.get("status") != "complete":
+            raise ValueError("LIBERO-Plus training view is incomplete")
+        if action_horizon <= 0:
+            raise ValueError("action_horizon must be positive")
+        if not 0.0 < budget_fraction <= 1.0:
+            raise ValueError("budget_fraction must be in (0, 1]")
+        if episode_cache_size <= 0:
+            raise ValueError("episode_cache_size must be positive")
+
+        self.dataset_root = Path(
+            source_data_root
+            if source_data_root is not None
+            else self.manifest["dataset_root"]
+        )
+        self.action_horizon = int(action_horizon)
+        self.action_dim = int(self.manifest["action_schema"]["action_dim"])
+        self.camera_intrinsics = self.manifest["image_schema"][
+            "external_camera_intrinsics_224"
+        ]
+        self.episode_cache_size = int(episode_cache_size)
+        self._episode_cache: OrderedDict[str, dict[str, Any]] = OrderedDict()
+
+        valid_splits = {"train", "val", "test", "all"}
+        if split not in valid_splits:
+            raise ValueError(f"unsupported split {split!r}; expected one of {sorted(valid_splits)}")
+        episodes = []
+        for row in self.manifest["episodes"]:
+            if split != "all" and row["split"] != split:
+                continue
+            if split == "train" and float(row["budget_percentile"]) > budget_fraction:
+                continue
+            episodes.append(row)
+        if not episodes:
+            raise ValueError(
+                f"no LIBERO-Plus episodes for split={split!r}, "
+                f"budget_fraction={budget_fraction}"
+            )
+        self.episodes = episodes
+        self.cumulative_steps = []
+        total = 0
+        for row in episodes:
+            total += int(row["step_count"])
+            self.cumulative_steps.append(total)
+
+    def __len__(self) -> int:
+        return self.cumulative_steps[-1]
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["_episode_cache"] = OrderedDict()
+        return state
+
+    @staticmethod
+    def _read_exact(stream, length: int, *, name: str) -> bytes:
+        value = stream.read(length)
+        if len(value) != length:
+            raise ValueError(f"truncated {name}: expected {length} bytes, got {len(value)}")
+        return value
+
+    def _load_episode(self, row: Mapping[str, Any]) -> dict[str, Any]:
+        episode_id = str(row["episode_id"])
+        cached = self._episode_cache.pop(episode_id, None)
+        if cached is not None:
+            self._episode_cache[episode_id] = cached
+            return cached
+
+        path = self.dataset_root / str(row["shard"])
+        with path.open("rb") as stream:
+            stream.seek(int(row["record_offset"]))
+            length_bytes = self._read_exact(stream, 8, name="TFRecord length")
+            (payload_length,) = struct.unpack("<Q", length_bytes)
+            expected_total = 8 + 4 + int(payload_length) + 4
+            if expected_total != int(row["record_total_bytes"]):
+                raise ValueError(
+                    f"TFRecord size changed for {episode_id}: "
+                    f"manifest={row['record_total_bytes']} actual={expected_total}"
+                )
+            self._read_exact(stream, 4, name="TFRecord length CRC")
+            payload = self._read_exact(stream, int(payload_length), name="TFRecord payload")
+            self._read_exact(stream, 4, name="TFRecord payload CRC")
+
+        try:
+            from tfrecord import example_pb2
+            from tfrecord.reader import extract_feature_dict
+        except ImportError as error:
+            raise RuntimeError(
+                "LIBERO-Plus TFRecord training requires tfrecord==1.14.6 and crc32c"
+            ) from error
+        example = example_pb2.Example()
+        example.ParseFromString(payload)
+        record = extract_feature_dict(
+            example.features,
+            list(self._FEATURES),
+            {"byte": "bytes_list", "float": "float_list", "int": "int64_list"},
+        )
+        step_count = int(row["step_count"])
+        action = np.asarray(record["steps/action"], dtype=np.float32).reshape(
+            step_count, self.action_dim
+        )
+        state = np.asarray(record["steps/observation/state"], dtype=np.float32).reshape(
+            step_count, -1
+        )
+        agent = np.asarray(record["steps/observation/image"]).reshape(-1)
+        wrist = np.asarray(record["steps/observation/wrist_image"]).reshape(-1)
+        if len(agent) != step_count or len(wrist) != step_count or len(state) != step_count:
+            raise ValueError(f"episode arrays do not match step_count for {episode_id}")
+        decoded = {"action": action, "state": state, "agent": agent, "wrist": wrist}
+        self._episode_cache[episode_id] = decoded
+        while len(self._episode_cache) > self.episode_cache_size:
+            self._episode_cache.popitem(last=False)
+        return decoded
+
+    @staticmethod
+    def _decode_jpeg(value: Any) -> np.ndarray:
+        with Image.open(io.BytesIO(bytes(value))) as image:
+            return np.asarray(image.convert("RGB"))
+
+    def __getitem__(self, index: int) -> dict[str, Any]:
+        if index < 0:
+            index += len(self)
+        if not 0 <= index < len(self):
+            raise IndexError(index)
+        episode_index = bisect.bisect_right(self.cumulative_steps, index)
+        episode_start = 0 if episode_index == 0 else self.cumulative_steps[episode_index - 1]
+        frame_index = index - episode_start
+        row = self.episodes[episode_index]
+        episode = self._load_episode(row)
+        action = episode["action"][frame_index : frame_index + self.action_horizon]
+        if len(action) < self.action_horizon:
+            action = np.concatenate(
+                [
+                    action,
+                    np.zeros(
+                        (self.action_horizon - len(action), self.action_dim),
+                        dtype=np.float32,
+                    ),
+                ],
+                axis=0,
+            )
+        return {
+            "image": [
+                self._decode_jpeg(episode["agent"][frame_index]),
+                self._decode_jpeg(episode["wrist"][frame_index]),
+            ],
+            "lang": row["language_instruction"],
+            "action": np.asarray(action, dtype=np.float32),
+            "state": np.asarray(episode["state"][frame_index], dtype=np.float32),
+            "action_supervised": True,
+            "sample_id": f"{row['episode_id']}::frame-{frame_index:05d}",
+            "episode_id": row["episode_id"],
+            "frame_index": frame_index,
+            "camera_pose_group_id": row["camera_pose_group_id"],
+            "camera_intrinsics": self.camera_intrinsics,
+            "camera_to_world_opencv": row["camera_to_world_opencv"],
         }
 
 
@@ -687,6 +873,16 @@ def get_pi0_dataset(data_cfg, mode="train", **kwargs):
             getattr(data_cfg, 'data_root_dir'),
             split=getattr(data_cfg, 'split', mode),
             anchor_period=int(getattr(data_cfg, 'cabi_anchor_period', 1)),
+        )
+    elif dataset_format == 'libero_plus_tfrecord':
+        source_data_root = getattr(data_cfg, 'source_data_root', None)
+        base_dataset = LiberoPlusTFRecordDataset(
+            getattr(data_cfg, 'data_root_dir'),
+            split=getattr(data_cfg, 'split', mode),
+            action_horizon=action_horizon,
+            budget_fraction=float(getattr(data_cfg, 'budget_fraction', 1.0)),
+            source_data_root=source_data_root,
+            episode_cache_size=int(getattr(data_cfg, 'episode_cache_size', 2)),
         )
     elif dataset_format in {'fresh_snapshot', 'fresh_episode_window'}:
         configured_tasks = getattr(data_cfg, 'snapshot_tasks', ('grasp_slip',))

@@ -1,0 +1,153 @@
+defaults:
+  trainer: default
+
+seed: 41
+
+environment:
+  wandb_mode: disabled
+
+pi05_plus_common: &pi05_plus_common
+  model: paligemma_pi05
+  dataset: libero_paligemma
+  trainer_defaults: default
+  num_gpus: 1
+  framework_name: PaliGemmaPi05
+  dataset_mix: libero_plus_multiview
+  output_root_dir: /share/longjunyu/alphabrain/experiments/libero-plus-mv-rgb-v1/runs
+  wandb_mode: disabled
+  training:
+    per_device_batch_size: 1
+    gradient_accumulation_steps: 2
+    max_train_steps: 33000
+    save_interval: 33001
+    eval_interval: 33001
+    freeze_modules: vlm_interface
+  trainer:
+    pretrained_checkpoint: /share/longjunyu/alphabrain/pretrained_models/openpi/pi05_libero_pytorch
+    skip_final_save: false
+    logging_frequency: 10
+    learning_rate:
+      action_model: 1.0e-04
+      base: 1.0e-04
+      flow_matching_head: 5.0e-05
+      vlm_interface: 0.0
+    num_warmup_steps: 100
+    lr_scheduler_type: cosine_with_min_lr
+    scheduler_specific_kwargs:
+      min_lr: 1.0e-05
+    optimizer:
+      name: AdamW
+      betas: [0.9, 0.95]
+      eps: 1.0e-08
+      weight_decay: 1.0e-10
+    gradient_clipping: 1.0
+    ema:
+      enabled: false
+  datasets:
+    vla_data: &plus_dataset
+      dataloader_module: paligemma_datasets
+      dataset_format: libero_plus_tfrecord
+      data_root_dir: /share/longjunyu/alphabrain/datasets/libero-plus/views/pi05-mv-rgb-v1
+      split: train
+      budget_fraction: 1.0
+      episode_cache_size: 2
+      action_horizon: 10
+      action_dim: 7
+      state_dim: 8
+      include_state: false
+      per_device_batch_size: 1
+      shuffle: true
+
+plus_framework: &plus_framework
+  pi05: true
+  gripper_remap: false
+  paligemma:
+    base_vlm: /share/longjunyu/alphabrain/pretrained_models/paligemma-3b-pt-224
+    attn_implementation: sdpa
+    discrete_state_input: false
+    num_images: 3
+    image_mask: [true, true, false]
+    max_token_len: 48
+  action_expert:
+    width: 1024
+    depth: 18
+    mlp_dim: 4096
+    num_heads: 8
+    num_kv_heads: 1
+    head_dim: 256
+    precision: bfloat16
+  action_model:
+    fresh_tail_weight: 1.0
+    fresh_weighting_mode: suffix
+    action_dim: 7
+    action_horizon: 10
+    future_action_window_size: 9
+    past_action_window_size: 0
+    num_inference_steps: 10
+    noise_beta_alpha: 1.5
+    noise_beta_beta: 1.0
+    state_dim: 8
+  normalization:
+    enabled: true
+    action_mean: [0.06594458, 0.09087186, -0.09225027, 0.00016278, 0.00562295, -0.00386901, -0.03697782]
+    action_std: [0.33671834, 0.38222458, 0.45361066, 0.03833973, 0.06341390, 0.07609765, 0.99931609]
+  cabi:
+    enabled: false
+
+visual_adapter: &visual_adapter
+  enabled: true
+  type: siglip_low_rank
+  target_modules: [mlp.fc1, mlp.fc2]
+  rank: 16
+  alpha: 16.0
+  dropout: 0.0
+  freeze_base: true
+
+modes:
+  pi05_plus_mv_rgb_action_only:
+    <<: *pi05_plus_common
+    run_id: pi05_plus_mv_rgb_action_only
+    framework:
+      <<: *plus_framework
+      camera_conditioning:
+        enabled: false
+        joint_crop_min_scale: 1.0
+
+  pi05_plus_mv_rgb_visual_lora:
+    <<: *pi05_plus_common
+    run_id: pi05_plus_mv_rgb_visual_lora
+    training:
+      per_device_batch_size: 1
+      gradient_accumulation_steps: 2
+      max_train_steps: 33000
+      save_interval: 33001
+      eval_interval: 33001
+      freeze_modules: vlm_interface.model.language_model,vlm_interface.model.lm_head,vlm_interface.model.multi_modal_projector
+    trainer:
+      pretrained_checkpoint: /share/longjunyu/alphabrain/pretrained_models/openpi/pi05_libero_pytorch
+      skip_final_save: false
+      logging_frequency: 10
+      learning_rate:
+        action_model: 1.0e-04
+        base: 1.0e-04
+        flow_matching_head: 5.0e-05
+        vlm_interface: 5.0e-04
+      num_warmup_steps: 100
+      lr_scheduler_type: cosine_with_min_lr
+      scheduler_specific_kwargs:
+        min_lr: 1.0e-05
+      optimizer:
+        name: AdamW
+        betas: [0.9, 0.95]
+        eps: 1.0e-08
+        weight_decay: 1.0e-10
+      gradient_clipping: 1.0
+      ema:
+        enabled: false
+    framework:
+      <<: *plus_framework
+      visual_adapter:
+        <<: *visual_adapter
+      camera_conditioning:
+        enabled: false
+        joint_crop_min_scale: 1.0

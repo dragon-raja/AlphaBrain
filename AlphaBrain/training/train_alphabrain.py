@@ -1097,6 +1097,13 @@ class VLATrainer(TrainerUtils):
 
     def _finalize_training(self):
         """training end processing"""
+        if bool(getattr(self.config.trainer, "skip_final_save", False)):
+            logger.info("Training complete. Final model save skipped by trainer.skip_final_save")
+            if self.accelerator.is_main_process and wandb is not None:
+                wandb.finish()
+            self.accelerator.wait_for_everyone()
+            return
+
         # save final model
         if self.accelerator.is_main_process:
             if self.use_lora:

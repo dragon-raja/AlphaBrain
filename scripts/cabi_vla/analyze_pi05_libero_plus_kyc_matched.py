@@ -223,6 +223,88 @@ def _crossed_method_effects(
     }
 
 
+def _crossed_run_summary(
+    runs: Mapping[int, Mapping[str, Mapping[str, float]]],
+) -> dict[str, Any]:
+    seeds = sorted(runs)
+    groups = sorted(runs[seeds[0]])
+    condition_values = {
+        condition: {
+            seed: {group: runs[seed][group][condition] for group in groups}
+            for seed in seeds
+        }
+        for condition in CONDITIONS
+    }
+    effect_values = {
+        "camera_gap_canonical_background": {
+            seed: {
+                group: runs[seed][group]["canonical"] - runs[seed][group]["camera_only"]
+                for group in groups
+            }
+            for seed in seeds
+        },
+        "background_gap_canonical_camera": {
+            seed: {
+                group: runs[seed][group]["canonical"] - runs[seed][group]["background_only"]
+                for group in groups
+            }
+            for seed in seeds
+        },
+        "combined_gap": {
+            seed: {
+                group: runs[seed][group]["canonical"] - runs[seed][group]["camera_background"]
+                for group in groups
+            }
+            for seed in seeds
+        },
+        "camera_gap_unseen_background": {
+            seed: {
+                group: runs[seed][group]["background_only"] - runs[seed][group]["camera_background"]
+                for group in groups
+            }
+            for seed in seeds
+        },
+    }
+    effect_values["negative_composition_interaction"] = {
+        seed: {
+            group: (
+                runs[seed][group]["background_only"]
+                - runs[seed][group]["camera_background"]
+                - runs[seed][group]["canonical"]
+                + runs[seed][group]["camera_only"]
+            )
+            for group in groups
+        }
+        for seed in seeds
+    }
+    conditions = {
+        condition: _crossed_bootstrap(
+            values,
+            seed=BOOTSTRAP_SEED + index,
+        )
+        for index, (condition, values) in enumerate(condition_values.items())
+    }
+    effects = {
+        name: _crossed_bootstrap(
+            values,
+            seed=BOOTSTRAP_SEED + len(CONDITIONS) + index,
+        )
+        for index, (name, values) in enumerate(effect_values.items())
+    }
+    canonical_mean = conditions["canonical"]["mean"]
+    return {
+        "independent_group_count": len(groups),
+        "training_seed_count": len(seeds),
+        "conditions": conditions,
+        "effects": effects,
+        "camera_background_retention": (
+            conditions["camera_background"]["mean"] / canonical_mean
+            if canonical_mean > 0
+            else None
+        ),
+    }
+
+
 def _decision(effects: Mapping[str, Mapping[str, Any]]) -> str:
     camera = effects["camera_only_success"]
     joint = effects["camera_background_success"]
@@ -252,11 +334,9 @@ def build_report(
         raise ValueError("Control and KYC seed sets differ")
     if interpretation not in INTERPRETATION_BOUNDARIES:
         raise ValueError(f"unsupported interpretation boundary: {interpretation}")
-    control_mean = _mean_seed_scores(control_runs)
-    kyc_mean = _mean_seed_scores(kyc_runs)
     effects = _crossed_method_effects(control_runs, kyc_runs)
-    control_summary = summarize_run(control_mean)
-    kyc_summary = summarize_run(kyc_mean)
+    control_summary = _crossed_run_summary(control_runs)
+    kyc_summary = _crossed_run_summary(kyc_runs)
     baseline_valid = _baseline_valid(control_summary)
     per_seed = {
         str(seed): {

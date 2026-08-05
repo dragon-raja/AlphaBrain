@@ -59,6 +59,8 @@ def test_cross_seed_interval_includes_training_seed_variation() -> None:
     assert effect["mean"] == 1 / 3
     assert effect["ci95"][0] == 0.0
     assert effect["bootstrap_scheme"] == "crossed_training_seed_and_base_task"
+    control_condition = report["cross_seed"]["control"]["conditions"]["canonical"]
+    assert control_condition["bootstrap_scheme"] == "crossed_training_seed_and_base_task"
 
 
 def test_factor_separated_interpretation_preserves_claim_boundary() -> None:

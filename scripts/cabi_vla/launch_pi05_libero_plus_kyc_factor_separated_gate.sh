@@ -238,6 +238,7 @@ run_worker() {
   PYTHONPATH="$REPO_ROOT/scripts/cabi_vla" "$REPO_ROOT/.venv/bin/python" \
     "$REPO_ROOT/scripts/cabi_vla/analyze_pi05_libero_plus_kyc_matched.py" \
     "${args[@]}" \
+    --interpretation factor_separated_category_composition \
     --output-json "$OUTPUT_ROOT/final/metrics.json" \
     --output-report "$OUTPUT_ROOT/final/report_zh.md" \
     --output-figure "$OUTPUT_ROOT/final/summary.png"

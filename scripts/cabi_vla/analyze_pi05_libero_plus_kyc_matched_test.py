@@ -59,3 +59,18 @@ def test_cross_seed_interval_includes_training_seed_variation() -> None:
     assert effect["mean"] == 1 / 3
     assert effect["ci95"][0] == 0.0
     assert effect["bootstrap_scheme"] == "crossed_training_seed_and_base_task"
+
+
+def test_factor_separated_interpretation_preserves_claim_boundary() -> None:
+    runs = {seed: _run(1.0, 1.0) for seed in (41, 42, 43)}
+
+    report = build_report(
+        runs,
+        runs,
+        interpretation="factor_separated_category_composition",
+    )
+
+    boundary = report["interpretation_boundary"]
+    assert boundary["factor_category_separated_training"] is True
+    assert boundary["strict_seen_factor_composition"] is False
+    assert boundary["joint_factor_training_episode_count"] == 0

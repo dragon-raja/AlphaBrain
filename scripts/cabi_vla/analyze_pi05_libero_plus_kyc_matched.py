@@ -19,6 +19,30 @@ from analyze_pi05_libero_plus_views import bootstrap_mean
 
 BOOTSTRAP_SAMPLES = 20_000
 BOOTSTRAP_SEED = 20260805
+INTERPRETATION_BOUNDARIES = {
+    "paired_joint_ood_stress_test": {
+        "classification": "paired_joint_ood_stress_test",
+        "strict_seen_factor_composition": False,
+        "factor_category_separated_training": False,
+        "reason": (
+            "The camera/background factors are jointly out of the camera-only "
+            "training distribution; they are not a held pairing of two "
+            "individually seen factor categories."
+        ),
+    },
+    "factor_separated_category_composition": {
+        "classification": "factor_separated_category_composition",
+        "strict_seen_factor_composition": False,
+        "factor_category_separated_training": True,
+        "joint_factor_training_episode_count": 0,
+        "reason": (
+            "Camera-only and background-only factor categories are both present "
+            "in training, while their joint condition is held out. Public Goal "
+            "RLDS metadata does not preserve exact per-episode camera and texture "
+            "identities, so exact held-pair coverage cannot be claimed."
+        ),
+    },
+}
 
 
 def _mean_seed_scores(
@@ -217,9 +241,13 @@ def _decision(effects: Mapping[str, Mapping[str, Any]]) -> str:
 def build_report(
     control_runs: Mapping[int, Mapping[str, Mapping[str, float]]],
     kyc_runs: Mapping[int, Mapping[str, Mapping[str, float]]],
+    *,
+    interpretation: str = "paired_joint_ood_stress_test",
 ) -> dict[str, Any]:
     if set(control_runs) != set(kyc_runs):
         raise ValueError("Control and KYC seed sets differ")
+    if interpretation not in INTERPRETATION_BOUNDARIES:
+        raise ValueError(f"unsupported interpretation boundary: {interpretation}")
     control_mean = _mean_seed_scores(control_runs)
     kyc_mean = _mean_seed_scores(kyc_runs)
     effects = _crossed_method_effects(control_runs, kyc_runs)
@@ -246,15 +274,7 @@ def build_report(
         },
         "per_seed": per_seed,
         "decision": _decision(effects),
-        "interpretation_boundary": {
-            "classification": "paired_joint_ood_stress_test",
-            "strict_seen_factor_composition": False,
-            "reason": (
-                "The current camera/background factors are jointly out of the "
-                "camera-only training distribution; they are not a held pairing "
-                "of two individually seen factors."
-            ),
-        },
+        "interpretation_boundary": INTERPRETATION_BOUNDARIES[interpretation],
     }
 
 
@@ -293,6 +313,21 @@ def write_chinese_report(report: Mapping[str, Any], output: Path) -> None:
             f"{cross['kyc']['conditions'][condition]['mean']:.1%} | "
             f"{_pct(cross['kyc_minus_control'][condition + '_success'])} |"
         )
+    boundary = report["interpretation_boundary"]
+    if boundary["classification"] == "factor_separated_category_composition":
+        interpretation_lines = [
+            "本实验回答的是：训练分别包含相机单因素与背景单因素轨迹、但不包含",
+            "二者联合轨迹时，Pi0.5 是否仍出现组合缺口，以及 KYC 是否减轻该缺口。",
+            "公开 Goal RLDS 没有逐 episode 的具体相机和纹理 ID，因此这是因子类别",
+            "分离组合实验，不能升级为精确位姿×纹理留配对结论。",
+        ]
+    else:
+        interpretation_lines = [
+            "本实验回答的是：在 Pi0.5、保留腕部相机、并已做多视角训练时，显式",
+            "真实相机几何是否还能提供额外闭环收益。它是配对的相机与背景联合域外",
+            "压力测试，不是严格的“两个因素分别见过、唯独组合未见过”实验；后者需",
+            "由单独的因子配对数据划分回答。",
+        ]
     lines.extend(
         [
             "",
@@ -321,10 +356,7 @@ def write_chinese_report(report: Mapping[str, Any], output: Path) -> None:
             "",
             f"**`{report['decision']}`**",
             "",
-            "本实验回答的是：在 Pi0.5、保留腕部相机、并已做多视角训练时，显式"
-            "真实相机几何是否还能提供额外闭环收益。它是配对的相机与背景联合域外"
-            "压力测试，不是严格的“两个因素分别见过、唯独组合未见过”实验；后者需"
-            "由单独的因子配对数据划分回答。",
+            *interpretation_lines,
             "",
         ]
     )
@@ -412,6 +444,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-json", type=Path, required=True)
     parser.add_argument("--output-report", type=Path, required=True)
     parser.add_argument("--output-figure", type=Path, required=True)
+    parser.add_argument(
+        "--interpretation",
+        choices=sorted(INTERPRETATION_BOUNDARIES),
+        default="paired_joint_ood_stress_test",
+    )
     return parser.parse_args()
 
 
@@ -432,7 +469,7 @@ def main() -> None:
     if any(current != metadata[0] for current in metadata[1:]):
         raise ValueError("composition protocol metadata differs across runs")
 
-    report = build_report(control, kyc)
+    report = build_report(control, kyc, interpretation=args.interpretation)
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     args.output_json.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
     write_chinese_report(report, args.output_report)

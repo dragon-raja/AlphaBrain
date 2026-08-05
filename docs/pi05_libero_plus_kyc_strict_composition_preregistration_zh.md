@@ -67,3 +67,9 @@
 ## 5. 结论边界
 
 即使两个门控均通过，也只说明静态第三方相机与桌面/背景外观范围内的结果；不能外推到新厨房几何、新物体布局、执行中移动相机或真机标定误差。RoboCasa 的厨房/布局组合验证仍作为外部有效性证据独立进行。
+
+## 6. 主要依据
+
+- [KYC 论文](https://arxiv.org/abs/2510.02268)、[项目页](https://ripl.github.io/know_your_camera/)与[官方代码](https://github.com/ripl/CamPoseOpensource)
+- [LIBERO-Plus CVPR 2026 论文](https://openaccess.thecvf.com/content/CVPR2026/html/Fei_LIBERO-Plus_A_Progressive_Robustness_Benchmark_for_Visual-Language-Action_Models_CVPR_2026_paper.html)与[官方仓库](https://github.com/sylvestf/LIBERO-plus)
+- [VLA Models Are More Generalizable Than You Think](https://arxiv.org/abs/2512.02902)：作为视觉适配近邻，但其单次适配实验不替代本预注册的 KYC 匹配比较或严格因素配对。

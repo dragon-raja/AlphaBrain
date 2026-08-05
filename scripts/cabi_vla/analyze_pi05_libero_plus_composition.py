@@ -258,7 +258,7 @@ def _decision(candidate: Mapping[str, Any]) -> tuple[str, dict[str, bool]]:
         return "RESIDUAL_JOINT_CAMERA_BACKGROUND_OOD_GAP_CONFIRMED", gates
     if sufficient:
         return "MULTIVIEW_SUFFICIENT_WITHIN_TESTED_JOINT_OOD", gates
-    return "CAMERA_SCENE_COMPOSITION_RESULT_INCONCLUSIVE", gates
+    return "JOINT_CAMERA_BACKGROUND_OOD_RESULT_INCONCLUSIVE", gates
 
 
 def build_report(
@@ -432,14 +432,15 @@ def write_chinese_report(report: Mapping[str, Any], output: Path) -> None:
                 )
         lines.append("")
     if report.get("pair_diagnostics"):
-        lines.extend(["## 严格组合失败", ""])
+        lines.extend(["## 联合条件特有失败", ""])
         for name in names:
             diagnostics = report["pair_diagnostics"][name]
             rate = diagnostics["strict_composition_only_failure_rate"]
             lines.append(
                 f"- `{name}`：{diagnostics['strict_composition_only_failure_count']}/"
                 f"{diagnostics['episode_pair_count']} 个初态在原始、仅相机、仅背景均成功，"
-                f"但组合条件失败；按任务聚合率 {_percent_interval(rate)}。"
+                f"但联合条件失败；按任务聚合率 {_percent_interval(rate)}。该现象不能"
+                "单独解释为严格留组合失败，因为训练没有背景因素。"
             )
         lines.append("")
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -466,7 +467,7 @@ def render_figure(report: Mapping[str, Any], output: Path) -> None:
     axes[0].set_xticks(x, names)
     axes[0].set_ylim(0, 1)
     axes[0].set_ylabel("Full-task success rate")
-    axes[0].set_title("Paired 2 x 2 conditions")
+    axes[0].set_title("Paired 2 x 2 joint-OOD conditions")
     axes[0].grid(axis="y", alpha=0.25)
     axes[0].legend(fontsize=8)
 
@@ -524,7 +525,7 @@ def render_figure(report: Mapping[str, Any], output: Path) -> None:
         )
         axes[2].set_ylim(0, 1)
         axes[2].set_ylabel("Camera + background success")
-        axes[2].set_title("Composition success by task suite")
+        axes[2].set_title("Joint-OOD success by task suite")
         axes[2].grid(axis="y", alpha=0.25)
         axes[2].legend(fontsize=8)
     figure.tight_layout()

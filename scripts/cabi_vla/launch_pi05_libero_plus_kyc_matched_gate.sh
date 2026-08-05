@@ -37,6 +37,10 @@ evaluation_dir() {
 
 episode_count() {
   local output=$1
+  if [[ ! -d "$output" ]]; then
+    echo 0
+    return
+  fi
   find "$output" -maxdepth 1 -name 'episodes-shard-*.jsonl' -type f \
     -exec awk 'NF {count += 1} END {print count + 0}' {} + 2>/dev/null \
     | awk '{total += $1} END {print total + 0}'

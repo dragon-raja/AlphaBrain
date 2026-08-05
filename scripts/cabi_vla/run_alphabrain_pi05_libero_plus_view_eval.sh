@@ -15,6 +15,7 @@ PROBE_HORIZON=${PROBE_HORIZON:-5}
 VIDEO_EPISODES=${VIDEO_EPISODES:-8}
 EVAL_MODES=${EVAL_MODES:-gap}
 EVAL_SUITES=${EVAL_SUITES:-}
+SKIP_ANALYSIS=${SKIP_ANALYSIS:-0}
 
 POLICY_PYTHON=${POLICY_PYTHON:-$REPO_ROOT/.venv/bin/python}
 SIM_PYTHON=${SIM_PYTHON:-/share/longjunyu/capt-vla/envs/libero/bin/python}
@@ -32,6 +33,10 @@ fi
 
 if [[ ! "$GPU_COUNT" =~ ^[1-8]$ ]]; then
   echo "GPU_COUNT must be in [1,8]" >&2
+  exit 2
+fi
+if [[ "$SKIP_ANALYSIS" != 0 && "$SKIP_ANALYSIS" != 1 ]]; then
+  echo "SKIP_ANALYSIS must be 0 or 1" >&2
   exit 2
 fi
 for required in \
@@ -222,10 +227,12 @@ if [[ "$actual_episode_count" -ne "$expected_episode_count" ]]; then
   exit 1
 fi
 
-"$POLICY_PYTHON" "$REPO_ROOT/scripts/cabi_vla/analyze_pi05_libero_plus_views.py" \
-  --episodes "${episode_files[@]}" \
-  --output-json "$OUTPUT_DIR/metrics.json" \
-  --output-figure "$OUTPUT_DIR/summary.png" \
-  --output-report "$OUTPUT_DIR/report_zh.md"
+if [[ "$SKIP_ANALYSIS" == 0 ]]; then
+  "$POLICY_PYTHON" "$REPO_ROOT/scripts/cabi_vla/analyze_pi05_libero_plus_views.py" \
+    --episodes "${episode_files[@]}" \
+    --output-json "$OUTPUT_DIR/metrics.json" \
+    --output-figure "$OUTPUT_DIR/summary.png" \
+    --output-report "$OUTPUT_DIR/report_zh.md"
+fi
 
 echo "alphabrain_plus_eval_complete=$OUTPUT_DIR episodes=$actual_episode_count"

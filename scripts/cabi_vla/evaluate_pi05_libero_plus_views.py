@@ -138,7 +138,7 @@ def build_episode_specs(
 ) -> list[dict[str, Any]]:
     if init_state_count <= 0:
         raise ValueError("init-state-count must be positive")
-    unknown = set(modes) - {"gap", "candidates"}
+    unknown = set(modes) - {"gap", "candidates", "composition"}
     if unknown:
         raise ValueError(f"unsupported evaluation modes: {sorted(unknown)}")
     allowed_suites = set(suites or MAX_STEPS_BY_SUITE)
@@ -210,6 +210,69 @@ def build_episode_specs(
                             "init_state_index": init_state_index,
                         }
                     )
+    if "composition" in modes:
+        for task in protocol["composition_tasks"]:
+            suite = str(task["suite"])
+            if suite not in allowed_suites:
+                continue
+            for init_state_index in range(init_state_count):
+                pair_key = (
+                    f"composition::{suite}::{task['base_task']}::init{init_state_index}"
+                )
+                common = {
+                    "pair_key": pair_key,
+                    "suite": suite,
+                    "task_index": int(task["task_index"]),
+                    "base_task": str(task["base_task"]),
+                    "prompt": clean_task_prompt(str(task["base_task"])),
+                    "difficulty_level": int(task["difficulty_level"]),
+                    "camera_difficulty_level": int(task["camera_difficulty_level"]),
+                    "background_difficulty_level": int(
+                        task["background_difficulty_level"]
+                    ),
+                    "background_difficulty_distance": int(
+                        task["background_difficulty_distance"]
+                    ),
+                    "official_task_id": int(task["task_id"]),
+                    "official_camera_name": str(task["camera_task_name"]),
+                    "perturbation_family": str(task["perturbation_family"]),
+                    "background_task_id": int(task["background_task_id"]),
+                    "background_task_name": str(task["background_task_name"]),
+                    "background_kind": str(task["background_kind"]),
+                    "background_texture_index": int(
+                        task["background_texture_index"]
+                    ),
+                    "background_exact_difficulty_match": bool(
+                        task["background_exact_difficulty_match"]
+                    ),
+                    "init_state_index": init_state_index,
+                }
+                specs.extend(
+                    [
+                        {
+                            **common,
+                            "condition": "canonical",
+                            "camera_task_name": str(task["base_task"]),
+                        },
+                        {
+                            **common,
+                            "condition": "camera_only",
+                            "camera_task_name": str(task["camera_task_name"]),
+                        },
+                        {
+                            **common,
+                            "condition": "background_only",
+                            "camera_task_name": str(task["background_task_name"]),
+                        },
+                        {
+                            **common,
+                            "condition": "camera_background",
+                            "camera_task_name": str(
+                                task["camera_background_task_name"]
+                            ),
+                        },
+                    ]
+                )
     for spec in specs:
         spec["episode_id"] = hashlib.sha256(
             f"{spec['pair_key']}::{spec['condition']}".encode("utf-8")
@@ -257,6 +320,11 @@ def quat_to_axis_angle(quaternion: np.ndarray) -> np.ndarray:
     if math.isclose(denominator, 0.0):
         return np.zeros(3, dtype=np.float64)
     return quat[:3] * (2.0 * math.acos(quat[3]) / denominator)
+
+
+def physics_state_sha256(env: Any) -> tuple[str, int]:
+    state = np.asarray(env.env.sim.get_state().flatten(), dtype=np.float64)
+    return hashlib.sha256(state.tobytes()).hexdigest(), int(state.size)
 
 
 def probe_action_variance(
@@ -359,11 +427,14 @@ def run_episode(
     )
     camera_id = int(env.env.sim.model.camera_name2id("agentview"))
     env.env.sim.forward()
+    state_sha256, state_size = physics_state_sha256(env)
     initial_metrics = {
         "agent": initial_image_metrics(initial_agent),
         "wrist": initial_image_metrics(initial_wrist),
         "agent_camera_position": np.asarray(env.env.sim.data.cam_xpos[camera_id]).tolist(),
         "agent_camera_rotation": np.asarray(env.env.sim.data.cam_xmat[camera_id]).reshape(3, 3).tolist(),
+        "physics_state_sha256": state_sha256,
+        "physics_state_size": state_size,
         "sim_visibility": simulator_visibility_metrics(env),
         "action_probe": probe_action_variance(
             client,
@@ -450,7 +521,12 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--bddl-root", type=Path, required=True)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
-    parser.add_argument("--modes", nargs="+", choices=("gap", "candidates"), default=["gap"])
+    parser.add_argument(
+        "--modes",
+        nargs="+",
+        choices=("gap", "candidates", "composition"),
+        default=["gap"],
+    )
     parser.add_argument("--suites", nargs="+", choices=tuple(MAX_STEPS_BY_SUITE))
     parser.add_argument("--replan-steps", type=int, default=5)
     parser.add_argument("--wait-steps", type=int, default=10)
@@ -490,7 +566,7 @@ def video_episode_indices(
         return set()
     by_mode = [
         [index for index, spec in enumerate(specs) if str(spec["pair_key"]).startswith(prefix)]
-        for prefix in ("gap::", "candidate::")
+        for prefix in ("gap::", "candidate::", "composition::")
     ]
     by_mode = [indices for indices in by_mode if indices]
     if not by_mode:

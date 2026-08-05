@@ -15,6 +15,10 @@ REPLAN_STEPS=${REPLAN_STEPS:-5}
 EVAL_SEED=${EVAL_SEED:-20260804}
 PROBE_SAMPLES=${PROBE_SAMPLES:-3}
 PROBE_HORIZON=${PROBE_HORIZON:-5}
+VIDEO_EPISODES=${VIDEO_EPISODES:-4}
+EVAL_MODES=${EVAL_MODES:-"gap candidates"}
+EVAL_SUITES=${EVAL_SUITES:-}
+SKIP_ANALYSIS=${SKIP_ANALYSIS:-0}
 EXPECTED_CHECKPOINT_SHA256=${EXPECTED_CHECKPOINT_SHA256:-\
 0f8c489e37b01c72251c45f2e73595894f3933fc6297f4f1cf95fc8737db4c74}
 
@@ -24,6 +28,18 @@ SIM_OVERLAY=${SIM_OVERLAY:-/share/longjunyu/alphabrain/envs/libero-plus-runtime-
 SIM_CONFIG=${SIM_CONFIG:-/share/longjunyu/alphabrain/envs/libero-plus-runtime-config-v1}
 PLUS_ROOT=${PLUS_ROOT:-${DATA_ROOT}/runtime/LIBERO-plus}
 BDDL_ROOT=${BDDL_ROOT:-${PLUS_ROOT}/libero/libero/bddl_files}
+
+read -r -a MODE_ARGS <<<"$EVAL_MODES"
+SUITE_ARGS=()
+if [[ -n "$EVAL_SUITES" ]]; then
+  read -r -a SUITE_VALUES <<<"$EVAL_SUITES"
+  SUITE_ARGS=(--suites "${SUITE_VALUES[@]}")
+fi
+
+if [[ "$SKIP_ANALYSIS" != 0 && "$SKIP_ANALYSIS" != 1 ]]; then
+  echo "SKIP_ANALYSIS must be 0 or 1" >&2
+  exit 2
+fi
 
 for required in \
   "$OPENPI_PYTHON" \
@@ -67,6 +83,7 @@ OPENPI_COMMIT="$openpi_commit" STUDY_CODE_SHA256="$study_code_sha256" \
 GPU_COUNT="$GPU_COUNT" INIT_STATE_COUNT="$INIT_STATE_COUNT" \
 REPLAN_STEPS="$REPLAN_STEPS" EVAL_SEED="$EVAL_SEED" \
 PROBE_SAMPLES="$PROBE_SAMPLES" PROBE_HORIZON="$PROBE_HORIZON" \
+EVAL_MODES="$EVAL_MODES" EVAL_SUITES="$EVAL_SUITES" \
   "${REPO_ROOT}/.venv/bin/python" - <<'PY' >"$manifest_temporary"
 import json
 import os
@@ -88,6 +105,8 @@ manifest = {
     "evaluation_seed": int(os.environ["EVAL_SEED"]),
     "probe_samples": int(os.environ["PROBE_SAMPLES"]),
     "probe_horizon": int(os.environ["PROBE_HORIZON"]),
+    "modes": os.environ["EVAL_MODES"].split(),
+    "suites": os.environ["EVAL_SUITES"].split(),
 }
 print(json.dumps(manifest, indent=2, sort_keys=True))
 PY
@@ -167,7 +186,8 @@ for ((gpu = 0; gpu < GPU_COUNT; gpu++)); do
       --bddl-root "$BDDL_ROOT" \
       --host 127.0.0.1 \
       --port "$port" \
-      --modes gap candidates \
+      --modes "${MODE_ARGS[@]}" \
+      "${SUITE_ARGS[@]}" \
       --init-state-count "$INIT_STATE_COUNT" \
       --replan-steps "$REPLAN_STEPS" \
       --seed "$EVAL_SEED" \
@@ -176,7 +196,7 @@ for ((gpu = 0; gpu < GPU_COUNT; gpu++)); do
       --num-shards "$GPU_COUNT" \
       --shard-index "$gpu" \
       --render-gpu "$gpu" \
-      --video-episodes 4 \
+      --video-episodes "$VIDEO_EPISODES" \
       >"$OUTPUT_DIR/logs/eval-shard-${gpu}.log" 2>&1 &
   eval_pids+=("$!")
 done
@@ -198,17 +218,23 @@ if [ "${#episode_files[@]}" -ne "$GPU_COUNT" ]; then
   exit 1
 fi
 
-expected_episode_count=$(PROTOCOL="$PROTOCOL" INIT_STATE_COUNT="$INIT_STATE_COUNT" \
-  "${REPO_ROOT}/.venv/bin/python" - <<'PY'
+expected_episode_count=$(PYTHONPATH="$REPO_ROOT/scripts/cabi_vla" \
+  PROTOCOL="$PROTOCOL" MODES="$EVAL_MODES" SUITES="$EVAL_SUITES" \
+  INIT_STATE_COUNT="$INIT_STATE_COUNT" "${REPO_ROOT}/.venv/bin/python" - <<'PY'
 import json
 import os
+from pathlib import Path
+from evaluate_pi05_libero_plus_views import build_episode_specs
 
-with open(os.environ["PROTOCOL"], encoding="utf-8") as stream:
-    protocol = json.load(stream)
-initial_states = int(os.environ["INIT_STATE_COUNT"])
-gap = 2 * len(protocol["official_camera_tasks"])
-candidates = len(protocol["candidate_matrix_base_tasks"]) * len(protocol["candidate_views"])
-print(initial_states * (gap + candidates))
+protocol = json.loads(Path(os.environ["PROTOCOL"]).read_text())
+suites = os.environ["SUITES"].split() or None
+specs = build_episode_specs(
+    protocol,
+    modes=os.environ["MODES"].split(),
+    suites=suites,
+    init_state_count=int(os.environ["INIT_STATE_COUNT"]),
+)
+print(len(specs))
 PY
 )
 actual_episode_count=$(awk 'NF {count += 1} END {print count + 0}' "${episode_files[@]}")
@@ -217,10 +243,12 @@ if [ "$actual_episode_count" -ne "$expected_episode_count" ]; then
   exit 1
 fi
 
-"${REPO_ROOT}/.venv/bin/python" "${REPO_ROOT}/scripts/cabi_vla/analyze_pi05_libero_plus_views.py" \
-  --episodes "${episode_files[@]}" \
-  --output-json "$OUTPUT_DIR/metrics.json" \
-  --output-figure "$OUTPUT_DIR/summary.png" \
-  --output-report "$OUTPUT_DIR/report_zh.md"
+if [[ "$SKIP_ANALYSIS" == 0 ]]; then
+  "${REPO_ROOT}/.venv/bin/python" "${REPO_ROOT}/scripts/cabi_vla/analyze_pi05_libero_plus_views.py" \
+    --episodes "${episode_files[@]}" \
+    --output-json "$OUTPUT_DIR/metrics.json" \
+    --output-figure "$OUTPUT_DIR/summary.png" \
+    --output-report "$OUTPUT_DIR/report_zh.md"
+fi
 
 echo "study_complete=$OUTPUT_DIR"

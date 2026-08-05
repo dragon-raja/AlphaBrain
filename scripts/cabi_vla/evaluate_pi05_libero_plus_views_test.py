@@ -6,6 +6,7 @@ from evaluate_pi05_libero_plus_views import (
     build_episode_specs,
     clean_task_prompt,
     initial_image_metrics,
+    physics_state_sha256,
     quat_to_axis_angle,
     simulator_visibility_metrics,
     stable_seed,
@@ -55,6 +56,29 @@ def _protocol() -> dict:
                 "look_pitch_deg": 0,
             },
         ],
+        "composition_tasks": [
+            {
+                "suite": "libero_goal",
+                "task_id": 3,
+                "task_index": 2,
+                "name": "task_view_30_0_100_0_0_initstate_0",
+                "camera_task_name": "task_view_30_0_100_0_0_initstate_0",
+                "base_task": "task",
+                "difficulty_level": 2,
+                "camera_difficulty_level": 2,
+                "perturbation_family": "orbit_yaw",
+                "background_task_id": 9,
+                "background_task_name": "task_tb_4",
+                "background_difficulty_level": 2,
+                "background_difficulty_distance": 0,
+                "background_kind": "tb",
+                "background_texture_index": 4,
+                "background_exact_difficulty_match": True,
+                "camera_background_task_name": (
+                    "task_tb_4_view_30_0_100_0_0_initstate_0"
+                ),
+            }
+        ],
     }
 
 
@@ -79,12 +103,63 @@ def test_build_episode_specs_pairs_multiple_initial_states() -> None:
         assert len({row["episode_id"] for row in rows}) == 4
 
 
+def test_build_episode_specs_composition_has_paired_four_cell_design() -> None:
+    specs = build_episode_specs(_protocol(), modes=["composition"], init_state_count=2)
+    assert len(specs) == 8
+    for init_state_index in (0, 1):
+        rows = [row for row in specs if row["init_state_index"] == init_state_index]
+        assert {row["condition"] for row in rows} == {
+            "canonical",
+            "camera_only",
+            "background_only",
+            "camera_background",
+        }
+        assert len({row["pair_key"] for row in rows}) == 1
+        assert len({row["episode_id"] for row in rows}) == 4
+
+
+def test_physics_state_sha256_is_stable_and_state_sensitive() -> None:
+    class State:
+        def __init__(self, values):
+            self.values = values
+
+        def flatten(self):
+            return self.values
+
+    class Sim:
+        def __init__(self):
+            self.values = [1.0, 2.0, 3.0]
+
+        def get_state(self):
+            return State(self.values)
+
+    class Inner:
+        sim = Sim()
+
+    class Env:
+        env = Inner()
+
+    first, size = physics_state_sha256(Env())
+    second, _ = physics_state_sha256(Env())
+    Env.env.sim.values[0] = 2.0
+    third, _ = physics_state_sha256(Env())
+    assert size == 3
+    assert first == second
+    assert first != third
+
+
 def test_video_selection_balances_gap_and_candidate_modes() -> None:
     specs = build_episode_specs(_protocol(), modes=["gap", "candidates"], init_state_count=2)
     selected = video_episode_indices(specs, 4)
     prefixes = [str(specs[index]["pair_key"]).split("::", 1)[0] for index in selected]
     assert prefixes.count("gap") == 2
     assert prefixes.count("candidate") == 2
+
+
+def test_video_selection_includes_composition_mode() -> None:
+    specs = build_episode_specs(_protocol(), modes=["composition"], init_state_count=2)
+    selected = video_episode_indices(specs, 4)
+    assert len(selected) == 4
 
 
 def test_stable_seed_is_paired_but_key_sensitive() -> None:

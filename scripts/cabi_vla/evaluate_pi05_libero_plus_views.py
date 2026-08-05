@@ -16,6 +16,7 @@ from typing import Any
 import numpy as np
 
 from build_libero_plus_view_protocol import synthetic_camera_task_name
+from libero_camera_pose import mujoco_camera_calibration
 
 
 DUMMY_ACTION = np.asarray([0.0] * 6 + [-1.0], dtype=np.float32)
@@ -25,6 +26,7 @@ MAX_STEPS_BY_SUITE = {
     "libero_goal": 300,
     "libero_10": 520,
 }
+POLICY_CAMERA_RESOLUTION = 224
 
 
 def clean_task_prompt(base_task: str) -> str:
@@ -286,6 +288,7 @@ def prepare_policy_observation(
     prompt: str,
     resize_size: int,
     eval_seed: int,
+    camera_calibration: Mapping[str, Any],
 ) -> tuple[dict[str, Any], np.ndarray, np.ndarray]:
     from openpi_client import image_tools
 
@@ -307,10 +310,31 @@ def prepare_policy_observation(
             "observation/state": state,
             "prompt": str(prompt),
             "_eval_seed": int(eval_seed),
+            "camera_intrinsics": np.asarray(
+                camera_calibration["camera_intrinsics"], dtype=np.float64
+            ),
+            "camera_to_world_opencv": np.asarray(
+                camera_calibration["camera_to_world_opencv"], dtype=np.float64
+            ),
         },
         agent,
         wrist,
     )
+
+
+def agentview_camera_calibration(env: Any) -> dict[str, np.ndarray]:
+    calibration = mujoco_camera_calibration(
+        env,
+        camera_name="agentview",
+        height=POLICY_CAMERA_RESOLUTION,
+        width=POLICY_CAMERA_RESOLUTION,
+    )
+    return {
+        "camera_intrinsics": np.asarray(calibration["intrinsics"], dtype=np.float64),
+        "camera_to_world_opencv": np.asarray(
+            calibration["camera_to_world_opencv"], dtype=np.float64
+        ),
+    }
 
 
 def quat_to_axis_angle(quaternion: np.ndarray) -> np.ndarray:
@@ -419,11 +443,13 @@ def run_episode(
         if done:
             success = True
             break
+    camera_calibration = agentview_camera_calibration(env)
     initial_example, initial_agent, initial_wrist = prepare_policy_observation(
         observation,
         prompt=str(spec["prompt"]),
         resize_size=resize_size,
         eval_seed=episode_seed,
+        camera_calibration=camera_calibration,
     )
     camera_id = int(env.env.sim.model.camera_name2id("agentview"))
     env.env.sim.forward()
@@ -460,6 +486,7 @@ def run_episode(
                 prompt=str(spec["prompt"]),
                 resize_size=resize_size,
                 eval_seed=call_seed,
+                camera_calibration=camera_calibration,
             )
             output = client.infer(example)
             chunk = np.asarray(output["actions"], dtype=np.float32)

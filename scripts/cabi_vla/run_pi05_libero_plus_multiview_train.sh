@@ -6,7 +6,6 @@ CONFIG=${PLUS_MV_CONFIG:-$REPO_ROOT/configs/experiments/pi05_libero_plus_multivi
 PYTHON=${PLUS_MV_PYTHON:-$REPO_ROOT/.venv/bin/python}
 DATA_ROOT=${PLUS_MV_DATA_ROOT:-/share/longjunyu/alphabrain/datasets/libero-plus/views/pi05-mv-rgb-v1}
 OUTPUT_ROOT=${PLUS_MV_OUTPUT_ROOT:-/share/longjunyu/alphabrain/experiments/libero-plus-mv-rgb-v1/runs}
-BUDGET_FRACTION=${PLUS_MV_BUDGET_FRACTION:-1.0}
 SKIP_FINAL_SAVE=${PLUS_MV_SKIP_FINAL_SAVE:-false}
 RUN_TAG=${PLUS_MV_RUN_TAG:-}
 
@@ -22,11 +21,29 @@ case "$ARM" in
   visual_lora)
     MODE=pi05_plus_mv_rgb_visual_lora
     ;;
+  visual_lora_control)
+    MODE=pi05_plus_mv_rgb_visual_lora_control
+    MATCHED_BUDGET_FRACTION=0.25
+    ;;
+  visual_lora_kyc)
+    MODE=pi05_plus_mv_rgb_visual_lora_kyc
+    MATCHED_BUDGET_FRACTION=0.25
+    ;;
   *)
     echo "unknown LIBERO-Plus multiview arm: $ARM" >&2
     exit 2
     ;;
 esac
+
+if [[ -n "${MATCHED_BUDGET_FRACTION:-}" ]]; then
+  if [[ -n "${PLUS_MV_BUDGET_FRACTION:-}" && "$PLUS_MV_BUDGET_FRACTION" != "$MATCHED_BUDGET_FRACTION" ]]; then
+    echo "$ARM requires PLUS_MV_BUDGET_FRACTION=$MATCHED_BUDGET_FRACTION" >&2
+    exit 2
+  fi
+  BUDGET_FRACTION=$MATCHED_BUDGET_FRACTION
+else
+  BUDGET_FRACTION=${PLUS_MV_BUDGET_FRACTION:-1.0}
+fi
 
 if [[ ! "$SEED" =~ ^[0-9]+$ || ! "$GPU_ID" =~ ^[0-7]$ || ! "$STEPS" =~ ^[1-9][0-9]*$ ]]; then
   echo "SEED/STEPS must be non-negative integers and GPU_ID must be in [0,7]" >&2

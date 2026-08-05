@@ -18,6 +18,10 @@ REQUIRED_OBSERVATION_KEYS = {
     "prompt",
     "_eval_seed",
 }
+CAMERA_CALIBRATION_KEYS = (
+    "camera_intrinsics",
+    "camera_to_world_opencv",
+)
 
 
 def to_alphabrain_example(observation: Mapping[str, Any]) -> tuple[dict[str, Any], int]:
@@ -33,15 +37,32 @@ def to_alphabrain_example(observation: Mapping[str, Any]) -> tuple[dict[str, Any
     if state.shape != (8,) or not np.all(np.isfinite(state)):
         raise ValueError(f"expected finite 8D LIBERO state, got {state.shape}")
     prompt = str(observation["prompt"])
-    return (
-        {
-            "image": [np.ascontiguousarray(agent), np.ascontiguousarray(wrist)],
-            "lang": prompt,
-            "language": prompt,
-            "state": state,
-        },
-        seed,
-    )
+    example = {
+        "image": [np.ascontiguousarray(agent), np.ascontiguousarray(wrist)],
+        "lang": prompt,
+        "language": prompt,
+        "state": state,
+    }
+    has_camera_calibration = tuple(key in observation for key in CAMERA_CALIBRATION_KEYS)
+    if any(has_camera_calibration) and not all(has_camera_calibration):
+        raise ValueError(
+            "camera metadata requires both camera_intrinsics and "
+            "camera_to_world_opencv"
+        )
+    if all(has_camera_calibration):
+        intrinsics = np.asarray(observation["camera_intrinsics"])
+        camera_to_world = np.asarray(observation["camera_to_world_opencv"])
+        if intrinsics.shape != (3, 3) or camera_to_world.shape != (4, 4):
+            raise ValueError("invalid camera calibration matrix shapes")
+        if not np.all(np.isfinite(intrinsics)) or not np.all(np.isfinite(camera_to_world)):
+            raise ValueError("camera calibration matrices must be finite")
+        example.update(
+            {
+                "camera_intrinsics": np.ascontiguousarray(intrinsics),
+                "camera_to_world_opencv": np.ascontiguousarray(camera_to_world),
+            }
+        )
+    return example, seed
 
 
 class AlphaBrainPi05Policy:

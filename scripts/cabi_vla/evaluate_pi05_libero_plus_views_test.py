@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import sys
+import types
+
 import numpy as np
 
 from evaluate_pi05_libero_plus_views import (
+    agentview_camera_calibration,
     build_episode_specs,
     clean_task_prompt,
     initial_image_metrics,
     physics_state_sha256,
+    prepare_policy_observation,
     quat_to_axis_angle,
     simulator_visibility_metrics,
     stable_seed,
@@ -22,6 +27,82 @@ def test_clean_task_prompt_removes_libero_plus_camera_metadata_source() -> None:
         )
         == "put both the cream cheese box and the butter in the basket"
     )
+
+
+def test_agentview_camera_calibration_reads_224_opencv_matrices() -> None:
+    class Model:
+        cam_fovy = np.asarray([90.0])
+
+        @staticmethod
+        def camera_name2id(name: str) -> int:
+            assert name == "agentview"
+            return 0
+
+    class Data:
+        cam_xmat = np.eye(3).reshape(1, 9)
+        cam_xpos = np.asarray([[1.0, 2.0, 3.0]])
+
+    class Sim:
+        model = Model()
+        data = Data()
+
+        @staticmethod
+        def forward() -> None:
+            pass
+
+    class Inner:
+        sim = Sim()
+
+    class Env:
+        env = Inner()
+
+    calibration = agentview_camera_calibration(Env())
+    np.testing.assert_allclose(
+        calibration["camera_intrinsics"],
+        [[112.0, 0.0, 112.0], [0.0, 112.0, 112.0], [0.0, 0.0, 1.0]],
+    )
+    np.testing.assert_allclose(
+        calibration["camera_to_world_opencv"],
+        [
+            [1.0, 0.0, 0.0, 1.0],
+            [0.0, -1.0, 0.0, 2.0],
+            [0.0, 0.0, -1.0, 3.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ],
+    )
+
+
+def test_prepare_policy_observation_includes_camera_calibration(monkeypatch) -> None:
+    image_tools = types.SimpleNamespace(
+        resize_with_pad=lambda image, _height, _width: image,
+        convert_to_uint8=lambda image: np.asarray(image, dtype=np.uint8),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "openpi_client",
+        types.SimpleNamespace(image_tools=image_tools),
+    )
+    intrinsics = np.arange(9, dtype=np.float64).reshape(3, 3)
+    camera_to_world = np.arange(16, dtype=np.float64).reshape(4, 4)
+    observation = {
+        "agentview_image": np.zeros((2, 2, 3), dtype=np.uint8),
+        "robot0_eye_in_hand_image": np.ones((2, 2, 3), dtype=np.uint8),
+        "robot0_eef_pos": np.zeros(3),
+        "robot0_eef_quat": np.asarray([0.0, 0.0, 0.0, 1.0]),
+        "robot0_gripper_qpos": np.zeros(2),
+    }
+    example, _, _ = prepare_policy_observation(
+        observation,
+        prompt="task",
+        resize_size=224,
+        eval_seed=7,
+        camera_calibration={
+            "camera_intrinsics": intrinsics,
+            "camera_to_world_opencv": camera_to_world,
+        },
+    )
+    np.testing.assert_array_equal(example["camera_intrinsics"], intrinsics)
+    np.testing.assert_array_equal(example["camera_to_world_opencv"], camera_to_world)
 
 
 def _protocol() -> dict:

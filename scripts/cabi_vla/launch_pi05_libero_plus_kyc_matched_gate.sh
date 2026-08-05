@@ -15,6 +15,11 @@ LOG=$OUTPUT_ROOT/orchestrator.log
 SEEDS=(41 42 43)
 METHODS=(control kyc)
 
+training_session() {
+  local method=$1 seed=$2
+  echo "plus-${method}-s${seed}"
+}
+
 run_id() {
   local method=$1 seed=$2
   echo "pi05_plus_mv_visual_lora_${method}_${TAG}_seed${seed}_steps${STEPS}"
@@ -103,6 +108,12 @@ wait_for_training() {
         local checkpoint
         checkpoint=$(checkpoint_dir "$method" "$seed")
         if [[ ! -s "$checkpoint/model.safetensors" ]]; then
+          local session
+          session=$(training_session "$method" "$seed")
+          if ! tmux has-session -t "$session" 2>/dev/null; then
+            echo "training ended without checkpoint: method=$method seed=$seed session=$session" >&2
+            exit 1
+          fi
           pending=$((pending + 1))
         fi
       done

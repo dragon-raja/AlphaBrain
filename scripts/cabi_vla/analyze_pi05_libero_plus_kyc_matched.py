@@ -1,0 +1,333 @@
+from __future__ import annotations
+
+import argparse
+import json
+from collections.abc import Mapping, Sequence
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+
+from analyze_pi05_libero_plus_composition import (
+    CONDITIONS,
+    read_composition_group_metadata,
+    read_composition_group_scores,
+    summarize_run,
+)
+from analyze_pi05_libero_plus_views import bootstrap_mean
+
+
+def _mean_seed_scores(
+    runs: Mapping[int, Mapping[str, Mapping[str, float]]],
+) -> dict[str, dict[str, float]]:
+    if not runs:
+        raise ValueError("at least one seed is required")
+    group_sets = {seed: set(scores) for seed, scores in runs.items()}
+    expected = next(iter(group_sets.values()))
+    for seed, groups in group_sets.items():
+        if groups != expected:
+            raise ValueError(f"group mismatch for seed {seed}")
+    return {
+        group: {
+            condition: float(
+                np.mean(
+                    [runs[seed][group][condition] for seed in sorted(runs)]
+                )
+            )
+            for condition in CONDITIONS
+        }
+        for group in sorted(expected)
+    }
+
+
+def _paired_method_effects(
+    control: Mapping[str, Mapping[str, float]],
+    kyc: Mapping[str, Mapping[str, float]],
+) -> dict[str, Any]:
+    if set(control) != set(kyc):
+        raise ValueError("Control and KYC group sets differ")
+    groups = sorted(control)
+    effects: dict[str, Any] = {}
+    for condition in CONDITIONS:
+        effects[f"{condition}_success"] = bootstrap_mean(
+            [kyc[group][condition] - control[group][condition] for group in groups],
+            samples=20_000,
+        )
+
+    control_camera_gap = np.asarray(
+        [
+            control[group]["canonical"] - control[group]["camera_only"]
+            for group in groups
+        ]
+    )
+    kyc_camera_gap = np.asarray(
+        [
+            kyc[group]["canonical"] - kyc[group]["camera_only"]
+            for group in groups
+        ]
+    )
+    control_joint_gap = np.asarray(
+        [
+            control[group]["canonical"] - control[group]["camera_background"]
+            for group in groups
+        ]
+    )
+    kyc_joint_gap = np.asarray(
+        [
+            kyc[group]["canonical"] - kyc[group]["camera_background"]
+            for group in groups
+        ]
+    )
+    effects["camera_gap_reduction"] = bootstrap_mean(
+        control_camera_gap - kyc_camera_gap,
+        samples=20_000,
+    )
+    effects["joint_gap_reduction"] = bootstrap_mean(
+        control_joint_gap - kyc_joint_gap,
+        samples=20_000,
+    )
+    return effects
+
+
+def _decision(effects: Mapping[str, Mapping[str, Any]]) -> str:
+    camera = effects["camera_only_success"]
+    joint = effects["camera_background_success"]
+    canonical = effects["canonical_success"]
+    target = (camera, joint)
+    if any(metric["mean"] >= 0.05 and metric["ci95"][0] > 0 for metric in target):
+        if canonical["mean"] >= -0.05:
+            return "KYC_INCREMENTAL_VALUE_CONFIRMED"
+    if any(metric["mean"] <= -0.05 and metric["ci95"][1] < 0 for metric in target):
+        return "KYC_DEGRADES_VIEW_GENERALIZATION"
+    if all(metric["ci95"][1] < 0.05 for metric in target):
+        return "KYC_NO_MEANINGFUL_INCREMENTAL_VALUE"
+    return "KYC_INCREMENTAL_VALUE_INCONCLUSIVE"
+
+
+def build_report(
+    control_runs: Mapping[int, Mapping[str, Mapping[str, float]]],
+    kyc_runs: Mapping[int, Mapping[str, Mapping[str, float]]],
+) -> dict[str, Any]:
+    if set(control_runs) != set(kyc_runs):
+        raise ValueError("Control and KYC seed sets differ")
+    control_mean = _mean_seed_scores(control_runs)
+    kyc_mean = _mean_seed_scores(kyc_runs)
+    effects = _paired_method_effects(control_mean, kyc_mean)
+    per_seed = {
+        str(seed): {
+            "control": summarize_run(control_runs[seed]),
+            "kyc": summarize_run(kyc_runs[seed]),
+            "kyc_minus_control": _paired_method_effects(
+                control_runs[seed], kyc_runs[seed]
+            ),
+        }
+        for seed in sorted(control_runs)
+    }
+    return {
+        "schema_version": 1,
+        "study": "pi05_libero_plus_matched_kyc",
+        "independent_statistical_unit": "suite_x_base_task",
+        "seeds": sorted(control_runs),
+        "cross_seed": {
+            "control": summarize_run(control_mean),
+            "kyc": summarize_run(kyc_mean),
+            "kyc_minus_control": effects,
+        },
+        "per_seed": per_seed,
+        "decision": _decision(effects),
+        "interpretation_boundary": {
+            "classification": "paired_joint_ood_stress_test",
+            "strict_seen_factor_composition": False,
+            "reason": (
+                "The current camera/background factors are jointly out of the "
+                "camera-only training distribution; they are not a held pairing "
+                "of two individually seen factors."
+            ),
+        },
+    }
+
+
+def _pct(metric: Mapping[str, Any]) -> str:
+    return (
+        f"{metric['mean']:.1%} "
+        f"[{metric['ci95'][0]:.1%}, {metric['ci95'][1]:.1%}]"
+    )
+
+
+def write_chinese_report(report: Mapping[str, Any], output: Path) -> None:
+    cross = report["cross_seed"]
+    labels = {
+        "canonical": "原始相机 + 原始背景",
+        "camera_only": "扰动相机 + 原始背景",
+        "background_only": "原始相机 + 新背景",
+        "camera_background": "扰动相机 + 新背景",
+    }
+    lines = [
+        "# Pi0.5 上 KYC 的完全匹配增量验证",
+        "",
+        "> Control 与 KYC 使用相同多视角数据、视觉 LoRA、训练步数、优化器、"
+        "随机种子和闭环协议。唯一差异是射线图使用规范相机位姿（Control）还是"
+        "当前真实相机位姿（KYC）。独立统计单位为基础任务，先在种子内聚合初态，"
+        "再对三个种子取均值，最后按任务做 20,000 次配对 bootstrap。",
+        "",
+        "## 跨种子闭环成功率",
+        "",
+        "| 条件 | Control | KYC | KYC - Control |",
+        "|---|---:|---:|---:|",
+    ]
+    for condition in CONDITIONS:
+        lines.append(
+            f"| {labels[condition]} | "
+            f"{cross['control']['conditions'][condition]['mean']:.1%} | "
+            f"{cross['kyc']['conditions'][condition]['mean']:.1%} | "
+            f"{_pct(cross['kyc_minus_control'][condition + '_success'])} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## 关键差值",
+            "",
+            f"- 原始背景上的相机缺口缩小：{_pct(cross['kyc_minus_control']['camera_gap_reduction'])}。",
+            f"- 相机与背景同时变化的总缺口缩小：{_pct(cross['kyc_minus_control']['joint_gap_reduction'])}。",
+            "",
+            "## 每个随机种子",
+            "",
+            "| 种子 | Control 组合成功率 | KYC 组合成功率 | 差值 |",
+            "|---:|---:|---:|---:|",
+        ]
+    )
+    for seed, values in report["per_seed"].items():
+        lines.append(
+            f"| {seed} | "
+            f"{values['control']['conditions']['camera_background']['mean']:.1%} | "
+            f"{values['kyc']['conditions']['camera_background']['mean']:.1%} | "
+            f"{values['kyc_minus_control']['camera_background_success']['mean']:+.1%} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## 判定",
+            "",
+            f"**`{report['decision']}`**",
+            "",
+            "本实验回答的是：在 Pi0.5、保留腕部相机、并已做多视角训练时，显式"
+            "真实相机几何是否还能提供额外闭环收益。它是配对的相机与背景联合域外"
+            "压力测试，不是严格的“两个因素分别见过、唯独组合未见过”实验；后者需"
+            "由单独的因子配对数据划分回答。",
+            "",
+        ]
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text("\n".join(lines), encoding="utf-8")
+
+
+def render_figure(report: Mapping[str, Any], output: Path) -> None:
+    import matplotlib.pyplot as plt
+
+    cross = report["cross_seed"]
+    labels = ["Canonical", "Camera", "Background", "Camera+BG"]
+    x = np.arange(len(CONDITIONS))
+    width = 0.34
+    fig, axes = plt.subplots(1, 2, figsize=(12.5, 4.6))
+    for offset, method, color in (
+        (-width / 2, "control", "#4477AA"),
+        (width / 2, "kyc", "#CC6677"),
+    ):
+        axes[0].bar(
+            x + offset,
+            [cross[method]["conditions"][key]["mean"] for key in CONDITIONS],
+            width,
+            label=method.upper(),
+            color=color,
+        )
+    axes[0].set_xticks(x, labels)
+    axes[0].set_ylim(0, 1)
+    axes[0].set_ylabel("Full-task success rate")
+    axes[0].set_title("Matched closed-loop conditions")
+    axes[0].grid(axis="y", alpha=0.25)
+    axes[0].legend()
+
+    keys = [
+        "camera_only_success",
+        "camera_background_success",
+        "camera_gap_reduction",
+        "joint_gap_reduction",
+    ]
+    effect_labels = ["Camera success", "Joint success", "Camera gap", "Joint gap"]
+    means = [cross["kyc_minus_control"][key]["mean"] for key in keys]
+    low = [
+        mean - cross["kyc_minus_control"][key]["ci95"][0]
+        for mean, key in zip(means, keys, strict=True)
+    ]
+    high = [
+        cross["kyc_minus_control"][key]["ci95"][1] - mean
+        for mean, key in zip(means, keys, strict=True)
+    ]
+    axes[1].bar(
+        np.arange(len(keys)),
+        means,
+        yerr=np.asarray([low, high]),
+        capsize=4,
+        color=["#66A61E", "#1B9E77", "#7570B3", "#E6AB02"],
+    )
+    axes[1].axhline(0, color="black", linewidth=0.8)
+    axes[1].set_xticks(np.arange(len(keys)), effect_labels, rotation=15)
+    axes[1].set_ylabel("KYC minus Control")
+    axes[1].set_title("Paired task-level effects (95% CI)")
+    axes[1].grid(axis="y", alpha=0.25)
+    fig.tight_layout()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output, dpi=180)
+    plt.close(fig)
+
+
+def _named_path(value: str) -> tuple[int, Path]:
+    if "=" not in value:
+        raise argparse.ArgumentTypeError("expected SEED=OUTPUT_DIR")
+    seed, path = value.split("=", 1)
+    try:
+        parsed_seed = int(seed)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("seed must be an integer") from error
+    if not path:
+        raise argparse.ArgumentTypeError("output directory is empty")
+    return parsed_seed, Path(path)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Analyze matched Pi0.5 KYC runs")
+    parser.add_argument("--control", type=_named_path, action="append", required=True)
+    parser.add_argument("--kyc", type=_named_path, action="append", required=True)
+    parser.add_argument("--output-json", type=Path, required=True)
+    parser.add_argument("--output-report", type=Path, required=True)
+    parser.add_argument("--output-figure", type=Path, required=True)
+    return parser.parse_args()
+
+
+def _load_runs(values: Sequence[tuple[int, Path]]) -> dict[int, dict[str, dict[str, float]]]:
+    paths = dict(values)
+    if len(paths) != len(values):
+        raise ValueError("duplicate seed")
+    return {seed: read_composition_group_scores(path) for seed, path in paths.items()}
+
+
+def main() -> None:
+    args = parse_args()
+    control = _load_runs(args.control)
+    kyc = _load_runs(args.kyc)
+
+    all_paths = [path for _, path in args.control + args.kyc]
+    metadata = [read_composition_group_metadata(path) for path in all_paths]
+    if any(current != metadata[0] for current in metadata[1:]):
+        raise ValueError("composition protocol metadata differs across runs")
+
+    report = build_report(control, kyc)
+    args.output_json.parent.mkdir(parents=True, exist_ok=True)
+    args.output_json.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+    write_chinese_report(report, args.output_report)
+    render_figure(report, args.output_figure)
+    print(json.dumps({"decision": report["decision"]}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

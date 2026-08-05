@@ -1,6 +1,6 @@
 # KYC Camera Generalization Status
 
-Last updated: 2026-07-28.
+Last updated: 2026-08-05.
 
 ## Corrected Scope Of The Existing Result
 
@@ -78,25 +78,43 @@ The old high-view policy is not mathematically invariant to calibration, but
 its action response is extremely small. Closed-loop ray ablation is therefore
 secondary to retraining under the preregistered low-view conditions.
 
-### Released ACT positive-control smoke
+### Released ACT positive control
 
 - official repository commit: `e0647105`;
 - official RoboSuite commit: `0df3a5f`;
 - official Lift demonstrations: loaded and replay-rendered;
-- image-only ACT: one complete train/eval smoke;
-- Plucker-conditioned ACT: one complete train/eval smoke;
+- image-only and Plucker-conditioned ACT completed for seeds 0, 1, and 2;
+- held-out-camera success was `24.67%` for image-only and `62.67%` for KYC,
+  a paired gain of `+38.00 pp` with hierarchical 95% CI `[+28.00,+48.00]`;
 - MuJoCo fixed to `3.3.7`; `3.11.0` is incompatible because it removed the
   `MjData.qM` field used by the pinned RoboSuite controller.
 
-No paper reproduction claim is made from the smoke. The full three-seed
-released-code comparison remains required.
+This confirms the released mechanism's direction and large effect in its own
+ACT setting. It is kept separate from the Pi0.5 transfer result.
 
-## Next Gates
+## Completed Factorial Reuse
 
-1. Build fixed-scene Pi0.5 views for `n={10,45,215,1000}`.
-2. Run Stage B1 seed 41 scaling.
-3. Select the factorial budget by the preregistered baseline rule.
-4. Run fixed/cue-randomized by wrist-on/off Control/KYC factorial.
-5. Confirm required cells with seeds 42 and 43.
-6. Run the released ACT positive control and keep its conclusion separate.
+The fixed/cue-randomized by wrist-on/off factorial is complete for seeds 41,
+42, and 43 at the preregistered 10-view budget. Its machine-readable summary
+is:
 
+`/share/longjunyu/cabi-vla/kyc-scaling-v3/eval/factorial/n10/analysis/confirmed/summary.json`
+
+With wrist RGB retained, Control versus KYC success was `34.34%` versus
+`31.03%` in the fixed scene and `30.03%` versus `29.60%` in the
+cue-randomized scene. Neither comparison supports an incremental KYC gain.
+With wrist RGB removed, both baselines collapsed to at most `1.15%` success,
+so those cells are baseline-invalid and cannot decide whether wrist input
+masks a KYC benefit. This factorial is reused as boundary evidence and is not
+retrained.
+
+## Current Gates
+
+1. Complete the matched Pi0.5 Control/KYC comparison on LIBERO-Plus camera and
+   camera-plus-background conditions while retaining wrist RGB.
+2. Audit the official per-suite Goal RLDS archive for recoverable camera and
+   background factors.
+3. Run a strict seen-factor/withheld-pair experiment only if the archive can
+   prove factor coverage and zero held-pair leakage.
+4. Keep the released ACT positive control and the baseline-invalid wrist-off
+   cells separate from the Pi0.5 decision.

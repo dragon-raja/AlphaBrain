@@ -32,7 +32,7 @@ def test_report_confirms_residual_composition_gap() -> None:
         reference_name="official",
         candidate_name="strong",
     )
-    assert report["decision"] == "RESIDUAL_CAMERA_SCENE_COMPOSITION_GAP_CONFIRMED"
+    assert report["decision"] == "RESIDUAL_JOINT_CAMERA_BACKGROUND_OOD_GAP_CONFIRMED"
     assert report["runs"]["strong"]["effects"][
         "negative_composition_interaction"
     ]["mean"] == 1.0
@@ -44,7 +44,7 @@ def test_report_accepts_sufficient_multiview_result() -> None:
         reference_name="official",
         candidate_name="strong",
     )
-    assert report["decision"] == "MULTIVIEW_DATA_SUFFICIENT_ON_TESTED_PLUS_COMPOSITION"
+    assert report["decision"] == "MULTIVIEW_SUFFICIENT_WITHIN_TESTED_JOINT_OOD"
     assert report["candidate_minus_reference"]["camera_background_success"]["mean"] == 1.0
 
 

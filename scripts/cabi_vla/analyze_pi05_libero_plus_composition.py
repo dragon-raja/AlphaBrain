@@ -255,9 +255,9 @@ def _decision(candidate: Mapping[str, Any]) -> tuple[str, dict[str, bool]]:
     if not valid:
         return "BASELINE_INVALID", gates
     if residual:
-        return "RESIDUAL_CAMERA_SCENE_COMPOSITION_GAP_CONFIRMED", gates
+        return "RESIDUAL_JOINT_CAMERA_BACKGROUND_OOD_GAP_CONFIRMED", gates
     if sufficient:
-        return "MULTIVIEW_DATA_SUFFICIENT_ON_TESTED_PLUS_COMPOSITION", gates
+        return "MULTIVIEW_SUFFICIENT_WITHIN_TESTED_JOINT_OOD", gates
     return "CAMERA_SCENE_COMPOSITION_RESULT_INCONCLUSIVE", gates
 
 
@@ -344,9 +344,9 @@ def write_chinese_report(report: Mapping[str, Any], output: Path) -> None:
         "camera_background": "扰动相机 + 新桌面/背景",
     }
     lines = [
-        "# Pi0.5 × LIBERO-Plus 相机—背景组合泛化",
+        "# Pi0.5 × LIBERO-Plus 相机—背景联合域外泛化",
         "",
-        "> 严格四条件配对：同一任务、同一语言、同一物体布局、同一初始状态；"
+        "> 严格四条件评测配对：同一任务、同一语言、同一物体布局、同一初始状态；"
         f"只改变第三方相机和桌面/背景外观。独立统计单位为 "
         f"{report['runs'][report['candidate_name']]['independent_group_count']} 个基础任务，"
         "每个任务内先平均两个初始状态，再做 20,000 次成对 bootstrap。",
@@ -402,7 +402,9 @@ def write_chinese_report(report: Mapping[str, Any], output: Path) -> None:
             "",
             "## 边界",
             "",
-            "这里的“新场景”仅指未见过的桌面与背景纹理，不等同于新厨房几何、"
+            "训练数据包含相机变化但不包含背景因素，因此这里验证的是相机与背景联合"
+            "域外压力，不是两个因素分别见过、只留出其组合的严格组合泛化。这里的"
+            "“新场景”仅指未见过的桌面与背景纹理，不等同于新厨房几何、"
             "新物体布局、执行中移动相机或真实机器人域迁移。若本门控通过，只能说明"
             "当前多视角训练解决了这组 LIBERO-Plus 外观组合，不代表视角泛化被普遍解决。",
             "",

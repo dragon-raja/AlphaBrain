@@ -3,10 +3,12 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import zipfile
 from collections import Counter
 from collections.abc import Mapping
+from itertools import islice
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -79,17 +81,67 @@ def _feature_summary(value: Any) -> dict[str, Any]:
     return summary
 
 
-def inspect_first_record(path: Path) -> dict[str, Any]:
+def _scalar_text(value: Any) -> str | None:
+    array = np.asarray(value)
+    if array.size != 1:
+        return None
+    item = array.reshape(()).item()
+    if isinstance(item, (bytes, np.bytes_)):
+        return bytes(item).decode("utf-8", errors="replace")
+    if isinstance(item, str):
+        return item
+    return None
+
+
+def source_factor_class(value: str) -> str:
+    lowered = value.lower()
+    has_camera = any(token in lowered for token in ("camera", "extrinsic", "_view_"))
+    has_background = any(token in lowered for token in ("background", "texture", "_tb_"))
+    has_background = has_background or bool(re.search(r"_table_\d+", lowered))
+    if has_camera and has_background:
+        return "camera_background"
+    if has_camera:
+        return "camera"
+    if has_background:
+        return "background"
+    return "other"
+
+
+def source_factor_hint(value: str) -> dict[str, Any]:
+    path = PurePosixPath(value)
+    basename = path.name
+    background_match = re.search(
+        r"_(?:table|tb)_(\d+)(?:_demo)?(?:\.hdf5)?$",
+        basename,
+        flags=re.IGNORECASE,
+    )
+    view_match = re.search(
+        r"_view_([^/]+?)(?:_initstate_\d+)?(?:_demo)?(?:\.hdf5)?$",
+        basename,
+        flags=re.IGNORECASE,
+    )
+    return {
+        "factor_class": source_factor_class(value),
+        "parent": path.parent.name,
+        "grandparent": path.parent.parent.name,
+        "basename": basename,
+        "background_id": int(background_match.group(1)) if background_match else None,
+        "view_id": view_match.group(1) if view_match else None,
+    }
+
+
+def inspect_record_sample(path: Path, *, record_limit: int = 512) -> dict[str, Any]:
     try:
         from tfrecord.reader import tfrecord_loader
     except ImportError as error:
         raise RuntimeError("the isolated TFRecord reader environment is required") from error
-    try:
-        record = next(iter(tfrecord_loader(str(path), None)))
-    except StopIteration as error:
-        raise ValueError(f"TFRecord shard is empty: {path}") from error
-    features = {key: _feature_summary(value) for key, value in sorted(record.items())}
-    keys = set(features)
+    records = list(islice(tfrecord_loader(str(path), None), record_limit))
+    if not records:
+        raise ValueError(f"TFRecord shard is empty: {path}")
+    features = {
+        key: _feature_summary(value) for key, value in sorted(records[0].items())
+    }
+    keys = set().union(*(record.keys() for record in records))
     camera_fields = sorted(
         key
         for key in keys
@@ -103,12 +155,48 @@ def inspect_first_record(path: Path) -> dict[str, Any]:
     source_fields = sorted(
         key for key in keys if "file_path" in key.lower() or "source" in key.lower()
     )
+    source_hints = []
+    for record in records:
+        for field in source_fields:
+            if field not in record:
+                continue
+            value = _scalar_text(record[field])
+            if value is not None:
+                source_hints.append(source_factor_hint(value))
+                break
+    factor_classes = Counter(hint["factor_class"] for hint in source_hints)
+    parents = Counter(hint["parent"] for hint in source_hints)
+    grandparents = Counter(hint["grandparent"] for hint in source_hints)
+    background_ids = sorted(
+        {int(hint["background_id"]) for hint in source_hints if hint["background_id"] is not None}
+    )
+    view_ids = sorted(
+        {str(hint["view_id"]) for hint in source_hints if hint["view_id"] is not None}
+    )
+    camera_signatures = set()
+    for record in records:
+        for field in camera_fields:
+            if field not in record:
+                continue
+            array = np.asarray(record[field])
+            if array.size in {9, 12, 16} and np.issubdtype(array.dtype, np.number):
+                camera_signatures.add(tuple(np.round(array.astype(np.float64), 4).reshape(-1)))
     return {
+        "sampled_episode_count": len(records),
+        "record_limit": record_limit,
         "feature_count": len(features),
         "features": features,
         "direct_camera_factor_fields": camera_fields,
         "direct_background_factor_fields": background_fields,
         "source_identity_fields": source_fields,
+        "unique_direct_camera_signatures": len(camera_signatures),
+        "source_factor_class_counts": dict(sorted(factor_classes.items())),
+        "source_parent_counts": dict(sorted(parents.items())),
+        "source_grandparent_counts": dict(sorted(grandparents.items())),
+        "source_background_ids": background_ids,
+        "source_view_id_count": len(view_ids),
+        "source_view_id_examples": view_ids[:20],
+        "source_basename_examples": sorted({hint["basename"] for hint in source_hints})[:20],
     }
 
 
@@ -136,7 +224,7 @@ def audit_archive(*, archive: Path, sample_root: Path) -> dict[str, Any]:
             raise ValueError(f"CRC failure in archive member: {bad_member}")
         metadata = _read_metadata(handle, inventory["metadata_members"])
         sample_path = _extract_member(handle, tfrecords[0], sample_root)
-    record = inspect_first_record(sample_path)
+    record = inspect_record_sample(sample_path)
     camera_direct = bool(record["direct_camera_factor_fields"])
     background_direct = bool(record["direct_background_factor_fields"])
     source_available = bool(record["source_identity_fields"])

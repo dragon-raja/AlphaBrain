@@ -17,6 +17,10 @@ from analyze_pi05_libero_plus_composition import (
 from analyze_pi05_libero_plus_views import bootstrap_mean
 
 
+BOOTSTRAP_SAMPLES = 20_000
+BOOTSTRAP_SEED = 20260805
+
+
 def _mean_seed_scores(
     runs: Mapping[int, Mapping[str, Mapping[str, float]]],
 ) -> dict[str, dict[str, float]]:
@@ -89,6 +93,112 @@ def _paired_method_effects(
     return effects
 
 
+def _crossed_bootstrap(
+    values_by_seed: Mapping[int, Mapping[str, float]],
+    *,
+    seed: int,
+) -> dict[str, Any]:
+    seeds = sorted(values_by_seed)
+    if not seeds:
+        raise ValueError("crossed bootstrap requires at least one seed")
+    groups = sorted(values_by_seed[seeds[0]])
+    if not groups:
+        raise ValueError("crossed bootstrap requires at least one group")
+    expected = set(groups)
+    for training_seed in seeds:
+        if set(values_by_seed[training_seed]) != expected:
+            raise ValueError("crossed bootstrap requires identical groups per seed")
+    values = np.asarray(
+        [
+            [values_by_seed[training_seed][group] for group in groups]
+            for training_seed in seeds
+        ],
+        dtype=np.float64,
+    )
+    generator = np.random.default_rng(seed)
+    sampled_seeds = generator.integers(
+        0,
+        len(seeds),
+        size=(BOOTSTRAP_SAMPLES, len(seeds)),
+    )
+    sampled_groups = generator.integers(
+        0,
+        len(groups),
+        size=(BOOTSTRAP_SAMPLES, len(groups)),
+    )
+    distribution = values[
+        sampled_seeds[:, :, None],
+        sampled_groups[:, None, :],
+    ].mean(axis=(1, 2))
+    low, high = np.quantile(distribution, [0.025, 0.975]).tolist()
+    return {
+        "mean": float(values.mean()),
+        "ci95": [float(low), float(high)],
+        "training_seed_count": len(seeds),
+        "independent_group_count": len(groups),
+        "bootstrap_resamples": BOOTSTRAP_SAMPLES,
+        "bootstrap_scheme": "crossed_training_seed_and_base_task",
+    }
+
+
+def _crossed_method_effects(
+    control_runs: Mapping[int, Mapping[str, Mapping[str, float]]],
+    kyc_runs: Mapping[int, Mapping[str, Mapping[str, float]]],
+) -> dict[str, Any]:
+    if set(control_runs) != set(kyc_runs):
+        raise ValueError("Control and KYC seed sets differ")
+    seeds = sorted(control_runs)
+    expected = set(control_runs[seeds[0]])
+    for seed in seeds:
+        if set(control_runs[seed]) != expected or set(kyc_runs[seed]) != expected:
+            raise ValueError(f"Control and KYC group sets differ for seed {seed}")
+
+    values: dict[str, dict[int, dict[str, float]]] = {
+        f"{condition}_success": {
+            seed: {
+                group: (
+                    kyc_runs[seed][group][condition]
+                    - control_runs[seed][group][condition]
+                )
+                for group in sorted(expected)
+            }
+            for seed in seeds
+        }
+        for condition in CONDITIONS
+    }
+    values["camera_gap_reduction"] = {
+        seed: {
+            group: (
+                control_runs[seed][group]["canonical"]
+                - control_runs[seed][group]["camera_only"]
+                - kyc_runs[seed][group]["canonical"]
+                + kyc_runs[seed][group]["camera_only"]
+            )
+            for group in sorted(expected)
+        }
+        for seed in seeds
+    }
+    values["joint_gap_reduction"] = {
+        seed: {
+            group: (
+                control_runs[seed][group]["canonical"]
+                - control_runs[seed][group]["camera_background"]
+                - kyc_runs[seed][group]["canonical"]
+                + kyc_runs[seed][group]["camera_background"]
+            )
+            for group in sorted(expected)
+        }
+        for seed in seeds
+    }
+    return {
+        name: _crossed_bootstrap(
+            per_seed,
+            seed=BOOTSTRAP_SEED + index,
+        )
+        for index, (name, per_seed) in enumerate(values.items())
+    }
+
+
 def _decision(effects: Mapping[str, Mapping[str, Any]]) -> str:
     camera = effects["camera_only_success"]
     joint = effects["camera_background_success"]
@@ -112,7 +222,7 @@ def build_report(
         raise ValueError("Control and KYC seed sets differ")
     control_mean = _mean_seed_scores(control_runs)
     kyc_mean = _mean_seed_scores(kyc_runs)
-    effects = _paired_method_effects(control_mean, kyc_mean)
+    effects = _crossed_method_effects(control_runs, kyc_runs)
     per_seed = {
         str(seed): {
             "control": summarize_run(control_runs[seed]),
@@ -127,6 +237,7 @@ def build_report(
         "schema_version": 1,
         "study": "pi05_libero_plus_matched_kyc",
         "independent_statistical_unit": "suite_x_base_task",
+        "uncertainty": "crossed_training_seed_and_base_task_bootstrap",
         "seeds": sorted(control_runs),
         "cross_seed": {
             "control": summarize_run(control_mean),
@@ -168,7 +279,7 @@ def write_chinese_report(report: Mapping[str, Any], output: Path) -> None:
         "> Control 与 KYC 使用相同多视角数据、视觉 LoRA、训练步数、优化器、"
         "随机种子和闭环协议。唯一差异是射线图使用规范相机位姿（Control）还是"
         "当前真实相机位姿（KYC）。独立统计单位为基础任务，先在种子内聚合初态，"
-        "再对三个种子取均值，最后按任务做 20,000 次配对 bootstrap。",
+        "再对训练种子和基础任务做 20,000 次 crossed paired bootstrap。",
         "",
         "## 跨种子闭环成功率",
         "",

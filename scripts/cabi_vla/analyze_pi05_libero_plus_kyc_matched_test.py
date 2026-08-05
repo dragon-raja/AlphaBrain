@@ -43,3 +43,19 @@ def test_matched_report_requires_same_seeds() -> None:
         assert "seed sets differ" in str(error)
     else:
         raise AssertionError("expected a seed mismatch")
+
+
+def test_cross_seed_interval_includes_training_seed_variation() -> None:
+    control = {seed: _run(0.0, 0.0) for seed in (41, 42, 43)}
+    kyc = {
+        41: _run(1.0, 1.0),
+        42: _run(0.0, 0.0),
+        43: _run(0.0, 0.0),
+    }
+
+    report = build_report(control, kyc)
+    effect = report["cross_seed"]["kyc_minus_control"]["camera_only_success"]
+
+    assert effect["mean"] == 1 / 3
+    assert effect["ci95"][0] == 0.0
+    assert effect["bootstrap_scheme"] == "crossed_training_seed_and_base_task"

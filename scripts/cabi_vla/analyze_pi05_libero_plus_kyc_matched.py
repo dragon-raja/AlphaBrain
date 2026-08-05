@@ -238,6 +238,10 @@ def _decision(effects: Mapping[str, Mapping[str, Any]]) -> str:
     return "KYC_INCREMENTAL_VALUE_INCONCLUSIVE"
 
 
+def _baseline_valid(control: Mapping[str, Any]) -> bool:
+    return float(control["conditions"]["canonical"]["mean"]) >= 0.20
+
+
 def build_report(
     control_runs: Mapping[int, Mapping[str, Mapping[str, float]]],
     kyc_runs: Mapping[int, Mapping[str, Mapping[str, float]]],
@@ -251,6 +255,9 @@ def build_report(
     control_mean = _mean_seed_scores(control_runs)
     kyc_mean = _mean_seed_scores(kyc_runs)
     effects = _crossed_method_effects(control_runs, kyc_runs)
+    control_summary = summarize_run(control_mean)
+    kyc_summary = summarize_run(kyc_mean)
+    baseline_valid = _baseline_valid(control_summary)
     per_seed = {
         str(seed): {
             "control": summarize_run(control_runs[seed]),
@@ -268,12 +275,20 @@ def build_report(
         "uncertainty": "crossed_training_seed_and_base_task_bootstrap",
         "seeds": sorted(control_runs),
         "cross_seed": {
-            "control": summarize_run(control_mean),
-            "kyc": summarize_run(kyc_mean),
+            "control": control_summary,
+            "kyc": kyc_summary,
             "kyc_minus_control": effects,
         },
         "per_seed": per_seed,
-        "decision": _decision(effects),
+        "gates": {
+            "BASELINE_VALID": baseline_valid,
+            "baseline_threshold": 0.20,
+        },
+        "decision": (
+            _decision(effects)
+            if baseline_valid
+            else "BASELINE_INVALID_OR_DATA_INSUFFICIENT"
+        ),
         "interpretation_boundary": INTERPRETATION_BOUNDARIES[interpretation],
     }
 

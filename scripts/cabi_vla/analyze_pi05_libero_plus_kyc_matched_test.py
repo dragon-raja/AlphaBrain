@@ -74,3 +74,16 @@ def test_factor_separated_interpretation_preserves_claim_boundary() -> None:
     assert boundary["factor_category_separated_training"] is True
     assert boundary["strict_seen_factor_composition"] is False
     assert boundary["joint_factor_training_episode_count"] == 0
+
+
+def test_low_control_canonical_success_invalidates_gate() -> None:
+    control = {seed: _run(0.0, 0.0) for seed in (41, 42, 43)}
+    kyc = {seed: _run(1.0, 1.0) for seed in (41, 42, 43)}
+    for run in control.values():
+        for values in run.values():
+            values["canonical"] = 0.0
+
+    report = build_report(control, kyc)
+
+    assert report["gates"]["BASELINE_VALID"] is False
+    assert report["decision"] == "BASELINE_INVALID_OR_DATA_INSUFFICIENT"

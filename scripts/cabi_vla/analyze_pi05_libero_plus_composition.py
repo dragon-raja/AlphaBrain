@@ -78,6 +78,76 @@ def read_composition_group_scores(output_dir: Path) -> dict[str, dict[str, float
     return scores
 
 
+def read_composition_group_metadata(output_dir: Path) -> dict[str, dict[str, Any]]:
+    paths = sorted(output_dir.glob("episodes-shard-*.jsonl"))
+    if not paths:
+        raise FileNotFoundError(f"no episode shards in {output_dir}")
+    metadata: dict[str, dict[str, Any]] = {}
+    for path in paths:
+        for line in path.read_text().splitlines():
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            if not str(row["pair_key"]).startswith("composition::"):
+                continue
+            group = f"{row['suite']}::{row['base_task']}"
+            current = {
+                "suite": str(row["suite"]),
+                "base_task": str(row["base_task"]),
+                "camera_difficulty_level": int(row["camera_difficulty_level"]),
+                "perturbation_family": str(row["perturbation_family"]),
+                "background_difficulty_distance": int(
+                    row["background_difficulty_distance"]
+                ),
+            }
+            previous = metadata.setdefault(group, current)
+            if previous != current:
+                raise ValueError(f"inconsistent composition metadata for {group}")
+    if not metadata:
+        raise ValueError(f"no composition metadata in {output_dir}")
+    return dict(sorted(metadata.items()))
+
+
+def read_composition_pair_diagnostics(output_dir: Path) -> dict[str, Any]:
+    pairs: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
+    for path in sorted(output_dir.glob("episodes-shard-*.jsonl")):
+        for line in path.read_text().splitlines():
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            if str(row["pair_key"]).startswith("composition::"):
+                pairs[str(row["pair_key"])][str(row["condition"])] = row
+    grouped: dict[str, list[float]] = defaultdict(list)
+    strict_pair_keys = []
+    for pair_key, rows in sorted(pairs.items()):
+        if set(rows) != set(CONDITIONS):
+            raise ValueError(f"incomplete composition pair: {pair_key}")
+        canonical = rows["canonical"]
+        strict_failure = float(
+            bool(canonical["success"])
+            and bool(rows["camera_only"]["success"])
+            and bool(rows["background_only"]["success"])
+            and not bool(rows["camera_background"]["success"])
+        )
+        group = f"{canonical['suite']}::{canonical['base_task']}"
+        grouped[group].append(strict_failure)
+        if strict_failure:
+            strict_pair_keys.append(pair_key)
+    if not grouped:
+        raise ValueError(f"no composition pairs in {output_dir}")
+    group_values = [float(np.mean(values)) for _, values in sorted(grouped.items())]
+    return {
+        "episode_pair_count": len(pairs),
+        "independent_group_count": len(grouped),
+        "strict_composition_only_failure_count": len(strict_pair_keys),
+        "strict_composition_only_failure_rate": bootstrap_mean(
+            group_values,
+            samples=20_000,
+        ),
+        "strict_composition_only_failure_pair_keys": strict_pair_keys,
+    }
+
+
 def summarize_run(scores: Mapping[str, Mapping[str, float]]) -> dict[str, Any]:
     groups = sorted(scores)
     if not groups:
@@ -196,6 +266,7 @@ def build_report(
     *,
     reference_name: str,
     candidate_name: str,
+    metadata: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if reference_name not in scores or candidate_name not in scores:
         raise ValueError("reference and candidate names must be present")
@@ -207,6 +278,33 @@ def build_report(
     runs = {name: summarize_run(values) for name, values in scores.items()}
     comparison = compare_runs(scores[candidate_name], scores[reference_name])
     decision, gates = _decision(runs[candidate_name])
+    stratified = None
+    if metadata is not None:
+        if set(metadata) != expected:
+            raise ValueError("metadata group mismatch")
+        stratified = {}
+        for output_name, metadata_key in (
+            ("by_suite", "suite"),
+            ("by_camera_difficulty", "camera_difficulty_level"),
+            ("by_perturbation_family", "perturbation_family"),
+            ("by_background_difficulty_distance", "background_difficulty_distance"),
+        ):
+            strata = sorted(
+                {str(values[metadata_key]) for values in metadata.values()}
+            )
+            stratified[output_name] = {
+                stratum: {
+                    name: summarize_run(
+                        {
+                            group: group_scores
+                            for group, group_scores in run_scores.items()
+                            if str(metadata[group][metadata_key]) == stratum
+                        }
+                    )
+                    for name, run_scores in scores.items()
+                }
+                for stratum in strata
+            }
     return {
         "schema_version": 1,
         "study": "pi05_libero_plus_camera_background_composition",
@@ -217,6 +315,7 @@ def build_report(
         "candidate_minus_reference": comparison,
         "gates": gates,
         "decision": decision,
+        "stratified": stratified,
         "scope": {
             "scene_shift": "paired unseen table and background appearance textures",
             "not_tested": [
@@ -248,7 +347,8 @@ def write_chinese_report(report: Mapping[str, Any], output: Path) -> None:
         "# Pi0.5 × LIBERO-Plus 相机—背景组合泛化",
         "",
         "> 严格四条件配对：同一任务、同一语言、同一物体布局、同一初始状态；"
-        "只改变第三方相机和桌面/背景外观。独立统计单位为 40 个基础任务，"
+        f"只改变第三方相机和桌面/背景外观。独立统计单位为 "
+        f"{report['runs'][report['candidate_name']]['independent_group_count']} 个基础任务，"
         "每个任务内先平均两个初始状态，再做 20,000 次成对 bootstrap。",
         "",
         "## 四条件闭环成功率",
@@ -308,6 +408,38 @@ def write_chinese_report(report: Mapping[str, Any], output: Path) -> None:
             "",
         ]
     )
+    if report.get("stratified"):
+        lines.extend(
+            [
+                "## 按任务套件分层",
+                "",
+                "| 模型 | 任务套件 | 任务数 | 原始 | 仅相机 | 仅背景 | 相机+背景 | 组合总缺口 |",
+                "|---|---|---:|---:|---:|---:|---:|---:|",
+            ]
+        )
+        for suite, values in report["stratified"]["by_suite"].items():
+            for name in names:
+                run = values[name]
+                lines.append(
+                    f"| `{name}` | `{suite}` | {run['independent_group_count']} | "
+                    f"{run['conditions']['canonical']['mean']:.1%} | "
+                    f"{run['conditions']['camera_only']['mean']:.1%} | "
+                    f"{run['conditions']['background_only']['mean']:.1%} | "
+                    f"{run['conditions']['camera_background']['mean']:.1%} | "
+                    f"{run['effects']['combined_gap']['mean']:.1%} |"
+                )
+        lines.append("")
+    if report.get("pair_diagnostics"):
+        lines.extend(["## 严格组合失败", ""])
+        for name in names:
+            diagnostics = report["pair_diagnostics"][name]
+            rate = diagnostics["strict_composition_only_failure_rate"]
+            lines.append(
+                f"- `{name}`：{diagnostics['strict_composition_only_failure_count']}/"
+                f"{diagnostics['episode_pair_count']} 个初态在原始、仅相机、仅背景均成功，"
+                f"但组合条件失败；按任务聚合率 {_percent_interval(rate)}。"
+            )
+        lines.append("")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text("\n".join(lines), encoding="utf-8")
 
@@ -317,7 +449,8 @@ def render_figure(report: Mapping[str, Any], output: Path) -> None:
 
     names = list(report["runs"])
     colors = ["#3976af", "#d05b44", "#4b9b69", "#8a5aa8"]
-    figure, axes = plt.subplots(1, 2, figsize=(13, 4.8))
+    panel_count = 3 if report.get("stratified") else 2
+    figure, axes = plt.subplots(1, panel_count, figsize=(6.3 * panel_count, 4.8))
     x = np.arange(len(names))
     width = 0.18
     for index, condition in enumerate(CONDITIONS):
@@ -368,6 +501,30 @@ def render_figure(report: Mapping[str, Any], output: Path) -> None:
     axes[1].set_title("Group-level paired effects (95% CI)")
     axes[1].grid(axis="y", alpha=0.25)
     axes[1].legend(fontsize=8)
+    if report.get("stratified"):
+        suites = list(report["stratified"]["by_suite"])
+        suite_x = np.arange(len(suites))
+        suite_width = 0.8 / len(names)
+        for run_index, name in enumerate(names):
+            axes[2].bar(
+                suite_x + (run_index - (len(names) - 1) / 2) * suite_width,
+                [
+                    report["stratified"]["by_suite"][suite][name]["conditions"]
+                    ["camera_background"]["mean"]
+                    for suite in suites
+                ],
+                suite_width,
+                label=name,
+            )
+        axes[2].set_xticks(
+            suite_x,
+            [suite.removeprefix("libero_") for suite in suites],
+        )
+        axes[2].set_ylim(0, 1)
+        axes[2].set_ylabel("Camera + background success")
+        axes[2].set_title("Composition success by task suite")
+        axes[2].grid(axis="y", alpha=0.25)
+        axes[2].legend(fontsize=8)
     figure.tight_layout()
     output.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(output, dpi=180)
@@ -401,11 +558,25 @@ def main() -> None:
     paths = dict(args.run)
     if len(paths) != len(args.run):
         raise ValueError("duplicate run names")
+    scores = {
+        name: read_composition_group_scores(path) for name, path in paths.items()
+    }
+    metadata_by_run = {
+        name: read_composition_group_metadata(path) for name, path in paths.items()
+    }
+    reference_metadata = metadata_by_run[args.reference]
+    for name, metadata in metadata_by_run.items():
+        if metadata != reference_metadata:
+            raise ValueError(f"composition protocol metadata mismatch for {name}")
     report = build_report(
-        {name: read_composition_group_scores(path) for name, path in paths.items()},
+        scores,
         reference_name=args.reference,
         candidate_name=args.candidate,
+        metadata=reference_metadata,
     )
+    report["pair_diagnostics"] = {
+        name: read_composition_pair_diagnostics(path) for name, path in paths.items()
+    }
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     args.output_json.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
     write_chinese_report(report, args.output_report)

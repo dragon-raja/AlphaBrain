@@ -8,6 +8,8 @@ import pytest
 from analyze_pi05_libero_plus_composition import (
     CONDITIONS,
     build_report,
+    read_composition_group_metadata,
+    read_composition_pair_diagnostics,
     read_composition_group_scores,
 )
 
@@ -59,6 +61,9 @@ def test_reader_requires_four_conditions_and_matching_physics(tmp_path: Path) ->
                 "condition": condition,
                 "suite": "suite",
                 "base_task": "task",
+                "camera_difficulty_level": 2,
+                "perturbation_family": "orbit_yaw",
+                "background_difficulty_distance": 0,
                 "success": True,
                 "initial_metrics": {"physics_state_sha256": "same"},
             }
@@ -66,6 +71,10 @@ def test_reader_requires_four_conditions_and_matching_physics(tmp_path: Path) ->
     path.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
     scores = read_composition_group_scores(output)
     assert scores["suite::task"]["camera_background"] == 1.0
+    metadata = read_composition_group_metadata(output)
+    assert metadata["suite::task"]["camera_difficulty_level"] == 2
+    diagnostics = read_composition_pair_diagnostics(output)
+    assert diagnostics["strict_composition_only_failure_count"] == 0
 
     rows[-1]["initial_metrics"]["physics_state_sha256"] = "different"
     path.write_text("\n".join(json.dumps(row) for row in rows) + "\n")

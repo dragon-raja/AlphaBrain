@@ -54,9 +54,11 @@ KYC 原文明确关闭腕部相机，以隔离第三方相机条件化；LIBERO-
 - `KYC_NO_MEANINGFUL_INCREMENTAL_VALUE`：相机和联合条件的 95% CI 上界均小于 5 点。
 - 其余结果标为不确定或退化，不以单 seed 或离线损失裁决。
 
-## 4. 实验 B：严格见因子、留组合门控
+## 4. 实验 B：见因子、留组合门控
 
-先审计 LIBERO-Goal 官方逐套件数据。只有同时满足以下条件才启动训练：
+### 4.1 最强版本：精确因子配对
+
+先审计 LIBERO-Goal 官方逐套件数据。只有同时满足以下条件，才允许把结果称为“精确相机位姿×背景纹理留组合”：
 
 1. 每条示范可恢复明确的相机位姿 ID 与背景/桌面 ID；
 2. 每个测试相机在训练中至少与其他背景出现；
@@ -65,7 +67,28 @@ KYC 原文明确关闭腕部相机，以隔离第三方相机条件化；LIBERO-
 5. 任务身份、初态组和示范来源按组隔离，无帧级泄漏；
 6. RGB、动作、状态和相机标定能被当前 Pi0.5 数据链路无损读取。
 
-推荐训练集合为 canonical、camera-only 和 background-only，留出 noncanonical-camera × noncanonical-background。若官方数据缺少可审计的因素字段或无法保证上述覆盖关系，则停止该数据路线并明确报告 `STRICT_COMPOSITION_DATA_INVALID`，不把联合域外结果改名为严格组合结果。
+推荐训练集合为 canonical、camera-only 和 background-only，留出 noncanonical-camera × noncanonical-background。
+
+全量归档审计已经确认：16.64 GB Goal RLDS 完整且包含 256 个 TFRecord 分片，但其 episode 字段没有逐条相机位姿或背景纹理 ID；来源标识只保留 `camera_view`、`env` 等扰动类别和基础任务。因此该公开归档不能证明具体测试位姿和纹理分别在训练边缘分布中出现，也不能支持最强的精确配对声明。此门控结论固定为：
+
+`STRICT_EXACT_PAIR_COMPOSITION_DATA_INVALID`
+
+这不表示数据不可用，而是限制结论的粒度。
+
+### 4.2 可执行版本：因子类别分离组合
+
+补充实验采用较弱但仍严格隔离联合条件的数据设计：
+
+- 相机单因素：使用含逐 episode 标定的官方 camera-view RLDS；
+- 背景单因素：使用 Goal 归档中来源类别为 `env` 的轨迹，并按规范外部相机标定；
+- 训练中不包含任何同时改变相机和背景的 episode；
+- 评测仅在 9 个 LIBERO-Goal 基础任务上进行，使用原始、相机单因素、背景单因素和相机+背景四条件；
+- Control 与 KYC 使用相同的按任务×因子分层 25% 数据、Pi0.5 初始化、视觉 LoRA、33,000 步和 seeds 41/42/43；
+- 每条评测保存 AV1/WebM，统计单位为基础任务，并使用种子×任务 crossed paired bootstrap。
+
+已构建的数据视图含 1,417 个 episode、172,459 步、9 个任务：相机单因素 657 条，背景单因素 760 条；训练 split 为 518/610 条，正式 25% 视图为 131/154 条（15,233/18,975 步），训练联合相机+背景 episode 数为 0。机器清单位于 `/share/longjunyu/alphabrain/datasets/libero-plus/views/pi05-goal-factor-separated-v1/manifest.json`。
+
+该结果只能称为 `FACTOR_SEPARATED_CATEGORY_COMPOSITION`。它可以回答“分别见过两类变化后，联合变化是否仍失败，以及 KYC 是否减轻该失败”，但不能回答“精确见过测试位姿和测试纹理的各自边缘实例后，未见配对是否失败”。后者需要重新采集带参数标识的数据。
 
 ## 5. 结论边界
 

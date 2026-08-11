@@ -35,4 +35,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODE="${1:?Usage: $0 <mode> [config_file]}"
 CONFIG="${2:-}"
 
-exec bash "${SCRIPT_DIR}/../run_finetune.sh" "${MODE}" ${CONFIG:+"${CONFIG}"}
+if [[ -n "${CONFIG}" ]]; then
+    exec bash "${SCRIPT_DIR}/../run_finetune.sh" "${CONFIG}" --mode "${MODE}"
+fi
+
+exec bash "${SCRIPT_DIR}/../run_finetune.sh" "${MODE}"

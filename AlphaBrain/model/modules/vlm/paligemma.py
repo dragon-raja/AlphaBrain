@@ -49,11 +49,14 @@ class PaliGemmaVLM(nn.Module):
         # Language model (Gemma)
         self.language_model = GemmaForCausalLM(gemma_config_hf).model  # .model = GemmaModel
         
-        # LM head (tied with embeddings typically)
-        self.lm_head = nn.Linear(gemma_config_hf.hidden_size, gemma_config_hf.vocab_size, bias=False)
-        
         # Embed tokens shortcut
         self.embed_tokens = self.language_model.embed_tokens
+
+        # PaliGemma shares its input embeddings with the language-model head.
+        # OpenPI checkpoints serialize only lm_head.weight, so preserving the
+        # tie is required for that tensor to initialize token embeddings too.
+        self.lm_head = nn.Linear(gemma_config_hf.hidden_size, gemma_config_hf.vocab_size, bias=False)
+        self.lm_head.weight = self.embed_tokens.weight
 
     def get_image_features(self, pixel_values):
         """SigLIP vision encoding → projected to language dim."""

@@ -82,6 +82,17 @@ def _fixup_vlm_keys(mapped_state: dict) -> dict:
         key = k
         key = key.replace("multi_modal_projector.linear.", "multi_modal_projector.")
         result[key] = v
+
+    # OpenPI ties PaliGemma's token embeddings to lm_head and serializes one
+    # tensor. AlphaBrain exposes the tied parameter under all three aliases in
+    # its state dict, so populate each alias for accurate loading diagnostics.
+    lm_head_key = "vlm_interface.model.lm_head.weight"
+    if lm_head_key in result:
+        result.setdefault(
+            "vlm_interface.model.language_model.embed_tokens.weight",
+            result[lm_head_key],
+        )
+        result.setdefault("vlm_interface.model.embed_tokens.weight", result[lm_head_key])
     return result
 
 
@@ -97,7 +108,7 @@ def load_pi0_weights(
     Args:
         model: PaliGemma_OFT instance
         checkpoint_path: path to model.safetensors or .pt file
-        strict: if True, raise on missing/unexpected keys
+        strict: if True, raise on missing, unexpected, or shape-mismatched keys
         verbose: print loading summary
         
     Returns:
@@ -161,11 +172,12 @@ def load_pi0_weights(
             for s in shape_mismatch[:5]:
                 logger.warning(f"  Shape mismatch: {s}")
     
-    if strict and (missing or unexpected):
+    if strict and (missing or unexpected or shape_mismatch):
         raise RuntimeError(
             f"Strict loading failed.\n"
             f"Missing keys ({len(missing)}): {missing[:10]}\n"
-            f"Unexpected keys ({len(unexpected)}): {unexpected[:10]}"
+            f"Unexpected keys ({len(unexpected)}): {unexpected[:10]}\n"
+            f"Shape mismatches ({len(shape_mismatch)}): {shape_mismatch[:10]}"
         )
     
     return {

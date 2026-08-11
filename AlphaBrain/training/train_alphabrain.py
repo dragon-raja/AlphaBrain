@@ -420,7 +420,7 @@ class VLATrainer(TrainerUtils):
 
         if is_main:
             matched = len(summary["matched"])
-            total = matched + len(summary["missing"])
+            total = matched + len(summary["missing"]) + len(summary["shape_mismatch"])
             ratio = (matched / total) if total else 0.0
             tag = "[ok]" if ratio >= 0.95 else ("[partial]" if ratio >= 0.5 else "[low-coverage]")
             logger.info(

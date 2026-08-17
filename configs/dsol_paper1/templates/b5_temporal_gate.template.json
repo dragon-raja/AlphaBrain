@@ -1,0 +1,28 @@
+{
+  "schema": "dsol_temporal_gate_v1",
+  "artifact_id": "REPLACE_ME",
+  "status": "DRAFT",
+  "relation_case_id": "REPLACE_ME",
+  "t1": {
+    "final_snapshot_only_correctness": null,
+    "confidence_interval": null,
+    "threshold": null,
+    "pass": null
+  },
+  "t2": {
+    "channel_audits": [],
+    "leak_threshold": null,
+    "all_channels_below_threshold": null
+  },
+  "t3": {
+    "final_only": null,
+    "repeated_final": null,
+    "ordered_clip": null,
+    "shuffled_clip": null,
+    "ordered_specific_margin": null,
+    "threshold": null
+  },
+  "temporal_class": "UNDETERMINED",
+  "main_analysis_eligible": false,
+  "release_status": "HOLD"
+}

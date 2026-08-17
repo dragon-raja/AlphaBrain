@@ -1,0 +1,23 @@
+{
+  "schema": "dsol_cvc_style_objective_v1",
+  "artifact_id": "REPLACE_ME",
+  "status": "DRAFT",
+  "eligible_relation_types": ["N"],
+  "excluded_relation_types": ["E_D", "MATCHED_CONTROL"],
+  "loss_target": "robot_or_task_frame_action_or_flow_representation",
+  "input_pair": "same_state_pair_n_views",
+  "equivariance_transform": "REPLACE_ME",
+  "mask": "REPLACE_ME",
+  "reduction": "mean_over_valid_pair_n_elements",
+  "weight_schedule": "REPLACE_ME",
+  "gradient_route": "REPLACE_ME",
+  "deployment_inputs": [],
+  "budget_ledger": {
+    "training_examples": null,
+    "optimizer_updates": null,
+    "batch_size": null,
+    "trainable_parameter_sha256": "REPLACE_ME"
+  },
+  "unit_test_status": "NOT_RUN",
+  "release_status": "HOLD"
+}

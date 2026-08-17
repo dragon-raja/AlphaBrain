@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "observation_contract.schema.json",
+  "title": "DSOL Paper 1 Observation Contract",
+  "description": "The complete policy-visible, privileged-only, forbidden-input, cache, and action-frame contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact",
+    "observation_contract_id",
+    "temporal_scope",
+    "history_scope",
+    "policy_inputs",
+    "privileged_offline_only",
+    "forbidden_deployment_inputs",
+    "cache_policy",
+    "intermediate_frames_visible_to_policy",
+    "action_contract",
+    "status"
+  ],
+  "properties": {
+    "artifact": {
+      "$ref": "common.schema.json#/$defs/artifact_envelope"
+    },
+    "observation_contract_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "temporal_scope": {
+      "enum": [
+        "S0",
+        "S1",
+        "S2"
+      ]
+    },
+    "history_scope": {
+      "$ref": "common.schema.json#/$defs/non_empty_string"
+    },
+    "policy_inputs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/channel"
+      }
+    },
+    "privileged_offline_only": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common.schema.json#/$defs/non_empty_string"
+      }
+    },
+    "forbidden_deployment_inputs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common.schema.json#/$defs/non_empty_string"
+      }
+    },
+    "cache_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "visual_cache",
+        "kv_cache",
+        "status"
+      ],
+      "properties": {
+        "visual_cache": {
+          "const": "CLEAR_BETWEEN_COUNTERFACTUAL_CANDIDATES"
+        },
+        "kv_cache": {
+          "const": "CLEAR_BETWEEN_COUNTERFACTUAL_CANDIDATES"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "intermediate_frames_visible_to_policy": {
+      "const": false
+    },
+    "action_contract": {
+      "$ref": "#/$defs/action_contract"
+    },
+    "status": {
+      "$ref": "common.schema.json#/$defs/status"
+    }
+  },
+  "$defs": {
+    "channel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "channel_id",
+        "path",
+        "modality",
+        "status"
+      ],
+      "properties": {
+        "channel_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "path": {
+          "$ref": "common.schema.json#/$defs/non_empty_string"
+        },
+        "modality": {
+          "enum": [
+            "IMAGE",
+            "PROPRIOCEPTION",
+            "TEXT",
+            "ACTION_HISTORY",
+            "OTHER"
+          ]
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "action_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_contract_id",
+        "evaluation_frame",
+        "policy_action_dimension",
+        "prediction_horizon",
+        "components",
+        "equivariance_rule",
+        "set_distance",
+        "set_distance_threshold",
+        "status"
+      ],
+      "properties": {
+        "action_contract_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "evaluation_frame": {
+          "$ref": "common.schema.json#/$defs/non_empty_string"
+        },
+        "policy_action_dimension": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "prediction_horizon": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "components": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/action_component"
+          }
+        },
+        "equivariance_rule": {
+          "$ref": "common.schema.json#/$defs/non_empty_string"
+        },
+        "set_distance": {
+          "$ref": "common.schema.json#/$defs/non_empty_string"
+        },
+        "set_distance_threshold": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "action_component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component_id",
+        "dimension",
+        "status"
+      ],
+      "properties": {
+        "component_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "dimension": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    }
+  }
+}

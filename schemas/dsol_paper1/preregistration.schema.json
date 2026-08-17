@@ -1,0 +1,738 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "preregistration.schema.json",
+  "title": "DSOL Paper 1 Preregistration",
+  "description": "The frozen Paper 1 population, relation, temporal, strategy, statistical, and release protocol. Nullable thresholds remain explicit blockers rather than defaults.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact",
+    "preregistration_id",
+    "title",
+    "research_question",
+    "scope",
+    "inputs",
+    "population",
+    "observation_contract",
+    "expert_protocol",
+    "relation_protocol",
+    "temporal_protocol",
+    "strategy_matrix",
+    "statistics",
+    "release",
+    "status"
+  ],
+  "properties": {
+    "artifact": {
+      "$ref": "common.schema.json#/$defs/artifact_envelope"
+    },
+    "preregistration_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "title": {
+      "$ref": "common.schema.json#/$defs/non_empty_string"
+    },
+    "research_question": {
+      "$ref": "common.schema.json#/$defs/non_empty_string"
+    },
+    "scope": {
+      "$ref": "#/$defs/scope"
+    },
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/artifact_reference"
+      }
+    },
+    "population": {
+      "$ref": "#/$defs/population"
+    },
+    "observation_contract": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "expert_protocol": {
+      "$ref": "#/$defs/expert_protocol"
+    },
+    "relation_protocol": {
+      "$ref": "#/$defs/relation_protocol"
+    },
+    "temporal_protocol": {
+      "$ref": "#/$defs/temporal_protocol"
+    },
+    "strategy_matrix": {
+      "$ref": "#/$defs/strategy_matrix"
+    },
+    "statistics": {
+      "$ref": "#/$defs/statistics"
+    },
+    "release": {
+      "$ref": "#/$defs/release"
+    },
+    "status": {
+      "$ref": "common.schema.json#/$defs/status"
+    }
+  },
+  "$defs": {
+    "nullable_nonnegative_number": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relation_types",
+        "temporal_classes",
+        "main_analysis_temporal_class",
+        "embodiments",
+        "deferred",
+        "status"
+      ],
+      "properties": {
+        "relation_types": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "N",
+              "E_D",
+              "MATCHED_CONTROL"
+            ]
+          },
+          "allOf": [
+            {
+              "contains": {
+                "const": "N"
+              }
+            },
+            {
+              "contains": {
+                "const": "E_D"
+              }
+            },
+            {
+              "contains": {
+                "const": "MATCHED_CONTROL"
+              }
+            }
+          ]
+        },
+        "temporal_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "S0",
+              "S1",
+              "S2"
+            ]
+          }
+        },
+        "main_analysis_temporal_class": {
+          "const": "S0"
+        },
+        "embodiments": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          }
+        },
+        "deferred": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          }
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "population": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "population_id",
+        "benchmark_id",
+        "task_templates",
+        "snapshot_partitions",
+        "scene_seeds",
+        "independent_unit",
+        "same_group_pairing_required",
+        "group_split_required",
+        "population_hash",
+        "status"
+      ],
+      "properties": {
+        "population_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "benchmark_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "task_templates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/artifact_reference"
+          }
+        },
+        "snapshot_partitions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          }
+        },
+        "scene_seeds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "independent_unit": {
+          "const": "task_x_scene_seed_snapshot_group"
+        },
+        "same_group_pairing_required": {
+          "const": true
+        },
+        "group_split_required": {
+          "const": true
+        },
+        "population_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "expert_protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_id",
+        "required_sources",
+        "decision_unit",
+        "minimum_experts",
+        "disagreement_action",
+        "required_reports",
+        "protocol_hash",
+        "status"
+      ],
+      "properties": {
+        "protocol_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "required_sources": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "PRIVILEGED_SIMULATOR_RULE_EXPERT",
+              "INDEPENDENT_BLINDED_ADJUDICATOR"
+            ]
+          }
+        },
+        "decision_unit": {
+          "const": "ACCEPTABLE_SHORT_HORIZON_DECISION_SET"
+        },
+        "minimum_experts": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "disagreement_action": {
+          "enum": [
+            "FROZEN_ADJUDICATION_SET",
+            "ABSTAIN"
+          ]
+        },
+        "required_reports": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          }
+        },
+        "protocol_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "relation_protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_id",
+        "r_hat_range",
+        "low_endpoint_max",
+        "high_endpoint_min",
+        "threshold_status",
+        "n_requirements",
+        "e_d_five_gates",
+        "matched_covariates",
+        "proxy_falsification",
+        "protocol_hash",
+        "status"
+      ],
+      "properties": {
+        "protocol_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "r_hat_range": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "low_endpoint_max": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "high_endpoint_min": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "threshold_status": {
+          "$ref": "common.schema.json#/$defs/status"
+        },
+        "n_requirements": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          }
+        },
+        "e_d_five_gates": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "current_full_observation_ambiguous",
+            "latent_decision_sets_incompatible",
+            "no_shared_safe_recovery_action",
+            "candidate_snapshot_disambiguates",
+            "matched_uninformative_control_exists"
+          ],
+          "properties": {
+            "current_full_observation_ambiguous": {
+              "$ref": "#/$defs/protocol_gate"
+            },
+            "latent_decision_sets_incompatible": {
+              "$ref": "#/$defs/protocol_gate"
+            },
+            "no_shared_safe_recovery_action": {
+              "$ref": "#/$defs/protocol_gate"
+            },
+            "candidate_snapshot_disambiguates": {
+              "$ref": "#/$defs/protocol_gate"
+            },
+            "matched_uninformative_control_exists": {
+              "$ref": "#/$defs/protocol_gate"
+            }
+          }
+        },
+        "matched_covariates": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          }
+        },
+        "proxy_falsification": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          }
+        },
+        "protocol_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "protocol_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate_id",
+        "criterion",
+        "status"
+      ],
+      "properties": {
+        "gate_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "criterion": {
+          "$ref": "common.schema.json#/$defs/non_empty_string"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "temporal_protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_id",
+        "T1",
+        "T2",
+        "T3",
+        "main_analysis_inclusion",
+        "protocol_hash",
+        "status"
+      ],
+      "properties": {
+        "protocol_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "T1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "condition",
+            "metric",
+            "pass_threshold",
+            "status"
+          ],
+          "properties": {
+            "condition": {
+              "const": "FINAL_CANDIDATE_SNAPSHOT_ONLY"
+            },
+            "metric": {
+              "$ref": "common.schema.json#/$defs/non_empty_string"
+            },
+            "pass_threshold": {
+              "$ref": "#/$defs/nullable_nonnegative_number"
+            },
+            "status": {
+              "$ref": "common.schema.json#/$defs/status"
+            }
+          }
+        },
+        "T2": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "single_channel_audits",
+            "leak_threshold",
+            "status"
+          ],
+          "properties": {
+            "single_channel_audits": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "common.schema.json#/$defs/identifier"
+              }
+            },
+            "leak_threshold": {
+              "$ref": "#/$defs/nullable_nonnegative_number"
+            },
+            "status": {
+              "$ref": "common.schema.json#/$defs/status"
+            }
+          }
+        },
+        "T3": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "conditions",
+            "s1_margin",
+            "boundary_set_size",
+            "status"
+          ],
+          "properties": {
+            "conditions": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "FINAL_ONLY",
+                  "REPEATED_FINAL",
+                  "ORDERED_CLIP",
+                  "SHUFFLED_CLIP"
+                ]
+              }
+            },
+            "s1_margin": {
+              "$ref": "#/$defs/nullable_nonnegative_number"
+            },
+            "boundary_set_size": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "status": {
+              "$ref": "common.schema.json#/$defs/status"
+            }
+          }
+        },
+        "main_analysis_inclusion": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "S0"
+            }
+          ],
+          "items": false,
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "protocol_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "strategy_matrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "matrix_id",
+        "p2_existing_frozen_policies",
+        "p3_confirmatory_arms",
+        "same_backbone",
+        "same_action_representation",
+        "same_training_examples",
+        "same_optimizer_updates",
+        "policy_seeds",
+        "matrix_hash",
+        "status"
+      ],
+      "properties": {
+        "matrix_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "p2_existing_frozen_policies": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/artifact_reference"
+          }
+        },
+        "p3_confirmatory_arms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          }
+        },
+        "same_backbone": {
+          "const": true
+        },
+        "same_action_representation": {
+          "const": true
+        },
+        "same_training_examples": {
+          "const": true
+        },
+        "same_optimizer_updates": {
+          "const": true
+        },
+        "policy_seeds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "matrix_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "analysis_id",
+        "confirmatory_unit",
+        "paired_bootstrap_replicates",
+        "confidence_level",
+        "minimum_relevant_absolute_effect",
+        "target_power",
+        "primary_model",
+        "primary_metrics",
+        "secondary_metrics",
+        "multiple_comparison_policy",
+        "power_analysis_status",
+        "analysis_hash",
+        "status"
+      ],
+      "properties": {
+        "analysis_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "confirmatory_unit": {
+          "const": "task_x_scene_seed_snapshot_group"
+        },
+        "paired_bootstrap_replicates": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "confidence_level": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "minimum_relevant_absolute_effect": {
+          "type": "number",
+          "minimum": 0
+        },
+        "target_power": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "primary_model": {
+          "$ref": "common.schema.json#/$defs/non_empty_string"
+        },
+        "primary_metrics": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          }
+        },
+        "secondary_metrics": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          }
+        },
+        "multiple_comparison_policy": {
+          "$ref": "common.schema.json#/$defs/non_empty_string"
+        },
+        "power_analysis_status": {
+          "$ref": "common.schema.json#/$defs/status"
+        },
+        "analysis_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release_id",
+        "default_decision",
+        "required_blockers",
+        "b6_required_for",
+        "independent_review_required",
+        "formal_generation_allowed",
+        "training_allowed",
+        "release_hash",
+        "status"
+      ],
+      "properties": {
+        "release_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "default_decision": {
+          "const": "HOLD"
+        },
+        "required_blockers": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "B1",
+              "B2",
+              "B3",
+              "B4",
+              "B5",
+              "B7"
+            ]
+          }
+        },
+        "b6_required_for": {
+          "const": "P3"
+        },
+        "independent_review_required": {
+          "const": true
+        },
+        "formal_generation_allowed": {
+          "const": false
+        },
+        "training_allowed": {
+          "const": false
+        },
+        "release_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    }
+  }
+}

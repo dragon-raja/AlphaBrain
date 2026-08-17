@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "expert_decision_set.schema.json",
+  "title": "DSOL Paper 1 Expert Decision Set",
+  "description": "A provenance-closed set of acceptable short-horizon decisions for one frozen state and observation contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact",
+    "expert_decision_set_id",
+    "task_template",
+    "observation_contract",
+    "snapshot_state",
+    "decision_frame",
+    "expert_sources",
+    "decisions",
+    "adjudication",
+    "set_hash",
+    "status"
+  ],
+  "properties": {
+    "artifact": {
+      "$ref": "common.schema.json#/$defs/artifact_envelope"
+    },
+    "expert_decision_set_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "task_template": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "observation_contract": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "snapshot_state": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "decision_frame": {
+      "$ref": "common.schema.json#/$defs/non_empty_string"
+    },
+    "expert_sources": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/expert_source"
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/decision"
+      }
+    },
+    "adjudication": {
+      "$ref": "#/$defs/adjudication"
+    },
+    "set_hash": {
+      "$ref": "common.schema.json#/$defs/hash"
+    },
+    "status": {
+      "enum": [
+        "NOT_MATERIALIZED",
+        "DRAFT",
+        "ADJUDICATION_REQUIRED",
+        "ABSTAIN",
+        "FROZEN",
+        "RELEASED",
+        "HOLD"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "FROZEN",
+              "RELEASED"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "decisions": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "expert_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expert_id",
+        "role",
+        "protocol_id",
+        "assessment_hash",
+        "status"
+      ],
+      "properties": {
+        "expert_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "role": {
+          "enum": [
+            "PRIVILEGED_SIMULATOR_RULE_EXPERT",
+            "INDEPENDENT_BLINDED_ADJUDICATOR"
+          ]
+        },
+        "protocol_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "assessment_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_id",
+        "equivalence_class_id",
+        "action_sequence",
+        "safe_recovery_action",
+        "status"
+      ],
+      "properties": {
+        "decision_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "equivalence_class_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "action_sequence": {
+          "$ref": "common.schema.json#/$defs/artifact_reference"
+        },
+        "safe_recovery_action": {
+          "type": "boolean"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "adjudication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adjudication_id",
+        "disagreement_action",
+        "selected_decision_ids",
+        "record_hash",
+        "status"
+      ],
+      "properties": {
+        "adjudication_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "disagreement_action": {
+          "enum": [
+            "NOT_REQUIRED",
+            "FROZEN_ADJUDICATION_SET",
+            "ABSTAIN"
+          ]
+        },
+        "selected_decision_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          }
+        },
+        "record_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    }
+  }
+}

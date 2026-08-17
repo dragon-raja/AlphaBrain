@@ -1,0 +1,63 @@
+{
+  "schema": "dsol_b4_task_observation_v1",
+  "artifact_id": "REPLACE_ME",
+  "status": "DRAFT",
+  "task_template": {
+    "template_id": "REPLACE_ME",
+    "task": "REPLACE_ME",
+    "task_family": "REPLACE_ME",
+    "environment": "RoboCasa",
+    "split": "REPLACE_ME",
+    "instruction_templates": [],
+    "latent_state_fields": [],
+    "success_constraints": [],
+    "failure_constraints": [],
+    "safety_constraints": [],
+    "state_selection_rule": "REPLACE_ME"
+  },
+  "observation_channels": [
+    {
+      "key": "video.robot0_agentview_left",
+      "modality": "rgb",
+      "dtype": "uint8",
+      "shape": [256, 256, 3],
+      "frame": "robot0_agentview_left",
+      "policy_visible": true,
+      "construction_only": false,
+      "preprocessing": "vertical_flip_then_pi05_image_preprocessor",
+      "cache_policy": "clear_between_counterfactual_candidates"
+    },
+    {
+      "key": "video.robot0_agentview_right",
+      "modality": "rgb",
+      "dtype": "uint8",
+      "shape": [256, 256, 3],
+      "frame": "robot0_agentview_right",
+      "policy_visible": true,
+      "construction_only": false,
+      "preprocessing": "vertical_flip_then_pi05_image_preprocessor",
+      "cache_policy": "clear_between_counterfactual_candidates"
+    },
+    {
+      "key": "video.robot0_eye_in_hand",
+      "modality": "rgb",
+      "dtype": "uint8",
+      "shape": [256, 256, 3],
+      "frame": "robot0_right_hand",
+      "policy_visible": true,
+      "construction_only": false,
+      "preprocessing": "vertical_flip_then_pi05_image_preprocessor",
+      "cache_policy": "clear_between_counterfactual_candidates"
+    }
+  ],
+  "camera_identity": {
+    "intrinsics": "NOT_MATERIALIZED",
+    "extrinsics": "NOT_MATERIALIZED",
+    "resolution": [256, 256],
+    "crop": "none_before_policy_preprocessing",
+    "distortion": "simulator_pinhole_no_distortion",
+    "time_sync": "same_frozen_simulator_state",
+    "renderer": "NOT_MATERIALIZED"
+  },
+  "release_status": "HOLD"
+}

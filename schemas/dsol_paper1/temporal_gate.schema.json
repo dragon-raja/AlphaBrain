@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "temporal_gate.schema.json",
+  "title": "DSOL Paper 1 Temporal Gate",
+  "description": "A complete T1-T3 audit record with an explicit S0, S1, S2, or unresolved classification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact",
+    "temporal_gate_id",
+    "relation_case",
+    "gates",
+    "classification",
+    "status"
+  ],
+  "properties": {
+    "artifact": {
+      "$ref": "common.schema.json#/$defs/artifact_envelope"
+    },
+    "temporal_gate_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "relation_case": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "properties": {
+        "T1": {
+          "$ref": "#/$defs/t1_gate"
+        },
+        "T2": {
+          "$ref": "#/$defs/t2_gate"
+        },
+        "T3": {
+          "$ref": "#/$defs/t3_gate"
+        }
+      }
+    },
+    "classification": {
+      "$ref": "#/$defs/classification"
+    },
+    "status": {
+      "$ref": "common.schema.json#/$defs/status"
+    }
+  },
+  "$defs": {
+    "threshold": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "t1_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate_id",
+        "condition",
+        "metric",
+        "pass_threshold",
+        "evidence",
+        "assessment_hash",
+        "status"
+      ],
+      "properties": {
+        "gate_id": {
+          "const": "T1"
+        },
+        "condition": {
+          "const": "FINAL_CANDIDATE_SNAPSHOT_ONLY"
+        },
+        "metric": {
+          "$ref": "common.schema.json#/$defs/non_empty_string"
+        },
+        "pass_threshold": {
+          "$ref": "#/$defs/threshold"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/artifact_reference"
+          }
+        },
+        "assessment_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "t2_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate_id",
+        "single_channel_audits",
+        "assessment_hash",
+        "status"
+      ],
+      "properties": {
+        "gate_id": {
+          "const": "T2"
+        },
+        "single_channel_audits": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/channel_audit"
+          }
+        },
+        "assessment_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "channel_audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "audit_id",
+        "channel_id",
+        "leak_threshold",
+        "evidence",
+        "assessment_hash",
+        "status"
+      ],
+      "properties": {
+        "audit_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "channel_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "leak_threshold": {
+          "$ref": "#/$defs/threshold"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/artifact_reference"
+          }
+        },
+        "assessment_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "t3_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate_id",
+        "conditions",
+        "s1_margin",
+        "boundary_set_size",
+        "assessment_hash",
+        "status"
+      ],
+      "properties": {
+        "gate_id": {
+          "const": "T3"
+        },
+        "conditions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "final_only",
+            "repeated_final",
+            "ordered_clip",
+            "shuffled_clip"
+          ],
+          "properties": {
+            "final_only": {
+              "$ref": "#/$defs/temporal_condition"
+            },
+            "repeated_final": {
+              "$ref": "#/$defs/temporal_condition"
+            },
+            "ordered_clip": {
+              "$ref": "#/$defs/temporal_condition"
+            },
+            "shuffled_clip": {
+              "$ref": "#/$defs/temporal_condition"
+            }
+          }
+        },
+        "s1_margin": {
+          "$ref": "#/$defs/threshold"
+        },
+        "boundary_set_size": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "assessment_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "temporal_condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "condition_id",
+        "input_artifact",
+        "assessment_hash",
+        "status"
+      ],
+      "properties": {
+        "condition_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "input_artifact": {
+          "$ref": "common.schema.json#/$defs/artifact_reference"
+        },
+        "assessment_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "temporal_class",
+        "classification_hash",
+        "status"
+      ],
+      "properties": {
+        "temporal_class": {
+          "enum": [
+            "S0",
+            "S1",
+            "S2",
+            null
+          ]
+        },
+        "classification_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    }
+  }
+}

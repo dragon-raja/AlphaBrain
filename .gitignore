@@ -258,6 +258,8 @@ tests/*
 !tests/model/
 tests/model/*
 !tests/model/test_cabi_binding.py
+!tests/dsol_paper1/
+!tests/dsol_paper1/*.py
 !tests/dataloader/
 tests/dataloader/*
 !tests/dataloader/test_libero_bind_dataset.py

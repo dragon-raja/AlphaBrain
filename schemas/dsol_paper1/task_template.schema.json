@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "task_template.schema.json",
+  "title": "DSOL Paper 1 Task Template",
+  "description": "A frozen task population unit and its protocol dependencies; it does not contain rollout outcomes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact",
+    "task_template_id",
+    "task_id",
+    "task_family_id",
+    "instructions",
+    "snapshot_partitions",
+    "scene_seeds",
+    "independent_unit",
+    "observation_contract",
+    "expert_decision_set",
+    "recovery_action_set",
+    "status"
+  ],
+  "properties": {
+    "artifact": {
+      "$ref": "common.schema.json#/$defs/artifact_envelope"
+    },
+    "task_template_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "task_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "task_family_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "instructions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/instruction"
+      }
+    },
+    "snapshot_partitions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common.schema.json#/$defs/identifier"
+      }
+    },
+    "scene_seeds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "independent_unit": {
+      "const": "task_x_scene_seed_snapshot_group"
+    },
+    "observation_contract": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "expert_decision_set": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "recovery_action_set": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "status": {
+      "$ref": "common.schema.json#/$defs/status"
+    }
+  },
+  "$defs": {
+    "instruction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instruction_id",
+        "text",
+        "hash",
+        "status"
+      ],
+      "properties": {
+        "instruction_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "text": {
+          "$ref": "common.schema.json#/$defs/non_empty_string"
+        },
+        "hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    }
+  }
+}

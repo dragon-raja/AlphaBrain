@@ -1,0 +1,31 @@
+{
+  "schema": "dsol_expert_decision_set_v1",
+  "artifact_id": "REPLACE_ME",
+  "status": "DRAFT",
+  "task_template_id": "REPLACE_ME",
+  "snapshot_group_id": "REPLACE_ME",
+  "state_hypothesis_id": "REPLACE_ME",
+  "source_experts": [
+    {
+      "expert_id": "privileged_simulator_rule_expert",
+      "independent_source": true,
+      "privileged_inputs": [],
+      "policy_deployment_visible": false
+    },
+    {
+      "expert_id": "blinded_independent_adjudicator",
+      "independent_source": true,
+      "privileged_inputs": [],
+      "policy_deployment_visible": false
+    }
+  ],
+  "acceptable_short_horizon_decisions": [],
+  "decision_equivalence_classes": [],
+  "value_or_ranking": [],
+  "safe_recovery_candidates": [],
+  "shared_safe_recovery_exists": null,
+  "deferral_horizon": null,
+  "abstained": null,
+  "adjudication_status": "NOT_RUN",
+  "release_status": "HOLD"
+}

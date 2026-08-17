@@ -1,0 +1,46 @@
+{
+  "format": "robocasa_camera_pose_catalog_v1",
+  "protocol": "human300_camera_support_prefreeze_v1",
+  "status": "CANDIDATE_UNFROZEN",
+  "coordinate_convention": {
+    "agent_rig": "shared rigid SE(3) delta in the mobile-base support frame",
+    "wrist": "mount delta in the right-hand parent frame",
+    "rotation": "xyz Euler degrees; MuJoCo quaternions are wxyz"
+  },
+  "partition_rationale": {
+    "train": "single-axis boundary cells plus two correlated diagonals",
+    "seen_range_interpolation": "unseen exact poses strictly inside train component-wise bounds",
+    "heldout_pose_cells": "reserved diagonal sign combinations inside the train component-wise envelope",
+    "extrapolation": "poses outside the train component-wise translation or rotation envelope"
+  },
+  "regions": {
+    "train": [
+      {"pose_cell_id": "train_axis_x_pos", "agent_rig_delta": {"translation_m": [0.04, 0.0, 0.0], "rotation_xyz_deg": [0.0, 4.0, 0.0]}, "wrist_delta": {"translation_m": [0.004, 0.0, 0.0], "rotation_xyz_deg": [0.0, 1.0, 0.0]}},
+      {"pose_cell_id": "train_axis_x_neg", "agent_rig_delta": {"translation_m": [-0.04, 0.0, 0.0], "rotation_xyz_deg": [0.0, -4.0, 0.0]}, "wrist_delta": {"translation_m": [-0.004, 0.0, 0.0], "rotation_xyz_deg": [0.0, -1.0, 0.0]}},
+      {"pose_cell_id": "train_axis_y_pos", "agent_rig_delta": {"translation_m": [0.0, 0.04, 0.0], "rotation_xyz_deg": [0.0, 0.0, 4.0]}, "wrist_delta": {"translation_m": [0.0, 0.004, 0.0], "rotation_xyz_deg": [1.0, 0.0, 0.0]}},
+      {"pose_cell_id": "train_axis_y_neg", "agent_rig_delta": {"translation_m": [0.0, -0.04, 0.0], "rotation_xyz_deg": [0.0, 0.0, -4.0]}, "wrist_delta": {"translation_m": [0.0, -0.004, 0.0], "rotation_xyz_deg": [-1.0, 0.0, 0.0]}},
+      {"pose_cell_id": "train_axis_z_pos", "agent_rig_delta": {"translation_m": [0.0, 0.0, 0.04], "rotation_xyz_deg": [4.0, 0.0, 0.0]}, "wrist_delta": {"translation_m": [0.0, 0.0, 0.004], "rotation_xyz_deg": [0.0, 0.0, 1.0]}},
+      {"pose_cell_id": "train_axis_z_neg", "agent_rig_delta": {"translation_m": [0.0, 0.0, -0.04], "rotation_xyz_deg": [-4.0, 0.0, 0.0]}, "wrist_delta": {"translation_m": [0.0, 0.0, -0.004], "rotation_xyz_deg": [0.0, 0.0, -1.0]}},
+      {"pose_cell_id": "train_diag_pp", "agent_rig_delta": {"translation_m": [0.03, 0.03, 0.02], "rotation_xyz_deg": [2.0, 3.0, 3.0]}, "wrist_delta": {"translation_m": [0.003, 0.003, 0.002], "rotation_xyz_deg": [0.75, 0.75, 0.5]}},
+      {"pose_cell_id": "train_diag_nn", "agent_rig_delta": {"translation_m": [-0.03, -0.03, -0.02], "rotation_xyz_deg": [-2.0, -3.0, -3.0]}, "wrist_delta": {"translation_m": [-0.003, -0.003, -0.002], "rotation_xyz_deg": [-0.75, -0.75, -0.5]}}
+    ],
+    "seen_range_interpolation": [
+      {"pose_cell_id": "interp_pnp", "agent_rig_delta": {"translation_m": [0.02, -0.02, 0.02], "rotation_xyz_deg": [2.0, -2.0, 2.0]}, "wrist_delta": {"translation_m": [0.002, -0.002, 0.002], "rotation_xyz_deg": [0.5, -0.5, 0.5]}},
+      {"pose_cell_id": "interp_npn", "agent_rig_delta": {"translation_m": [-0.02, 0.02, -0.02], "rotation_xyz_deg": [-2.0, 2.0, -2.0]}, "wrist_delta": {"translation_m": [-0.002, 0.002, -0.002], "rotation_xyz_deg": [-0.5, 0.5, -0.5]}},
+      {"pose_cell_id": "interp_ppn", "agent_rig_delta": {"translation_m": [0.015, 0.025, -0.015], "rotation_xyz_deg": [-1.5, 2.5, 1.5]}, "wrist_delta": {"translation_m": [0.0015, 0.0025, -0.0015], "rotation_xyz_deg": [-0.5, 0.5, 0.5]}},
+      {"pose_cell_id": "interp_nnp", "agent_rig_delta": {"translation_m": [-0.015, -0.025, 0.015], "rotation_xyz_deg": [1.5, -2.5, -1.5]}, "wrist_delta": {"translation_m": [-0.0015, -0.0025, 0.0015], "rotation_xyz_deg": [0.5, -0.5, -0.5]}}
+    ],
+    "heldout_pose_cells": [
+      {"pose_cell_id": "heldout_xy_pn", "agent_rig_delta": {"translation_m": [0.04, -0.04, 0.0], "rotation_xyz_deg": [0.0, 4.0, -4.0]}, "wrist_delta": {"translation_m": [0.004, -0.004, 0.0], "rotation_xyz_deg": [1.0, -1.0, 0.0]}},
+      {"pose_cell_id": "heldout_xy_np", "agent_rig_delta": {"translation_m": [-0.04, 0.04, 0.0], "rotation_xyz_deg": [0.0, -4.0, 4.0]}, "wrist_delta": {"translation_m": [-0.004, 0.004, 0.0], "rotation_xyz_deg": [-1.0, 1.0, 0.0]}},
+      {"pose_cell_id": "heldout_xz_pp", "agent_rig_delta": {"translation_m": [0.04, 0.0, 0.04], "rotation_xyz_deg": [4.0, -4.0, 0.0]}, "wrist_delta": {"translation_m": [0.004, 0.0, 0.004], "rotation_xyz_deg": [0.0, 1.0, 1.0]}},
+      {"pose_cell_id": "heldout_yz_nn", "agent_rig_delta": {"translation_m": [0.0, -0.04, -0.04], "rotation_xyz_deg": [-4.0, 0.0, 4.0]}, "wrist_delta": {"translation_m": [0.0, -0.004, -0.004], "rotation_xyz_deg": [-1.0, 0.0, -1.0]}}
+    ],
+    "extrapolation": [
+      {"pose_cell_id": "extrap_x_pos", "agent_rig_delta": {"translation_m": [0.07, 0.0, 0.03], "rotation_xyz_deg": [0.0, 7.0, 0.0]}, "wrist_delta": {"translation_m": [0.007, 0.0, 0.003], "rotation_xyz_deg": [0.0, 2.0, 0.0]}},
+      {"pose_cell_id": "extrap_x_neg", "agent_rig_delta": {"translation_m": [-0.07, 0.0, -0.03], "rotation_xyz_deg": [0.0, -7.0, 0.0]}, "wrist_delta": {"translation_m": [-0.007, 0.0, -0.003], "rotation_xyz_deg": [0.0, -2.0, 0.0]}},
+      {"pose_cell_id": "extrap_y_pos", "agent_rig_delta": {"translation_m": [0.0, 0.07, 0.03], "rotation_xyz_deg": [3.0, 0.0, 7.0]}, "wrist_delta": {"translation_m": [0.0, 0.007, 0.003], "rotation_xyz_deg": [2.0, 0.0, 1.0]}},
+      {"pose_cell_id": "extrap_y_neg", "agent_rig_delta": {"translation_m": [0.0, -0.07, -0.03], "rotation_xyz_deg": [-3.0, 0.0, -7.0]}, "wrist_delta": {"translation_m": [0.0, -0.007, -0.003], "rotation_xyz_deg": [-2.0, 0.0, -1.0]}}
+    ]
+  }
+}

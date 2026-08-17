@@ -1,0 +1,227 @@
+{
+  "schema": "dsol_paper1_preregistration_v1",
+  "status": "PREFREEZE_NOT_RELEASED",
+  "title": "Decision-Sufficient Observation Learning",
+  "research_question": "When should cross-view training preserve a task decision, and when should it update that decision in response to new evidence?",
+  "scope": {
+    "relation": ["N", "E_D", "MATCHED_CONTROL"],
+    "temporal": ["S0"],
+    "embodiment": ["E0"],
+    "deferred": ["S1", "S2", "E1", "E2", "dynamic_view_selection", "new_policy_training"]
+  },
+  "roots": {
+    "snapshot_bank": "/share/longjunyu/robocasa/eval_snapshot_bank_v1",
+    "checkpoint_receipts": "/workspace/ai2r/debug/paper1_p0_20260815/receipts/checkpoint_load_matrix.json",
+    "p0_gate": "/workspace/ai2r/debug/paper1_p0_20260815/receipts/p0_gate_status.json",
+    "debug_output": "/workspace/ai2r/debug/dsol_paper1",
+    "formal_output": "/share/longjunyu/robocasa/formal/paper1"
+  },
+  "population": {
+    "benchmark": "RoboCasa",
+    "snapshot_partitions": ["seen_scene_pretrain", "heldout_scene_target"],
+    "tasks": [
+      "CloseBlenderLid",
+      "CloseFridge",
+      "CoffeeSetupMug",
+      "NavigateKitchen",
+      "OpenCabinet",
+      "OpenDrawer",
+      "PickPlaceCounterToCabinet",
+      "PickPlaceSinkToCounter",
+      "TurnOffStove",
+      "TurnOnMicrowave"
+    ],
+    "scene_seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+    "independent_unit": "task_x_scene_seed_snapshot_group",
+    "same_group_pairing_required": true,
+    "group_split_required": true
+  },
+  "observation_contract": {
+    "history_scope": "frozen_current_snapshot_plus_one_final_candidate_snapshot",
+    "policy_inputs": [
+      "video.robot0_agentview_left",
+      "video.robot0_agentview_right",
+      "video.robot0_eye_in_hand",
+      "state.gripper_qpos",
+      "state.base_position",
+      "state.base_rotation",
+      "state.end_effector_position_relative",
+      "state.end_effector_rotation_relative",
+      "annotation.human.task_description"
+    ],
+    "privileged_offline_only": [
+      "simulator_state",
+      "object_pose",
+      "fixture_state",
+      "contact_state",
+      "expert_decision_set",
+      "relation_label",
+      "r_hat_target"
+    ],
+    "forbidden_deployment_inputs": [
+      "relation_label",
+      "r_hat_target",
+      "branch_outcome",
+      "future_state",
+      "privileged_state",
+      "object_id",
+      "file_name",
+      "timestamp",
+      "camera_label",
+      "oracle_route",
+      "scan_order",
+      "candidate_rank"
+    ],
+    "cache_policy": "clear_visual_and_kv_cache_between_counterfactual_candidates",
+    "intermediate_frames_visible_to_policy": false
+  },
+  "action_contract": {
+    "evaluation_frame": "robot_base_and_task_space",
+    "policy_action_dimension": 12,
+    "prediction_horizon": 50,
+    "components": {
+      "gripper_close": 1,
+      "end_effector_position": 3,
+      "end_effector_rotation": 3,
+      "base_motion": 4,
+      "control_mode": 1
+    },
+    "equivariance_rule": "camera-frame actions must be transformed into the frozen robot/task frame before comparison",
+    "set_distance": "symmetric_nearest_neighbor_distance_after_equivalence_transform",
+    "set_distance_threshold": null,
+    "status": "PREFREEZE_THRESHOLD_PENDING_DEBUG_CALIBRATION"
+  },
+  "expert_protocol": {
+    "required_sources": ["privileged_simulator_rule_expert", "independent_blinded_adjudicator"],
+    "decision_unit": "acceptable_short_horizon_decision_set_not_single_demonstration_action",
+    "minimum_experts": 2,
+    "disagreement_action": "send_to_frozen_adjudication_set_or_abstain",
+    "report": ["agreement_rate", "abstention_rate", "adjudication_rate", "decision_set_size", "state_coverage"],
+    "status": "NOT_MATERIALIZED"
+  },
+  "relation_protocol": {
+    "r_hat_range": [0.0, 1.0],
+    "low_endpoint_max": null,
+    "high_endpoint_min": null,
+    "threshold_status": "PREFREEZE_PENDING_BLINDED_CALIBRATION",
+    "pair_n_requirements": [
+      "same_physical_state",
+      "same_instruction",
+      "same_robot_state",
+      "same_allowed_history",
+      "decision_sets_equivalent_or_equivariant",
+      "no_metadata_or_cache_shortcut"
+    ],
+    "pair_ed_five_gates": [
+      "current_full_observation_ambiguous",
+      "latent_decision_sets_incompatible",
+      "no_shared_safe_recovery_action",
+      "candidate_snapshot_disambiguates",
+      "matched_uninformative_control_exists"
+    ],
+    "matched_covariates": [
+      "task_family",
+      "snapshot_group",
+      "camera_motion_distance",
+      "target_pixel_area",
+      "occlusion_fraction",
+      "image_difference",
+      "object_distance",
+      "action_difficulty"
+    ],
+    "proxy_falsification": [
+      "target_pixel_area",
+      "occlusion_fraction",
+      "camera_distance",
+      "image_difference",
+      "clip_similarity",
+      "dino_similarity"
+    ]
+  },
+  "temporal_protocol": {
+    "t1": {
+      "condition": "final_candidate_snapshot_only",
+      "metric": "blinded_state_or_decision_identification",
+      "pass_threshold": null,
+      "status": "PREFREEZE_PENDING_POWER_PLAN"
+    },
+    "t2": {
+      "single_channel_audits": [
+        "current_scene_images",
+        "wrist_image",
+        "proprioception",
+        "action_history",
+        "visual_cache",
+        "kv_cache",
+        "camera_metadata",
+        "time_index",
+        "object_id",
+        "file_name"
+      ],
+      "leak_threshold": null,
+      "status": "PREFREEZE_PENDING_POWER_PLAN"
+    },
+    "t3": {
+      "conditions": ["final_only", "repeated_final", "ordered_clip", "shuffled_clip"],
+      "s1_rule": "ordered_clip_exceeds_all_other_conditions_by_preregistered_margin",
+      "main_analysis_inclusion": ["S0"],
+      "boundary_set_size": null,
+      "status": "PREFREEZE_PENDING_POWER_PLAN"
+    }
+  },
+  "camera_domain": {
+    "catalog": "configs/dsol_paper1/camera_pose_candidates_prefreeze_v1.json",
+    "catalog_status_required_for_release": "FROZEN",
+    "coordinate_convention": "agent rig delta in mobile-base support frame; wrist delta in right-hand parent frame; xyz Euler degrees",
+    "required_records": ["intrinsics", "extrinsics", "resolution", "crop", "distortion", "renderer", "time_sync"]
+  },
+  "strategy_matrix": {
+    "p2_existing_frozen_policies": [
+      "official_75k",
+      "seed41_canonical",
+      "seed41_image_aug",
+      "seed41_mv_unpaired",
+      "seed41_mv_paired",
+      "seed42_canonical",
+      "seed42_image_aug",
+      "seed42_mv_unpaired",
+      "seed43_canonical",
+      "seed43_image_aug",
+      "seed43_mv_unpaired"
+    ],
+    "p3_confirmatory_arms": ["canonical", "image_augmentation", "mv_unpaired", "cvc_style"],
+    "same_backbone": true,
+    "same_action_representation": true,
+    "same_training_examples": true,
+    "same_optimizer_updates": true,
+    "same_policy_seeds": [41, 42, 43],
+    "cvc_style_status": "NOT_IMPLEMENTED"
+  },
+  "statistics": {
+    "confirmatory_unit": "task_x_scene_seed_snapshot_group",
+    "policy_seeds": [41, 42, 43],
+    "paired_bootstrap_replicates": 10000,
+    "confidence_level": 0.95,
+    "minimum_relevant_absolute_effect": 0.1,
+    "target_power": 0.8,
+    "primary_model": "outcome ~ relation + strategy + relation:strategy + task_family + policy_seed + preregistered_covariates",
+    "primary_metrics": ["nuisance_invariance", "evidence_responsiveness", "relation_x_strategy_interaction"],
+    "secondary_metrics": ["calibration", "nominal_performance", "harmful_invariance_rate", "failure_type"],
+    "multiple_comparison_policy": "hierarchical_primary_interaction_then_preregistered_pairwise_contrasts",
+    "power_analysis_status": "NOT_RUN"
+  },
+  "wandb": {
+    "enabled_for_training_or_policy_evaluation_only": true,
+    "default_mode": "online_with_offline_fallback",
+    "allowed": ["hyperparameters", "metrics", "seed", "git_commit", "final_summary"],
+    "forbidden": ["dataset", "video", "checkpoint", "model_weights", "secrets", "full_environment"]
+  },
+  "release": {
+    "default": "HOLD",
+    "required_blockers": ["B1", "B2", "B3", "B4", "B5", "B7"],
+    "b6_required_for": "P3_CONFIRMATORY_MATRIX",
+    "independent_review_required": true,
+    "formal_generation_allowed": false,
+    "training_allowed": false
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "dsol_relation_case_v1",
+  "artifact_id": "REPLACE_ME",
+  "status": "DRAFT",
+  "relation_case_id": "REPLACE_ME",
+  "relation_type": "E_D",
+  "task_template_id": "REPLACE_ME",
+  "snapshot_group_id": "REPLACE_ME",
+  "state_sha256": "REPLACE_ME",
+  "robot_state_sha256": "REPLACE_ME",
+  "history_sha256": "REPLACE_ME",
+  "instruction_sha256": "REPLACE_ME",
+  "current_observation_id": "REPLACE_ME",
+  "candidate_observation_id": "REPLACE_ME",
+  "matched_control_case_id": "REPLACE_ME",
+  "latent_state_hypotheses": [],
+  "expert_decision_set_ids": [],
+  "r_hat": null,
+  "r_hat_uncertainty": null,
+  "five_gates": {
+    "current_full_observation_ambiguous": null,
+    "latent_decision_sets_incompatible": null,
+    "no_shared_safe_recovery_action": null,
+    "candidate_snapshot_disambiguates": null,
+    "matched_uninformative_control_exists": null
+  },
+  "matched_covariates": {
+    "camera_motion_distance": null,
+    "target_pixel_area": null,
+    "occlusion_fraction": null,
+    "image_difference": null,
+    "object_distance": null,
+    "action_difficulty": null
+  },
+  "policy_results_accessed_during_construction": false,
+  "release_status": "HOLD"
+}

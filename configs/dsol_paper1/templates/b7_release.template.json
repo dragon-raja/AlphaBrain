@@ -1,0 +1,24 @@
+{
+  "schema": "dsol_release_receipt_v1",
+  "artifact_id": "REPLACE_ME",
+  "status": "HOLD",
+  "release_id": "P1_RELEASE_CANDIDATE",
+  "blockers": {
+    "B1": "HOLD",
+    "B2": "HOLD",
+    "B3": "HOLD",
+    "B4": "HOLD",
+    "B5": "HOLD",
+    "B6": "HOLD",
+    "B7": "HOLD"
+  },
+  "input_hashes": [],
+  "authorized_actions": ["static_validation", "debug_schema_smoke"],
+  "forbidden_actions": ["formal_generation", "policy_training", "formal_rollout"],
+  "debug_root": "/workspace/ai2r/debug/dsol_paper1",
+  "formal_root": "/share/longjunyu/robocasa/formal/paper1",
+  "formal_eligible": false,
+  "policy_results_accessed": false,
+  "independent_review": "NOT_RUN",
+  "approvers": []
+}

@@ -1,0 +1,337 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "relation_case.schema.json",
+  "title": "DSOL Paper 1 Relation Case",
+  "description": "A frozen N, E_D, or matched-control relation case. E_D cases must carry all five gate assessments.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact",
+    "relation_case_id",
+    "relation_type",
+    "task_template",
+    "observation_contract",
+    "snapshot_group_id",
+    "physical_state",
+    "instruction",
+    "robot_state_hash",
+    "allowed_history_hash",
+    "current_observation",
+    "candidate_observation",
+    "current_decision_set",
+    "candidate_decision_set",
+    "case_hash",
+    "status"
+  ],
+  "properties": {
+    "artifact": {
+      "$ref": "common.schema.json#/$defs/artifact_envelope"
+    },
+    "relation_case_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "relation_type": {
+      "enum": [
+        "N",
+        "E_D",
+        "MATCHED_CONTROL"
+      ]
+    },
+    "task_template": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "observation_contract": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "snapshot_group_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "physical_state": {
+      "$ref": "#/$defs/state_reference"
+    },
+    "instruction": {
+      "$ref": "#/$defs/state_reference"
+    },
+    "robot_state_hash": {
+      "$ref": "common.schema.json#/$defs/hash"
+    },
+    "allowed_history_hash": {
+      "$ref": "common.schema.json#/$defs/hash"
+    },
+    "current_observation": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "candidate_observation": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "current_decision_set": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "candidate_decision_set": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "n_checks": {
+      "$ref": "#/$defs/n_checks"
+    },
+    "e_d_gates": {
+      "$ref": "#/$defs/e_d_gates"
+    },
+    "matched_control_case": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "matched_control": {
+      "$ref": "#/$defs/matched_control"
+    },
+    "case_hash": {
+      "$ref": "common.schema.json#/$defs/hash"
+    },
+    "status": {
+      "$ref": "common.schema.json#/$defs/status"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "relation_type": {
+            "const": "N"
+          }
+        },
+        "required": [
+          "relation_type"
+        ]
+      },
+      "then": {
+        "required": [
+          "n_checks"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "relation_type": {
+            "const": "E_D"
+          }
+        },
+        "required": [
+          "relation_type"
+        ]
+      },
+      "then": {
+        "required": [
+          "e_d_gates",
+          "matched_control_case"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "relation_type": {
+            "const": "MATCHED_CONTROL"
+          }
+        },
+        "required": [
+          "relation_type"
+        ]
+      },
+      "then": {
+        "required": [
+          "matched_control"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "state_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state_id",
+        "hash",
+        "status"
+      ],
+      "properties": {
+        "state_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "gate_assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate_id",
+        "evidence",
+        "assessment_hash",
+        "status"
+      ],
+      "properties": {
+        "gate_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/artifact_reference"
+          }
+        },
+        "assessment_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "enum": [
+            "NOT_ASSESSED",
+            "PASS",
+            "FAIL",
+            "HOLD"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "PASS"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "n_checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "same_physical_state",
+        "same_instruction",
+        "same_robot_state",
+        "same_allowed_history",
+        "decision_sets_equivalent_or_equivariant",
+        "no_metadata_or_cache_shortcut",
+        "status"
+      ],
+      "properties": {
+        "same_physical_state": {
+          "$ref": "#/$defs/gate_assessment"
+        },
+        "same_instruction": {
+          "$ref": "#/$defs/gate_assessment"
+        },
+        "same_robot_state": {
+          "$ref": "#/$defs/gate_assessment"
+        },
+        "same_allowed_history": {
+          "$ref": "#/$defs/gate_assessment"
+        },
+        "decision_sets_equivalent_or_equivariant": {
+          "$ref": "#/$defs/gate_assessment"
+        },
+        "no_metadata_or_cache_shortcut": {
+          "$ref": "#/$defs/gate_assessment"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "e_d_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "current_full_observation_ambiguous",
+        "latent_decision_sets_incompatible",
+        "no_shared_safe_recovery_action",
+        "candidate_snapshot_disambiguates",
+        "matched_uninformative_control_exists",
+        "status"
+      ],
+      "properties": {
+        "current_full_observation_ambiguous": {
+          "$ref": "#/$defs/gate_assessment"
+        },
+        "latent_decision_sets_incompatible": {
+          "$ref": "#/$defs/gate_assessment"
+        },
+        "no_shared_safe_recovery_action": {
+          "$ref": "#/$defs/gate_assessment"
+        },
+        "candidate_snapshot_disambiguates": {
+          "$ref": "#/$defs/gate_assessment"
+        },
+        "matched_uninformative_control_exists": {
+          "$ref": "#/$defs/gate_assessment"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "matched_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_e_d_case",
+        "matching_covariates",
+        "match_hash",
+        "status"
+      ],
+      "properties": {
+        "source_e_d_case": {
+          "$ref": "common.schema.json#/$defs/artifact_reference"
+        },
+        "matching_covariates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/covariate_match"
+          }
+        },
+        "match_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "covariate_match": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "covariate_id",
+        "comparison_hash",
+        "status"
+      ],
+      "properties": {
+        "covariate_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "comparison_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    }
+  }
+}

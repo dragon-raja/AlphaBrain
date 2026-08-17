@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "release_receipt.schema.json",
+  "title": "DSOL Paper 1 Release Receipt",
+  "description": "An independently reviewed, fail-closed release decision with explicit B1-B7 evidence and artifact hashes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact",
+    "release_receipt_id",
+    "release_level",
+    "preregistration",
+    "review",
+    "decision",
+    "gates",
+    "approved_activities",
+    "forbidden_activities",
+    "released_artifacts",
+    "receipt_hash",
+    "status"
+  ],
+  "properties": {
+    "artifact": {
+      "$ref": "common.schema.json#/$defs/artifact_envelope"
+    },
+    "release_receipt_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "release_level": {
+      "enum": [
+        "P1",
+        "P2",
+        "P3"
+      ]
+    },
+    "preregistration": {
+      "$ref": "common.schema.json#/$defs/artifact_reference"
+    },
+    "review": {
+      "$ref": "#/$defs/review"
+    },
+    "decision": {
+      "enum": [
+        "HOLD",
+        "RELEASE"
+      ]
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7"
+      ],
+      "properties": {
+        "B1": {
+          "$ref": "#/$defs/release_gate"
+        },
+        "B2": {
+          "$ref": "#/$defs/release_gate"
+        },
+        "B3": {
+          "$ref": "#/$defs/release_gate"
+        },
+        "B4": {
+          "$ref": "#/$defs/release_gate"
+        },
+        "B5": {
+          "$ref": "#/$defs/release_gate"
+        },
+        "B6": {
+          "$ref": "#/$defs/release_gate"
+        },
+        "B7": {
+          "$ref": "#/$defs/release_gate"
+        }
+      }
+    },
+    "approved_activities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common.schema.json#/$defs/non_empty_string"
+      }
+    },
+    "forbidden_activities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common.schema.json#/$defs/non_empty_string"
+      }
+    },
+    "released_artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/artifact_reference"
+      }
+    },
+    "receipt_hash": {
+      "$ref": "common.schema.json#/$defs/hash"
+    },
+    "status": {
+      "$ref": "common.schema.json#/$defs/status"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "RELEASE"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "gates": {
+            "properties": {
+              "B1": {
+                "properties": {
+                  "status": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "B2": {
+                "properties": {
+                  "status": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "B3": {
+                "properties": {
+                  "status": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "B4": {
+                "properties": {
+                  "status": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "B5": {
+                "properties": {
+                  "status": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "B7": {
+                "properties": {
+                  "status": {
+                    "const": "PASS"
+                  }
+                }
+              }
+            }
+          },
+          "released_artifacts": {
+            "minItems": 1
+          },
+          "status": {
+            "const": "RELEASED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "RELEASE"
+          },
+          "release_level": {
+            "const": "P3"
+          }
+        },
+        "required": [
+          "decision",
+          "release_level"
+        ]
+      },
+      "then": {
+        "properties": {
+          "gates": {
+            "properties": {
+              "B6": {
+                "properties": {
+                  "status": {
+                    "const": "PASS"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_id",
+        "reviewer_id",
+        "independent",
+        "reviewed_at",
+        "review_hash",
+        "status"
+      ],
+      "properties": {
+        "review_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "reviewer_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "independent": {
+          "const": true
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "review_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/status"
+        }
+      }
+    },
+    "release_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate_id",
+        "evidence",
+        "assessment_hash",
+        "status"
+      ],
+      "properties": {
+        "gate_id": {
+          "enum": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5",
+            "B6",
+            "B7"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/artifact_reference"
+          }
+        },
+        "assessment_hash": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "status": {
+          "enum": [
+            "NOT_ASSESSED",
+            "PARTIAL",
+            "PASS",
+            "FAIL",
+            "HOLD",
+            "NOT_REQUIRED"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "PASS"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

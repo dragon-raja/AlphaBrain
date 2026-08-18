@@ -12,6 +12,7 @@ EVAL_SEED=${EVAL_SEED:-20260818}
 VIDEO_EPISODES=${VIDEO_EPISODES:-8}
 MAX_EPISODES_PER_SHARD=${MAX_EPISODES_PER_SHARD:-}
 RUN_ANALYSIS=${RUN_ANALYSIS:-1}
+ANALYZER=${ANALYZER:-$REPO_ROOT/scripts/dsol_paper1/summarize_dsol_libero_hdf5_closed_loop.py}
 POLICY_PYTHON=${POLICY_PYTHON:-/alphabrain/.venv/bin/python}
 SIM_PYTHON=${SIM_PYTHON:-/workspace/envs/fresh-libero/bin/python}
 RUNTIME=${RUNTIME:-/share/longjunyu/alphabrain/datasets/libero-plus/runtime/LIBERO-plus}
@@ -22,6 +23,7 @@ for required in \
   "$CHECKPOINT/model.safetensors" \
   "$CHECKPOINT/framework_config.yaml" \
   "$PROTOCOL" \
+  "$ANALYZER" \
   "$POLICY_PYTHON" \
   "$SIM_PYTHON" \
   "$FFMPEG_EXE" \
@@ -41,7 +43,7 @@ protocol_sha256=$(sha256sum "$PROTOCOL" | awk '{print $1}')
 code_sha256=$(sha256sum \
   "$REPO_ROOT/scripts/cabi_vla/serve_alphabrain_pi05_websocket.py" \
   "$REPO_ROOT/scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py" \
-  "$REPO_ROOT/scripts/dsol_paper1/summarize_dsol_libero_hdf5_closed_loop.py" \
+  "$ANALYZER" \
   "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh" \
   | sha256sum | awk '{print $1}')
 jq -n \
@@ -49,13 +51,14 @@ jq -n \
   --arg checkpoint_sha256 "$checkpoint_sha256" \
   --arg protocol "$PROTOCOL" \
   --arg protocol_sha256 "$protocol_sha256" \
+  --arg analyzer "$ANALYZER" \
   --arg code_sha256 "$code_sha256" \
   --argjson gpu_count "$GPU_COUNT" \
   --argjson replan_steps "$REPLAN_STEPS" \
   --argjson eval_seed "$EVAL_SEED" \
   --arg max_episodes_per_shard "$MAX_EPISODES_PER_SHARD" \
   --argjson run_analysis "$RUN_ANALYSIS" \
-  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,protocol:$protocol,protocol_sha256:$protocol_sha256,code_sha256:$code_sha256,gpu_count:$gpu_count,replan_steps:$replan_steps,eval_seed:$eval_seed,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1)}' \
+  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,protocol:$protocol,protocol_sha256:$protocol_sha256,analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,replan_steps:$replan_steps,eval_seed:$eval_seed,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1)}' \
   > "$OUTPUT_DIR/run_manifest.json"
 
 policy_pids=()
@@ -145,7 +148,7 @@ PY
 )
 [[ "$actual" == "$expected" ]] || { echo "expected $expected episodes, found $actual" >&2; exit 1; }
 if [[ "$RUN_ANALYSIS" == 1 ]]; then
-  "$POLICY_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/summarize_dsol_libero_hdf5_closed_loop.py" \
+  "$POLICY_PYTHON" "$ANALYZER" \
     "$OUTPUT_DIR"/episodes-shard-*.jsonl \
     --output-dir "$OUTPUT_DIR/analysis" \
     > "$OUTPUT_DIR/logs/analysis.log"

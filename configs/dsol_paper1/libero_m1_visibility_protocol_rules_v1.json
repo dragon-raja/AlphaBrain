@@ -1,0 +1,29 @@
+{
+  "analysis_role": "development_quick_gate_not_final_confirmatory",
+  "blind_delta_max": -0.01,
+  "blind_groups": [
+    "diagnostic_look_away"
+  ],
+  "control_groups": [
+    "broad_heldout_32",
+    "wide_extrapolation_24",
+    "diagnostic_extreme_orbit",
+    "diagnostic_crossed_orbit",
+    "diagnostic_look_away"
+  ],
+  "matched_control_rotation_tolerance_deg": 10.0,
+  "matched_control_translation_tolerance_m": 0.05,
+  "matched_control_visibility_abs_max": 0.005,
+  "minimum_val_information_fraction": 0.75,
+  "minimum_val_matched_fraction": 0.75,
+  "minimum_val_median_best_delta": 0.01,
+  "schema": "dsol_libero_m1_visibility_protocol_rules_v1",
+  "strong_information_delta_min": 0.01,
+  "strong_information_groups": [
+    "broad_heldout_32",
+    "wide_extrapolation_24",
+    "diagnostic_extreme_orbit",
+    "diagnostic_crossed_orbit"
+  ],
+  "test_states_previously_inspected": true
+}

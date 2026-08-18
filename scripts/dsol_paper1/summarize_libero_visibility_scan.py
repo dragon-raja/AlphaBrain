@@ -85,6 +85,12 @@ def main() -> None:
                         "robot0_eye_in_hand", 0.0
                     )
                 ),
+                "camera_translation_m": record.get(
+                    "camera_displacement_from_canonical", {}
+                ).get("translation_m"),
+                "camera_rotation_geodesic_deg": record.get(
+                    "camera_displacement_from_canonical", {}
+                ).get("rotation_geodesic_deg"),
                 "scan_path": str(scan_path),
                 "montage_path": str(scan_path.with_name("visibility_extremes.png")),
             }

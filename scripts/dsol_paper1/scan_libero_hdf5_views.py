@@ -36,6 +36,62 @@ def _restore_reference(env: Any, reference: Mapping[str, Any]) -> None:
     sim.forward()
 
 
+def _camera_metadata_from_reference(reference: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "camera_name": str(reference["camera_name"]),
+        "camera_position": np.asarray(reference["position"], dtype=np.float64).tolist(),
+        "camera_quaternion_wxyz": np.asarray(
+            reference["quaternion"], dtype=np.float64
+        ).tolist(),
+        "camera_pivot": np.asarray(reference["pivot"], dtype=np.float64).tolist(),
+        "camera_fovy": float(reference["fovy"]),
+        "camera_azimuth_deg": 0.0,
+        "camera_elevation_deg": 0.0,
+        "camera_radius_scale": 1.0,
+    }
+
+
+def _quaternion_geodesic_deg(
+    first_wxyz: Iterable[float],
+    second_wxyz: Iterable[float],
+) -> float:
+    first = np.asarray(list(first_wxyz), dtype=np.float64)
+    second = np.asarray(list(second_wxyz), dtype=np.float64)
+    if first.shape != (4,) or second.shape != (4,):
+        raise ValueError("camera quaternions must have four components")
+    first_norm = float(np.linalg.norm(first))
+    second_norm = float(np.linalg.norm(second))
+    if first_norm <= 1e-12 or second_norm <= 1e-12:
+        raise ValueError("camera quaternions must be nonzero")
+    cosine = float(np.dot(first / first_norm, second / second_norm))
+    # q and -q encode the same rotation.
+    cosine = float(np.clip(abs(cosine), 0.0, 1.0))
+    return math.degrees(2.0 * math.acos(cosine))
+
+
+def _camera_displacement(
+    canonical: Mapping[str, Any],
+    candidate: Mapping[str, Any],
+) -> dict[str, float]:
+    canonical_position = np.asarray(
+        canonical["camera_position"], dtype=np.float64
+    )
+    candidate_position = np.asarray(
+        candidate["camera_position"], dtype=np.float64
+    )
+    if canonical_position.shape != (3,) or candidate_position.shape != (3,):
+        raise ValueError("camera positions must have three components")
+    translation_m = float(np.linalg.norm(candidate_position - canonical_position))
+    rotation_deg = _quaternion_geodesic_deg(
+        canonical["camera_quaternion_wxyz"],
+        candidate["camera_quaternion_wxyz"],
+    )
+    return {
+        "translation_m": translation_m,
+        "rotation_geodesic_deg": rotation_deg,
+    }
+
+
 def _local_rotation(*, yaw_deg: float, pitch_deg: float) -> np.ndarray:
     yaw = math.radians(yaw_deg)
     pitch = math.radians(pitch_deg)
@@ -245,6 +301,7 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
             camera_name="agentview",
             table_plane_z=float(catalog["table_plane_z"]),
         )
+        canonical_camera = _camera_metadata_from_reference(reference)
         canonical_visibility = task_entity_visibility(
             env,
             entity_names=entities,
@@ -271,6 +328,11 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
                     for name, value in canonical_visibility["per_camera"].items()
                 },
                 "visibility": canonical_visibility,
+                "camera": canonical_camera,
+                "camera_displacement_from_canonical": {
+                    "translation_m": 0.0,
+                    "rotation_geodesic_deg": 0.0,
+                },
             }
         )
 
@@ -309,6 +371,10 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
                         },
                         "visibility": visibility,
                         "camera": camera,
+                        "camera_displacement_from_canonical": _camera_displacement(
+                            canonical_camera,
+                            camera,
+                        ),
                         "image_mean": float(image.mean()),
                         "image_std": float(image.std()),
                         "wrist_image_mean": float(wrist_image.mean()),

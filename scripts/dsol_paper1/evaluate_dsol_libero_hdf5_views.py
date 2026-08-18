@@ -57,6 +57,11 @@ def masked_policy_observation(
     elif sensor_control == "wrist_only":
         agent = np.zeros_like(agent)
         example["observation/image"] = agent
+    elif sensor_control == "all_blackout":
+        agent = np.zeros_like(agent)
+        wrist = np.zeros_like(wrist)
+        example["observation/image"] = agent
+        example["observation/wrist_image"] = wrist
     elif sensor_control != "both":
         raise ValueError(f"unsupported sensor control: {sensor_control}")
     return example, agent, wrist
@@ -69,6 +74,8 @@ def deployed_camera_names(sensor_control: str) -> tuple[str, ...]:
         return ("agentview",)
     if sensor_control == "wrist_only":
         return ("robot0_eye_in_hand",)
+    if sensor_control == "all_blackout":
+        return ()
     raise ValueError(f"unsupported sensor control: {sensor_control}")
 
 
@@ -169,13 +176,35 @@ def run_episode(
         )
         post_wait_physics_sha256, post_wait_physics_size = physics_state_sha256(env)
         entities = list(env.env.obj_of_interest)
-        initial_visibility = task_entity_visibility(
-            env,
-            entity_names=entities,
-            camera_names=deployed_camera_names(sensor_control),
-            height=resize_size,
-            width=resize_size,
-        )
+        deployed_cameras = deployed_camera_names(sensor_control)
+        if deployed_cameras:
+            initial_visibility = task_entity_visibility(
+                env,
+                entity_names=entities,
+                camera_names=deployed_cameras,
+                height=resize_size,
+                width=resize_size,
+            )
+        else:
+            physical_visibility = task_entity_visibility(
+                env,
+                entity_names=entities,
+                camera_names=("agentview", "robot0_eye_in_hand"),
+                height=resize_size,
+                width=resize_size,
+            )
+            initial_visibility = {
+                **physical_visibility,
+                "definition": (
+                    "equal_mean_visible_pixel_fraction_over_entities_and_"
+                    "deployed_cameras_after_sensor_mask"
+                ),
+                "camera_names": [],
+                "score": 0.0,
+                "per_camera": {},
+                "sensor_mask": "all_blackout",
+                "physical_visibility_before_mask": physical_visibility,
+            }
         initial_metrics = {
             "agent": initial_image_metrics(initial_agent),
             "wrist": initial_image_metrics(initial_wrist),

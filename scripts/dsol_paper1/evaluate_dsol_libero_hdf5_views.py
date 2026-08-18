@@ -311,6 +311,8 @@ def main() -> None:
     args = parse_args()
     if not 1 <= args.replan_steps <= 10:
         raise ValueError("replan-steps must be in [1, 10]")
+    if args.wait_steps < 0:
+        raise ValueError("wait-steps must be nonnegative")
     if args.num_shards <= 0 or not 0 <= args.shard_index < args.num_shards:
         raise ValueError("invalid shard configuration")
     specs = selected_specs(args)

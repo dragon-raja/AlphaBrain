@@ -8,6 +8,7 @@ PROTOCOL=${PROTOCOL:-$REPO_ROOT/configs/dsol_paper1/libero_hdf5_closed_loop_quic
 GPU_COUNT=${GPU_COUNT:-8}
 BASE_PORT=${BASE_PORT:-18600}
 REPLAN_STEPS=${REPLAN_STEPS:-5}
+WAIT_STEPS=${WAIT_STEPS:-10}
 EVAL_SEED=${EVAL_SEED:-20260818}
 VIDEO_EPISODES=${VIDEO_EPISODES:-8}
 MAX_EPISODES_PER_SHARD=${MAX_EPISODES_PER_SHARD:-}
@@ -35,6 +36,7 @@ done
   echo "MAX_EPISODES_PER_SHARD must be empty or a positive integer" >&2
   exit 2
 }
+[[ "$WAIT_STEPS" =~ ^[0-9]+$ ]] || { echo "WAIT_STEPS must be a nonnegative integer" >&2; exit 2; }
 [[ "$RUN_ANALYSIS" =~ ^[01]$ ]] || { echo "RUN_ANALYSIS must be 0 or 1" >&2; exit 2; }
 
 mkdir -p "$OUTPUT_DIR/logs"
@@ -55,10 +57,11 @@ jq -n \
   --arg code_sha256 "$code_sha256" \
   --argjson gpu_count "$GPU_COUNT" \
   --argjson replan_steps "$REPLAN_STEPS" \
+  --argjson wait_steps "$WAIT_STEPS" \
   --argjson eval_seed "$EVAL_SEED" \
   --arg max_episodes_per_shard "$MAX_EPISODES_PER_SHARD" \
   --argjson run_analysis "$RUN_ANALYSIS" \
-  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,protocol:$protocol,protocol_sha256:$protocol_sha256,analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,replan_steps:$replan_steps,eval_seed:$eval_seed,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1)}' \
+  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,protocol:$protocol,protocol_sha256:$protocol_sha256,analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,replan_steps:$replan_steps,wait_steps:$wait_steps,eval_seed:$eval_seed,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1)}' \
   > "$OUTPUT_DIR/run_manifest.json"
 
 policy_pids=()
@@ -117,7 +120,7 @@ for ((gpu=0; gpu<GPU_COUNT; gpu++)); do
       --protocol "$PROTOCOL" --output-dir "$OUTPUT_DIR" \
       --runtime "$RUNTIME" --config-root "$SIM_CONFIG" \
       --host 127.0.0.1 --port "$port" \
-      --replan-steps "$REPLAN_STEPS" --seed "$EVAL_SEED" \
+      --replan-steps "$REPLAN_STEPS" --wait-steps "$WAIT_STEPS" --seed "$EVAL_SEED" \
       --num-shards "$GPU_COUNT" --shard-index "$gpu" --render-gpu "$gpu" \
       --video-episodes "$VIDEO_EPISODES" \
       "${max_episode_args[@]}" \

@@ -1,0 +1,109 @@
+{
+  "schema": "dsol_libero_view_catalog_v2_m1_rules",
+  "status": "PREFROZEN_PENDING_RENDER_VISIBILITY_AUDIT",
+  "seed": 20260818,
+  "camera_name": "agentview",
+  "table_plane_z": 0.48,
+  "camera_channels": {
+    "external": "varied_by_catalog",
+    "wrist": "canonical_unless_explicit_ablation"
+  },
+  "narrow_legacy_8": [
+    {"azimuth_deg": -12.0, "elevation_deg": 0.0, "radius_scale": 1.0},
+    {"azimuth_deg": 12.0, "elevation_deg": 0.0, "radius_scale": 1.0},
+    {"azimuth_deg": 0.0, "elevation_deg": -7.0, "radius_scale": 1.0},
+    {"azimuth_deg": 0.0, "elevation_deg": 7.0, "radius_scale": 1.0},
+    {"azimuth_deg": 0.0, "elevation_deg": 0.0, "radius_scale": 0.94},
+    {"azimuth_deg": 0.0, "elevation_deg": 0.0, "radius_scale": 1.06},
+    {"azimuth_deg": -8.0, "elevation_deg": 5.0, "radius_scale": 0.97},
+    {"azimuth_deg": 8.0, "elevation_deg": -5.0, "radius_scale": 1.03}
+  ],
+  "broad_training": {
+    "generator": "nested_halton_2_3_5",
+    "skip": 64,
+    "sizes": [32, 64],
+    "ranges": {
+      "azimuth_deg": [-60.0, 60.0],
+      "elevation_deg": [-25.0, 25.0],
+      "radius_scale": [0.9, 1.25]
+    },
+    "eligibility": "task_region_visible_and_collision_free"
+  },
+  "broad_heldout": {
+    "generator": "nested_halton_2_3_5",
+    "skip": 2048,
+    "size": 32,
+    "ranges": {
+      "azimuth_deg": [-60.0, 60.0],
+      "elevation_deg": [-25.0, 25.0],
+      "radius_scale": [0.9, 1.25]
+    },
+    "exact_pose_overlap_with_training": 0
+  },
+  "wide_extrapolation": {
+    "generator": "nested_halton_2_3_5",
+    "skip": 4096,
+    "size": 24,
+    "ranges": {
+      "azimuth_deg": [-90.0, 90.0],
+      "elevation_deg": [-40.0, 40.0],
+      "radius_scale": [0.75, 1.5]
+    },
+    "filter": "outside_broad_training_box_on_at_least_one_axis"
+  },
+  "diagnostic_extreme_orbit": [
+    {"azimuth_deg": -180.0, "elevation_deg": 0.0, "radius_scale": 1.0},
+    {"azimuth_deg": -120.0, "elevation_deg": 0.0, "radius_scale": 1.0},
+    {"azimuth_deg": 120.0, "elevation_deg": 0.0, "radius_scale": 1.0},
+    {"azimuth_deg": 180.0, "elevation_deg": 0.0, "radius_scale": 1.0},
+    {"azimuth_deg": 0.0, "elevation_deg": -60.0, "radius_scale": 1.0},
+    {"azimuth_deg": 0.0, "elevation_deg": 45.0, "radius_scale": 1.0},
+    {"azimuth_deg": 0.0, "elevation_deg": 0.0, "radius_scale": 0.5},
+    {"azimuth_deg": 0.0, "elevation_deg": 0.0, "radius_scale": 2.0}
+  ],
+  "diagnostic_crossed_orbit": [
+    {"azimuth_deg": -150.0, "elevation_deg": 0.0, "radius_scale": 0.5},
+    {"azimuth_deg": -120.0, "elevation_deg": 0.0, "radius_scale": 0.5},
+    {"azimuth_deg": -90.0, "elevation_deg": 0.0, "radius_scale": 0.5},
+    {"azimuth_deg": -60.0, "elevation_deg": 0.0, "radius_scale": 0.5},
+    {"azimuth_deg": -30.0, "elevation_deg": 0.0, "radius_scale": 0.5},
+    {"azimuth_deg": 30.0, "elevation_deg": 0.0, "radius_scale": 0.5},
+    {"azimuth_deg": 60.0, "elevation_deg": 0.0, "radius_scale": 0.5},
+    {"azimuth_deg": 90.0, "elevation_deg": 0.0, "radius_scale": 0.5},
+    {"azimuth_deg": 120.0, "elevation_deg": 0.0, "radius_scale": 0.5},
+    {"azimuth_deg": 150.0, "elevation_deg": 0.0, "radius_scale": 0.5},
+    {"azimuth_deg": 0.0, "elevation_deg": -45.0, "radius_scale": 0.5},
+    {"azimuth_deg": 0.0, "elevation_deg": -30.0, "radius_scale": 0.5},
+    {"azimuth_deg": 0.0, "elevation_deg": 30.0, "radius_scale": 0.5},
+    {"azimuth_deg": 0.0, "elevation_deg": 45.0, "radius_scale": 0.5},
+    {"azimuth_deg": -90.0, "elevation_deg": 0.0, "radius_scale": 2.0},
+    {"azimuth_deg": 90.0, "elevation_deg": 0.0, "radius_scale": 2.0}
+  ],
+  "diagnostic_look_away": [
+    {"base_azimuth_deg": -45.0, "base_elevation_deg": 0.0, "yaw_offset_deg": -90.0},
+    {"base_azimuth_deg": 45.0, "base_elevation_deg": 0.0, "yaw_offset_deg": 90.0},
+    {"base_azimuth_deg": 0.0, "base_elevation_deg": 20.0, "pitch_offset_deg": 70.0},
+    {"base_azimuth_deg": 0.0, "base_elevation_deg": -20.0, "pitch_offset_deg": -70.0}
+  ],
+  "sensor_controls": [
+    "external_blackout",
+    "wrist_blackout",
+    "all_camera_blackout"
+  ],
+  "information_view_definition": {
+    "instrument": "simulator_instance_segmentation_visible_pixels",
+    "aggregation": "equal_weight_over_frozen_task_entities_and_deployed_camera_channels",
+    "delta": "V_task(candidate)-V_task(canonical)",
+    "threshold": "freeze_on_calibration_tasks_only",
+    "matched_control": "similar_pose_displacement_with_delta_visibility_near_zero"
+  },
+  "exclusions": {
+    "training": [
+      "diagnostic_extreme_orbit",
+      "diagnostic_crossed_orbit",
+      "diagnostic_look_away",
+      "sensor_controls"
+    ],
+    "reason": "uninformative and missing-sensor views are evaluation-only interventions"
+  }
+}

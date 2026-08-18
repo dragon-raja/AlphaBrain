@@ -156,7 +156,7 @@ def build(rules: Mapping[str, Any]) -> dict[str, Any]:
             }
         )
 
-    return {
+    catalog = {
         "schema": "dsol_libero_view_catalog_v2",
         "status": "CANDIDATE_PENDING_RENDER_VISIBILITY_AUDIT",
         "source_rules_schema": rules["schema"],
@@ -195,6 +195,11 @@ def build(rules: Mapping[str, Any]) -> dict[str, Any]:
             "per_task_acceptance_rate",
         ],
     }
+    if "diagnostic_crossed_orbit" in rules:
+        catalog["diagnostic_crossed_orbit"] = _named_poses(
+            rules["diagnostic_crossed_orbit"], "crossed_orbit"
+        )
+    return catalog
 
 
 def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:

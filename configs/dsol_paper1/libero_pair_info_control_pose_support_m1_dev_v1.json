@@ -1,0 +1,73 @@
+{
+  "action_horizon": 10,
+  "allow_diagnostic_pose_training": true,
+  "analysis_role": "development_information_and_matched_control_pose_support_intervention",
+  "expected_record_count": 38193,
+  "frame_stride": 2,
+  "jpeg_quality": 95,
+  "name": "libero_pair_info_control_pose_support_m1_dev_v1",
+  "pose_ids": [
+    "crossed_orbit_004",
+    "crossed_orbit_005",
+    "wide_extrapolation_005",
+    "broad_heldout_004",
+    "broad_heldout_008",
+    "broad_heldout_010",
+    "broad_heldout_018"
+  ],
+  "pose_selection_provenance": "union of strong-information and strict matched-control pose IDs in the frozen development M1 protocol; train episodes and states remain split-disjoint from test",
+  "resolution": 224,
+  "schema": "dsol_libero_pair_collection_plan_v1",
+  "seed": 41,
+  "split_policy": "episode_sha256_80_10_10",
+  "tasks": [
+    {
+      "diagnostic_role": "drawer interior and placement visibility",
+      "expected_records": 5115,
+      "source": "libero_goal/open_the_top_drawer_and_put_the_bowl_inside_demo.hdf5",
+      "task_id": "goal_top_drawer_bowl"
+    },
+    {
+      "diagnostic_role": "object-container visibility",
+      "expected_records": 2687,
+      "source": "libero_goal/put_the_cream_cheese_in_the_bowl_demo.hdf5",
+      "task_id": "goal_cream_cheese_bowl"
+    },
+    {
+      "diagnostic_role": "thin target geometry and placement visibility",
+      "expected_records": 4416,
+      "source": "libero_goal/put_the_wine_bottle_on_the_rack_demo.hdf5",
+      "task_id": "goal_wine_rack"
+    },
+    {
+      "diagnostic_role": "object identity under broad views",
+      "expected_records": 3612,
+      "source": "libero_object/pick_up_the_cream_cheese_and_place_it_in_the_basket_demo.hdf5",
+      "task_id": "object_cream_cheese_basket"
+    },
+    {
+      "diagnostic_role": "drawer occlusion and spatial relation",
+      "expected_records": 3754,
+      "source": "libero_spatial/pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_demo.hdf5",
+      "task_id": "spatial_drawer_bowl_plate"
+    },
+    {
+      "diagnostic_role": "long-horizon drawer interaction",
+      "expected_records": 6232,
+      "source": "libero_10/KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it_demo.hdf5",
+      "task_id": "libero10_bowl_bottom_drawer"
+    },
+    {
+      "diagnostic_role": "appliance interior and long-horizon interaction",
+      "expected_records": 7631,
+      "source": "libero_10/KITCHEN_SCENE6_put_the_yellow_and_white_mug_in_the_microwave_and_close_it_demo.hdf5",
+      "task_id": "libero10_mug_microwave"
+    },
+    {
+      "diagnostic_role": "compartment occlusion and placement",
+      "expected_records": 4746,
+      "source": "libero_10/STUDY_SCENE1_pick_up_the_book_and_place_it_in_the_back_compartment_of_the_caddy_demo.hdf5",
+      "task_id": "libero10_book_caddy"
+    }
+  ]
+}

@@ -134,6 +134,7 @@ def run_episode(
         env.reset()
         env.reset_from_xml_string(model_xml)
         observation = env.set_init_state(state)
+        physics_sha256, physics_size = physics_state_sha256(env)
         catalog_path = Path(spec["catalog"]) if "catalog" in spec else None
         table_plane_z = 0.0
         if catalog_path is not None:
@@ -166,7 +167,7 @@ def run_episode(
             camera_calibration=camera_calibration,
             sensor_control=sensor_control,
         )
-        physics_sha256, physics_size = physics_state_sha256(env)
+        post_wait_physics_sha256, post_wait_physics_size = physics_state_sha256(env)
         entities = list(env.env.obj_of_interest)
         initial_visibility = task_entity_visibility(
             env,
@@ -181,6 +182,9 @@ def run_episode(
             "task_entity_visibility": initial_visibility,
             "physics_state_sha256": physics_sha256,
             "physics_state_size": physics_size,
+            "physics_state_stage": "after_set_init_state_before_camera_install_and_wait",
+            "post_wait_physics_state_sha256_exact": post_wait_physics_sha256,
+            "post_wait_physics_state_size": post_wait_physics_size,
         }
         max_steps = MAX_STEPS_BY_SUITE[suite]
         step = 0

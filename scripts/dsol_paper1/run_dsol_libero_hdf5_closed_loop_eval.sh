@@ -41,6 +41,7 @@ protocol_sha256=$(sha256sum "$PROTOCOL" | awk '{print $1}')
 code_sha256=$(sha256sum \
   "$REPO_ROOT/scripts/cabi_vla/serve_alphabrain_pi05_websocket.py" \
   "$REPO_ROOT/scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py" \
+  "$REPO_ROOT/scripts/dsol_paper1/summarize_dsol_libero_hdf5_closed_loop.py" \
   "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh" \
   | sha256sum | awk '{print $1}')
 jq -n \

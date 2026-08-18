@@ -22,6 +22,30 @@ EXPECTED_CONDITIONS = (
     "broad_heldout_wrist_only",
     "wide_extrapolation_both",
 )
+PHYSICS_STATE_STAGE = "after_set_init_state_before_camera_install_and_wait"
+
+
+def audit_paired_physics(by_pair: dict[str, dict[str, dict]]) -> None:
+    invalid_stages = []
+    physics_mismatches = []
+    for pair_key, conditions in by_pair.items():
+        stages = {
+            row["initial_metrics"].get("physics_state_stage")
+            for row in conditions.values()
+        }
+        if stages != {PHYSICS_STATE_STAGE}:
+            invalid_stages.append((pair_key, sorted(str(stage) for stage in stages)))
+            continue
+        hashes = {
+            row["initial_metrics"]["physics_state_sha256"]
+            for row in conditions.values()
+        }
+        if len(hashes) != 1:
+            physics_mismatches.append(pair_key)
+    if invalid_stages:
+        raise ValueError(f"invalid paired physics hash stage: {invalid_stages[:5]}")
+    if physics_mismatches:
+        raise ValueError(f"paired physics state mismatch: {physics_mismatches[:5]}")
 
 
 def wilson(successes: int, total: int, z: float = 1.959963984540054) -> list[float]:
@@ -66,16 +90,7 @@ def main() -> None:
         if missing:
             raise ValueError(f"incomplete pair {pair_key}: missing {sorted(missing)}")
 
-    physics_mismatches = []
-    for pair_key, conditions in by_pair.items():
-        hashes = {
-            row["initial_metrics"]["physics_state_sha256"]
-            for row in conditions.values()
-        }
-        if len(hashes) != 1:
-            physics_mismatches.append(pair_key)
-    if physics_mismatches:
-        raise ValueError(f"paired physics state mismatch: {physics_mismatches[:5]}")
+    audit_paired_physics(by_pair)
 
     conditions_summary = {}
     for condition in EXPECTED_CONDITIONS:
@@ -146,6 +161,7 @@ def main() -> None:
         "episode_count": len(rows),
         "paired_group_count": len(by_pair),
         "physics_pair_mismatches": 0,
+        "physics_state_hash_stage": PHYSICS_STATE_STAGE,
         "conditions": conditions_summary,
         "paired_comparisons": comparison_summary,
         "statistical_unit": "source HDF5 episode / pair_key",

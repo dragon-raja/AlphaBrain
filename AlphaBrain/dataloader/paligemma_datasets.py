@@ -41,6 +41,13 @@ class Pi0DataConfig:
     include_state: bool = True
     state_dim: int = 7
     feedback_horizon_key: str = "feedback_horizon"
+    use_image_augmentation: bool = False
+    image_augmentation_crop_scale: tuple = (0.95, 1.0)
+    image_augmentation_crop_ratio: tuple = (0.98, 1.02)
+    image_augmentation_brightness: float = 0.3
+    image_augmentation_contrast: float = 0.4
+    image_augmentation_saturation: float = 0.5
+    image_augmentation_hue: float = 0.08
 
 
 class Pi0DataTransform:
@@ -57,6 +64,35 @@ class Pi0DataTransform:
     def __init__(self, config: Pi0DataConfig, tokenizer=None):
         self.config = config
         self.tokenizer = tokenizer  # PaliGemma/Gemma tokenizer
+
+    def _augment_image(self, image: np.ndarray) -> np.ndarray:
+        """Apply the registered ImageAug baseline without action-breaking flips."""
+        from torchvision import transforms as T
+        from torchvision.transforms import functional as F
+
+        pil_image = Image.fromarray(np.asarray(image, dtype=np.uint8), mode="RGB")
+        top, left, height, width = T.RandomResizedCrop.get_params(
+            pil_image,
+            scale=self.config.image_augmentation_crop_scale,
+            ratio=self.config.image_augmentation_crop_ratio,
+        )
+        pil_image = F.resized_crop(
+            pil_image,
+            top,
+            left,
+            height,
+            width,
+            list(self.config.image_resolution),
+            interpolation=T.InterpolationMode.BILINEAR,
+            antialias=True,
+        )
+        pil_image = T.ColorJitter(
+            brightness=self.config.image_augmentation_brightness,
+            contrast=self.config.image_augmentation_contrast,
+            saturation=self.config.image_augmentation_saturation,
+            hue=self.config.image_augmentation_hue,
+        )(pil_image)
+        return np.asarray(pil_image, dtype=np.uint8)
         
     def __call__(self, sample: dict) -> dict:
         """Transform a single sample."""
@@ -83,6 +119,8 @@ class Pi0DataTransform:
                     img = np.array(pil_img)
                 elif isinstance(img, torch.Tensor):
                     img = img.numpy()
+                if self.config.use_image_augmentation:
+                    img = self._augment_image(img)
                 processed_images.append(img)
             result["image"] = processed_images
         else:
@@ -135,9 +173,16 @@ class Pi0DataTransform:
             "cabi_transport_roles",
             "cabi_decision_point",
             "sample_id",
+            "episode_id",
+            "frame_index",
             "edge_id",
             "canonical_state_index",
             "camera_pose",
+            "dsol_pair_id",
+            "dsol_pair_role",
+            "dsol_pair_objective",
+            "dsol_pair_shared_flow",
+            "dsol_image_augmentation",
         ):
             if key in sample:
                 result[key] = sample[key]
@@ -482,6 +527,194 @@ class LiberoPlusTFRecordDataset:
             "camera_intrinsics": self.camera_intrinsics,
             "camera_to_world_opencv": row["camera_to_world_opencv"],
         }
+
+
+class DsolLiberoPairDataset:
+    """Read exact-state DSOL view pairs and derive budget-matched training arms."""
+
+    _ARMS = {
+        "canonical_unique",
+        "image_augmentation_unique",
+        "canonical_repeat",
+        "broad_unpaired_practical",
+        "broad_unpaired_state_matched",
+        "broad_paired_fm",
+        "broad_paired_consistency",
+    }
+
+    def __init__(
+        self,
+        root: Path | str,
+        *,
+        split: str = "train",
+        arm: str = "canonical_unique",
+        shard_cache_size: int = 2,
+    ) -> None:
+        from scripts.dsol_paper1.libero_pair_records import FILE_MAGIC
+
+        self.root = Path(root)
+        self.arm = str(arm)
+        if self.arm not in self._ARMS:
+            raise ValueError(f"unsupported DSOL pair arm {self.arm!r}")
+        if split not in {"train", "val", "test", "all"}:
+            raise ValueError(f"unsupported DSOL pair split {split!r}")
+        if shard_cache_size <= 0:
+            raise ValueError("shard_cache_size must be positive")
+        self.shard_cache_size = int(shard_cache_size)
+        self._shard_cache: OrderedDict[str, Any] = OrderedDict()
+        self._file_magic = FILE_MAGIC
+
+        manifest_path = self.root / "manifest.json"
+        if not manifest_path.is_file():
+            raise FileNotFoundError(f"missing DSOL pair manifest: {manifest_path}")
+        root_manifest = json.loads(manifest_path.read_text())
+        if root_manifest.get("schema") == "dsol_libero_hdf5_view_pair_shard_v1":
+            shard_roots = [self.root]
+        elif root_manifest.get("schema") == "dsol_libero_hdf5_view_pair_collection_v1":
+            shard_roots = [self.root / row["path"] for row in root_manifest["shards"]]
+        else:
+            raise ValueError(f"unsupported DSOL pair manifest schema: {manifest_path}")
+
+        records = []
+        for shard_root in shard_roots:
+            shard_manifest = json.loads((shard_root / "manifest.json").read_text())
+            if shard_manifest.get("status") != "VERIFIED":
+                raise ValueError(f"DSOL pair shard is not verified: {shard_root}")
+            shard_path = shard_root / shard_manifest["shard"]
+            with shard_path.open("rb") as handle:
+                if handle.read(len(FILE_MAGIC)) != FILE_MAGIC:
+                    raise ValueError(f"invalid DSOL pair shard magic: {shard_path}")
+            for line in (shard_root / shard_manifest["records"]).read_text().splitlines():
+                if not line.strip():
+                    continue
+                row = json.loads(line)
+                if split != "all" and row["split"] != split:
+                    continue
+                records.append({**row, "shard_path": str(shard_path)})
+        if not records:
+            raise ValueError(f"no DSOL pair records for split={split!r}")
+        self.records = records
+
+    def __len__(self) -> int:
+        return len(self.records)
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["_shard_cache"] = OrderedDict()
+        return state
+
+    def _open_shard(self, path: str):
+        handle = self._shard_cache.pop(path, None)
+        if handle is None:
+            handle = Path(path).open("rb")
+            if handle.read(len(self._file_magic)) != self._file_magic:
+                handle.close()
+                raise ValueError(f"invalid DSOL pair shard magic: {path}")
+        self._shard_cache[path] = handle
+        while len(self._shard_cache) > self.shard_cache_size:
+            _, old_handle = self._shard_cache.popitem(last=False)
+            old_handle.close()
+        return handle
+
+    @staticmethod
+    def _sample(
+        *,
+        header: Mapping[str, Any],
+        images: Mapping[str, np.ndarray],
+        external_name: str,
+        pair_role: str,
+        pair_objective: bool,
+        pair_shared_flow: bool,
+    ) -> dict[str, Any]:
+        camera_key = {
+            "canonical": "canonical_camera_to_world_opencv",
+            "broad_a": "camera_a_to_world_opencv",
+            "broad_b": "camera_b_to_world_opencv",
+        }[external_name]
+        result = {
+            "image": [images[external_name], images["wrist"]],
+            "lang": header["language_instruction"],
+            "action": np.asarray(header["action_chunk"], dtype=np.float32),
+            "state": np.asarray(header["robot_state"], dtype=np.float32),
+            "action_supervised": True,
+            "sample_id": f"{header['sample_id']}::{pair_role}",
+            "episode_id": header["episode_id"],
+            "frame_index": int(header["frame"]),
+            "camera_pose": external_name,
+            "camera_intrinsics": header.get("camera_intrinsics"),
+            "camera_to_world_opencv": header[camera_key],
+            "dsol_pair_id": header["sample_id"],
+            "dsol_pair_role": pair_role,
+            "dsol_pair_objective": bool(pair_objective),
+            "dsol_pair_shared_flow": bool(pair_shared_flow),
+        }
+        if result["camera_intrinsics"] is None:
+            result.pop("camera_intrinsics")
+        return result
+
+    def __getitem__(self, index: int) -> dict[str, Any] | list[dict[str, Any]]:
+        from scripts.dsol_paper1.libero_pair_records import read_record
+
+        row = self.records[index]
+        if self.arm.startswith("canonical") or self.arm == "image_augmentation_unique":
+            external_names = ("canonical",)
+        elif self.arm in {"broad_paired_fm", "broad_paired_consistency"}:
+            external_names = ("broad_a", "broad_b")
+        else:
+            external_names = ("broad_a",)
+        record = read_record(
+            self._open_shard(row["shard_path"]),
+            offset=int(row["offset"]),
+            image_names=(*external_names, "wrist"),
+        )
+        header = record["header"]
+        images = record["images"]
+        paired_objective = self.arm == "broad_paired_consistency"
+        paired_shared_flow = self.arm in {
+            "broad_unpaired_state_matched",
+            "broad_paired_fm",
+            "broad_paired_consistency",
+        }
+
+        if self.arm in {"canonical_unique", "image_augmentation_unique"}:
+            sample = self._sample(
+                header=header,
+                images=images,
+                external_name="canonical",
+                pair_role="unique",
+                pair_objective=False,
+                pair_shared_flow=False,
+            )
+            sample["dsol_image_augmentation"] = self.arm == "image_augmentation_unique"
+            return sample
+        if self.arm == "broad_unpaired_practical":
+            external_name = "broad_a"
+            return self._sample(
+                header=header,
+                images=images,
+                external_name=external_name,
+                pair_role="unique",
+                pair_objective=False,
+                pair_shared_flow=False,
+            )
+
+        if self.arm == "canonical_repeat":
+            names = ("canonical", "canonical")
+        elif self.arm == "broad_unpaired_state_matched":
+            names = ("broad_a", "broad_a")
+        else:
+            names = ("broad_a", "broad_b")
+        return [
+            self._sample(
+                header=header,
+                images=images,
+                external_name=name,
+                pair_role=f"pair_{role}",
+                pair_objective=paired_objective,
+                pair_shared_flow=paired_shared_flow,
+            )
+            for role, name in zip(("a", "b"), names)
+        ]
 
 
 class LiberoBindTrainingDataset:
@@ -884,6 +1117,13 @@ def get_pi0_dataset(data_cfg, mode="train", **kwargs):
             source_data_root=source_data_root,
             episode_cache_size=int(getattr(data_cfg, 'episode_cache_size', 2)),
         )
+    elif dataset_format == 'dsol_libero_pairs':
+        base_dataset = DsolLiberoPairDataset(
+            getattr(data_cfg, 'data_root_dir'),
+            split=getattr(data_cfg, 'split', mode),
+            arm=getattr(data_cfg, 'dsol_arm', 'canonical_unique'),
+            shard_cache_size=int(getattr(data_cfg, 'shard_cache_size', 2)),
+        )
     elif dataset_format in {'fresh_snapshot', 'fresh_episode_window'}:
         configured_tasks = getattr(data_cfg, 'snapshot_tasks', ('grasp_slip',))
         dataset_class = FreshSnapshotDataset if dataset_format == 'fresh_snapshot' else FreshEpisodeWindowDataset
@@ -927,6 +1167,13 @@ def get_pi0_dataset(data_cfg, mode="train", **kwargs):
         include_state=getattr(data_cfg, 'include_state', True),
         state_dim=getattr(data_cfg, 'state_dim', 7),
         feedback_horizon_key=getattr(data_cfg, 'feedback_horizon_key', 'feedback_horizon'),
+        use_image_augmentation=bool(getattr(data_cfg, 'use_image_augmentation', False)),
+        image_augmentation_crop_scale=tuple(getattr(data_cfg, 'image_augmentation_crop_scale', (0.95, 1.0))),
+        image_augmentation_crop_ratio=tuple(getattr(data_cfg, 'image_augmentation_crop_ratio', (0.98, 1.02))),
+        image_augmentation_brightness=float(getattr(data_cfg, 'image_augmentation_brightness', 0.3)),
+        image_augmentation_contrast=float(getattr(data_cfg, 'image_augmentation_contrast', 0.4)),
+        image_augmentation_saturation=float(getattr(data_cfg, 'image_augmentation_saturation', 0.5)),
+        image_augmentation_hue=float(getattr(data_cfg, 'image_augmentation_hue', 0.08)),
     )
     
     transform = Pi0DataTransform(config=pi0_config)

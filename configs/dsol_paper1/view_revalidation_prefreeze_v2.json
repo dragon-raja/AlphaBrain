@@ -1,0 +1,86 @@
+{
+  "schema": "dsol_view_revalidation_prefreeze_v2",
+  "status": "PREFREEZE_REVIEW_REQUIRED",
+  "claim_boundary": "Legacy Phase B/M0/M1 are narrow-support anchors only.",
+  "formal_training_allowed": false,
+  "target_transfer_required": true,
+  "factors": {
+    "camera_support": ["narrow_legacy_8", "broad_32", "broad_64"],
+    "data_organization": [
+      "practical_unpaired",
+      "state_matched_unpaired_repeat",
+      "same_state_paired"
+    ],
+    "objective": ["ordinary_flow_matching", "paired_flow_consistency"],
+    "exposure_scale": [1, 2, 4],
+    "camera_channels": ["wrist_on", "wrist_off", "external_only", "wrist_only"],
+    "environments": ["robocasa", "libero_plus"]
+  },
+  "view_domains": {
+    "training": ["narrow_legacy", "broad_informative", "reveal_info_support"],
+    "evaluation_only": [
+      "extreme_geometric_look_away",
+      "single_camera_blackout",
+      "all_camera_blackout"
+    ]
+  },
+  "training_arms": [
+    "official_frozen",
+    "canonical_unique",
+    "canonical_repeat",
+    "image_augmentation_unique",
+    "legacy_image_augmentation_repeat",
+    "legacy_mv8_unpaired",
+    "legacy_mv8_paired_fm",
+    "broad_unpaired_practical",
+    "broad_unpaired_state_matched",
+    "broad_paired_fm",
+    "broad_paired_consistency",
+    "info_pose_support"
+  ],
+  "visibility_instrument": {
+    "source": "simulator_instance_segmentation",
+    "aggregation": "equal_weight_over_frozen_task_entities_and_deployed_camera_channels",
+    "primary_delta": "V_task(candidate)-V_task(canonical)",
+    "threshold_status": "PENDING_INDEPENDENT_CALIBRATION",
+    "policy_outputs_used_for_candidate_definition": false,
+    "required_channel_reports": ["left", "right", "wrist"]
+  },
+  "training": {
+    "model": "pi05",
+    "adaptation": "lora",
+    "paligemma_variant": "gemma_2b_lora",
+    "action_expert_variant": "gemma_300m_lora",
+    "target_global_batch_size": 32,
+    "fallback_global_batch_size": 16,
+    "batch_status": "PENDING_20_TO_50_STEP_MEMORY_SMOKE",
+    "minimum_training_seeds": 3,
+    "same_trainable_parameters_across_arms": true,
+    "same_optimizer_updates_across_arms": true
+  },
+  "minimum_pilot": {
+    "task_families": 6,
+    "paired_states_per_task": 50,
+    "purpose": "pipeline_and_instrument_debug_only"
+  },
+  "formal_statistics": {
+    "independent_unit": "task_x_scene_seed_or_snapshot_group",
+    "paired_group_bootstrap_confidence": 0.95,
+    "power_analysis_required_before_freeze": true,
+    "frame_level_pseudoreplication_forbidden": true
+  },
+  "wandb": {
+    "mode": "online_with_offline_fallback",
+    "allowed": ["hyperparameters", "metrics", "seed", "git_commit", "summary"],
+    "forbidden": ["dataset", "video", "checkpoint", "model_weights", "secrets"]
+  },
+  "release_gates": [
+    "target_transfer_verified",
+    "view_catalog_v2_frozen",
+    "arm_identity_audit_passed",
+    "visibility_instrument_calibrated",
+    "broad_support_is_materially_wider_than_legacy",
+    "memory_smoke_passed",
+    "power_plan_frozen"
+  ]
+}

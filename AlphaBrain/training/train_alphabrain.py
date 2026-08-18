@@ -13,9 +13,12 @@ Conventions:
 # Standard Library
 import argparse
 from contextlib import nullcontext
+from collections import defaultdict
+import hashlib
 import json
 import logging
 import os
+import random
 from datetime import datetime
 from pathlib import Path
 from typing import Tuple
@@ -186,6 +189,102 @@ def prepare_data(cfg, accelerator, output_dir) -> Tuple[DataLoader, DataLoader]:
     return vla_train_dataloader
 
 
+def prepare_dsol_validation_data(cfg):
+    """Build a fixed held-out loader for DSOL convergence calibration."""
+    validation_cfg = getattr(cfg.trainer, "dsol_validation", None)
+    if validation_cfg is None or not bool(getattr(validation_cfg, "enabled", False)):
+        return None
+    if str(getattr(cfg.datasets.vla_data, "dataset_format", "")) != "dsol_libero_pairs":
+        raise ValueError("trainer.dsol_validation requires dataset_format=dsol_libero_pairs")
+
+    from torch.utils.data import Subset
+    from AlphaBrain.dataloader.paligemma_datasets import get_pi0_dataset, pi0_collate_fn
+
+    data_cfg = OmegaConf.create(OmegaConf.to_container(cfg.datasets.vla_data, resolve=True))
+    data_cfg.split = str(getattr(validation_cfg, "split", "val"))
+    data_cfg.dsol_arm = str(getattr(validation_cfg, "arm", "canonical_unique"))
+    data_cfg.shuffle = False
+    data_cfg.use_image_augmentation = False
+    dataset = get_pi0_dataset(data_cfg=data_cfg, mode=data_cfg.split)
+    max_data_items = int(getattr(validation_cfg, "max_data_items", 256))
+    if max_data_items <= 0:
+        raise ValueError("trainer.dsol_validation.max_data_items must be positive")
+    records = dataset.base_dataset.records
+    by_task: dict[str, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
+    for index, row in enumerate(records):
+        episode_id = str(row["episode_id"])
+        task_id = episode_id.rsplit("::demo_", 1)[0]
+        by_task[task_id][episode_id].append(index)
+    if not by_task:
+        raise ValueError("DSOL validation split contains no task groups")
+
+    selected_indices = []
+    task_ids = sorted(by_task)
+    total_target = min(max_data_items, len(records))
+    per_task, task_remainder = divmod(total_target, len(task_ids))
+    for task_rank, task_id in enumerate(task_ids):
+        task_target = per_task + int(task_rank < task_remainder)
+        episode_groups = by_task[task_id]
+        episode_ids = sorted(episode_groups)
+        per_episode, episode_remainder = divmod(task_target, len(episode_ids))
+        for episode_rank, episode_id in enumerate(episode_ids):
+            quota = per_episode + int(episode_rank < episode_remainder)
+            candidates = sorted(
+                episode_groups[episode_id],
+                key=lambda index: int(records[index]["frame"]),
+            )
+            quota = min(quota, len(candidates))
+            if quota == 1:
+                selected_indices.append(candidates[len(candidates) // 2])
+            elif quota > 1:
+                positions = np.linspace(0, len(candidates) - 1, quota).round().astype(int)
+                selected_indices.extend(candidates[position] for position in positions)
+    if len(selected_indices) != total_target:
+        selected = set(selected_indices)
+        selected_indices.extend(
+            index for index in range(len(records)) if index not in selected
+        )
+        selected_indices = selected_indices[:total_target]
+
+    ledger = {
+        "schema": "dsol_fixed_validation_ledger_v1",
+        "split": data_cfg.split,
+        "arm": data_cfg.dsol_arm,
+        "selection": "task_and_episode_balanced_even_frame_sampling",
+        "max_data_items": max_data_items,
+        "selected_data_items": len(selected_indices),
+        "source_manifest": str(Path(data_cfg.data_root_dir) / "manifest.json"),
+        "source_manifest_sha256": hashlib.sha256(
+            (Path(data_cfg.data_root_dir) / "manifest.json").read_bytes()
+        ).hexdigest(),
+        "records": [
+            {
+                "sample_id": records[index]["sample_id"],
+                "episode_id": records[index]["episode_id"],
+                "frame": int(records[index]["frame"]),
+            }
+            for index in selected_indices
+        ],
+    }
+    if not dist.is_initialized() or dist.get_rank() == 0:
+        ledger_path = Path(cfg.output_dir) / "dsol_validation_ledger.json"
+        temporary_path = ledger_path.with_suffix(".json.tmp")
+        temporary_path.write_text(json.dumps(ledger, indent=2, sort_keys=True) + "\n")
+        temporary_path.replace(ledger_path)
+    dataset = Subset(dataset, selected_indices)
+    return DataLoader(
+        dataset,
+        batch_size=int(getattr(validation_cfg, "per_device_batch_size", 1)),
+        collate_fn=pi0_collate_fn,
+        num_workers=int(getattr(validation_cfg, "num_workers", 2)),
+        shuffle=False,
+        drop_last=False,
+        persistent_workers=bool(getattr(validation_cfg, "num_workers", 2)),
+        timeout=120,
+        pin_memory=True,
+    )
+
+
 def _build_lambda_linear_scheduler(optimizer, cycle_lengths, warm_up_steps, f_start, f_max, f_min):
     """
     Multi-cycle LambdaWarmUpCosine scheduler matching the original cosmos_policy.
@@ -264,11 +363,19 @@ def setup_optimizer_and_scheduler(model, cfg) -> Tuple[torch.optim.Optimizer, to
             optimizer, cycle_lengths, warm_up_steps, f_start, f_max, f_min
         )
     else:
+        scheduler_total_steps = int(
+            getattr(cfg.trainer, "scheduler_total_steps", cfg.trainer.max_train_steps)
+        )
+        if scheduler_total_steps < cfg.trainer.max_train_steps:
+            raise ValueError(
+                "trainer.scheduler_total_steps must be greater than or equal to "
+                "trainer.max_train_steps"
+            )
         lr_scheduler = get_scheduler(
             name=cfg.trainer.lr_scheduler_type,
             optimizer=optimizer,
             num_warmup_steps=cfg.trainer.num_warmup_steps,
-            num_training_steps=cfg.trainer.max_train_steps,
+            num_training_steps=scheduler_total_steps,
             scheduler_specific_kwargs=cfg.trainer.scheduler_specific_kwargs,  # minimum learning rate
         )
 
@@ -276,13 +383,23 @@ def setup_optimizer_and_scheduler(model, cfg) -> Tuple[torch.optim.Optimizer, to
 
 
 class VLATrainer(TrainerUtils):
-    def __init__(self, cfg, model, vla_train_dataloader, optimizer, lr_scheduler, accelerator):
+    def __init__(
+        self,
+        cfg,
+        model,
+        vla_train_dataloader,
+        optimizer,
+        lr_scheduler,
+        accelerator,
+        dsol_validation_dataloader=None,
+    ):
         self.config = cfg
         self.model = model
         self.vla_train_dataloader = vla_train_dataloader
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
         self.accelerator = accelerator
+        self.dsol_validation_dataloader = dsol_validation_dataloader
 
         # LoRA
         from AlphaBrain.training.trainer_utils.peft import is_lora_enabled
@@ -335,6 +452,10 @@ class VLATrainer(TrainerUtils):
             self.optimizer,
             self.vla_train_dataloader,
         )
+        if self.dsol_validation_dataloader is not None:
+            self.dsol_validation_dataloader = self.accelerator.prepare_data_loader(
+                self.dsol_validation_dataloader
+            )
 
         self._init_wandb()
 
@@ -364,7 +485,21 @@ class VLATrainer(TrainerUtils):
             logger.info(f"LR scheduler adjusted to step {self.completed_steps}, current LR: {self.lr_scheduler.get_last_lr()}")
 
     def _calculate_total_batch_size(self):
-        """calculate global batch size"""
+        """Calculate model examples consumed per optimizer step."""
+        examples_per_item = int(
+            getattr(self.config.datasets.vla_data, "examples_per_item", 1)
+        )
+        if examples_per_item <= 0:
+            raise ValueError("datasets.vla_data.examples_per_item must be positive")
+        return (
+            self.config.datasets.vla_data.per_device_batch_size
+            * self.accelerator.num_processes
+            * self.accelerator.gradient_accumulation_steps
+            * examples_per_item
+        )
+
+    def _calculate_total_data_items(self):
+        """Calculate source dataset records consumed per optimizer step."""
         return (
             self.config.datasets.vla_data.per_device_batch_size
             * self.accelerator.num_processes
@@ -826,7 +961,9 @@ class VLATrainer(TrainerUtils):
                 )
                 metrics["examples_seen"] = microbatches_seen * int(
                     self.config.datasets.vla_data.per_device_batch_size
-                ) * self.accelerator.num_processes
+                ) * self.accelerator.num_processes * int(
+                    getattr(self.config.datasets.vla_data, "examples_per_item", 1)
+                )
                 metrics["epoch"] = round(
                     microbatches_seen / max(len(self.vla_train_dataloader), 1), 2
                 )
@@ -862,6 +999,28 @@ class VLATrainer(TrainerUtils):
                 tot_str  = f"  [bold]total_loss={tot_loss:.4f}[/bold]" if tot_loss is not None else ""
                 print(f"  step {self.completed_steps:>6d}  action_dit_loss={loss_val:.5f}" + (f"  video_loss={vid_loss:.4f}" if vid_loss is not None else "") + (f"  total_loss={tot_loss:.4f}" if tot_loss is not None else "") + f"  lr={lr_val:.2e}" + (f"  mse={mse_val:.6f}" if mse_val is not None else "") + (f"  act_mse={act_mse:.4f}" if act_mse is not None and act_mse > 0 else "") + (f"  cond_mse={cond_mse:.6f}" if cond_mse is not None else ""), flush=True)
 
+    def _mean_metrics_across_processes(self, metrics):
+        """Average scalar training metrics across distributed ranks."""
+        if not dist.is_initialized():
+            return metrics
+        keys = sorted(
+            key
+            for key, value in metrics.items()
+            if isinstance(value, (int, float, np.number))
+        )
+        if not keys:
+            return metrics
+        values = torch.tensor(
+            [float(metrics[key]) for key in keys],
+            device=self.accelerator.device,
+            dtype=torch.float32,
+        )
+        dist.all_reduce(values, op=dist.ReduceOp.SUM)
+        values /= dist.get_world_size()
+        reduced = dict(metrics)
+        reduced.update({key: values[index].item() for index, key in enumerate(keys)})
+        return reduced
+
     def _create_data_iterators(self):
         """create data iterators"""
         self.vla_iter = iter(self.vla_train_dataloader)
@@ -894,12 +1053,19 @@ class VLATrainer(TrainerUtils):
         if not self._deepspeed_manages_accumulation():
             self.optimizer.zero_grad()
 
+        if self.dsol_validation_dataloader is not None and self.completed_steps == 0:
+            self._log_metrics(self.eval_dsol_validation())
+
         # create progress bar
         progress_bar = tqdm(
             range(self.config.trainer.max_train_steps),
             initial=self.completed_steps,
             disable=not self.accelerator.is_local_main_process
         )
+        accumulated_metrics = {}
+        accumulated_microbatches = 0
+        accumulated_data_time = 0.0
+        accumulated_model_time = 0.0
 
         # main training loop
         while self.completed_steps < self.config.trainer.max_train_steps:
@@ -914,11 +1080,28 @@ class VLATrainer(TrainerUtils):
                 step_metrics = self._train_step(batch_vla)
                 optimizer_stepped = self.accelerator.sync_gradients
             t_end_model = time.perf_counter()
+            accumulated_microbatches += 1
+            accumulated_data_time += t_end_data - t_start_data
+            accumulated_model_time += t_end_model - t_start_model
+            for key, value in step_metrics.items():
+                if isinstance(value, (int, float, np.number)):
+                    accumulated_metrics[key] = accumulated_metrics.get(key, 0.0) + float(value)
 
             # update progress
             if optimizer_stepped:
                 progress_bar.update(1)
                 self.completed_steps += 1
+                step_metrics = {
+                    key: value / accumulated_microbatches
+                    for key, value in accumulated_metrics.items()
+                }
+                step_metrics = self._mean_metrics_across_processes(step_metrics)
+                step_metrics["data_time"] = accumulated_data_time / accumulated_microbatches
+                step_metrics["model_time"] = accumulated_model_time / accumulated_microbatches
+                accumulated_metrics = {}
+                accumulated_microbatches = 0
+                accumulated_data_time = 0.0
+                accumulated_model_time = 0.0
 
             if self.accelerator.is_local_main_process:
                 _postfix = {
@@ -935,15 +1118,19 @@ class VLATrainer(TrainerUtils):
             # not microbatch events.
             if optimizer_stepped and self.completed_steps % self.config.trainer.eval_interval == 0:
                 try:
-                    step_metrics = self.eval_action_model(step_metrics)
+                    if self.dsol_validation_dataloader is not None:
+                        step_metrics.update(self.eval_dsol_validation())
+                    else:
+                        step_metrics = self.eval_action_model(step_metrics)
                 except Exception as e:
                     if self.accelerator.is_main_process:
                         logger.warning(f"eval_action_model failed: {e}, skipping")
 
 
             # record metrics
-            step_metrics["data_time"] = t_end_data - t_start_data
-            step_metrics["model_time"] = t_end_model - t_start_model
+            if not optimizer_stepped:
+                step_metrics["data_time"] = t_end_data - t_start_data
+                step_metrics["model_time"] = t_end_model - t_start_model
             if optimizer_stepped:
                 self._log_metrics(step_metrics)
 
@@ -963,6 +1150,50 @@ class VLATrainer(TrainerUtils):
         self._finalize_training()
 
         # execute evaluation step
+
+    def eval_dsol_validation(self) -> dict[str, float]:
+        """Evaluate fixed held-out examples without perturbing training RNG state."""
+        validation_cfg = self.config.trainer.dsol_validation
+        eval_seed = int(getattr(validation_cfg, "seed", 20260818))
+        rank = dist.get_rank() if dist.is_initialized() else 0
+        was_training = self.model.training
+        cpu_rng = torch.random.get_rng_state()
+        cuda_rng = torch.cuda.get_rng_state(self.accelerator.device)
+        numpy_rng = np.random.get_state()
+        python_rng = random.getstate()
+        loss_sum = torch.zeros((), device=self.accelerator.device, dtype=torch.float64)
+        example_count = torch.zeros((), device=self.accelerator.device, dtype=torch.float64)
+        try:
+            self.model.eval()
+            with torch.no_grad():
+                for batch_index, examples in enumerate(self.dsol_validation_dataloader):
+                    batch_seed = eval_seed + rank * 1_000_003 + batch_index
+                    random.seed(batch_seed)
+                    np.random.seed(batch_seed % (2**32 - 1))
+                    torch.manual_seed(batch_seed)
+                    torch.cuda.manual_seed(batch_seed)
+                    with torch.autocast("cuda", dtype=torch.bfloat16):
+                        output = self.model.forward(examples)
+                    batch_size = len(examples)
+                    loss_sum += output["action_loss"].detach().double() * batch_size
+                    example_count += batch_size
+        finally:
+            torch.random.set_rng_state(cpu_rng)
+            torch.cuda.set_rng_state(cuda_rng, self.accelerator.device)
+            np.random.set_state(numpy_rng)
+            random.setstate(python_rng)
+            if was_training:
+                self.model.train()
+        if dist.is_initialized():
+            dist.all_reduce(loss_sum, op=dist.ReduceOp.SUM)
+            dist.all_reduce(example_count, op=dist.ReduceOp.SUM)
+        if example_count.item() <= 0:
+            raise RuntimeError("DSOL validation loader produced no examples")
+        value = (loss_sum / example_count).item()
+        return {
+            "dsol_val_action_loss": float(value),
+            "dsol_val_examples": int(example_count.item()),
+        }
 
     def eval_action_model(self, step_metrics: dict = None) -> float:
         """
@@ -1013,7 +1244,8 @@ class VLATrainer(TrainerUtils):
             logger.info(f"  [dim]Total steps:[/dim]        [bold yellow]{self.config.trainer.max_train_steps}[/bold yellow]")
             logger.info(f"  [dim]Batch / device:[/dim]     [yellow]{self.config.datasets.vla_data.per_device_batch_size}[/yellow]")
             logger.info(f"  [dim]Grad accumulation:[/dim]  [yellow]{self.config.trainer.gradient_accumulation_steps}[/yellow]")
-            logger.info(f"  [dim]Total batch size:[/dim]   [bold yellow]{self.total_batch_size}[/bold yellow]")
+            logger.info(f"  [dim]Data items / update:[/dim] [yellow]{self._calculate_total_data_items()}[/yellow]")
+            logger.info(f"  [dim]Model examples / update:[/dim] [bold yellow]{self.total_batch_size}[/bold yellow]")
             logger.info(f"[bold cyan]{sep}[/bold cyan]")
 
     def _train_step(self, batch_vla, batch_vlm=None):
@@ -1083,7 +1315,7 @@ class VLATrainer(TrainerUtils):
                 continue
             log_dict[k] = v.item() if isinstance(v, torch.Tensor) else v
         for k, v in output_dict.items():
-            if not k.startswith(("fresh_", "cabi_", "counterfactual_")):
+            if not k.startswith(("fresh_", "cabi_", "counterfactual_", "dsol_")):
                 continue
             if isinstance(v, torch.Tensor) and v.numel() != 1:
                 continue
@@ -1244,6 +1476,7 @@ def main(cfg) -> None:
 
     # prepare data
     vla_train_dataloader = prepare_data(cfg=cfg, accelerator=accelerator, output_dir=output_dir)
+    dsol_validation_dataloader = prepare_dsol_validation_data(cfg)
 
     # set optimizer and scheduler
     optimizer, lr_scheduler = setup_optimizer_and_scheduler(model=model, cfg=cfg)
@@ -1257,6 +1490,7 @@ def main(cfg) -> None:
         optimizer=optimizer,
         lr_scheduler=lr_scheduler,
         accelerator=accelerator,
+        dsol_validation_dataloader=dsol_validation_dataloader,
     )
 
     # execute training preparation

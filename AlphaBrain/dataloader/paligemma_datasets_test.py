@@ -9,11 +9,13 @@ import torch
 
 from AlphaBrain.dataloader import _seeded_shuffle_options
 from AlphaBrain.dataloader.paligemma_datasets import (
+    DsolLiberoPairDataset,
     FreshEpisodeWindowDataset,
     FreshSnapshotDataset,
     Pi0DataConfig,
     Pi0DataTransform,
 )
+from scripts.dsol_paper1.libero_pair_records import initialize_shard, write_record
 
 
 class Pi0DataTransformTest(unittest.TestCase):
@@ -27,6 +29,26 @@ class Pi0DataTransformTest(unittest.TestCase):
         result = transform(sample)
 
         self.assertEqual(result["feedback_horizon"], 1)
+
+    def test_image_augmentation_is_seeded_and_changes_pixels(self) -> None:
+        image = np.zeros((224, 224, 3), dtype=np.uint8)
+        image[..., 0] = np.arange(224, dtype=np.uint8)[None, :]
+        image[..., 1] = np.arange(224, dtype=np.uint8)[:, None]
+        sample = {
+            "image": [image, image.copy()],
+            "dsol_image_augmentation": True,
+        }
+        transform = Pi0DataTransform(Pi0DataConfig(use_image_augmentation=True))
+
+        torch.manual_seed(41)
+        first = transform(sample)
+        torch.manual_seed(41)
+        second = transform(sample)
+
+        self.assertEqual(first["image"][0].shape, (224, 224, 3))
+        self.assertTrue(np.array_equal(first["image"][0], second["image"][0]))
+        self.assertFalse(np.array_equal(first["image"][0], image))
+        self.assertTrue(first["dsol_image_augmentation"])
 
 
 class FreshSnapshotDatasetTest(unittest.TestCase):
@@ -83,6 +105,93 @@ class FreshSnapshotDatasetTest(unittest.TestCase):
             self._write_fixture(root)
             with self.assertRaisesRegex(ValueError, "no FRESH snapshot records"):
                 FreshSnapshotDataset(root, split="test")
+
+
+class DsolLiberoPairDatasetTest(unittest.TestCase):
+    def _write_fixture(self, root: Path) -> None:
+        shard_root = root / "task"
+        shard_root.mkdir()
+        shard_path = shard_root / "pairs.bin"
+        records_path = shard_root / "records.jsonl"
+        image = np.zeros((16, 16, 3), dtype=np.uint8)
+        images = {
+            "canonical": image,
+            "broad_a": image + 32,
+            "broad_b": image + 64,
+            "wrist": image + 96,
+        }
+        header = {
+            "sample_id": "task::demo_0::frame-00000",
+            "episode_id": "task::demo_0",
+            "frame": 0,
+            "language_instruction": "move the object",
+            "action_chunk": np.zeros((10, 7), dtype=np.float32).tolist(),
+            "robot_state": np.zeros(8, dtype=np.float32).tolist(),
+            "canonical_camera_to_world_opencv": np.eye(4).tolist(),
+            "camera_a_to_world_opencv": np.eye(4).tolist(),
+            "camera_b_to_world_opencv": np.eye(4).tolist(),
+        }
+        with shard_path.open("wb") as handle:
+            initialize_shard(handle)
+            location = write_record(handle, header=header, images=images)
+        records_path.write_text(
+            json.dumps(
+                {
+                    "sample_id": header["sample_id"],
+                    "episode_id": header["episode_id"],
+                    "split": "train",
+                    "offset": location["offset"],
+                }
+            )
+            + "\n"
+        )
+        (shard_root / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "schema": "dsol_libero_hdf5_view_pair_shard_v1",
+                    "status": "VERIFIED",
+                    "shard": shard_path.name,
+                    "records": records_path.name,
+                }
+            )
+        )
+        (root / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "schema": "dsol_libero_hdf5_view_pair_collection_v1",
+                    "shards": [{"path": shard_root.name}],
+                }
+            )
+        )
+
+    def test_state_matched_and_paired_share_flow_but_only_consistency_has_objective(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_fixture(root)
+            state_matched = DsolLiberoPairDataset(
+                root, arm="broad_unpaired_state_matched"
+            )[0]
+            paired_fm = DsolLiberoPairDataset(root, arm="broad_paired_fm")[0]
+            paired_consistency = DsolLiberoPairDataset(
+                root, arm="broad_paired_consistency"
+            )[0]
+
+            self.assertTrue(all(row["dsol_pair_shared_flow"] for row in state_matched))
+            self.assertTrue(all(row["dsol_pair_shared_flow"] for row in paired_fm))
+            self.assertTrue(
+                all(row["dsol_pair_shared_flow"] for row in paired_consistency)
+            )
+            self.assertFalse(any(row["dsol_pair_objective"] for row in state_matched))
+            self.assertFalse(any(row["dsol_pair_objective"] for row in paired_fm))
+            self.assertTrue(
+                all(row["dsol_pair_objective"] for row in paired_consistency)
+            )
+            self.assertTrue(
+                np.array_equal(state_matched[0]["image"][0], state_matched[1]["image"][0])
+            )
+            self.assertFalse(
+                np.array_equal(paired_fm[0]["image"][0], paired_fm[1]["image"][0])
+            )
 
 
 class FreshEpisodeWindowDatasetTest(unittest.TestCase):

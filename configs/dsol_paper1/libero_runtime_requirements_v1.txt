@@ -1,0 +1,7 @@
+# Runtime-only additions to /workspace/envs/fresh-libero (Python 3.8.20).
+# OpenPI client requires websockets>=11; version 15 requires Python>=3.9.
+websockets==13.1
+dm-tree==0.1.8
+msgpack==1.1.0
+# 0.6.0 requires Python >=3.9; this runtime is intentionally Python 3.8.
+imageio-ffmpeg==0.5.1

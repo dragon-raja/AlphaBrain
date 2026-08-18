@@ -1,0 +1,144 @@
+{
+  "schema": "dsol_libero_plus_revalidation_execution_v1",
+  "date": "2026-08-18",
+  "status": "QUICK_GATE_PAIR_DATA_VERIFIED_SEVEN_ARM_SMOKE_PASS",
+  "role": "external_validation_before_robocasa_target_is_ready",
+  "legacy_claim_boundary": "Legacy Phase B/M0/M1 are narrow-view anchors only.",
+  "available": {
+    "runtime_commit": "4976dc30028e805ff8094b55501d532c48fec182",
+    "broad_unpaired_episodes": 2876,
+    "broad_unpaired_steps": 449053,
+    "broad_unpaired_tasks": 40,
+    "broad_unpaired_rounded_camera_poses": 1178,
+    "broad_unpaired_train_episodes": 2303,
+    "broad_unpaired_train_steps": 361006,
+    "broad_unpaired_train_pose_groups": 948,
+    "renderer_smoke": "PASS",
+    "gpu_backward_smoke_steps": 2,
+    "bootstrap_state_action_path": "/share/longjunyu/capt-vla/tapaq/chunk_world_tasks1_7_states25_29_v1.npz",
+    "bootstrap_tasks": 7,
+    "bootstrap_episodes": 35,
+    "bootstrap_successful_episodes": 30,
+    "bootstrap_windows": 453,
+    "bootstrap_evidence_status": "DEBUG_ONLY",
+    "shared_canonical_lerobot": [
+      "/share/sunguoying/datasets/LEROBOT_LIBERO_DATA",
+      "/share/zhaoguoyang/data/libero_mujoco3.3.2"
+    ],
+    "longjunyu_canonical_lerobot": "/share/longjunyu/alphabrain/datasets/libero-canonical-lerobot-v1",
+    "longjunyu_canonical_lerobot_files": 15353,
+    "longjunyu_canonical_lerobot_bytes": 1890962767,
+    "longjunyu_canonical_lerobot_sha256_status": "VERIFIED",
+    "shared_canonical_suites": 4,
+    "shared_canonical_episodes": 1693,
+    "quick_gate_pair_collection": "/share/longjunyu/alphabrain/datasets/dsol-libero-broad-pairs-v1/quick_gate_seed41_broad32_stride2",
+    "quick_gate_pair_collection_status": "VERIFIED",
+    "quick_gate_pair_records": 38193,
+    "quick_gate_pair_episodes": 400,
+    "quick_gate_pair_tasks": 8,
+    "quick_gate_pair_split_records": {
+      "train": 31440,
+      "val": 2701,
+      "test": 4052
+    },
+    "quick_gate_pair_pose_support": 32,
+    "quick_gate_pair_shard_bytes": 2858209102,
+    "quick_gate_pair_audit": "PASS",
+    "paired_consistency_unit_tests": 21,
+    "single_gpu_pair_smoke": "PASS",
+    "ddp8_global_batch32_smoke": "PASS",
+    "seven_arm_global_batch32_smoke": "PASS",
+    "image_augmentation_unique_smoke": "PASS",
+    "ddp_mode": "dynamic_graph_find_unused_parameters"
+  },
+  "required_source": {
+    "official_repo": "yifengzhu-hf/LIBERO-datasets",
+    "official_revision": "f13aa24a3da8c43c7225569f28c562979fa0e35a",
+    "mac_fallback_upstream_path": "/datasets/L2_Simulation/LIBERO",
+    "target_path": "/share/longjunyu/alphabrain/datasets/libero-original-hdf5-v1",
+    "rapid_download_gib": 5.1,
+    "formal_40_task_files": 40,
+    "formal_40_task_download_bytes": 33784856577,
+    "formal_40_task_download_gib": 31.47,
+    "formal_demonstrations": 2000,
+    "formal_transitions": 338575,
+    "acquisition_status": "VERIFIED",
+    "exact_state_restore_status": "PASS_FOUR_SUITES",
+    "source_rgb_equivalence_status": "RENDER_DRIFT",
+    "formal_render_rule": "rerender_all_training_arms_with_the_same_frozen_runtime",
+    "rapid_task_files": [
+      "libero_goal/open_the_top_drawer_and_put_the_bowl_inside_demo.hdf5",
+      "libero_goal/put_the_cream_cheese_in_the_bowl_demo.hdf5",
+      "libero_object/pick_up_the_cream_cheese_and_place_it_in_the_basket_demo.hdf5",
+      "libero_spatial/pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_demo.hdf5",
+      "libero_10/KITCHEN_SCENE6_put_the_yellow_and_white_mug_in_the_microwave_and_close_it_demo.hdf5",
+      "libero_10/STUDY_SCENE1_pick_up_the_book_and_place_it_in_the_back_compartment_of_the_caddy_demo.hdf5"
+    ],
+    "required_contents": [
+      "original_demonstration_hdf5_or_equivalent",
+      "recoverable_simulator_states",
+      "actions",
+      "task_metadata",
+      "required_bddl"
+    ],
+    "required_receipts": ["file_manifest", "sha256_manifest", "transfer_receipt"]
+  },
+  "source_resolution_order": [
+    "official_hdf5_fixed_revision_for_formal_pairs",
+    "local_qpos_action_bootstrap_for_debug_only",
+    "shared_lerobot_deterministic_replay_for_runtime_diagnostics_only",
+    "mac_transfer_fallback"
+  ],
+  "new_datasets": [
+    "broad_state_matched_repeat",
+    "broad_same_state_paired",
+    "visibility_candidate_bank",
+    "info_pose_support_train"
+  ],
+  "evaluation_only_views": [
+    "single_camera_blackout",
+    "all_camera_blackout",
+    "look_away",
+    "extreme_blind"
+  ],
+  "rapid_gate": {
+    "training_seed": 41,
+    "pair_count_range": [20000, 50000],
+    "task_count_range": [6, 10],
+    "paired_states_per_task_minimum": 50,
+    "training_arms": [
+      "official_frozen",
+      "canonical_unique",
+      "image_augmentation_unique",
+      "broad_unpaired_practical",
+      "broad_state_matched_repeat",
+      "broad_paired_fm",
+      "broad_paired_consistency"
+    ],
+    "estimated_wall_clock_hours": [18, 30]
+  },
+  "formal_gate": {
+    "training_seeds": [41, 42, 43],
+    "pair_count_target": 338000,
+    "rollouts_per_camera_task_instance_minimum": 3,
+    "estimated_wall_clock_days": [4, 7]
+  },
+  "training": {
+    "model": "pi05",
+    "adaptation": "lora",
+    "target_global_batch_size": 32,
+    "uniform_fallback_global_batch_size": 16,
+    "batch_smoke_steps_range": [20, 50],
+    "wandb": "online_with_offline_fallback_no_artifact_upload",
+    "smoke_matrix_status": "PASS",
+    "paired_fm_consistency_isolation_check": {
+      "status": "PASS",
+      "paired_fm_base_loss": 0.64474,
+      "paired_consistency_base_loss": 0.64474,
+      "additional_consistency_loss": 0.09157
+    }
+  },
+  "blocked": [
+    "paper_level_formal_training_until_quick_gate_and_independent_release_review"
+  ]
+}

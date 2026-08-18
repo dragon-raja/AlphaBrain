@@ -33,6 +33,12 @@ import numpy as np
 from AlphaBrain.model.framework.base_framework import BaseFramework
 from AlphaBrain.model.modules.vlm import get_vlm_model
 from AlphaBrain.model.modules.action_model.pi0_flow_matching_head.pi0_action_head import Pi0FlowMatchingHead
+from AlphaBrain.model.modules.action_model.pi0_flow_matching_head.pair_consistency import (
+    dsol_pair_groups,
+    paired_prediction_consistency,
+    share_pair_noise_time,
+    validate_paired_actions,
+)
 from AlphaBrain.model.modules.action_model.fresh_loss import feedback_weighted_flow_loss
 from AlphaBrain.model.modules.action_model.cabi_binding import (
     BindingState,
@@ -170,6 +176,36 @@ class PaliGemmaPi(BaseFramework):
             noise_beta_beta=getattr(action_cfg, 'noise_beta_beta', 1.0),
             state_dim=getattr(action_cfg, 'state_dim', None),
         )
+
+        pair_cfg = getattr(config.framework, "dsol_pair_consistency", None)
+        self.dsol_pair_consistency_enabled = bool(
+            pair_cfg is not None and getattr(pair_cfg, "enabled", False)
+        )
+        self.dsol_pair_consistency_weight = float(
+            getattr(pair_cfg, "weight", 0.0) if pair_cfg is not None else 0.0
+        )
+        self.dsol_pair_shared_flow_noise_time = bool(
+            getattr(
+                pair_cfg,
+                "shared_flow_noise_time",
+                self.dsol_pair_consistency_enabled,
+            )
+            if pair_cfg is not None
+            else False
+        )
+        if self.dsol_pair_consistency_enabled:
+            if vlm_type != "paligemma":
+                raise ValueError("DSOL pair consistency currently requires PaliGemma")
+            if self.dsol_pair_consistency_weight <= 0.0:
+                raise ValueError("DSOL pair consistency weight must be positive")
+            if not self.dsol_pair_shared_flow_noise_time:
+                raise ValueError(
+                    "DSOL pair consistency requires shared flow noise and time"
+                )
+            logger.info(
+                "[DSOL pair consistency] enabled: weight=%.4f",
+                self.dsol_pair_consistency_weight,
+            )
 
         # ── Prefix projection (for VLM hidden_size != action_expert_width) ──
         expert_width = getattr(expert_cfg, 'width', 1024)
@@ -1315,6 +1351,30 @@ class PaliGemmaPi(BaseFramework):
         if vlm_type == "paligemma":
             # Traditional joint attention path for PaliGemma
             vlm_lm = self._get_vlm_language_model()
+            dsol_pair_groups_in_batch = []
+            flow_noise = None
+            flow_time = None
+            if self.dsol_pair_shared_flow_noise_time:
+                dsol_pair_groups_in_batch = dsol_pair_groups(
+                    examples,
+                    marker_key="dsol_pair_shared_flow",
+                )
+                if not dsol_pair_groups_in_batch:
+                    raise ValueError(
+                        "shared DSOL pair flow is enabled but the batch has no marked pairs"
+                    )
+                validate_paired_actions(actions, dsol_pair_groups_in_batch)
+                flow_noise = self.flow_matching_head.sample_noise(
+                    actions.shape, actions.device
+                )
+                flow_time = self.flow_matching_head.sample_time(
+                    actions.shape[0], actions.device
+                )
+                flow_noise, flow_time = share_pair_noise_time(
+                    flow_noise,
+                    flow_time,
+                    dsol_pair_groups_in_batch,
+                )
             flow_result = self.flow_matching_head.compute_loss(
                 prefix_embs=prefix_embs,
                 prefix_pad_masks=prefix_pad_masks,
@@ -1322,7 +1382,12 @@ class PaliGemmaPi(BaseFramework):
                 vlm_language_model=vlm_lm,
                 state=state,
                 actions=actions,
-                return_outputs=self.cabi_decoder_closure_weight != 0.0,
+                noise=flow_noise,
+                time=flow_time,
+                return_outputs=(
+                    self.cabi_decoder_closure_weight != 0.0
+                    or self.dsol_pair_consistency_enabled
+                ),
             )
             if isinstance(flow_result, tuple):
                 loss, flow_outputs = flow_result
@@ -1399,6 +1464,21 @@ class PaliGemmaPi(BaseFramework):
             weighting_mode=self.fresh_weighting_mode,
         )
         total_loss = loss_mean
+        dsol_pair_consistency = None
+        dsol_pair_velocity_rmse = None
+        if self.dsol_pair_consistency_enabled:
+            if flow_outputs is None:
+                raise RuntimeError("DSOL pair consistency requires flow outputs")
+            dsol_pair_consistency, dsol_pair_velocity_rmse = (
+                paired_prediction_consistency(
+                    flow_outputs["prediction"],
+                    dsol_pair_groups_in_batch,
+                    action_dim_mask=getattr(self, "_action_dim_mask", None),
+                )
+            )
+            total_loss = total_loss + (
+                self.dsol_pair_consistency_weight * dsol_pair_consistency
+            )
         cabi_loss, cabi_metrics = self._compute_cabi_closure(binding_state, examples)
         if cabi_loss is not None:
             total_loss = total_loss + cabi_loss
@@ -1413,6 +1493,10 @@ class PaliGemmaPi(BaseFramework):
             )
 
         output = {"action_loss": total_loss, "flow_matching_loss": loss_mean.item()}
+        if dsol_pair_consistency is not None:
+            output["dsol_pair_consistency_loss"] = dsol_pair_consistency.item()
+            output["dsol_pair_velocity_rmse"] = dsol_pair_velocity_rmse.item()
+            output["dsol_pair_count"] = len(dsol_pair_groups_in_batch)
         output.update({f"fresh_{key}": value.item() for key, value in fresh_metrics.items()})
         if cabi_loss is not None:
             output["cabi_loss"] = cabi_loss.item()

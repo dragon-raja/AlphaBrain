@@ -1,0 +1,22 @@
+{
+  "schema": "dsol_training_budget_decision_v1",
+  "status": "FROZEN",
+  "decision_date": "2026-08-18",
+  "selection_arm": "canonical_unique",
+  "selection_seed": 41,
+  "training_steps": 2000,
+  "scheduler_total_steps": 3000,
+  "global_model_examples_per_update": 32,
+  "best_validation_step": 2000,
+  "best_validation_action_loss": 0.22059808287303895,
+  "earliest_step_within_one_percent_of_best": 1500,
+  "final_3000_step_action_loss": 0.2300630531672141,
+  "validation_examples": 256,
+  "validation_tasks": 8,
+  "selection_rule": "Use the observed held-out minimum after completing the preregistered 3000-step calibration. Keep the scheduler horizon at 3000 so every 2000-step formal arm follows the exact calibration learning-rate prefix.",
+  "calibration_summary": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_canonical_unique_calibration3000-v1_seed41_g8_gb32_steps3000/calibration_analysis/calibration_summary.json",
+  "calibration_summary_sha256": "f2959c9e2528a4c59f0a0d434107459cac5c4047a39037ff35b16e1927349001",
+  "training_data_manifest": "/share/longjunyu/alphabrain/datasets/dsol-libero-broad-pairs-v1/quick_gate_seed41_broad32_stride2/manifest.json",
+  "training_data_manifest_sha256": "3fe408f2cfb034ae703de32223f80367337a37890480a1662d3f116715d81c7b",
+  "scope": "One uniform quick-gate budget for all seven training arms. This validation-based decision does not rank methods and test outcomes cannot change it."
+}

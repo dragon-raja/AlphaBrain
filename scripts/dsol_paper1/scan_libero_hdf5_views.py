@@ -1,0 +1,406 @@
+from __future__ import annotations
+
+import argparse
+import json
+import math
+import sys
+import tempfile
+from collections.abc import Iterable, Mapping
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+
+
+def _atomic_json(path: Path, payload: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        encoding="utf-8",
+        dir=path.parent,
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        delete=False,
+    ) as handle:
+        json.dump(payload, handle, indent=2, sort_keys=True)
+        handle.write("\n")
+        temporary = Path(handle.name)
+    temporary.replace(path)
+
+
+def _restore_reference(env: Any, reference: Mapping[str, Any]) -> None:
+    sim = env.env.sim
+    camera_id = int(reference["camera_id"])
+    sim.model.cam_pos[camera_id] = np.asarray(reference["position"])
+    sim.model.cam_quat[camera_id] = np.asarray(reference["quaternion"])
+    sim.forward()
+
+
+def _local_rotation(*, yaw_deg: float, pitch_deg: float) -> np.ndarray:
+    yaw = math.radians(yaw_deg)
+    pitch = math.radians(pitch_deg)
+    rotation_y = np.asarray(
+        [
+            [math.cos(yaw), 0.0, math.sin(yaw)],
+            [0.0, 1.0, 0.0],
+            [-math.sin(yaw), 0.0, math.cos(yaw)],
+        ]
+    )
+    rotation_x = np.asarray(
+        [
+            [1.0, 0.0, 0.0],
+            [0.0, math.cos(pitch), -math.sin(pitch)],
+            [0.0, math.sin(pitch), math.cos(pitch)],
+        ]
+    )
+    return rotation_y @ rotation_x
+
+
+def _install_look_away(
+    env: Any,
+    reference: Mapping[str, Any],
+    pose: Mapping[str, Any],
+) -> dict[str, Any]:
+    from libero_camera_pose import (
+        look_at_rotation,
+        orbit_pose,
+        rotation_matrix_to_wxyz,
+    )
+
+    base = orbit_pose(
+        reference,
+        {
+            "azimuth_deg": float(pose.get("base_azimuth_deg", 0.0)),
+            "elevation_deg": float(pose.get("base_elevation_deg", 0.0)),
+            "radius_scale": float(pose.get("radius_scale", 1.0)),
+        },
+    )
+    rotation = look_at_rotation(base["position"], base["pivot"])
+    rotation = rotation @ _local_rotation(
+        yaw_deg=float(pose.get("yaw_offset_deg", 0.0)),
+        pitch_deg=float(pose.get("pitch_offset_deg", 0.0)),
+    )
+    quaternion = rotation_matrix_to_wxyz(rotation)
+    sim = env.env.sim
+    camera_id = int(reference["camera_id"])
+    sim.model.cam_pos[camera_id] = base["position"]
+    sim.model.cam_quat[camera_id] = quaternion
+    sim.forward()
+    return {
+        "camera_position": base["position"].tolist(),
+        "camera_quaternion_wxyz": quaternion.tolist(),
+        "camera_pivot": base["pivot"].tolist(),
+        "camera_azimuth_deg": base["azimuth_deg"],
+        "camera_elevation_deg": base["elevation_deg"],
+        "camera_radius_scale": base["radius_scale"],
+        "yaw_offset_deg": float(pose.get("yaw_offset_deg", 0.0)),
+        "pitch_offset_deg": float(pose.get("pitch_offset_deg", 0.0)),
+    }
+
+
+def _render_observation(env: Any) -> Mapping[str, Any]:
+    env.env._update_observables(force=True)
+    return env.env._get_observations()
+
+
+def _sensor_control_records(canonical: Mapping[str, Any]) -> list[dict[str, Any]]:
+    external = float(canonical["per_camera"]["agentview"]["score"])
+    wrist = float(canonical["per_camera"]["robot0_eye_in_hand"]["score"])
+    return [
+        {
+            "pose_id": "external_blackout",
+            "group": "sensor_controls",
+            "visibility_score": wrist / 2.0,
+            "delta_visibility": wrist / 2.0 - float(canonical["score"]),
+            "per_camera_scores": {"agentview": 0.0, "robot0_eye_in_hand": wrist},
+        },
+        {
+            "pose_id": "wrist_blackout",
+            "group": "sensor_controls",
+            "visibility_score": external / 2.0,
+            "delta_visibility": external / 2.0 - float(canonical["score"]),
+            "per_camera_scores": {"agentview": external, "robot0_eye_in_hand": 0.0},
+        },
+        {
+            "pose_id": "all_camera_blackout",
+            "group": "sensor_controls",
+            "visibility_score": 0.0,
+            "delta_visibility": -float(canonical["score"]),
+            "per_camera_scores": {"agentview": 0.0, "robot0_eye_in_hand": 0.0},
+        },
+    ]
+
+
+def _save_montage(
+    *,
+    path: Path,
+    images: Mapping[str, tuple[np.ndarray, np.ndarray]],
+    records: list[Mapping[str, Any]],
+    top_k: int,
+) -> None:
+    from PIL import Image, ImageDraw
+
+    usable = [record for record in records if record["pose_id"] in images]
+    ranked = sorted(usable, key=lambda item: float(item["delta_visibility"]))
+    chosen = ranked[:top_k] + ranked[-top_k:]
+    canonical = next(
+        (record for record in usable if record["pose_id"] == "canonical"), None
+    )
+    if canonical is not None:
+        chosen = [canonical] + [
+            record for record in chosen if record["pose_id"] != "canonical"
+        ]
+    deduplicated = {record["pose_id"]: record for record in chosen}
+    chosen = list(deduplicated.values())
+    if not chosen:
+        return
+
+    example_agent, example_wrist = next(iter(images.values()))
+    image_height, single_width = example_agent.shape[:2]
+    image_width = single_width * 2
+    columns = min(5, len(chosen))
+    rows = math.ceil(len(chosen) / columns)
+    caption_height = 40
+    canvas = Image.new(
+        "RGB",
+        (columns * image_width, rows * (image_height + caption_height)),
+        "white",
+    )
+    draw = ImageDraw.Draw(canvas)
+    for index, record in enumerate(chosen):
+        column = index % columns
+        row = index // columns
+        left = column * image_width
+        top = row * (image_height + caption_height)
+        agent, wrist = images[record["pose_id"]]
+        display_image = np.concatenate(
+            [agent[::-1, ::-1], wrist[::-1, ::-1]], axis=1
+        )
+        canvas.paste(Image.fromarray(np.ascontiguousarray(display_image)), (left, top))
+        draw.text(
+            (left + 3, top + image_height + 2),
+            f"{record['pose_id']}\ndV={float(record['delta_visibility']):+.5f}",
+            fill="black",
+        )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(path)
+
+
+def scan(args: argparse.Namespace) -> dict[str, Any]:
+    import h5py
+
+    script_root = Path(__file__).resolve().parent
+    sys.path.insert(0, str(script_root))
+    sys.path.insert(0, str(script_root.parent / "cabi_vla"))
+    from audit_libero_hdf5_restore import _configure_runtime, _decode, _rewrite_model_paths
+
+    runtime = args.runtime.resolve()
+    hdf5_path = args.hdf5.resolve()
+    output_dir = args.output_dir.resolve()
+    _configure_runtime(runtime, hdf5_path.parent.parent, args.config_root.resolve())
+
+    from libero.libero.envs import OffScreenRenderEnv
+    from libero_camera_pose import capture_camera_reference, install_camera_pose
+    from libero_visibility import task_entity_visibility
+
+    catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
+    groups = [name.strip() for name in args.groups.split(",") if name.strip()]
+    poses = []
+    for group in groups:
+        if group not in catalog:
+            raise KeyError(f"catalog has no group {group!r}")
+        poses.extend((group, pose) for pose in catalog[group])
+
+    suite = hdf5_path.parent.name
+    with h5py.File(hdf5_path, "r") as handle:
+        demos = sorted(handle["data"].keys())
+        demo_name = demos[args.demo_index]
+        demo = handle["data"][demo_name]
+        frame = args.frame_index
+        if frame < 0:
+            frame += int(demo["states"].shape[0])
+        state = np.asarray(demo["states"][frame])
+        model_xml, rewrite_counts = _rewrite_model_paths(
+            _decode(demo.attrs["model_file"]), runtime
+        )
+        bddl_name = Path(_decode(handle["data"].attrs["bddl_file_name"])).name
+    bddl = runtime / "libero" / "libero" / "bddl_files" / suite / bddl_name
+
+    env = OffScreenRenderEnv(
+        bddl_file_name=str(bddl),
+        camera_names=("agentview", "robot0_eye_in_hand"),
+        camera_heights=args.resolution,
+        camera_widths=args.resolution,
+        render_gpu_device_id=args.render_gpu,
+    )
+    records = []
+    images: dict[str, tuple[np.ndarray, np.ndarray]] = {}
+    try:
+        env.reset()
+        env.reset_from_xml_string(model_xml)
+        env.set_init_state(state)
+        entities = list(env.env.obj_of_interest)
+        reference = capture_camera_reference(
+            env,
+            camera_name="agentview",
+            table_plane_z=float(catalog["table_plane_z"]),
+        )
+        canonical_visibility = task_entity_visibility(
+            env,
+            entity_names=entities,
+            camera_names=("agentview", "robot0_eye_in_hand"),
+            height=args.resolution,
+            width=args.resolution,
+        )
+        canonical_observation = _render_observation(env)
+        canonical_agent = np.asarray(
+            canonical_observation["agentview_image"], dtype=np.uint8
+        )
+        canonical_wrist = np.asarray(
+            canonical_observation["robot0_eye_in_hand_image"], dtype=np.uint8
+        )
+        images["canonical"] = (canonical_agent, canonical_wrist)
+        records.append(
+            {
+                "pose_id": "canonical",
+                "group": "canonical",
+                "visibility_score": canonical_visibility["score"],
+                "delta_visibility": 0.0,
+                "per_camera_scores": {
+                    name: value["score"]
+                    for name, value in canonical_visibility["per_camera"].items()
+                },
+                "visibility": canonical_visibility,
+            }
+        )
+
+        for group, pose in poses:
+            pose_id = str(pose["pose_id"])
+            _restore_reference(env, reference)
+            try:
+                if pose.get("orientation_mode") == "relative_look_away":
+                    camera = _install_look_away(env, reference, pose)
+                else:
+                    camera = install_camera_pose(env, reference, pose)
+                observation = _render_observation(env)
+                visibility = task_entity_visibility(
+                    env,
+                    entity_names=entities,
+                    camera_names=("agentview", "robot0_eye_in_hand"),
+                    height=args.resolution,
+                    width=args.resolution,
+                )
+                image = np.asarray(observation["agentview_image"], dtype=np.uint8)
+                wrist_image = np.asarray(
+                    observation["robot0_eye_in_hand_image"], dtype=np.uint8
+                )
+                images[pose_id] = (image, wrist_image)
+                records.append(
+                    {
+                        "pose_id": pose_id,
+                        "group": group,
+                        "status": "PASS",
+                        "visibility_score": visibility["score"],
+                        "delta_visibility": visibility["score"]
+                        - canonical_visibility["score"],
+                        "per_camera_scores": {
+                            name: value["score"]
+                            for name, value in visibility["per_camera"].items()
+                        },
+                        "visibility": visibility,
+                        "camera": camera,
+                        "image_mean": float(image.mean()),
+                        "image_std": float(image.std()),
+                        "wrist_image_mean": float(wrist_image.mean()),
+                        "wrist_image_std": float(wrist_image.std()),
+                    }
+                )
+            except Exception as error:
+                records.append(
+                    {
+                        "pose_id": pose_id,
+                        "group": group,
+                        "status": "INVALID",
+                        "error_type": type(error).__name__,
+                    }
+                )
+        records.extend(_sensor_control_records(canonical_visibility))
+        black_agent = np.zeros_like(canonical_agent)
+        black_wrist = np.zeros_like(canonical_wrist)
+        images.update(
+            {
+                "external_blackout": (black_agent, canonical_wrist),
+                "wrist_blackout": (canonical_agent, black_wrist),
+                "all_camera_blackout": (black_agent, black_wrist),
+            }
+        )
+    finally:
+        env.close()
+
+    valid = [record for record in records if "delta_visibility" in record]
+    result = {
+        "schema": "dsol_libero_hdf5_view_scan_v1",
+        "status": "PASS" if valid else "FAIL",
+        "hdf5": str(hdf5_path),
+        "suite": suite,
+        "demo": demo_name,
+        "frame": frame,
+        "bddl": str(bddl),
+        "task_entities": entities,
+        "catalog": str(args.catalog.resolve()),
+        "montage_image_transform": "rot180_display_only",
+        "groups": groups,
+        "asset_path_rewrites": rewrite_counts,
+        "records": records,
+        "valid_records": len(valid),
+        "invalid_records": sum(record.get("status") == "INVALID" for record in records),
+        "delta_visibility_min": min(float(record["delta_visibility"]) for record in valid),
+        "delta_visibility_max": max(float(record["delta_visibility"]) for record in valid),
+    }
+    output_dir.mkdir(parents=True, exist_ok=True)
+    _atomic_json(output_dir / "scan.json", result)
+    _save_montage(
+        path=output_dir / "visibility_extremes.png",
+        images=images,
+        records=records,
+        top_k=args.montage_top_k,
+    )
+    return result
+
+
+def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Scan exact-state LIBERO views using task-entity visibility."
+    )
+    parser.add_argument("--hdf5", type=Path, required=True)
+    parser.add_argument("--runtime", type=Path, required=True)
+    parser.add_argument("--catalog", type=Path, required=True)
+    parser.add_argument("--config-root", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--groups", required=True)
+    parser.add_argument("--demo-index", type=int, default=0)
+    parser.add_argument("--frame-index", type=int, default=0)
+    parser.add_argument("--resolution", type=int, default=224)
+    parser.add_argument("--render-gpu", type=int, default=0)
+    parser.add_argument("--montage-top-k", type=int, default=6)
+    return parser.parse_args(argv)
+
+
+def main() -> None:
+    result = scan(parse_args())
+    print(
+        json.dumps(
+            {
+                "status": result["status"],
+                "valid_records": result["valid_records"],
+                "invalid_records": result["invalid_records"],
+                "delta_visibility_min": result["delta_visibility_min"],
+                "delta_visibility_max": result["delta_visibility_max"],
+            },
+            sort_keys=True,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

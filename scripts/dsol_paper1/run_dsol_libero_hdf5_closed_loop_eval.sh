@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
+CHECKPOINT=${CHECKPOINT:?set CHECKPOINT to a self-contained AlphaBrain final_model directory}
+OUTPUT_DIR=${OUTPUT_DIR:?set OUTPUT_DIR to a new or resumable evaluation directory}
+PROTOCOL=${PROTOCOL:-$REPO_ROOT/configs/dsol_paper1/libero_hdf5_closed_loop_quick_gate_v1.json}
+GPU_COUNT=${GPU_COUNT:-8}
+BASE_PORT=${BASE_PORT:-18600}
+REPLAN_STEPS=${REPLAN_STEPS:-5}
+EVAL_SEED=${EVAL_SEED:-20260818}
+VIDEO_EPISODES=${VIDEO_EPISODES:-8}
+MAX_EPISODES_PER_SHARD=${MAX_EPISODES_PER_SHARD:-}
+RUN_ANALYSIS=${RUN_ANALYSIS:-1}
+POLICY_PYTHON=${POLICY_PYTHON:-/alphabrain/.venv/bin/python}
+SIM_PYTHON=${SIM_PYTHON:-/workspace/envs/fresh-libero/bin/python}
+RUNTIME=${RUNTIME:-/share/longjunyu/alphabrain/datasets/libero-plus/runtime/LIBERO-plus}
+SIM_CONFIG=${SIM_CONFIG:-/share/longjunyu/alphabrain/envs/libero-plus-runtime-config-v1}
+FFMPEG_EXE=${FFMPEG_EXE:-/usr/bin/ffmpeg}
+
+for required in \
+  "$CHECKPOINT/model.safetensors" \
+  "$CHECKPOINT/framework_config.yaml" \
+  "$PROTOCOL" \
+  "$POLICY_PYTHON" \
+  "$SIM_PYTHON" \
+  "$FFMPEG_EXE" \
+  "$RUNTIME/libero/libero/bddl_files"; do
+  [[ -e "$required" ]] || { echo "missing required path: $required" >&2; exit 2; }
+done
+[[ "$GPU_COUNT" =~ ^[1-8]$ ]] || { echo "GPU_COUNT must be in [1,8]" >&2; exit 2; }
+[[ -z "$MAX_EPISODES_PER_SHARD" || "$MAX_EPISODES_PER_SHARD" =~ ^[1-9][0-9]*$ ]] || {
+  echo "MAX_EPISODES_PER_SHARD must be empty or a positive integer" >&2
+  exit 2
+}
+[[ "$RUN_ANALYSIS" =~ ^[01]$ ]] || { echo "RUN_ANALYSIS must be 0 or 1" >&2; exit 2; }
+
+mkdir -p "$OUTPUT_DIR/logs"
+checkpoint_sha256=$(sha256sum "$CHECKPOINT/model.safetensors" | awk '{print $1}')
+protocol_sha256=$(sha256sum "$PROTOCOL" | awk '{print $1}')
+code_sha256=$(sha256sum \
+  "$REPO_ROOT/scripts/cabi_vla/serve_alphabrain_pi05_websocket.py" \
+  "$REPO_ROOT/scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py" \
+  "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh" \
+  | sha256sum | awk '{print $1}')
+jq -n \
+  --arg checkpoint "$CHECKPOINT" \
+  --arg checkpoint_sha256 "$checkpoint_sha256" \
+  --arg protocol "$PROTOCOL" \
+  --arg protocol_sha256 "$protocol_sha256" \
+  --arg code_sha256 "$code_sha256" \
+  --argjson gpu_count "$GPU_COUNT" \
+  --argjson replan_steps "$REPLAN_STEPS" \
+  --argjson eval_seed "$EVAL_SEED" \
+  --arg max_episodes_per_shard "$MAX_EPISODES_PER_SHARD" \
+  --argjson run_analysis "$RUN_ANALYSIS" \
+  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,protocol:$protocol,protocol_sha256:$protocol_sha256,code_sha256:$code_sha256,gpu_count:$gpu_count,replan_steps:$replan_steps,eval_seed:$eval_seed,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1)}' \
+  > "$OUTPUT_DIR/run_manifest.json"
+
+policy_pids=()
+eval_pids=()
+keepalive_stopped=0
+cleanup() {
+  for pid in "${eval_pids[@]:-}" "${policy_pids[@]:-}"; do
+    [[ -n "$pid" ]] && kill "$pid" 2>/dev/null || true
+  done
+  if [[ "$keepalive_stopped" == 1 ]]; then
+    bash /workspace/ai2r/gpu_compute_keepalive/start_all.sh 1 8192 gpu-keepalive >/dev/null || true
+  fi
+}
+trap cleanup EXIT INT TERM
+bash /workspace/ai2r/gpu_compute_keepalive/stop_all.sh gpu-keepalive >/dev/null
+keepalive_stopped=1
+
+max_episode_args=()
+if [[ -n "$MAX_EPISODES_PER_SHARD" ]]; then
+  max_episode_args=(--max-episodes "$MAX_EPISODES_PER_SHARD")
+fi
+
+for ((gpu=0; gpu<GPU_COUNT; gpu++)); do
+  port=$((BASE_PORT + gpu))
+  CUDA_VISIBLE_DEVICES=$gpu \
+  PRETRAINED_MODELS_DIR=/share/longjunyu/alphabrain/pretrained_models \
+  ALPHABRAIN_DISABLE_AUTO_DOWNLOAD=1 \
+  PYTHONPATH="$REPO_ROOT:/projects/openpi/src:/projects/openpi/packages/openpi-client/src" \
+    "$POLICY_PYTHON" "$REPO_ROOT/scripts/cabi_vla/serve_alphabrain_pi05_websocket.py" \
+      --checkpoint "$CHECKPOINT" --port "$port" --device cuda:0 \
+      > "$OUTPUT_DIR/logs/policy-gpu-${gpu}.log" 2>&1 &
+  policy_pids+=("$!")
+done
+
+BASE_PORT="$BASE_PORT" GPU_COUNT="$GPU_COUNT" "$POLICY_PYTHON" - <<'PY'
+import os, time, urllib.request
+base = int(os.environ["BASE_PORT"]); count = int(os.environ["GPU_COUNT"])
+pending = set(range(count)); deadline = time.monotonic() + 900
+while pending and time.monotonic() < deadline:
+    for index in list(pending):
+        try:
+            if urllib.request.urlopen(f"http://127.0.0.1:{base+index}/healthz", timeout=1).status == 200:
+                pending.remove(index)
+        except Exception:
+            pass
+    if pending: time.sleep(2)
+if pending: raise SystemExit(f"policy servers did not become ready: {sorted(pending)}")
+PY
+
+for ((gpu=0; gpu<GPU_COUNT; gpu++)); do
+  port=$((BASE_PORT + gpu))
+  LIBERO_CONFIG_PATH="$SIM_CONFIG" \
+  IMAGEIO_FFMPEG_EXE="$FFMPEG_EXE" \
+  PYTHONPATH="$REPO_ROOT:/projects/openpi/packages/openpi-client/src:$REPO_ROOT/scripts/cabi_vla:$REPO_ROOT/scripts/dsol_paper1" \
+    "$SIM_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py" \
+      --protocol "$PROTOCOL" --output-dir "$OUTPUT_DIR" \
+      --runtime "$RUNTIME" --config-root "$SIM_CONFIG" \
+      --host 127.0.0.1 --port "$port" \
+      --replan-steps "$REPLAN_STEPS" --seed "$EVAL_SEED" \
+      --num-shards "$GPU_COUNT" --shard-index "$gpu" --render-gpu "$gpu" \
+      --video-episodes "$VIDEO_EPISODES" \
+      "${max_episode_args[@]}" \
+      > "$OUTPUT_DIR/logs/eval-shard-${gpu}.log" 2>&1 &
+  eval_pids+=("$!")
+done
+
+failed=0
+for pid in "${eval_pids[@]}"; do wait "$pid" || failed=1; done
+[[ "$failed" == 0 ]] || { echo "one or more evaluation shards failed" >&2; exit 1; }
+actual=$(awk 'NF {n++} END {print n+0}' "$OUTPUT_DIR"/episodes-shard-*.jsonl)
+expected=$(PROTOCOL="$PROTOCOL" GPU_COUNT="$GPU_COUNT" MAX_EPISODES_PER_SHARD="$MAX_EPISODES_PER_SHARD" \
+  "$POLICY_PYTHON" - <<'PY'
+import json
+import os
+
+with open(os.environ["PROTOCOL"], encoding="utf-8") as handle:
+    protocol = json.load(handle)
+gpu_count = int(os.environ["GPU_COUNT"])
+limit_text = os.environ["MAX_EPISODES_PER_SHARD"]
+limit = int(limit_text) if limit_text else None
+count = 0
+for shard in range(gpu_count):
+    shard_count = sum(index % gpu_count == shard for index in range(len(protocol["specs"])))
+    count += min(shard_count, limit) if limit is not None else shard_count
+print(count)
+PY
+)
+[[ "$actual" == "$expected" ]] || { echo "expected $expected episodes, found $actual" >&2; exit 1; }
+if [[ "$RUN_ANALYSIS" == 1 ]]; then
+  "$POLICY_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/summarize_dsol_libero_hdf5_closed_loop.py" \
+    "$OUTPUT_DIR"/episodes-shard-*.jsonl \
+    --output-dir "$OUTPUT_DIR/analysis" \
+    > "$OUTPUT_DIR/logs/analysis.log"
+fi
+echo "dsol_hdf5_closed_loop_complete=$OUTPUT_DIR episodes=$actual"

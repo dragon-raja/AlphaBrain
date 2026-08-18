@@ -1,0 +1,50 @@
+{
+  "schema": "dsol_libero_data_identity_and_render_policy_v1",
+  "status": "FROZEN",
+  "official_source": {
+    "repository": "yifengzhu-hf/LIBERO-datasets",
+    "revision": "f13aa24a3da8c43c7225569f28c562979fa0e35a",
+    "root": "/share/longjunyu/alphabrain/datasets/libero-original-hdf5-v1",
+    "file_count": 40,
+    "bytes": 33784856577,
+    "demo_count": 2000,
+    "transition_count": 338575,
+    "verification": "official LFS SHA-256 verified for every file"
+  },
+  "exact_state_audit": {
+    "status": "PASS",
+    "suites": [
+      "libero_10",
+      "libero_goal",
+      "libero_object",
+      "libero_spatial"
+    ],
+    "maximum_restored_state_absolute_error": 0.0,
+    "actions_source": "direct official HDF5 actions"
+  },
+  "rgb_audit": {
+    "status": "RENDER_DRIFT_RECORDED",
+    "runtime_mujoco_version": "3.2.3",
+    "audited_suite_count": 4,
+    "maximum_agentview_mean_absolute_error": 4.411539554595947,
+    "maximum_wrist_mean_absolute_error": 12.089457511901855,
+    "interpretation": "Exact states do not imply bitwise-identical RGB across renderer versions."
+  },
+  "formal_policy": {
+    "training_rgb": "uniformly rerender every arm from exact official states in one frozen runtime",
+    "evaluation_rgb": "render every paired condition in the same frozen runtime",
+    "source_rgb_use": "identity and render-drift audit only",
+    "forbidden": [
+      "mix source RGB and rerendered RGB across compared training arms",
+      "claim rerendered RGB is bitwise identical to source RGB",
+      "use action replay as a substitute for official simulator states"
+    ],
+    "legacy_anchor": "report Official/Legacy evaluation separately from the controlled rerender experiment"
+  },
+  "scientific_equivalence_claim": {
+    "official_state_and_action_identity": true,
+    "source_rgb_bitwise_identity": false,
+    "paired_experiment_renderer_control": true,
+    "suitable_for_same_state_camera_intervention": true
+  }
+}

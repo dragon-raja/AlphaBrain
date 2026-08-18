@@ -375,11 +375,15 @@ class TrainerUtils:
         # use accelerator.prepare method to wrap components
         prepared_components = accelerator.prepare(*components)
         
-        # For DDP with parameter reuse (e.g. shared attention in PaliGemmaOFT),
-        # set static_graph to allow parameters being used multiple times
-        for comp in (prepared_components if isinstance(prepared_components, tuple) else [prepared_components]):
-            if hasattr(comp, "module") and hasattr(comp, "_set_static_graph"):
-                comp._set_static_graph()
+        # Some legacy models reuse parameters and require DDP's static-graph mode.
+        # Keep that behavior by default, but allow experiments with valid dynamic
+        # graphs and gradient accumulation to opt out. PyTorch's private
+        # _set_static_graph() otherwise asserts on their second backward pass.
+        use_static_graph = os.environ.get("ALPHABRAIN_DDP_STATIC_GRAPH", "1") != "0"
+        if use_static_graph:
+            for comp in (prepared_components if isinstance(prepared_components, tuple) else [prepared_components]):
+                if hasattr(comp, "module") and hasattr(comp, "_set_static_graph"):
+                    comp._set_static_graph()
         
         return prepared_components
 

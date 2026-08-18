@@ -5,6 +5,8 @@ REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 PYTHON=${DSOL_RENDER_PYTHON:-/workspace/envs/fresh-libero/bin/python}
 OUTPUT=${DSOL_PAIR_COLLECTION_OUTPUT:-/share/longjunyu/alphabrain/datasets/dsol-libero-broad-pairs-v1/quick_gate_seed41_broad32_stride2}
 WORKERS=${DSOL_PAIR_COLLECTION_WORKERS:-8}
+PLAN=${DSOL_PAIR_COLLECTION_PLAN:-$REPO_ROOT/configs/dsol_paper1/libero_pair_quick_gate_v1.json}
+CATALOG=${DSOL_PAIR_COLLECTION_CATALOG:-$REPO_ROOT/configs/dsol_paper1/libero_view_catalog_v2.json}
 
 [[ "$WORKERS" =~ ^[1-8]$ ]] || { echo "WORKERS must be in [1,8]" >&2; exit 2; }
 [[ -x "$PYTHON" ]] || { echo "missing renderer Python: $PYTHON" >&2; exit 1; }
@@ -33,10 +35,10 @@ export PYOPENGL_PLATFORM=egl
 export PYTHONPATH="$REPO_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 
 "$PYTHON" scripts/dsol_paper1/generate_libero_pair_collection.py \
-  --plan configs/dsol_paper1/libero_pair_quick_gate_v1.json \
+  --plan "$PLAN" \
   --hdf5-root /share/longjunyu/alphabrain/datasets/libero-original-hdf5-v1 \
   --runtime /share/longjunyu/alphabrain/datasets/libero-plus/runtime/LIBERO-plus \
-  --catalog configs/dsol_paper1/libero_view_catalog_v2.json \
+  --catalog "$CATALOG" \
   --acquisition /workspace/ai2r/debug/libero_plus_revalidation_v1/receipts/libero_original_hdf5_v1/acquisition.json \
   --config-root /workspace/ai2r/debug/libero_plus_revalidation_v1/pair_collection_runtime_config \
   --output "$OUTPUT" \

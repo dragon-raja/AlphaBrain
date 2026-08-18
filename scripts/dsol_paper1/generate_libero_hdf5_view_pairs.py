@@ -120,10 +120,39 @@ def generate(args: argparse.Namespace) -> dict[str, Any]:
     )
 
     catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
-    pose_ids = catalog["broad_training_sets"][args.pose_set]
-    pose_by_id = {
-        pose["pose_id"]: pose for pose in catalog["broad_training_64"]
-    }
+    pose_by_id = {}
+    pose_group_by_id = {}
+    for group, values in catalog.items():
+        if not isinstance(values, list):
+            continue
+        for pose in values:
+            if not isinstance(pose, dict) or "pose_id" not in pose:
+                continue
+            pose_id = str(pose["pose_id"])
+            if pose_id in pose_by_id:
+                raise ValueError(f"duplicate catalog pose_id: {pose_id}")
+            pose_by_id[pose_id] = pose
+            pose_group_by_id[pose_id] = group
+    if args.pose_id:
+        pose_ids = list(dict.fromkeys(args.pose_id))
+        pose_set = "explicit_pose_ids"
+    else:
+        if args.pose_set not in catalog["broad_training_sets"]:
+            raise ValueError(f"unknown broad pose set: {args.pose_set}")
+        pose_ids = catalog["broad_training_sets"][args.pose_set]
+        pose_set = args.pose_set
+    missing_pose_ids = [pose_id for pose_id in pose_ids if pose_id not in pose_by_id]
+    if missing_pose_ids:
+        raise ValueError(f"catalog is missing pose IDs: {missing_pose_ids}")
+    excluded_groups = set(catalog.get("training_exclusions", {}).get("training", []))
+    explicitly_excluded = [
+        pose_id for pose_id in pose_ids if pose_group_by_id[pose_id] in excluded_groups
+    ]
+    if explicitly_excluded and not args.allow_diagnostic_pose_training:
+        raise ValueError(
+            "diagnostic poses require --allow-diagnostic-pose-training: "
+            f"{explicitly_excluded}"
+        )
     poses = [pose_by_id[name] for name in pose_ids]
     suite = hdf5_path.parent.name
     acquisition = json.loads(args.acquisition.read_text(encoding="utf-8"))
@@ -306,7 +335,12 @@ def generate(args: argparse.Namespace) -> dict[str, Any]:
         "source_revision": acquisition["revision"],
         "runtime": str(runtime),
         "catalog": str(args.catalog.resolve()),
-        "pose_set": args.pose_set,
+        "pose_set": pose_set,
+        "pose_ids": pose_ids,
+        "pose_groups": sorted({pose_group_by_id[pose_id] for pose_id in pose_ids}),
+        "diagnostic_pose_training_override": bool(
+            explicitly_excluded and args.allow_diagnostic_pose_training
+        ),
         "seed": args.seed,
         "resolution": args.resolution,
         "action_horizon": args.action_horizon,
@@ -339,9 +373,10 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
         "--pose-set",
-        choices=("broad_32", "broad_64"),
         default="broad_32",
     )
+    parser.add_argument("--pose-id", action="append", default=[])
+    parser.add_argument("--allow-diagnostic-pose-training", action="store_true")
     parser.add_argument("--seed", type=int, default=41)
     parser.add_argument("--resolution", type=int, default=224)
     parser.add_argument("--action-horizon", type=int, default=10)

@@ -78,8 +78,6 @@ def _run_task(
         str(config_root),
         "--output",
         str(shard_root),
-        "--pose-set",
-        str(plan["pose_set"]),
         "--seed",
         str(plan["seed"]),
         "--resolution",
@@ -93,6 +91,14 @@ def _run_task(
         "--render-gpu",
         str(task_index % args.workers),
     ]
+    pose_ids = [str(value) for value in plan.get("pose_ids", [])]
+    if pose_ids:
+        for pose_id in pose_ids:
+            command.extend(("--pose-id", pose_id))
+        if plan.get("allow_diagnostic_pose_training"):
+            command.append("--allow-diagnostic-pose-training")
+    else:
+        command.extend(("--pose-set", str(plan["pose_set"])))
     with log_path.open("w", encoding="utf-8") as log:
         result = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT)
     if result.returncode != 0:

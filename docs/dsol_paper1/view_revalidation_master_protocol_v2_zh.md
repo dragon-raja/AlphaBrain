@@ -165,6 +165,21 @@ Accel 若总选择训练熟悉视角，只能解释为兼容性指标；只有�
 
 因此目前不能下结论“Pi0.5 无法利用信息视角”。只有 constructed Blind-Reveal 通过 M0 后的 M1 才能回答该问题。
 
+### 10.1 预注册解释表
+
+| 观察结果 | 解释 |
+|---|---|
+| Reveal 的 expert/oracle 也不优于 Blind | 场景或候选无有效行为 headroom，M1 无效 |
+| Official/Canonical 在 Reveal 与 Control 相同，Info-pose-support 明显提高 | 主要是视角 support / OOD 问题 |
+| Broad64 在普通 Wide 稳健，但强 Reveal 仍不优于 Control | 被动视角鲁棒性不等于信息利用能力 |
+| Broad64/Info-support 在强 Reveal 稳定优于 Control | 模型能够利用新增可见信息，进入 active-ready 方法研究 |
+| wrist-on 无增益、wrist-off 有增益 | wrist shortcut 掩盖外部信息视角价值 |
+| 所有模型在强 Reveal 均无增益，但 oracle 有明确增益 | 当前 VLA 表征或训练目标未利用新增证据，可作为方法缺口 |
+
+Look-away、整路黑相机或全黑输入只能验证视觉依赖和负向边界，不能单独证明
+“信息视角有用”。Strong Reveal 必须增加任务实体可见性，并由 oracle/expert 或
+任务状态证明该候选具有可实现的行为上界。
+
 ## 11. 冻结执行顺序
 
 1. 补 Official frozen 的 Exact-state 同协议基线；

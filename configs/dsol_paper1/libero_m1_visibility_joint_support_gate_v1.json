@@ -1,0 +1,37 @@
+{
+  "analysis_role": "development_quick_gate_not_final_confirmatory",
+  "artifacts": {
+    "cross_model_analysis": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/m1_visibility/cross_model_development_v2",
+    "evaluation": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/m1_visibility/info_control_pose_support_practical_seed41_wait0_v1",
+    "training": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_info-control-pose-support-m1-dev-v1_seed41_g8_gb32_steps2000"
+  },
+  "decision": "STOP_CURRENT_NATURAL_VISIBILITY_QUICK_GATE_EXPANSION",
+  "evidence": {
+    "av1_videos": 210,
+    "closed_loop_episodes": 210,
+    "independent_source_demonstrations": 6,
+    "info_control_both": {
+      "matched_control_success_rate": 0.6666666666666666,
+      "strong_info_success_rate": 0.6666666666666666
+    },
+    "information_specificity_both": {
+      "difference_pp": 0.0,
+      "paired_source_demo_bootstrap_95_pp": [
+        0.0,
+        0.0
+      ]
+    },
+    "paired_frame_states": 21,
+    "physics_pair_mismatches": 0
+  },
+  "model": {
+    "git_commit": "9b85ee4caee47c28d73b2e77478ac5e2122f259e",
+    "model_safetensors_bytes": 17610456556,
+    "model_safetensors_sha256": "84b3d98650f3e6267dc0d09d822b34a89c19543c9106a67433257b8cc1e3e623",
+    "seed": 41,
+    "training_steps": 2000
+  },
+  "next_gate": "CONTROLLED_STRONG_BLIND_REVEAL_WITH_SYMMETRIC_CAMERA_SUPPORT",
+  "schema": "dsol_libero_m1_visibility_joint_support_gate_v1",
+  "status": "PASS"
+}

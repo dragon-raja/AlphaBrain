@@ -1,6 +1,6 @@
 {
   "schema": "dsol_view_revalidation_master_protocol_v2",
-  "status": "ACTIVE_CORRECTED_PROTOCOL",
+  "status": "SUPERSEDED_BY_V3",
   "date": "2026-08-19",
   "research_questions": [
     "Does broad and dense multiview training solve passive view generalization?",
@@ -8,7 +8,7 @@
     "Does flow acceleration rank compatible views, informative views, or closed-loop valuable views?"
   ],
   "evidence_tracks": {
-    "official_plus": "Official 40-task LIBERO-Plus benchmark",
+    "official_plus": "Deprecated Camera-Dev40 diagnostic subset; see v3",
     "exact_state": "Official LIBERO HDF5 states with matched rendering in one LIBERO-Plus runtime",
     "constructed_evidence": "Audited Blind-Reveal interventions in the LIBERO-Plus runtime"
   },

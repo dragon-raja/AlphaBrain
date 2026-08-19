@@ -1,0 +1,112 @@
+{
+  "schema": "dsol_view_revalidation_master_protocol_v3",
+  "status": "ACTIVE_PREREGISTERED_PROTOCOL",
+  "date": "2026-08-19",
+  "benchmark_tiers": {
+    "original_libero_full": {
+      "task_count": 40,
+      "trials_per_task": 50,
+      "episode_count_per_checkpoint": 2000,
+      "primary_use": "canonical_task_ability_and_retention"
+    },
+    "libero_plus_camera_dev40": {
+      "task_count": 40,
+      "role": "development_and_pipeline_gate_only",
+      "official_full_benchmark": false
+    },
+    "libero_plus_camera_full": {
+      "task_count": 1599,
+      "trials_per_task": 1,
+      "primary_use": "formal_passive_view_generalization"
+    },
+    "libero_plus_camera_heldout1559": {
+      "task_count": 1559,
+      "excludes": "libero_plus_camera_dev40",
+      "primary_use": "selection_bias_audit"
+    },
+    "libero_plus_full": {
+      "task_count": 10030,
+      "trials_per_task": 1,
+      "category_counts": {
+        "Camera Viewpoints": 1599,
+        "Robot Initial States": 1550,
+        "Language Instructions": 1537,
+        "Light Conditions": 1142,
+        "Background Textures": 1076,
+        "Sensor Noise": 1601,
+        "Objects Layout": 1525
+      },
+      "primary_use": "overall_robustness_and_side_effect_audit"
+    }
+  },
+  "external_reference_only": {
+    "openpi_pi05_original_libero": 0.9685,
+    "libero_plus_pi0_camera": 0.138,
+    "libero_plus_pi0_total": 0.536,
+    "libero_plus_openvla_oft_plus_camera": 0.928,
+    "libero_plus_openvla_oft_plus_total": 0.796
+  },
+  "formal_primary_metric": "libero_plus_camera_full_success",
+  "formal_required_models": {
+    "camera_full": [
+      "official_frozen",
+      "canonical_unique_seed41_42_43",
+      "image_augmentation_unique_seed41_42_43",
+      "broad64_unpaired_seed41_42_43",
+      "best_paired_gate_seed41_42_43",
+      "info_pose_support_seed41_42_43_if_m0_passes"
+    ],
+    "plus_full": [
+      "official_frozen",
+      "broad64_unpaired_seed41_42_43",
+      "final_selected_method_seed41_42_43"
+    ]
+  },
+  "official_aggregation": {
+    "primary": "success_count_over_task_count",
+    "required_slices": [
+      "category",
+      "suite",
+      "difficulty",
+      "camera_perturbation_family"
+    ]
+  },
+  "statistical_analysis": {
+    "paired_unit": "original_base_task_cluster",
+    "bootstrap_resamples": 10000,
+    "difference_ci": "paired_base_task_cluster_bootstrap_95",
+    "single_rate_ci": "wilson_95",
+    "training_seeds": [41, 42, 43],
+    "seed_handling": "report_each_seed_then_average_within_base_task_before_cluster_bootstrap",
+    "shared_evaluation_ledger": [
+      "task_id",
+      "environment_seed",
+      "policy_flow_noise_seed",
+      "horizon",
+      "replan_k",
+      "action_postprocessing"
+    ]
+  },
+  "preregistered_thresholds_pp": {
+    "camera_gain_minimum": 5.0,
+    "original_libero_max_drop": 5.0,
+    "non_camera_plus_max_drop": 5.0,
+    "paired_consistency_gain_minimum": 3.0
+  },
+  "mechanism_tracks": {
+    "exact_state": "paired_camera_and_channel_diagnostics_not_official_benchmark",
+    "constructed_blind_reveal": "visibility_information_specificity_not_official_benchmark",
+    "accel": "candidate_ranking_and_relation_attribution_only_until_closed_loop_gain"
+  },
+  "execution_order": [
+    "relabel_existing_camera_dev40",
+    "official_frozen_camera_full",
+    "broad64_seed41_camera_full",
+    "exact_state_quick_gates",
+    "formal_three_seed_camera_full",
+    "constructed_blind_reveal_m0_m1",
+    "official_broad64_final_original_and_plus_full",
+    "accel_relation_analysis",
+    "robocasa_cross_benchmark"
+  ]
+}

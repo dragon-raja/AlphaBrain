@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from build_libero_plus_view_protocol import (
+    build_full_camera_protocol,
     build_protocol,
     normalize_degrees,
     parse_camera_task_name,
@@ -76,3 +77,31 @@ def test_protocol_rejects_underfilled_stratum() -> None:
     }
     with pytest.raises(ValueError, match="stratum"):
         build_protocol(classification, per_suite_difficulty=2, seed=7)
+
+
+def test_full_camera_protocol_keeps_every_camera_task() -> None:
+    classification = {"libero_goal": []}
+    for task_id in range(1, 7):
+        classification["libero_goal"].append(
+            {
+                "id": task_id,
+                "name": f"task_{task_id}_view_{task_id}_0_100_0_0_initstate_0",
+                "category": "Camera Viewpoints",
+                "difficulty_level": (task_id % 5) + 1,
+            }
+        )
+    classification["libero_goal"].append(
+        {
+            "id": 7,
+            "name": "task_noise_1",
+            "category": "Sensor Noise",
+            "difficulty_level": 1,
+        }
+    )
+    protocol = build_full_camera_protocol(classification, seed=7)
+    assert protocol["protocol_scope"] == "libero_plus_camera_full"
+    assert protocol["summary"]["camera_population_count"] == 6
+    assert protocol["summary"]["selected_count"] == 6
+    assert [row["task_id"] for row in protocol["official_camera_tasks"]] == list(
+        range(1, 7)
+    )

@@ -12,7 +12,7 @@
 本状态审计中的 quick gate 应准确称为“LIBERO official HDF5 exact-state
 view intervention in a frozen LIBERO-Plus runtime”，不是完整 LIBERO-Plus 官方
 benchmark。修正后的总协议见
-[view_revalidation_master_protocol_v2_zh.md](view_revalidation_master_protocol_v2_zh.md)。
+[view_revalidation_master_protocol_v3_zh.md](view_revalidation_master_protocol_v3_zh.md)。
 
 ## 分阶段状态
 

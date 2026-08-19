@@ -1,7 +1,11 @@
 # VLA 视角泛化与 Active-Ready 感知重验证总协议 v2
 
-状态：`ACTIVE_CORRECTED_PROTOCOL`  
+状态：`SUPERSEDED_BY_V3`
 日期：2026-08-19
+
+> 本协议中的“40-task 官方轨道”术语不准确。40-task 实验实际是分层开发子集，
+> 不是包含 10,030 个任务的完整 LIBERO-Plus benchmark。正式评测口径以
+> `view_revalidation_master_protocol_v3_zh.md` 为准。
 
 ## 1. 研究目标
 

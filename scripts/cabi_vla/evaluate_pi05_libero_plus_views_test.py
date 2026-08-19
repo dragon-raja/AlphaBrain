@@ -175,6 +175,14 @@ def test_build_episode_specs_pairs_gap_and_candidate_conditions() -> None:
     assert len({row["episode_id"] for row in specs}) == 4
 
 
+def test_build_episode_specs_camera_full_has_no_canonical_duplicate() -> None:
+    specs = build_episode_specs(_protocol(), modes=["camera_full"])
+    assert len(specs) == 1
+    assert specs[0]["condition"] == "official_camera"
+    assert specs[0]["pair_key"].startswith("camera-full::")
+    assert specs[0]["camera_task_name"] == "task_view_30_0_100_0_0_initstate_0"
+
+
 def test_build_episode_specs_pairs_multiple_initial_states() -> None:
     specs = build_episode_specs(_protocol(), modes=["gap", "candidates"], init_state_count=2)
     assert len(specs) == 8

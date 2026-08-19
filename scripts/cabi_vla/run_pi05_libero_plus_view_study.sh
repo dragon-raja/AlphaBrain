@@ -23,6 +23,7 @@ EXPECTED_CHECKPOINT_SHA256=${EXPECTED_CHECKPOINT_SHA256:-\
 0f8c489e37b01c72251c45f2e73595894f3933fc6297f4f1cf95fc8737db4c74}
 
 OPENPI_PYTHON=${OPENPI_PYTHON:-${OPENPI_ROOT}/.venv/bin/python}
+TOOLS_PYTHON=${TOOLS_PYTHON:-/alphabrain/.venv/bin/python}
 SIM_PYTHON=${SIM_PYTHON:-/share/longjunyu/capt-vla/envs/libero/bin/python}
 SIM_OVERLAY=${SIM_OVERLAY:-/share/longjunyu/alphabrain/envs/libero-plus-runtime-overlay-v1}
 SIM_CONFIG=${SIM_CONFIG:-/share/longjunyu/alphabrain/envs/libero-plus-runtime-config-v1}
@@ -38,6 +39,10 @@ fi
 
 if [[ "$SKIP_ANALYSIS" != 0 && "$SKIP_ANALYSIS" != 1 ]]; then
   echo "SKIP_ANALYSIS must be 0 or 1" >&2
+  exit 2
+fi
+if [[ " $EVAL_MODES " == *" camera_full "* && "$INIT_STATE_COUNT" != 1 ]]; then
+  echo "camera_full requires INIT_STATE_COUNT=1 for official compatibility" >&2
   exit 2
 fi
 
@@ -72,6 +77,7 @@ study_code_sha256=$(sha256sum \
   "$REPO_ROOT/scripts/cabi_vla/serve_openpi_deterministic.py" \
   "$REPO_ROOT/scripts/cabi_vla/evaluate_pi05_libero_plus_views.py" \
   "$REPO_ROOT/scripts/cabi_vla/analyze_pi05_libero_plus_views.py" \
+  "$REPO_ROOT/scripts/cabi_vla/analyze_libero_plus_camera_full.py" \
   "$REPO_ROOT/scripts/cabi_vla/run_pi05_libero_plus_view_study.sh" \
   | sha256sum | awk '{print $1}')
 manifest="$OUTPUT_DIR/run_manifest.json"
@@ -84,7 +90,7 @@ GPU_COUNT="$GPU_COUNT" INIT_STATE_COUNT="$INIT_STATE_COUNT" \
 REPLAN_STEPS="$REPLAN_STEPS" EVAL_SEED="$EVAL_SEED" \
 PROBE_SAMPLES="$PROBE_SAMPLES" PROBE_HORIZON="$PROBE_HORIZON" \
 EVAL_MODES="$EVAL_MODES" EVAL_SUITES="$EVAL_SUITES" \
-  "${REPO_ROOT}/.venv/bin/python" - <<'PY' >"$manifest_temporary"
+  "$TOOLS_PYTHON" - <<'PY' >"$manifest_temporary"
 import json
 import os
 
@@ -220,7 +226,7 @@ fi
 
 expected_episode_count=$(PYTHONPATH="$REPO_ROOT/scripts/cabi_vla" \
   PROTOCOL="$PROTOCOL" MODES="$EVAL_MODES" SUITES="$EVAL_SUITES" \
-  INIT_STATE_COUNT="$INIT_STATE_COUNT" "${REPO_ROOT}/.venv/bin/python" - <<'PY'
+  INIT_STATE_COUNT="$INIT_STATE_COUNT" "$TOOLS_PYTHON" - <<'PY'
 import json
 import os
 from pathlib import Path
@@ -244,11 +250,19 @@ if [ "$actual_episode_count" -ne "$expected_episode_count" ]; then
 fi
 
 if [[ "$SKIP_ANALYSIS" == 0 ]]; then
-  "${REPO_ROOT}/.venv/bin/python" "${REPO_ROOT}/scripts/cabi_vla/analyze_pi05_libero_plus_views.py" \
-    --episodes "${episode_files[@]}" \
-    --output-json "$OUTPUT_DIR/metrics.json" \
-    --output-figure "$OUTPUT_DIR/summary.png" \
-    --output-report "$OUTPUT_DIR/report_zh.md"
+  if [[ "$EVAL_MODES" == "camera_full" ]]; then
+    "$TOOLS_PYTHON" "${REPO_ROOT}/scripts/cabi_vla/analyze_libero_plus_camera_full.py" \
+      --episodes "${episode_files[@]}" \
+      --expected-count "$expected_episode_count" \
+      --output-json "$OUTPUT_DIR/metrics.json" \
+      --output-report "$OUTPUT_DIR/report.md"
+  else
+    "$TOOLS_PYTHON" "${REPO_ROOT}/scripts/cabi_vla/analyze_pi05_libero_plus_views.py" \
+      --episodes "${episode_files[@]}" \
+      --output-json "$OUTPUT_DIR/metrics.json" \
+      --output-figure "$OUTPUT_DIR/summary.png" \
+      --output-report "$OUTPUT_DIR/report_zh.md"
+  fi
 fi
 
 echo "study_complete=$OUTPUT_DIR"

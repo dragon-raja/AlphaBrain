@@ -39,6 +39,10 @@ if [[ "$SKIP_ANALYSIS" != 0 && "$SKIP_ANALYSIS" != 1 ]]; then
   echo "SKIP_ANALYSIS must be 0 or 1" >&2
   exit 2
 fi
+if [[ " $EVAL_MODES " == *" camera_full "* && "$INIT_STATE_COUNT" != 1 ]]; then
+  echo "camera_full requires INIT_STATE_COUNT=1 for official compatibility" >&2
+  exit 2
+fi
 for required in \
   "$POLICY_PYTHON" \
   "$SIM_PYTHON" \
@@ -59,6 +63,7 @@ code_sha256=$(sha256sum \
   "$REPO_ROOT/scripts/cabi_vla/serve_alphabrain_pi05_websocket.py" \
   "$REPO_ROOT/scripts/cabi_vla/evaluate_pi05_libero_plus_views.py" \
   "$REPO_ROOT/scripts/cabi_vla/analyze_pi05_libero_plus_views.py" \
+  "$REPO_ROOT/scripts/cabi_vla/analyze_libero_plus_camera_full.py" \
   "$REPO_ROOT/scripts/cabi_vla/run_alphabrain_pi05_libero_plus_view_eval.sh" \
   | sha256sum | awk '{print $1}')
 manifest="$OUTPUT_DIR/run_manifest.json"
@@ -228,11 +233,19 @@ if [[ "$actual_episode_count" -ne "$expected_episode_count" ]]; then
 fi
 
 if [[ "$SKIP_ANALYSIS" == 0 ]]; then
-  "$POLICY_PYTHON" "$REPO_ROOT/scripts/cabi_vla/analyze_pi05_libero_plus_views.py" \
-    --episodes "${episode_files[@]}" \
-    --output-json "$OUTPUT_DIR/metrics.json" \
-    --output-figure "$OUTPUT_DIR/summary.png" \
-    --output-report "$OUTPUT_DIR/report_zh.md"
+  if [[ "$EVAL_MODES" == "camera_full" ]]; then
+    "$POLICY_PYTHON" "$REPO_ROOT/scripts/cabi_vla/analyze_libero_plus_camera_full.py" \
+      --episodes "${episode_files[@]}" \
+      --expected-count "$expected_episode_count" \
+      --output-json "$OUTPUT_DIR/metrics.json" \
+      --output-report "$OUTPUT_DIR/report.md"
+  else
+    "$POLICY_PYTHON" "$REPO_ROOT/scripts/cabi_vla/analyze_pi05_libero_plus_views.py" \
+      --episodes "${episode_files[@]}" \
+      --output-json "$OUTPUT_DIR/metrics.json" \
+      --output-figure "$OUTPUT_DIR/summary.png" \
+      --output-report "$OUTPUT_DIR/report_zh.md"
+  fi
 fi
 
 echo "alphabrain_plus_eval_complete=$OUTPUT_DIR episodes=$actual_episode_count"

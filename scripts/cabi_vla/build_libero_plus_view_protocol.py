@@ -282,6 +282,44 @@ def build_protocol(
     }
 
 
+def build_full_camera_protocol(
+    classification: Mapping[str, Sequence[Mapping[str, Any]]],
+    *,
+    seed: int,
+) -> dict[str, Any]:
+    """Build an official-compatible protocol containing every Camera task."""
+    protocol = build_protocol(
+        classification,
+        per_suite_difficulty=1,
+        seed=seed,
+    )
+    population = sorted(
+        camera_task_population(classification),
+        key=lambda row: (row["suite"], row["task_id"]),
+    )
+    counts = Counter((row["suite"], row["difficulty_level"]) for row in population)
+    protocol.update(
+        {
+            "study": "pi05_libero_plus_camera_full",
+            "protocol_scope": "libero_plus_camera_full",
+            "official_camera_tasks": population,
+            "summary": {
+                "camera_population_count": len(population),
+                "selected_count": len(population),
+                "selected_unique_base_task_count": len(
+                    {(row["suite"], row["base_task"]) for row in population}
+                ),
+                "population_by_suite_difficulty": [
+                    {"suite": suite, "difficulty_level": difficulty, "count": count}
+                    for (suite, difficulty), count in sorted(counts.items())
+                ],
+            },
+        }
+    )
+    protocol.pop("per_suite_difficulty", None)
+    return protocol
+
+
 def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Build a deterministic stratified LIBERO-Plus camera protocol"
@@ -289,6 +327,11 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--classification", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--per-suite-difficulty", type=int, default=2)
+    parser.add_argument(
+        "--full-camera",
+        action="store_true",
+        help="include all official Camera Viewpoints tasks instead of a stratified subset",
+    )
     parser.add_argument("--seed", type=int, default=20260804)
     return parser.parse_args(args)
 
@@ -298,11 +341,14 @@ def main() -> None:
     if args.output.exists():
         raise FileExistsError(f"refusing to overwrite protocol: {args.output}")
     classification = json.loads(args.classification.read_text())
-    protocol = build_protocol(
-        classification,
-        per_suite_difficulty=args.per_suite_difficulty,
-        seed=args.seed,
-    )
+    if args.full_camera:
+        protocol = build_full_camera_protocol(classification, seed=args.seed)
+    else:
+        protocol = build_protocol(
+            classification,
+            per_suite_difficulty=args.per_suite_difficulty,
+            seed=args.seed,
+        )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     temporary = args.output.with_name(f".{args.output.name}.{os.getpid()}.tmp")
     temporary.write_text(json.dumps(protocol, indent=2, sort_keys=True) + "\n")

@@ -22,6 +22,10 @@ Accel 只在上述问题成立后用于候选视角排序和关系归因，不�
 
 轨道 E 不是完整 LIBERO-Plus 官方 benchmark。只有轨道 O 的结果可以称为“官方 LIBERO-Plus 指标”。
 
+轨道 O 不只评 Official checkpoint。通过 Exact-state 快速门的关键模型也必须回到
+完整 40-task 官方协议，至少包括 Canonical-unique、Broad32、Broad64 和最佳 paired
+模型。这样分别检验标准 benchmark 泛化与自定义强信息干预，避免只在自建子集上得出结论。
+
 ## 3. WP0：基线锚定
 
 必须同时报告：
@@ -38,7 +42,12 @@ Accel 只在上述问题成立后用于候选视角排序和关系归因，不�
 
 ## 4. Phase A：被动视角鲁棒性
 
-所有策略使用相同测试初态和完整闭环 horizon，报告：
+Phase A 同时包含两张不可互换的主表：
+
+1. 官方 LIBERO-Plus 40-task canonical / camera perturbation 表；
+2. Exact-state 自建相机与通道干预表。
+
+所有策略使用相同测试初态和完整闭环 horizon，Exact-state 表报告：
 
 - canonical；
 - Legacy held-out；

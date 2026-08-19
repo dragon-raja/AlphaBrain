@@ -19,6 +19,13 @@
     "legacy_mv8",
     "image_augmentation_unique"
   ],
+  "official_plus_required_models": [
+    "official_frozen",
+    "canonical_unique",
+    "broad32_unpaired_practical",
+    "broad64_unpaired_practical",
+    "best_paired_quick_gate"
+  ],
   "phase_b_pose_support": [8, 32, 64],
   "phase_b_exposure_multipliers": [1, 2, 4],
   "phase_b_arms": [

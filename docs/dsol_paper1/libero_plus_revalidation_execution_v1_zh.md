@@ -1,8 +1,13 @@
 # LIBERO-Plus 视角重验证执行协议 v1
 
-状态：`QUICK_GATE_TRAINING_READY`
+状态：`PARTIAL_QUICK_GATE_EVIDENCE_ONLY`
 日期：`2026-08-18`
 职责：在 RoboCasa Target 迁移期间，先用 LIBERO-Plus 跑通修正后的 Phase B/M0/M1 证据链。
+
+> 2026-08-19 审计：七组 seed-41 Broad32 快速训练和被动闭环已完成；自然
+> M0/M1 只完成了两任务、三模型的位姿 support 子门。Broad64、曝光量、正式
+> 多 seed、构造型 Blind-Reveal、全方法 M1 与新版 Accel 尚未完成。完整状态见
+> [view_revalidation_full_program_status_20260819_zh.md](view_revalidation_full_program_status_20260819_zh.md)。
 
 ## 2026-08-18 七组训练链路验收
 
@@ -259,7 +264,10 @@ Accel 不参与 WP4 的信息视角定义。第一轮信息视角仍由任务实
 
 单次旧 visual-LoRA 33k-step 训练在本机历史耗时约 5.7-6.0 小时；一次 8-shard 全模型评测历史耗时约 54 分钟。上表为包含新 pair 数据和严格闭环后的保守预算。
 
-## 9. 立即执行状态
+## 9. 历史执行快照
+
+以下列表保留 2026-08-18 启动时状态，不代表当前完整计划已经完成。当前权威状态
+以 2026-08-19 完整审计文档为准。
 
 - `PASS`：LIBERO-Plus EGL/render runtime；
 - `PASS`：现有 broad-unpaired 数据索引与分布审计；

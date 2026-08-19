@@ -1,0 +1,70 @@
+{
+  "assets": {
+    "libero_hdf5": {
+      "bytes": 33784856577,
+      "demonstrations": 2000,
+      "files": 40,
+      "status": "VERIFIED",
+      "transitions": 338575
+    },
+    "robocasa_human300": {
+      "bytes": 112958637747,
+      "datasets": 300,
+      "episodes": 32043,
+      "status": "VERIFIED"
+    },
+    "robocasa_target": {
+      "bytes": 60548292709,
+      "episodes": 24300,
+      "missing_registry_tasks": [
+        "CloseToasterOvenDoor",
+        "CoffeeSetupMug"
+      ],
+      "status": "VERIFIED_SOURCE_COMPLETE_WITH_2_REGISTRY_GAPS",
+      "tasks": 48
+    }
+  },
+  "completed_evidence": {
+    "broad32_dataset": {
+      "episodes": 400,
+      "pose_support": 32,
+      "records": 38193,
+      "status": "PASS",
+      "tasks": 8
+    },
+    "m0_natural_visibility": {
+      "candidate_records": 14080,
+      "montages": 160,
+      "states": 160,
+      "strict_gate_tasks": 2
+    },
+    "m1_joint_support_subgate": {
+      "episodes_per_model": 210,
+      "models": 3,
+      "source_demonstrations": 6,
+      "states": 21,
+      "tasks": 2
+    },
+    "passive_closed_loop": {
+      "conditions": 7,
+      "episodes": 1176,
+      "models": 7,
+      "paired_groups": 24
+    },
+    "seed41_models": 7
+  },
+  "overall_status": "PARTIAL_QUICK_GATE_EVIDENCE_ONLY",
+  "schema": "dsol_view_revalidation_full_program_status_v1",
+  "stages": {
+    "accel": "NOT_IMPLEMENTED",
+    "constructed_blind_reveal": "NOT_STARTED",
+    "formal_multiseed": "NOT_STARTED",
+    "m0_visibility": "NATURAL_SCENE_PARTIAL",
+    "m1_closed_loop": "THREE_MODEL_TWO_TASK_SUBGATE_COMPLETE",
+    "phase_a_passive_robustness": "SEED41_QUICK_GATE_PARTIAL",
+    "phase_b_training_organization": "BROAD32_SEED41_QUICK_GATE_PARTIAL",
+    "wp0_legacy_anchor": "AVAILABLE_NOT_RERUN_UNDER_CURRENT_PROTOCOL",
+    "wp1_view_catalog": "ENGINEERING_PASS_TRAINING_COVERAGE_PARTIAL"
+  },
+  "updated_at": "2026-08-19"
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "dsol_view_revalidation_master_protocol_v2",
+  "status": "ACTIVE_CORRECTED_PROTOCOL",
+  "date": "2026-08-19",
+  "research_questions": [
+    "Does broad and dense multiview training solve passive view generalization?",
+    "Can a VLA exploit views with greater task-entity visibility after pose support is controlled?",
+    "Does flow acceleration rank compatible views, informative views, or closed-loop valuable views?"
+  ],
+  "evidence_tracks": {
+    "official_plus": "Official 40-task LIBERO-Plus benchmark",
+    "exact_state": "Official LIBERO HDF5 states with matched rendering in one LIBERO-Plus runtime",
+    "constructed_evidence": "Audited Blind-Reveal interventions in the LIBERO-Plus runtime"
+  },
+  "required_baselines": [
+    "official_frozen",
+    "canonical_unique",
+    "canonical_repeat",
+    "legacy_mv8",
+    "image_augmentation_unique"
+  ],
+  "phase_b_pose_support": [8, 32, 64],
+  "phase_b_exposure_multipliers": [1, 2, 4],
+  "phase_b_arms": [
+    "broad_unpaired_practical",
+    "broad_unpaired_state_matched",
+    "broad_paired_fm",
+    "broad_paired_consistency",
+    "info_pose_support"
+  ],
+  "training_exclusions": [
+    "diagnostic_extreme",
+    "look_away",
+    "black_external",
+    "black_wrist",
+    "all_camera_blackout"
+  ],
+  "m0_visibility_definition": "equal_mean_visible_pixel_fraction_over_task_entities_and_active_cameras",
+  "m0_required_candidates": [
+    "canonical",
+    "strong_info",
+    "medium_info",
+    "matched_control",
+    "blind",
+    "look_away",
+    "sensor_blackout"
+  ],
+  "m1_primary_metrics": [
+    "full_task_success",
+    "information_specificity",
+    "progress",
+    "rescue",
+    "harm",
+    "completion_steps",
+    "stage_completion"
+  ],
+  "accel_requirements": [
+    "shared_x0",
+    "accel_2_to_10",
+    "accel_3_preregistered_primary",
+    "dense_ranking",
+    "dynamic_shortlist",
+    "oracle_shortlist_relation"
+  ],
+  "quick_gate_seeds": [41],
+  "formal_seeds": [41, 42, 43],
+  "statistical_unit": "task_x_source_episode_or_physical_state_group"
+}

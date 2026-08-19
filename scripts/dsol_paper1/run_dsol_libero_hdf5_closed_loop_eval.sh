@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
-CHECKPOINT=${CHECKPOINT:?set CHECKPOINT to a self-contained AlphaBrain final_model directory}
+CHECKPOINT=${CHECKPOINT:?set CHECKPOINT to a self-contained AlphaBrain or OpenPI checkpoint directory}
 OUTPUT_DIR=${OUTPUT_DIR:?set OUTPUT_DIR to a new or resumable evaluation directory}
 PROTOCOL=${PROTOCOL:-$REPO_ROOT/configs/dsol_paper1/libero_hdf5_closed_loop_quick_gate_v1.json}
 GPU_COUNT=${GPU_COUNT:-8}
@@ -19,18 +19,43 @@ SIM_PYTHON=${SIM_PYTHON:-/workspace/envs/fresh-libero/bin/python}
 RUNTIME=${RUNTIME:-/share/longjunyu/alphabrain/datasets/libero-plus/runtime/LIBERO-plus}
 SIM_CONFIG=${SIM_CONFIG:-/share/longjunyu/alphabrain/envs/libero-plus-runtime-config-v1}
 FFMPEG_EXE=${FFMPEG_EXE:-/usr/bin/ffmpeg}
+POLICY_BACKEND=${POLICY_BACKEND:-alphabrain}
+OPENPI_ROOT=${OPENPI_ROOT:-/projects/openpi}
+OPENPI_PYTHON=${OPENPI_PYTHON:-$OPENPI_ROOT/.venv/bin/python}
+OPENPI_DATA_HOME=${OPENPI_DATA_HOME:-/share/longjunyu/alphabrain/cache/openpi}
+OPENPI_CONFIG=${OPENPI_CONFIG:-pi05_libero}
 
 for required in \
   "$CHECKPOINT/model.safetensors" \
-  "$CHECKPOINT/framework_config.yaml" \
   "$PROTOCOL" \
   "$ANALYZER" \
-  "$POLICY_PYTHON" \
   "$SIM_PYTHON" \
   "$FFMPEG_EXE" \
   "$RUNTIME/libero/libero/bddl_files"; do
   [[ -e "$required" ]] || { echo "missing required path: $required" >&2; exit 2; }
 done
+case "$POLICY_BACKEND" in
+  alphabrain)
+    for required in "$CHECKPOINT/framework_config.yaml" "$POLICY_PYTHON"; do
+      [[ -e "$required" ]] || { echo "missing required path: $required" >&2; exit 2; }
+    done
+    READY_PYTHON=$POLICY_PYTHON
+    ;;
+  openpi)
+    for required in \
+      "$CHECKPOINT/config.json" \
+      "$CHECKPOINT/assets/physical-intelligence/libero/norm_stats.json" \
+      "$OPENPI_PYTHON" \
+      "$OPENPI_DATA_HOME/big_vision/paligemma_tokenizer.model"; do
+      [[ -e "$required" ]] || { echo "missing required path: $required" >&2; exit 2; }
+    done
+    READY_PYTHON=$OPENPI_PYTHON
+    ;;
+  *)
+    echo "POLICY_BACKEND must be alphabrain or openpi" >&2
+    exit 2
+    ;;
+esac
 [[ "$GPU_COUNT" =~ ^[1-8]$ ]] || { echo "GPU_COUNT must be in [1,8]" >&2; exit 2; }
 [[ -z "$MAX_EPISODES_PER_SHARD" || "$MAX_EPISODES_PER_SHARD" =~ ^[1-9][0-9]*$ ]] || {
   echo "MAX_EPISODES_PER_SHARD must be empty or a positive integer" >&2
@@ -44,6 +69,7 @@ checkpoint_sha256=$(sha256sum "$CHECKPOINT/model.safetensors" | awk '{print $1}'
 protocol_sha256=$(sha256sum "$PROTOCOL" | awk '{print $1}')
 code_sha256=$(sha256sum \
   "$REPO_ROOT/scripts/cabi_vla/serve_alphabrain_pi05_websocket.py" \
+  "$REPO_ROOT/scripts/cabi_vla/serve_openpi_deterministic.py" \
   "$REPO_ROOT/scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py" \
   "$ANALYZER" \
   "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh" \
@@ -51,6 +77,8 @@ code_sha256=$(sha256sum \
 jq -n \
   --arg checkpoint "$CHECKPOINT" \
   --arg checkpoint_sha256 "$checkpoint_sha256" \
+  --arg policy_backend "$POLICY_BACKEND" \
+  --arg openpi_config "$OPENPI_CONFIG" \
   --arg protocol "$PROTOCOL" \
   --arg protocol_sha256 "$protocol_sha256" \
   --arg analyzer "$ANALYZER" \
@@ -61,7 +89,7 @@ jq -n \
   --argjson eval_seed "$EVAL_SEED" \
   --arg max_episodes_per_shard "$MAX_EPISODES_PER_SHARD" \
   --argjson run_analysis "$RUN_ANALYSIS" \
-  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,protocol:$protocol,protocol_sha256:$protocol_sha256,analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,replan_steps:$replan_steps,wait_steps:$wait_steps,eval_seed:$eval_seed,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1)}' \
+  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,policy_backend:$policy_backend,openpi_config:(if $policy_backend == "openpi" then $openpi_config else null end),protocol:$protocol,protocol_sha256:$protocol_sha256,analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,replan_steps:$replan_steps,wait_steps:$wait_steps,eval_seed:$eval_seed,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1)}' \
   > "$OUTPUT_DIR/run_manifest.json"
 
 policy_pids=()
@@ -86,26 +114,36 @@ fi
 
 for ((gpu=0; gpu<GPU_COUNT; gpu++)); do
   port=$((BASE_PORT + gpu))
-  CUDA_VISIBLE_DEVICES=$gpu \
-  PRETRAINED_MODELS_DIR=/share/longjunyu/alphabrain/pretrained_models \
-  ALPHABRAIN_DISABLE_AUTO_DOWNLOAD=1 \
-  PYTHONPATH="$REPO_ROOT:/projects/openpi/src:/projects/openpi/packages/openpi-client/src" \
-    "$POLICY_PYTHON" "$REPO_ROOT/scripts/cabi_vla/serve_alphabrain_pi05_websocket.py" \
-      --checkpoint "$CHECKPOINT" --port "$port" --device cuda:0 \
-      > "$OUTPUT_DIR/logs/policy-gpu-${gpu}.log" 2>&1 &
+  if [[ "$POLICY_BACKEND" == alphabrain ]]; then
+    CUDA_VISIBLE_DEVICES=$gpu \
+    PRETRAINED_MODELS_DIR=/share/longjunyu/alphabrain/pretrained_models \
+    ALPHABRAIN_DISABLE_AUTO_DOWNLOAD=1 \
+    PYTHONPATH="$REPO_ROOT:/projects/openpi/src:/projects/openpi/packages/openpi-client/src" \
+      "$POLICY_PYTHON" "$REPO_ROOT/scripts/cabi_vla/serve_alphabrain_pi05_websocket.py" \
+        --checkpoint "$CHECKPOINT" --port "$port" --device cuda:0 \
+        > "$OUTPUT_DIR/logs/policy-gpu-${gpu}.log" 2>&1 &
+  else
+    CUDA_VISIBLE_DEVICES=$gpu \
+    OPENPI_DATA_HOME="$OPENPI_DATA_HOME" \
+    PYTHONPATH="$REPO_ROOT/scripts/cabi_vla" \
+      "$OPENPI_PYTHON" "$REPO_ROOT/scripts/cabi_vla/serve_openpi_deterministic.py" \
+        --checkpoint "$CHECKPOINT" --config "$OPENPI_CONFIG" \
+        --port "$port" --device cuda:0 \
+        > "$OUTPUT_DIR/logs/policy-gpu-${gpu}.log" 2>&1 &
+  fi
   policy_pids+=("$!")
 done
 
-BASE_PORT="$BASE_PORT" GPU_COUNT="$GPU_COUNT" "$POLICY_PYTHON" - <<'PY'
-import os, time, urllib.request
+BASE_PORT="$BASE_PORT" GPU_COUNT="$GPU_COUNT" "$READY_PYTHON" - <<'PY'
+import os, socket, time
 base = int(os.environ["BASE_PORT"]); count = int(os.environ["GPU_COUNT"])
 pending = set(range(count)); deadline = time.monotonic() + 900
 while pending and time.monotonic() < deadline:
     for index in list(pending):
         try:
-            if urllib.request.urlopen(f"http://127.0.0.1:{base+index}/healthz", timeout=1).status == 200:
+            with socket.create_connection(("127.0.0.1", base + index), timeout=1):
                 pending.remove(index)
-        except Exception:
+        except OSError:
             pass
     if pending: time.sleep(2)
 if pending: raise SystemExit(f"policy servers did not become ready: {sorted(pending)}")
@@ -133,7 +171,7 @@ for pid in "${eval_pids[@]}"; do wait "$pid" || failed=1; done
 [[ "$failed" == 0 ]] || { echo "one or more evaluation shards failed" >&2; exit 1; }
 actual=$(awk 'NF {n++} END {print n+0}' "$OUTPUT_DIR"/episodes-shard-*.jsonl)
 expected=$(PROTOCOL="$PROTOCOL" GPU_COUNT="$GPU_COUNT" MAX_EPISODES_PER_SHARD="$MAX_EPISODES_PER_SHARD" \
-  "$POLICY_PYTHON" - <<'PY'
+  "$READY_PYTHON" - <<'PY'
 import json
 import os
 

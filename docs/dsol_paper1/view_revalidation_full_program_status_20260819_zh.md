@@ -9,14 +9,19 @@
 以及自然场景可见性 M0/M1 的一个受控子门。Legacy Anchor、Broad64/数据规模、
 正式多 seed、构造型 Blind-Reveal、全方法 M1 和新版 Accel 均未完成。
 
+本状态审计中的 quick gate 应准确称为“LIBERO official HDF5 exact-state
+view intervention in a frozen LIBERO-Plus runtime”，不是完整 LIBERO-Plus 官方
+benchmark。修正后的总协议见
+[view_revalidation_master_protocol_v2_zh.md](view_revalidation_master_protocol_v2_zh.md)。
+
 ## 分阶段状态
 
 | 阶段 | 状态 | 已完成 | 主要缺口 |
 |---|---|---|---|
 | WP0 Legacy Anchor | PARTIAL | 旧 Official 640-episode 指标和旧 checkpoint 均存在 | 未在当前 exact-state 协议重跑 Official 与 Legacy-MV8 |
-| WP1 View Catalog | ENGINEERING PASS | 160-entry catalog：Legacy8、Broad64、held-out32、wide24、crossed16、extreme8、look-away4、sensor3 | Broad64 尚未进入训练数据；catalog 仍是候选而非正式冻结版本 |
+| WP1 View Catalog | ENGINEERING PASS | 160-entry catalog：Legacy8、Broad64、held-out32、wide24、crossed16、extreme8、look-away4、sensor3；Broad64 exact-state 数据审计通过 | catalog 仍需在 M0 前冻结信息阈值与 constructed-scene 候选 |
 | Phase A 被动鲁棒性 | QUICK GATE PARTIAL | 7 模型 × 24 groups × 7 条件，共 1,176 闭环 episodes | 缺 Official、Legacy-MV8、三 seed、Reveal/Blind 全模型矩阵、新场景 × Wide |
-| Phase B 训练组织 | QUICK GATE PARTIAL | Broad32 exact-state 数据；7 个 seed-41、2,000-step、GB32 模型 | 缺 Broad64、1x/2x/4x exposure、正式约 338k pairs、seeds 42/43 |
+| Phase B 训练组织 | QUICK GATE PARTIAL | Broad32 七模型完成；Broad64 exact-state 数据完成并开始 seed-41、2,000-step、GB32 训练 | 缺 Broad64 结果、1x/2x/4x exposure、正式约 338k pairs、seeds 42/43 |
 | M0 可见性 | NATURAL-SCENE PARTIAL | 8 tasks、160 states、14,080 candidates、160 montages；极端/Look-away/blackout 链路可用 | 严格门仅 2 tasks 可形成 Info-Control 对；未构造遮挡板或专门 Blind-Reveal 场景 |
 | M1 完整闭环 | SUB-GATE COMPLETE | Broad32、Info-only、Info+Control 三模型；每模型 210 episodes | 未覆盖 7 个训练 arms、6-10 tasks、三 seed；Rescue/Harm/progress 未完整汇总 |
 | Accel | NOT IMPLEMENTED | 只有旧版不确定性/静态候选 Legacy 结果 | 无 accel2-10、共享 flow noise、dense search、dynamic search、train/info/reveal/oracle 关系分析 |
@@ -145,4 +150,3 @@ flow-matching Accel，也没有使用当前扩大的候选池和训练策略。
 
 在第 5 步前直接扩大自然 LIBERO M1，或在候选信息空间未成立前直接跑 Accel，
 都会重复旧实验“干预太弱、结果不可解释”的问题。
-

@@ -53,7 +53,72 @@
     },
     "seed41_models": 7
   },
+  "execution_queue": {
+    "currently_running": [
+      "official_exact_state_168"
+    ],
+    "currently_queued": [
+      "broad64_seed41_exact_state_168",
+      "broad64_seed41_camera_dev40",
+      "official_pi05_camera_full_1599",
+      "broad64_seed41_camera_full_1599",
+      "paired_base_task_bootstrap_official_vs_broad64_seed41"
+    ],
+    "coverage": "SEED41_PASSIVE_CALIBRATION_GATE_ONLY",
+    "is_full_research_program": false,
+    "runner_sessions": [
+      "dsol-posttrain-phasea-s41-v2",
+      "dsol-camera-full-gate-s41"
+    ]
+  },
   "overall_status": "PARTIAL_QUICK_GATE_EVIDENCE_ONLY",
+  "research_dag": [
+    {
+      "automation": "RUNNING_OR_QUEUED",
+      "id": "G0_SEED41_PASSIVE_CALIBRATION",
+      "scope": "Official and Broad64 seed-41 exact-state, Camera-Dev40, and Camera Full"
+    },
+    {
+      "automation": "WAITING_FOR_G0_RESULT",
+      "id": "G1_COVERAGE_AND_EXPOSURE",
+      "scope": "Legacy-MV8, Broad32, Broad64, and Broad64 1x/2x/4x exposure"
+    },
+    {
+      "automation": "WAITING_FOR_G0_RESULT",
+      "id": "G2_PAIRING_MECHANISM",
+      "scope": "Unpaired practical, state-matched, paired FM, and paired consistency"
+    },
+    {
+      "automation": "WAITING_FOR_G1_G2_SELECTION",
+      "id": "G3_FORMAL_MULTI_SEED",
+      "scope": "Selected methods with seeds 41, 42, and 43 on Camera Full"
+    },
+    {
+      "automation": "REQUIRES_DATA_AND_HUMAN_VISUAL_AUDIT",
+      "id": "G4_CONSTRUCTED_M0_BLIND_REVEAL",
+      "scope": "Visibility-based Strong-info, Matched-control, Blind, Reveal, blackout, and wrist controls"
+    },
+    {
+      "automation": "BLOCKED_BY_G4",
+      "id": "G5_INFO_POSE_SUPPORT_AND_M1",
+      "scope": "Info-pose-support training and full closed-loop information-specificity evaluation"
+    },
+    {
+      "automation": "BLOCKED_BY_FROZEN_G4_CANDIDATES",
+      "id": "G6_ACCEL_RELATION_ANALYSIS",
+      "scope": "Accel2-10, shared flow noise, dense ranking, dynamic shortlist, and oracle relation"
+    },
+    {
+      "automation": "FINAL_CONFIRMATION_ONLY",
+      "id": "G7_FULL_BENCHMARKS",
+      "scope": "Original LIBERO Full and LIBERO-Plus Full for Official, Broad64, and final selected method"
+    },
+    {
+      "automation": "FINAL_CROSS_BENCHMARK",
+      "id": "G8_ROBOCASA",
+      "scope": "RoboCasa passive, constructed Blind-Reveal, M1, and Accel validation"
+    }
+  ],
   "schema": "dsol_view_revalidation_full_program_status_v1",
   "stages": {
     "accel": "NOT_IMPLEMENTED",

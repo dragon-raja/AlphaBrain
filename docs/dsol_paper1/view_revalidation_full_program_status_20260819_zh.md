@@ -14,6 +14,37 @@ view intervention in a frozen LIBERO-Plus runtime”，不是完整 LIBERO-Plus 
 benchmark。修正后的总协议见
 [view_revalidation_master_protocol_v3_zh.md](view_revalidation_master_protocol_v3_zh.md)。
 
+## 当前自动队列的边界
+
+当前两个后台 runner 不是完整研究计划的一键队列，而是 `seed 41` 的被动视角校准门：
+
+| 状态 | 自动执行内容 |
+|---|---|
+| RUNNING | Official Pi0.5 exact-state，168 episodes |
+| QUEUED | Broad64 seed 41 exact-state，168 episodes |
+| QUEUED | Broad64 seed 41 Camera-Dev40 |
+| QUEUED | Official Pi0.5 Camera Full，1,599 episodes |
+| QUEUED | Broad64 seed 41 Camera Full，1,599 episodes |
+| QUEUED | Official 与 Broad64 的 paired base-task bootstrap |
+
+它只对应完整研究 DAG 的 `G0_SEED41_PASSIVE_CALIBRATION`。以下内容没有被遗漏，
+但不能在 G0 结果和数据审计之前盲目启动：
+
+| 后续门 | 内容 | 当前自动化状态 |
+|---|---|---|
+| G1 | Legacy-MV8 / Broad32 / Broad64 与 1x/2x/4x exposure | 等待 G0 |
+| G2 | practical unpaired / state-matched / paired FM / consistency | 等待 G0 |
+| G3 | seeds 41/42/43 的正式 Camera Full | 等待 G1/G2 选型 |
+| G4 | 构造型 Blind-Reveal、Matched-control、blackout、wrist 审计 | 必须先做数据和人工画面门 |
+| G5 | Info-pose-support 与完整 M1 | 被 G4 阻塞 |
+| G6 | Accel2-10、dense/dynamic search、oracle 关系分析 | 被冻结候选池阻塞 |
+| G7 | Original LIBERO Full 与 LIBERO-Plus Full | 最终入选模型确认后运行 |
+| G8 | RoboCasa 跨 benchmark 验证 | 最终跨环境门 |
+
+这种分层是科学门控，不是缩减研究主线。问题在于此前“自动队列”这个称呼没有标明
+它仅覆盖 G0，容易让人误以为 G1-G8 已经排队。机器可读状态现已在
+`view_revalidation_full_program_status_20260819.json` 中明确记录完整 DAG 和自动化边界。
+
 ## 分阶段状态
 
 | 阶段 | 状态 | 已完成 | 主要缺口 |

@@ -1,0 +1,68 @@
+{
+  "schema": "dsol_constructed_blind_reveal_package_v1",
+  "status": "EXAMPLE_PATHS_REPLACE_BEFORE_USE",
+  "task_id": "EXAMPLE_TASK",
+  "snapshot_group_id": "EXAMPLE_TASK::scene_000::state_000",
+  "scene_variant_id": "EXAMPLE_OCCLUSION_VARIANT",
+  "split": "val",
+  "source_scan": "/absolute/path/to/scan.json",
+  "snapshot_components": {
+    "physics_state": "/absolute/path/to/snapshot_state.npz",
+    "model_xml": "/absolute/path/to/model.xml",
+    "task_definition": "/absolute/path/to/task.bddl"
+  },
+  "conditions": [
+    {
+      "condition_id": "canonical",
+      "condition_role": "canonical",
+      "source_pose_id": "canonical",
+      "evaluation_only": false,
+      "training_eligible": false
+    },
+    {
+      "condition_id": "strong_info",
+      "condition_role": "strong_info",
+      "source_pose_id": "REPLACE_WITH_REVEAL_POSE",
+      "evaluation_only": false,
+      "training_eligible": false,
+      "operational": true
+    },
+    {
+      "condition_id": "matched_control",
+      "condition_role": "matched_control",
+      "source_pose_id": "REPLACE_WITH_MATCHED_CONTROL_POSE",
+      "evaluation_only": false,
+      "training_eligible": false,
+      "operational": true
+    },
+    {
+      "condition_id": "blind",
+      "condition_role": "blind",
+      "source_pose_id": "REPLACE_WITH_BLIND_POSE",
+      "evaluation_only": true,
+      "training_eligible": false,
+      "is_extreme": true
+    },
+    {
+      "condition_id": "look_away",
+      "condition_role": "look_away",
+      "source_pose_id": "REPLACE_WITH_LOOK_AWAY_POSE",
+      "evaluation_only": true,
+      "training_eligible": false,
+      "is_extreme": true
+    },
+    {
+      "condition_id": "all_camera_blackout",
+      "condition_role": "all_camera_blackout",
+      "source_pose_id": "all_camera_blackout",
+      "evaluation_only": true,
+      "training_eligible": false,
+      "is_extreme": true
+    }
+  ],
+  "manual_visual_audit": {
+    "status": "PENDING",
+    "montage_path": null,
+    "montage_sha256": null
+  }
+}

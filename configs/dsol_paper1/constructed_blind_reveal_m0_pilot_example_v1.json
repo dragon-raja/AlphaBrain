@@ -1,0 +1,49 @@
+{
+  "schema": "dsol_constructed_blind_reveal_gate_config_v1",
+  "status": "EXAMPLE_THRESHOLDS_MUST_BE_FROZEN_ON_VALIDATION_BEFORE_TEST",
+  "visibility": {
+    "definition": "equal_mean_visible_pixel_fraction_over_entities_and_cameras",
+    "numeric_tolerance": 1e-12,
+    "entity_weighting": "equal",
+    "camera_weighting": "equal"
+  },
+  "thresholds": {
+    "strong_info_min_delta": 0.01,
+    "matched_control_max_abs_delta": 0.0025,
+    "blind_max_score": 0.0025,
+    "look_away_max_score": 0.001,
+    "blackout_max_score": 0.0,
+    "reveal_blind_min_delta": 0.015,
+    "matched_translation_tolerance_m": 0.03,
+    "matched_rotation_tolerance_deg": 5.0
+  },
+  "safety": {
+    "evaluation_only_roles": [
+      "blind",
+      "look_away",
+      "all_camera_blackout"
+    ],
+    "extreme_views_are_evaluation_only": true,
+    "blackout_is_evaluation_only": true
+  },
+  "manual_visual_audit": {
+    "required": true,
+    "required_checks": [
+      "canonical_and_candidate_share_physics",
+      "strong_info_visibly_reveals_task_entities",
+      "matched_control_has_similar_pose_magnitude_without_information_gain",
+      "blind_and_look_away_remove_task evidence",
+      "blackout_images_are_zero"
+    ]
+  },
+  "population_gate": {
+    "minimum_snapshot_groups": 90,
+    "minimum_task_count": 3,
+    "minimum_states_per_task": 30
+  },
+  "split_policy": {
+    "freeze_thresholds_on": "validation",
+    "test_tuning_forbidden": true,
+    "same_snapshot_conditions_must_share_split": true
+  }
+}

@@ -4,7 +4,8 @@
 
 日期：2026-08-20
 
-范围：仅 LIBERO / LIBERO-Plus；RoboCasa 暂时移出关键路径。
+范围：第一阶段仅运行 Original LIBERO、LIBERO-Plus Camera Full 和严格机制诊断；
+LIBERO-Plus Full 与 RoboCasa 暂时移出关键路径。
 
 本协议只优化执行依赖和资源调度，不改变
 `view_revalidation_master_protocol_v3_zh.md` 中冻结的研究问题、数据定义、统计单位或通过门槛。
@@ -14,8 +15,8 @@
 | 里程碑 | 内容 | 最快时间 | 可得出的结论 |
 |---|---|---:|---|
 | M-A | Original Full、Broad64 pairing quick gate、constructed M0 pilot、Accel smoke | 72-96 小时 | seed 41 机制裁决，不是论文最终结论 |
-| M-B | 三 seed Camera Full、正式 Blind-Reveal M0/M1、Accel dense relation | 5-7 天 | LIBERO 主问题的决策级结论 |
-| M-C | 入选方法 Plus Full、副作用审计、完整统计与报告 | 7-10 天 | 不含 RoboCasa 的完整 LIBERO 证据链 |
+| M-B | 三 seed Camera Full、正式 Blind-Reveal M0/M1、Accel dense relation | 4-6 天 | 正式视角泛化与信息利用结论 |
+| M-C | 入选方法 Plus Full、副作用审计、完整统计与报告 | 另加 2-3 天 | 非相机扰动副作用结论；第一阶段后置 |
 
 若 constructed expert、16-worker 评测或训练并发 smoke 失败，允许一次修复波次，工期上限为 10-14 天。
 
@@ -29,7 +30,8 @@
 4. 完成 exposure 1x/2x/4x 和 Legacy8/Broad32/Broad64 的 seed 41 诊断；
 5. 只把通过预注册门的模型扩展到 seeds 42/43；
 6. 对正式入选方法运行 Camera Full；
-7. Plus Full 最后运行 Official、Broad64 和最终方法，并复用已完成的 Camera Full 原始记录。
+7. 第一阶段在 Camera Full、M0/M1 和 Accel 完成后形成正式视角结论；
+8. Plus Full 后置，获准启动时只运行 Official、Broad64 和最终方法，并复用已完成的 Camera Full 原始记录。
 
 ### B. Constructed Blind-Reveal 数据线
 
@@ -133,7 +135,8 @@ Original retention
   -> seed41 coverage/pairing quick gate
   -> finalists
   -> seeds42/43 + Camera Full
-  -> Plus Full side-effect audit
+  -> Stage-1 view conclusion
+  -> deferred Plus Full side-effect audit
 
 Constructed scenes
   -> M0 visibility gate
@@ -146,4 +149,4 @@ Flow trajectory
   -> dynamic shortlist
 ```
 
-前三条路径并行；最终报告只等待三条路径各自通过对应 gate，不等待 RoboCasa。
+前三条路径并行；第一阶段报告只等待三条路径各自通过对应 gate，不等待 Plus Full 或 RoboCasa。

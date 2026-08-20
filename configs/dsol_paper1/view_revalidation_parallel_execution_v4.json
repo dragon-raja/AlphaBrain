@@ -3,8 +3,14 @@
   "date": "2026-08-20",
   "status": "ACTIVE_EXECUTION_SCHEDULE",
   "scope": {
-    "included": ["LIBERO", "LIBERO-Plus"],
-    "excluded_from_critical_path": ["RoboCasa"]
+    "stage_1_included": [
+      "Original LIBERO Full",
+      "LIBERO-Plus Camera Full",
+      "Exact-state",
+      "Constructed Blind-Reveal",
+      "Accel relation analysis"
+    ],
+    "deferred_from_stage_1": ["LIBERO-Plus Full", "RoboCasa"]
   },
   "scientific_protocol": "docs/dsol_paper1/view_revalidation_master_protocol_v3_zh.md",
   "milestones": [
@@ -15,13 +21,14 @@
     },
     {
       "id": "M-B",
-      "days": [5, 7],
-      "deliverable": "decision-complete LIBERO main evidence"
+      "days": [4, 6],
+      "deliverable": "formal view-generalization and information-use conclusion"
     },
     {
       "id": "M-C",
-      "days": [7, 10],
-      "deliverable": "full LIBERO and LIBERO-Plus evidence without RoboCasa"
+      "additional_days": [2, 3],
+      "status": "DEFERRED_FROM_STAGE_1",
+      "deliverable": "LIBERO-Plus Full non-camera side-effect audit"
     }
   ],
   "parallel_lanes": {
@@ -30,7 +37,7 @@
       "broad64_pairing",
       "seed41_exposure_and_support",
       "selected_multiseed_camera_full",
-      "selected_plus_full"
+      "selected_plus_full_deferred"
     ],
     "B_constructed_information": [
       "blind_reveal_scene_pilot",

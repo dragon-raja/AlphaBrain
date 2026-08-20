@@ -5,6 +5,9 @@
 
 并行执行与资源调度见 `view_revalidation_parallel_execution_v4_zh.md`。该执行协议不改变本文冻结的科学定义与统计门槛。
 
+执行范围修订（2026-08-20）：第一阶段以 Original Full、Camera Full、Blind-Reveal M0/M1 和
+Accel 关系分析形成正式视角结论；Plus Full 作为非相机扰动副作用审计后置，不阻塞第一阶段。
+
 ## 1. 研究问题
 
 本研究重做旧 Phase A/B/M0/M1，回答三个递进问题：

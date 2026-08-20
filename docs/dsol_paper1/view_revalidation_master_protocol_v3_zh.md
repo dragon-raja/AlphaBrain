@@ -8,6 +8,10 @@
 执行范围修订（2026-08-20）：第一阶段以 Original Full、Camera Full、Blind-Reveal M0/M1 和
 Accel 关系分析形成正式视角结论；Plus Full 作为非相机扰动副作用审计后置，不阻塞第一阶段。
 
+执行门进一步拆分：先以已有 seed-41 Camera Full 作为锚点，完成 coverage/pairing、constructed
+M0/M1 与 Accel 的 M-A 机制裁决；只有入选方法才扩展 seeds 42/43 并补 Camera Full 与 Original
+retention。新 Camera Full 不阻塞 M-A。
+
 ## 1. 研究问题
 
 本研究重做旧 Phase A/B/M0/M1，回答三个递进问题：

@@ -14,23 +14,28 @@ LIBERO-Plus Full 与 RoboCasa 暂时移出关键路径。
 
 | 里程碑 | 内容 | 最快时间 | 可得出的结论 |
 |---|---|---:|---|
-| M-A | Original Full、Broad64 pairing quick gate、constructed M0 pilot、Accel smoke | 72-96 小时 | seed 41 机制裁决，不是论文最终结论 |
-| M-B | 三 seed Camera Full、正式 Blind-Reveal M0/M1、Accel dense relation | 4-6 天 | 正式视角泛化与信息利用结论 |
-| M-C | 入选方法 Plus Full、副作用审计、完整统计与报告 | 另加 2-3 天 | 非相机扰动副作用结论；第一阶段后置 |
+| M-A | seed 41 coverage/pairing、constructed M0/M1、Accel fixed-state/dense | 48-72 小时 | 主线机制 Go/No-Go；使用已有 seed-41 Camera Full 作锚点 |
+| M-B | 仅入选方法扩 seeds 42/43，并补 Camera Full 与 finalist retention | 另加 1-2 天 | 三 seed 正式相机泛化结论 |
+| M-C | 入选方法 Plus Full、副作用审计、完整统计与报告 | 再加 2-3 天 | 非相机扰动副作用结论；继续后置 |
 
-若 constructed expert、16-worker 评测或训练并发 smoke 失败，允许一次修复波次，工期上限为 10-14 天。
+若 constructed expert、16-worker 评测或训练并发 smoke 失败，允许一次修复波次。M-A/M-B
+合计正常为 3-5 天，含一次修复的上限为 7 天。
+
+现有 Official 与 Broad64 seed-41 Camera Full 结果直接复用，不重复运行。当前进行中的 Original Full
+Official/Broad64 是基础能力 retention 锚点，但不阻塞 M-A 的数据和模型工程。其余 seed 的 Original Full
+只对 M-A 选出的 finalist 运行，并归入 M-B。
 
 ## 2. 四条并行流水线
 
 ### A. Benchmark 与训练线
 
-1. 不重启当前 Original Full Official -> Broad64 队列；
+1. 不重启当前 Original Full Official -> Broad64 队列，但不等待它再开始 B/C 两线；
 2. 运行训练并发容量 smoke；
 3. seed 41 完成 Broad64 state-matched、paired FM、paired consistency；
 4. 完成 exposure 1x/2x/4x 和 Legacy8/Broad32/Broad64 的 seed 41 诊断；
-5. 只把通过预注册门的模型扩展到 seeds 42/43；
-6. 对正式入选方法运行 Camera Full；
-7. 第一阶段在 Camera Full、M0/M1 和 Accel 完成后形成正式视角结论；
+5. 联合 constructed M0/M1 与 Accel 完成 M-A 主线机制裁决；
+6. 只把通过 M-A 的模型扩展到 seeds 42/43；
+7. 对入选方法补 Camera Full 与 Original Full retention，形成 M-B 正式结论；
 8. Plus Full 后置，获准启动时只运行 Official、Broad64 和最终方法，并复用已完成的 Camera Full 原始记录。
 
 ### B. Constructed Blind-Reveal 数据线
@@ -131,12 +136,17 @@ Accel 不替代可见性分数，也不用于定义训练信息视角。
 ## 5. 决策关键路径
 
 ```text
-Original retention
-  -> seed41 coverage/pairing quick gate
+seed41 coverage/pairing quick gate
+  -> constructed M0/M1 + Accel
+  -> M-A mechanism decision
   -> finalists
-  -> seeds42/43 + Camera Full
-  -> Stage-1 view conclusion
+  -> seeds42/43 + Camera Full + finalist retention
+  -> M-B formal view conclusion
   -> deferred Plus Full side-effect audit
+
+Current Official/Broad64 retention
+  -> runs in background
+  -> supplies the seed41 retention anchor
 
 Constructed scenes
   -> M0 visibility gate

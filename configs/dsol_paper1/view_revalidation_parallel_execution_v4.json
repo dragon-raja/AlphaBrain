@@ -16,13 +16,16 @@
   "milestones": [
     {
       "id": "M-A",
-      "hours": [72, 96],
-      "deliverable": "seed41 mechanism decision package"
+      "hours": [48, 72],
+      "blocks_on_new_camera_full": false,
+      "reuse_existing_seed41_camera_full": true,
+      "deliverable": "seed41 coverage, constructed M0/M1, and Accel mechanism decision"
     },
     {
       "id": "M-B",
-      "days": [4, 6],
-      "deliverable": "formal view-generalization and information-use conclusion"
+      "additional_days": [1, 2],
+      "run_only_gate_selected_methods": true,
+      "deliverable": "multiseed Camera Full and finalist retention conclusion"
     },
     {
       "id": "M-C",
@@ -36,7 +39,8 @@
       "original_full_retention",
       "broad64_pairing",
       "seed41_exposure_and_support",
-      "selected_multiseed_camera_full",
+      "m_a_mechanism_decision",
+      "selected_multiseed_camera_full_and_retention",
       "selected_plus_full_deferred"
     ],
     "B_constructed_information": [

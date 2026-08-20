@@ -1,0 +1,62 @@
+{
+  "analysis_scope": "development_quick_gate_not_final_confirmatory",
+  "camera_full_anchor": {
+    "broad64_practical_minus_official_base_task_cluster_ci95_pp": [
+      0.11843645090589886,
+      10.693322711387787
+    ],
+    "broad64_practical_minus_official_base_task_cluster_pp": 5.230659283975062,
+    "independent_base_tasks": 40,
+    "status": "PASS_PREREGISTERED_PASSIVE_VIEW_GATE"
+  },
+  "constructed_m1": {
+    "broad64_paired_consistency": {
+      "independent_source_demonstrations": 6,
+      "information_specificity_ci95_pp": [-6.666666666666667, 30.0],
+      "information_specificity_pp": 11.666666666666666,
+      "role": "MECHANISM_CHALLENGER",
+      "strong_info_minus_canonical_ci95_pp": [-9.166666666666668, 13.333333333333334],
+      "strong_info_minus_canonical_pp": 2.5000000000000004
+    },
+    "broad64_paired_fm": {
+      "independent_source_demonstrations": 6,
+      "information_specificity_ci95_pp": [-21.666666666666668, 13.333333333333334],
+      "information_specificity_pp": -1.6666666666666663,
+      "role": "STOP_AFTER_M_A"
+    },
+    "broad64_practical": {
+      "independent_source_demonstrations": 6,
+      "information_specificity_ci95_pp": [3.3333333333333335, 26.666666666666668],
+      "information_specificity_pp": 13.333333333333334,
+      "role": "PRIMARY_FINALIST",
+      "strong_info_minus_blind_ci95_pp": [4.166666666666666, 67.5],
+      "strong_info_minus_blind_pp": 34.166666666666664,
+      "strong_info_minus_canonical_ci95_pp": [-6.666666666666667, 33.33333333333333],
+      "strong_info_minus_canonical_pp": 10.000000000000002
+    },
+    "broad64_state_matched": {
+      "independent_source_demonstrations": 6,
+      "information_specificity_ci95_pp": [-6.666666666666667, 15.833333333333332],
+      "information_specificity_pp": 4.166666666666666,
+      "role": "STOP_AFTER_M_A"
+    }
+  },
+  "decision": {
+    "advance_to_m_b": [
+      "broad64_practical",
+      "broad64_paired_consistency"
+    ],
+    "do_not_advance": [
+      "broad64_state_matched",
+      "broad64_paired_fm"
+    ],
+    "dynamic_accel_shortlist": "HOLD"
+  },
+  "evidence_roots": {
+    "accel_m1_joins": "/share/longjunyu/alphabrain/experiments/dsol-accel-constructed-v2/m1-joins",
+    "camera_full": "/share/longjunyu/alphabrain/experiments/libero-plus-camera-full-v1/broad64-seed41-vs-official.json",
+    "constructed_m1": "/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m1-v2"
+  },
+  "schema": "dsol_view_revalidation_m_a_decision_v1",
+  "status": "M_A_COMPLETE_M_B_APPROVED"
+}

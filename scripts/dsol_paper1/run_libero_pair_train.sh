@@ -105,17 +105,31 @@ if (( NUM_GPUS > 1 )); then
 fi
 
 STOPPED_KEEPALIVES=()
+KEEPALIVE_LEASE_DIR=${AI2R_KEEPALIVE_LEASE_DIR:-/run/ai2r/gpu-keepalive-leases}
+KEEPALIVE_LEASE_OWNER=$BASHPID
+mkdir -p "$KEEPALIVE_LEASE_DIR"
 restore_keepalive() {
+  local lease owner
   for gpu in "${STOPPED_KEEPALIVES[@]:-}"; do
     [[ -n "$gpu" ]] || continue
     bash /workspace/ai2r/gpu_compute_keepalive/start.sh \
-      "${AI2R_KEEPALIVE_EXTRA_GIB:-1}" "${AI2R_KEEPALIVE_N:-8192}" \
+      "${AI2R_KEEPALIVE_EXTRA_GIB:-0}" "${AI2R_KEEPALIVE_N:-4096}" \
       "gpu-keepalive-${gpu}" "$gpu" >/dev/null || true
+  done
+  for gpu in "${physical_gpus[@]}"; do
+    lease="$KEEPALIVE_LEASE_DIR/gpu-$gpu.lease"
+    owner=""
+    [[ -s "$lease" ]] && read -r owner < "$lease" || true
+    [[ "$owner" == "$KEEPALIVE_LEASE_OWNER" ]] && rm -f "$lease"
   done
 }
 trap restore_keepalive EXIT
 
 for gpu in "${physical_gpus[@]}"; do
+  lease="$KEEPALIVE_LEASE_DIR/gpu-$gpu.lease"
+  temporary="$lease.$KEEPALIVE_LEASE_OWNER.tmp"
+  printf '%s\n' "$KEEPALIVE_LEASE_OWNER" > "$temporary"
+  mv "$temporary" "$lease"
   if tmux has-session -t "gpu-keepalive-${gpu}" 2>/dev/null; then
     tmux kill-session -t "gpu-keepalive-${gpu}"
     STOPPED_KEEPALIVES+=("$gpu")

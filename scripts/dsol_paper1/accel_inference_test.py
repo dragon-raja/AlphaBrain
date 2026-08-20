@@ -4,7 +4,10 @@ import unittest
 
 import numpy as np
 
-from accel_inference import rank_fixed_state_candidates
+from accel_inference import (
+    rank_fixed_state_candidates,
+    rank_fixed_state_candidates_chunked,
+)
 
 
 class FakeTraceModel:
@@ -84,6 +87,54 @@ class AccelInferenceTest(unittest.TestCase):
                 seed=44,
                 action_horizon=2,
                 action_dim=1,
+            )
+
+    def test_chunked_ranking_uses_fixed_batch_shape_and_one_x0(self) -> None:
+        class BatchedModel(FakeTraceModel):
+            def __init__(self) -> None:
+                super().__init__()
+                self.batch_shapes = []
+                self.noises = []
+
+            def predict_action(self, **kwargs):
+                output = super().predict_action(**kwargs)
+                self.batch_shapes.append(len(kwargs["examples"]))
+                self.noises.append(np.asarray(kwargs["noise"]).copy())
+                return output
+
+        model = BatchedModel()
+        examples = [{"view": f"v{index}"} for index in range(5)]
+        result = rank_fixed_state_candidates_chunked(
+            model,
+            examples,
+            [f"v{index}" for index in range(5)],
+            seed=45,
+            action_horizon=3,
+            action_dim=2,
+            batch_size=2,
+            include_trace_artifacts=True,
+        )
+        self.assertEqual(model.batch_shapes, [2, 2, 2])
+        self.assertTrue(all(np.array_equal(noise[0], noise[1]) for noise in model.noises))
+        self.assertTrue(
+            all(np.array_equal(model.noises[0], noise) for noise in model.noises[1:])
+        )
+        self.assertEqual(result["candidate_count"], 5)
+        self.assertEqual(result["batch_count"], 3)
+        self.assertEqual(result["batch_audits"][-1]["padded_candidate_count"], 1)
+        self.assertEqual(result["flow_velocity_trace"].shape, (5, 10, 3, 2))
+        self.assertTrue(result["shared_flow_noise_audit"]["exactly_shared"])
+
+    def test_chunked_ranking_rejects_duplicate_candidate_ids(self) -> None:
+        with self.assertRaisesRegex(ValueError, "candidate_ids must be unique"):
+            rank_fixed_state_candidates_chunked(
+                FakeTraceModel(),
+                [{"view": "a"}, {"view": "b"}],
+                ["same", "same"],
+                seed=46,
+                action_horizon=2,
+                action_dim=1,
+                batch_size=2,
             )
 
 

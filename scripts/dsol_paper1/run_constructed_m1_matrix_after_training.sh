@@ -119,34 +119,33 @@ launch_eval() {
 }
 
 launch_eval official "$OFFICIAL" openpi 0,1 19200
-early_practical_inflight=0
-if tmux has-session -t "$EARLY_PRACTICAL_SESSION" 2>/dev/null; then
-  early_practical_inflight=1
-  printf 'reuse_inflight_eval=broad64-practical session=%s\n' "$EARLY_PRACTICAL_SESSION"
-else
-  launch_eval broad64-practical "$PRACTICAL" alphabrain 6,7 19220
-fi
 launch_eval broad64-state-matched "$STATE_MATCHED" alphabrain 2,3 19240
 launch_eval broad64-paired-fm "$PAIRED_FM" alphabrain 4,5 19260
-failed=0
-for pid in "${pids[@]}"; do if ! wait "$pid"; then failed=1; fi; done
-[[ "$failed" == 0 ]] || { echo "constructed M1 wave one failed" >&2; exit 1; }
-if [[ "$early_practical_inflight" == 1 ]]; then
+(
   while tmux has-session -t "$EARLY_PRACTICAL_SESSION" 2>/dev/null; do
     printf 'waiting_for_early_practical=%s at=%s\n' "$EARLY_PRACTICAL_SESSION" "$(date -u +%FT%TZ)"
     sleep "$POLL_SECONDS"
   done
-fi
-[[ -s "$OUTPUT_ROOT/broad64-practical/analysis/metrics.json" ]] || {
-  echo "broad64-practical evaluation did not complete" >&2
-  exit 1
-}
-
-pids=()
-launch_eval broad64-paired-consistency "$PAIRED_CONSISTENCY" alphabrain 0,1 19300
+  if [[ ! -s "$OUTPUT_ROOT/broad64-practical/analysis/metrics.json" ]]; then
+    run_eval broad64-practical "$PRACTICAL" alphabrain 6,7 19220 "$OUTPUT_ROOT/broad64-practical"
+  else
+    printf 'reuse_complete_eval=broad64-practical\n'
+  fi
+  [[ -s "$OUTPUT_ROOT/broad64-practical/analysis/metrics.json" ]] || {
+    echo "broad64-practical evaluation did not complete" >&2
+    exit 1
+  }
+  if [[ ! -s "$OUTPUT_ROOT/broad64-paired-consistency/analysis/metrics.json" ]]; then
+    run_eval broad64-paired-consistency "$PAIRED_CONSISTENCY" alphabrain 6,7 19300 "$OUTPUT_ROOT/broad64-paired-consistency"
+  else
+    printf 'reuse_complete_eval=broad64-paired-consistency\n'
+  fi
+) &
+pids+=("$!")
+printf 'launched_eval_lane=practical_then_consistency pid=%s devices=6,7\n' "$!"
 failed=0
 for pid in "${pids[@]}"; do if ! wait "$pid"; then failed=1; fi; done
-[[ "$failed" == 0 ]] || { echo "constructed M1 wave two failed" >&2; exit 1; }
+[[ "$failed" == 0 ]] || { echo "constructed M1 parallel lanes failed" >&2; exit 1; }
 
 comparison=$OUTPUT_ROOT/cross-model-analysis
 /alphabrain/.venv/bin/python "$REPO_ROOT/scripts/dsol_paper1/compare_dsol_libero_m1_models.py" \

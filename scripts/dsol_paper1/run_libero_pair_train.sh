@@ -26,6 +26,8 @@ NUM_GPUS=${3:?usage: run_libero_pair_train.sh ARM SEED NUM_GPUS STEPS [RUN_TAG]}
 STEPS=${4:?usage: run_libero_pair_train.sh ARM SEED NUM_GPUS STEPS [RUN_TAG]}
 RUN_TAG=${5:-smoke}
 SCHEDULER_STEPS=${DSOL_SCHEDULER_STEPS:-$STEPS}
+GPU_DEVICES=${DSOL_GPU_DEVICES:-}
+MAIN_PROCESS_PORT=${DSOL_MAIN_PROCESS_PORT:-$((31800 + SEED % 100))}
 
 case "$ARM" in
   canonical_unique|image_augmentation_unique|broad_unpaired_practical)
@@ -49,6 +51,11 @@ done
 }
 [[ "$NUM_GPUS" -le 8 ]] || { echo "NUM_GPUS must be <= 8" >&2; exit 2; }
 [[ "$RUN_TAG" =~ ^[A-Za-z0-9_.-]+$ ]] || { echo "unsafe RUN_TAG" >&2; exit 2; }
+[[ "$MAIN_PROCESS_PORT" =~ ^[0-9]+$ ]] || { echo "invalid DSOL_MAIN_PROCESS_PORT" >&2; exit 2; }
+(( MAIN_PROCESS_PORT >= 1024 && MAIN_PROCESS_PORT <= 65535 )) || {
+  echo "DSOL_MAIN_PROCESS_PORT must be in [1024, 65535]" >&2
+  exit 2
+}
 [[ "$CALIBRATION" =~ ^[01]$ ]] || { echo "DSOL_CALIBRATION must be 0 or 1" >&2; exit 2; }
 [[ "$CALIBRATION_INTERVAL" =~ ^[1-9][0-9]*$ ]] || { echo "invalid DSOL_CALIBRATION_INTERVAL" >&2; exit 2; }
 [[ "$CALIBRATION_ITEMS" =~ ^[1-9][0-9]*$ ]] || { echo "invalid DSOL_CALIBRATION_ITEMS" >&2; exit 2; }
@@ -65,6 +72,26 @@ if (( GLOBAL_EXAMPLES % DENOMINATOR != 0 )); then
 fi
 GRAD_ACC=$((GLOBAL_EXAMPLES / DENOMINATOR))
 (( GRAD_ACC >= 1 )) || { echo "gradient accumulation would be zero" >&2; exit 2; }
+
+if [[ -z "$GPU_DEVICES" ]]; then
+  physical_gpus=()
+  for ((gpu=0; gpu<NUM_GPUS; gpu++)); do
+    physical_gpus+=("$gpu")
+  done
+  GPU_DEVICES=$(IFS=,; echo "${physical_gpus[*]}")
+else
+  IFS=, read -r -a physical_gpus <<< "$GPU_DEVICES"
+fi
+[[ "${#physical_gpus[@]}" -eq "$NUM_GPUS" ]] || {
+  echo "DSOL_GPU_DEVICES must list exactly NUM_GPUS=$NUM_GPUS devices" >&2
+  exit 2
+}
+declare -A seen_gpus=()
+for gpu in "${physical_gpus[@]}"; do
+  [[ "$gpu" =~ ^[0-7]$ ]] || { echo "invalid physical GPU index: $gpu" >&2; exit 2; }
+  [[ -z "${seen_gpus[$gpu]:-}" ]] || { echo "duplicate physical GPU index: $gpu" >&2; exit 2; }
+  seen_gpus[$gpu]=1
+done
 
 RUN_ID="dsol_${ARM}_${RUN_TAG}_seed${SEED}_g${NUM_GPUS}_gb${GLOBAL_EXAMPLES}_steps${STEPS}"
 OUTPUT_DIR="$OUTPUT_ROOT/$RUN_ID"
@@ -88,7 +115,7 @@ restore_keepalive() {
 }
 trap restore_keepalive EXIT
 
-for ((gpu=0; gpu<NUM_GPUS; gpu++)); do
+for gpu in "${physical_gpus[@]}"; do
   if tmux has-session -t "gpu-keepalive-${gpu}" 2>/dev/null; then
     tmux kill-session -t "gpu-keepalive-${gpu}"
     STOPPED_KEEPALIVES+=("$gpu")
@@ -102,6 +129,7 @@ export ALPHABRAIN_DISABLE_AUTO_DOWNLOAD=1
 export NO_ALBUMENTATIONS_UPDATE=1
 export OMP_NUM_THREADS=${OMP_NUM_THREADS:-8}
 export WANDB_MODE="$WANDB_MODE_VALUE"
+export CUDA_VISIBLE_DEVICES="$GPU_DEVICES"
 # Visual-LoRA leaves a small number of conditional trainable parameters unused
 # on some microbatches. Dynamic DDP plus unused-parameter detection is required
 # for the strict global-batch gradient accumulation used by this experiment.
@@ -127,6 +155,8 @@ fi
   --arm "$ARM" \
   --seed "$SEED" \
   --num-gpus "$NUM_GPUS" \
+  --gpu-devices "$GPU_DEVICES" \
+  --main-process-port "$MAIN_PROCESS_PORT" \
   --steps "$STEPS" \
   --scheduler-steps "$SCHEDULER_STEPS" \
   --global-examples "$GLOBAL_EXAMPLES" \
@@ -139,14 +169,14 @@ fi
   --wandb-mode "$WANDB_MODE_VALUE" \
   "${budget_manifest_args[@]}"
 
-printf 'arm=%s seed=%s num_gpus=%s examples_per_item=%s grad_acc=%s global_model_examples=%s\n' \
-  "$ARM" "$SEED" "$NUM_GPUS" "$EXAMPLES_PER_ITEM" "$GRAD_ACC" "$GLOBAL_EXAMPLES" \
+printf 'arm=%s seed=%s num_gpus=%s gpu_devices=%s main_process_port=%s examples_per_item=%s grad_acc=%s global_model_examples=%s\n' \
+  "$ARM" "$SEED" "$NUM_GPUS" "$GPU_DEVICES" "$MAIN_PROCESS_PORT" "$EXAMPLES_PER_ITEM" "$GRAD_ACC" "$GLOBAL_EXAMPLES" \
   | tee "$OUTPUT_DIR/batch_accounting.txt"
 
 "$PYTHON" -m accelerate.commands.launch \
   --config_file "$ACCELERATE_CONFIG" \
   --num_processes "$NUM_GPUS" \
-  --main_process_port "$((31800 + SEED % 100))" \
+  --main_process_port "$MAIN_PROCESS_PORT" \
   AlphaBrain/training/train_alphabrain.py \
   --config_yaml "$CONFIG" \
   --mode "dsol_${ARM}" \

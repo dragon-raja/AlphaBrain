@@ -43,6 +43,8 @@ def main() -> None:
     parser.add_argument("--arm", required=True)
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--num-gpus", type=int, required=True)
+    parser.add_argument("--gpu-devices", required=True)
+    parser.add_argument("--main-process-port", type=int, required=True)
     parser.add_argument("--steps", type=int, required=True)
     parser.add_argument("--scheduler-steps", type=int, required=True)
     parser.add_argument("--global-examples", type=int, required=True)
@@ -71,6 +73,8 @@ def main() -> None:
         "arm": args.arm,
         "seed": args.seed,
         "num_gpus": args.num_gpus,
+        "gpu_devices": [int(value) for value in args.gpu_devices.split(",")],
+        "main_process_port": args.main_process_port,
         "steps": args.steps,
         "scheduler_total_steps": args.scheduler_steps,
         "global_model_examples_per_update": args.global_examples,

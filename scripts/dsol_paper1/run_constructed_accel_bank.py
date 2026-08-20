@@ -95,7 +95,7 @@ def build_candidate_bank(
         raise ValueError(f"frozen diagnostic poses are absent from catalog: {missing}")
 
     physical = list(operational)
-    for role in ("blind", "look_away"):
+    for role in ("strong_info", "matched_control", "blind", "look_away"):
         if role_ids[role] not in physical:
             physical.append(role_ids[role])
     all_candidates = physical + list(SENSOR_CONTROLS)
@@ -807,6 +807,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         if args.runtime is None or args.config_root is None:
             raise ValueError("render stage requires --runtime and --config-root")
         completed = 0
+        candidate_counts = []
         for index, spec in enumerate(specs, start=1):
             state_dir = state_dirs[str(spec["pair_key"])]
             record_path = state_dir / "render_record.json"
@@ -814,6 +815,7 @@ def main(argv: Sequence[str] | None = None) -> None:
                 row = json.loads(record_path.read_text(encoding="utf-8"))
                 if row.get("status") == "PASS":
                     completed += 1
+                    candidate_counts.append(int(row["candidate_count"]))
                     continue
             bank = build_candidate_bank(catalog, spec["visibility_selection"])
             bank["table_plane_z"] = float(catalog["table_plane_z"])
@@ -836,6 +838,7 @@ def main(argv: Sequence[str] | None = None) -> None:
                 bank=bank,
             )
             completed += 1
+            candidate_counts.append(int(row["candidate_count"]))
             print(
                 json.dumps(
                     {
@@ -853,7 +856,8 @@ def main(argv: Sequence[str] | None = None) -> None:
             "status": "PASS" if completed == len(specs) else "FAIL",
             "state_count": len(specs),
             "completed_state_count": completed,
-            "candidate_count_per_state": 102,
+            "candidate_count_min": min(candidate_counts),
+            "candidate_count_max": max(candidate_counts),
             "protocol": str(args.protocol.resolve()),
             "protocol_sha256": sha256(args.protocol),
             "catalog": str(catalog_path.resolve()),

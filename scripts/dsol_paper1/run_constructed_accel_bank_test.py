@@ -21,6 +21,7 @@ def _catalog() -> dict:
         "broad_heldout_32": [_pose(f"heldout_{index:02d}") for index in range(32)],
         "diagnostic_crossed_orbit": [_pose("blind")],
         "diagnostic_look_away": [_pose("look_away")],
+        "wide_extrapolation_24": [_pose("wide_info"), _pose("wide_control")],
     }
 
 
@@ -49,6 +50,16 @@ class ConstructedAccelBankTest(unittest.TestCase):
         selection["blind"]["pose_id"] = "absent"
         with self.assertRaisesRegex(ValueError, "absent from catalog"):
             build_candidate_bank(_catalog(), selection)
+
+    def test_adds_frozen_wide_diagnostics_without_changing_operational_bank(self) -> None:
+        selection = _selection()
+        selection["strong_info"]["pose_id"] = "wide_info"
+        selection["matched_control"]["pose_id"] = "wide_control"
+        bank = build_candidate_bank(_catalog(), selection)
+        self.assertEqual(len(bank["operational_ids"]), 97)
+        self.assertEqual(len(bank["all_physical_ids"]), 101)
+        self.assertEqual(len(bank["all_candidate_ids"]), 104)
+        self.assertIn("wide_info", bank["diagnostic_ids"])
 
     def test_summary_is_explicitly_descriptive_until_m1_join(self) -> None:
         role_metrics = {

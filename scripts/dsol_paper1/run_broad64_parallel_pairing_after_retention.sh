@@ -8,11 +8,16 @@ DATA_ROOT=${DSOL_BROAD64_DATA_ROOT:-/share/longjunyu/alphabrain/datasets/dsol-li
 OUTPUT_ROOT=${DSOL_BROAD64_OUTPUT_ROOT:-/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs}
 CONTROL_ROOT=${DSOL_BROAD64_CONTROL_ROOT:-/share/longjunyu/alphabrain/experiments/dsol-libero-broad64-parallel-m-a-v1}
 POLL_SECONDS=${DSOL_WAIT_POLL_SECONDS:-60}
+REQUIRE_RETENTION_METRICS=${DSOL_REQUIRE_RETENTION_METRICS:-1}
 SMOKE_STEPS=${DSOL_PARALLEL_SMOKE_STEPS:-20}
 FORMAL_STEPS=${DSOL_PARALLEL_FORMAL_STEPS:-2000}
 SEED=${DSOL_PARALLEL_SEED:-41}
 
 [[ "$POLL_SECONDS" =~ ^[1-9][0-9]*$ ]] || { echo "invalid DSOL_WAIT_POLL_SECONDS" >&2; exit 2; }
+[[ "$REQUIRE_RETENTION_METRICS" == 0 || "$REQUIRE_RETENTION_METRICS" == 1 ]] || {
+  echo "DSOL_REQUIRE_RETENTION_METRICS must be 0 or 1" >&2
+  exit 2
+}
 [[ -s "$DATA_ROOT/manifest.json" ]] || { echo "missing Broad64 manifest: $DATA_ROOT" >&2; exit 1; }
 mkdir -p "$CONTROL_ROOT"
 
@@ -25,18 +30,22 @@ while tmux has-session -t "$RETENTION_SESSION" 2>/dev/null; do
   sleep "$POLL_SECONDS"
 done
 
-[[ -s "$RETENTION_ROOT/official-pi05-frozen-original2000/metrics.json" ]] || {
-  echo "retention session ended without Official metrics" >&2
-  exit 1
-}
-[[ -s "$RETENTION_ROOT/broad64-seed41-original2000/metrics.json" ]] || {
-  echo "retention session ended without Broad64 metrics" >&2
-  exit 1
-}
-[[ -s "$RETENTION_ROOT/broad64-seed41-vs-official.json" ]] || {
-  echo "retention session ended without paired comparison" >&2
-  exit 1
-}
+if [[ "$REQUIRE_RETENTION_METRICS" == 1 ]]; then
+  [[ -s "$RETENTION_ROOT/official-pi05-frozen-original2000/metrics.json" ]] || {
+    echo "retention session ended without Official metrics" >&2
+    exit 1
+  }
+  [[ -s "$RETENTION_ROOT/broad64-seed41-original2000/metrics.json" ]] || {
+    echo "retention session ended without Broad64 metrics" >&2
+    exit 1
+  }
+  [[ -s "$RETENTION_ROOT/broad64-seed41-vs-official.json" ]] || {
+    echo "retention session ended without paired comparison" >&2
+    exit 1
+  }
+else
+  printf 'retention_metric_gate=deferred_for_m_a at=%s\n' "$(date -u +%FT%TZ)"
+fi
 
 while [[ -n "$(git -C "$REPO_ROOT" status --porcelain)" ]]; do
   printf 'waiting_for_clean_worktree=%s at=%s\n' "$REPO_ROOT" "$(date -u +%FT%TZ)"

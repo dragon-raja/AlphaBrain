@@ -123,7 +123,7 @@ gpu_count = int(os.environ["GPU_COUNT"])
 limit_text = os.environ["MAX_STATES_PER_SHARD"]
 limit = int(limit_text) if limit_text else None
 expected = 0
-  for shard in range(gpu_count):
+for shard in range(gpu_count):
     shard_count = sum(index % gpu_count == shard for index in range(count))
     expected += min(shard_count, limit) if limit is not None else shard_count
 print(expected)

@@ -78,6 +78,7 @@ study_code_sha256=$(sha256sum \
   "$REPO_ROOT/scripts/cabi_vla/evaluate_pi05_libero_plus_views.py" \
   "$REPO_ROOT/scripts/cabi_vla/analyze_pi05_libero_plus_views.py" \
   "$REPO_ROOT/scripts/cabi_vla/analyze_libero_plus_camera_full.py" \
+  "$REPO_ROOT/scripts/cabi_vla/analyze_libero_original_full.py" \
   "$REPO_ROOT/scripts/cabi_vla/run_pi05_libero_plus_view_study.sh" \
   | sha256sum | awk '{print $1}')
 manifest="$OUTPUT_DIR/run_manifest.json"
@@ -252,6 +253,12 @@ fi
 if [[ "$SKIP_ANALYSIS" == 0 ]]; then
   if [[ "$EVAL_MODES" == "camera_full" ]]; then
     "$TOOLS_PYTHON" "${REPO_ROOT}/scripts/cabi_vla/analyze_libero_plus_camera_full.py" \
+      --episodes "${episode_files[@]}" \
+      --expected-count "$expected_episode_count" \
+      --output-json "$OUTPUT_DIR/metrics.json" \
+      --output-report "$OUTPUT_DIR/report.md"
+  elif [[ "$EVAL_MODES" == "original_full" ]]; then
+    "$TOOLS_PYTHON" "${REPO_ROOT}/scripts/cabi_vla/analyze_libero_original_full.py" \
       --episodes "${episode_files[@]}" \
       --expected-count "$expected_episode_count" \
       --output-json "$OUTPUT_DIR/metrics.json" \

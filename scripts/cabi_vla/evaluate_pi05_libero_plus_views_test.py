@@ -183,6 +183,24 @@ def test_build_episode_specs_camera_full_has_no_canonical_duplicate() -> None:
     assert specs[0]["camera_task_name"] == "task_view_30_0_100_0_0_initstate_0"
 
 
+def test_build_episode_specs_original_full_deduplicates_camera_variants() -> None:
+    protocol = _protocol()
+    protocol["official_camera_tasks"].append(
+        {
+            **protocol["official_camera_tasks"][0],
+            "task_id": 4,
+            "task_index": 3,
+            "name": "task_view_60_0_100_0_0_initstate_0",
+        }
+    )
+    specs = build_episode_specs(protocol, modes=["original_full"], init_state_count=2)
+    assert len(specs) == 2
+    assert {row["condition"] for row in specs} == {"canonical"}
+    assert {row["camera_task_name"] for row in specs} == {"task"}
+    assert {row["init_state_index"] for row in specs} == {0, 1}
+    assert all(row["pair_key"].startswith("original-full::") for row in specs)
+
+
 def test_build_episode_specs_pairs_multiple_initial_states() -> None:
     specs = build_episode_specs(_protocol(), modes=["gap", "candidates"], init_state_count=2)
     assert len(specs) == 8

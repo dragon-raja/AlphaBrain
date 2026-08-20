@@ -140,11 +140,40 @@ def build_episode_specs(
 ) -> list[dict[str, Any]]:
     if init_state_count <= 0:
         raise ValueError("init-state-count must be positive")
-    unknown = set(modes) - {"gap", "camera_full", "candidates", "composition"}
+    unknown = set(modes) - {
+        "gap",
+        "camera_full",
+        "original_full",
+        "candidates",
+        "composition",
+    }
     if unknown:
         raise ValueError(f"unsupported evaluation modes: {sorted(unknown)}")
     allowed_suites = set(suites or MAX_STEPS_BY_SUITE)
     specs: list[dict[str, Any]] = []
+    if "original_full" in modes:
+        for (suite, base_task), task in sorted(_candidate_representatives(protocol).items()):
+            if suite not in allowed_suites:
+                continue
+            for init_state_index in range(init_state_count):
+                specs.append(
+                    {
+                        "pair_key": (
+                            f"original-full::{suite}::{base_task}::init{init_state_index}"
+                        ),
+                        "suite": suite,
+                        "task_index": int(task["task_index"]),
+                        "base_task": base_task,
+                        "prompt": clean_task_prompt(base_task),
+                        "difficulty_level": None,
+                        "official_task_id": None,
+                        "official_camera_name": None,
+                        "perturbation_family": "canonical",
+                        "condition": "canonical",
+                        "camera_task_name": base_task,
+                        "init_state_index": init_state_index,
+                    }
+                )
     if "camera_full" in modes:
         for task in protocol["official_camera_tasks"]:
             if str(task["suite"]) not in allowed_suites:
@@ -575,7 +604,7 @@ def parse_args(args: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--modes",
         nargs="+",
-        choices=("gap", "camera_full", "candidates", "composition"),
+        choices=("gap", "camera_full", "original_full", "candidates", "composition"),
         default=["gap"],
     )
     parser.add_argument("--suites", nargs="+", choices=tuple(MAX_STEPS_BY_SUITE))
@@ -617,7 +646,13 @@ def video_episode_indices(
         return set()
     by_mode = [
         [index for index, spec in enumerate(specs) if str(spec["pair_key"]).startswith(prefix)]
-        for prefix in ("gap::", "camera-full::", "candidate::", "composition::")
+        for prefix in (
+            "gap::",
+            "camera-full::",
+            "original-full::",
+            "candidate::",
+            "composition::",
+        )
     ]
     by_mode = [indices for indices in by_mode if indices]
     if not by_mode:

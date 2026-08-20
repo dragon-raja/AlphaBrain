@@ -54,27 +54,16 @@
     "seed41_models": 7
   },
   "execution_queue": {
-    "currently_running": [
-      "official_exact_state_168"
-    ],
-    "currently_queued": [
-      "broad64_seed41_exact_state_168",
-      "broad64_seed41_camera_dev40",
-      "official_pi05_camera_full_1599",
-      "broad64_seed41_camera_full_1599",
-      "paired_base_task_bootstrap_official_vs_broad64_seed41"
-    ],
-    "coverage": "SEED41_PASSIVE_CALIBRATION_GATE_ONLY",
+    "currently_running": [],
+    "currently_queued": [],
+    "coverage": "SEED41_PASSIVE_CALIBRATION_GATE_COMPLETE",
     "is_full_research_program": false,
-    "runner_sessions": [
-      "dsol-posttrain-phasea-s41-v2",
-      "dsol-camera-full-gate-s41"
-    ]
+    "runner_sessions": []
   },
   "overall_status": "PARTIAL_QUICK_GATE_EVIDENCE_ONLY",
   "research_dag": [
     {
-      "automation": "RUNNING_OR_QUEUED",
+      "automation": "COMPLETE_PASS_WITH_RETENTION_AUDIT_REQUIRED",
       "id": "G0_SEED41_PASSIVE_CALIBRATION",
       "scope": "Official and Broad64 seed-41 exact-state, Camera-Dev40, and Camera Full"
     },

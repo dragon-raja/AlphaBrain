@@ -16,24 +16,24 @@ benchmark。修正后的总协议见
 
 ## 当前自动队列的边界
 
-当前两个后台 runner 不是完整研究计划的一键队列，而是 `seed 41` 的被动视角校准门：
+`seed 41` 的被动视角校准门已于 2026-08-20 完成；它不是完整研究计划的一键队列：
 
 | 状态 | 自动执行内容 |
 |---|---|
-| RUNNING | Official Pi0.5 exact-state，168 episodes |
-| QUEUED | Broad64 seed 41 exact-state，168 episodes |
-| QUEUED | Broad64 seed 41 Camera-Dev40 |
-| QUEUED | Official Pi0.5 Camera Full，1,599 episodes |
-| QUEUED | Broad64 seed 41 Camera Full，1,599 episodes |
-| QUEUED | Official 与 Broad64 的 paired base-task bootstrap |
+| COMPLETE | Official Pi0.5 exact-state，168 episodes |
+| COMPLETE | Broad64 seed 41 exact-state，168 episodes |
+| COMPLETE | Broad64 seed 41 Camera-Dev40 |
+| COMPLETE | Official Pi0.5 Camera Full，1,599 episodes |
+| COMPLETE | Broad64 seed 41 Camera Full，1,599 episodes |
+| COMPLETE | Official 与 Broad64 的 paired base-task bootstrap |
 
-它只对应完整研究 DAG 的 `G0_SEED41_PASSIVE_CALIBRATION`。以下内容没有被遗漏，
-但不能在 G0 结果和数据审计之前盲目启动：
+它只对应完整研究 DAG 的 `G0_SEED41_PASSIVE_CALIBRATION`。G0 已通过，但
+Original LIBERO retention 尚未完成；以下内容没有被遗漏，将按门控继续：
 
 | 后续门 | 内容 | 当前自动化状态 |
 |---|---|---|
-| G1 | Legacy-MV8 / Broad32 / Broad64 与 1x/2x/4x exposure | 等待 G0 |
-| G2 | practical unpaired / state-matched / paired FM / consistency | 等待 G0 |
+| G1 | Legacy-MV8 / Broad32 / Broad64 与 1x/2x/4x exposure | 等待 retention 审计 |
+| G2 | practical unpaired / state-matched / paired FM / consistency | 等待 retention 审计 |
 | G3 | seeds 41/42/43 的正式 Camera Full | 等待 G1/G2 选型 |
 | G4 | 构造型 Blind-Reveal、Matched-control、blackout、wrist 审计 | 必须先做数据和人工画面门 |
 | G5 | Info-pose-support 与完整 M1 | 被 G4 阻塞 |

@@ -1,0 +1,52 @@
+{
+  "camera_full": {
+    "base_task_clustered_delta": {
+      "bootstrap_resamples": 10000,
+      "ci95": [
+        0.0011843645090589886,
+        0.10693322711387787
+      ],
+      "independent_base_tasks": 40,
+      "mean": 0.05230659283975062
+    },
+    "broad64_seed41": {
+      "success_rate": 0.8261413383364603,
+      "successes": 1321,
+      "tasks": 1599
+    },
+    "official_pi05_frozen": {
+      "success_rate": 0.758599124452783,
+      "successes": 1213,
+      "tasks": 1599
+    },
+    "pooled_delta": 0.0675422138836773
+  },
+  "decision": "PASS_G0_WITH_RETENTION_AUDIT_REQUIRED",
+  "exact_state_diagnostic": {
+    "broad64_seed41": {
+      "broad_heldout_both": 0.875,
+      "canonical_both": 0.875,
+      "wide_extrapolation_both": 0.9583333333333334
+    },
+    "official_pi05_frozen": {
+      "broad_heldout_both": 0.375,
+      "canonical_both": 1.0,
+      "wide_extrapolation_both": 0.4583333333333333
+    },
+    "paired_groups": 24,
+    "physics_pair_mismatches": 0
+  },
+  "gate_checks": {
+    "base_task_cluster_ci_excludes_zero": true,
+    "camera_full_delta_at_least_5pp": true,
+    "original_libero_retention_checked": false
+  },
+  "next_order": [
+    "original_libero_retention_seed41",
+    "g1_coverage_and_exposure",
+    "g2_pairing_mechanism",
+    "g3_selected_methods_seeds42_43"
+  ],
+  "schema": "dsol_view_revalidation_gate_decision_v1",
+  "updated_at": "2026-08-20"
+}

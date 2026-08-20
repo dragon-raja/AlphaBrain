@@ -16,6 +16,7 @@ def rank_fixed_state_candidates(
     seed: int,
     action_horizon: int,
     action_dim: int,
+    include_trace_artifacts: bool = False,
 ) -> dict[str, Any]:
     """Run one fixed-state candidate batch with an exactly shared model-space x0."""
 
@@ -86,4 +87,7 @@ def rank_fixed_state_candidates(
             "actions": actions.tolist(),
         }
     )
+    if include_trace_artifacts:
+        ranking["flow_velocity_trace"] = velocity_trace
+        ranking["flow_initial_noise"] = returned_noise
     return ranking

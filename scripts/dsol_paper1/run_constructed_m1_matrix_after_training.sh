@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 TRAIN_SESSION=${DSOL_M1_TRAIN_SESSION:-dsol-broad64-pairing-m-a-v2}
+EARLY_PRACTICAL_SESSION=${DSOL_M1_EARLY_PRACTICAL_SESSION:-dsol-constructed-m1-practical-early-v2}
 POLL_SECONDS=${DSOL_WAIT_POLL_SECONDS:-30}
 PROTOCOL=${DSOL_CONSTRUCTED_M1_PROTOCOL:-/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m0-v1/operational-three-task-scan-v2/constructed_m1_protocol_v1.json}
 TRAIN_ROOT=${DSOL_PAIR_OUTPUT_ROOT:-/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs}
@@ -67,6 +68,12 @@ run_eval() {
 
 SMOKE=$OUTPUT_ROOT/protocol-smoke-broad64-practical
 smoke_existing_count=$(awk 'NF {n++} END {print n+0}' "$SMOKE"/episodes-shard-*.jsonl 2>/dev/null || true)
+while [[ "$smoke_existing_count" != 20 ]] && tmux has-session -t "$EARLY_PRACTICAL_SESSION" 2>/dev/null; do
+  printf 'waiting_for_early_protocol_smoke=%s episodes=%s at=%s\n' \
+    "$EARLY_PRACTICAL_SESSION" "$smoke_existing_count" "$(date -u +%FT%TZ)"
+  sleep "$POLL_SECONDS"
+  smoke_existing_count=$(awk 'NF {n++} END {print n+0}' "$SMOKE"/episodes-shard-*.jsonl 2>/dev/null || true)
+done
 if [[ "$smoke_existing_count" != 20 ]]; then
   printf 'protocol_smoke_start=%s\n' "$(date -u +%FT%TZ)"
   run_eval broad64-practical-smoke "$PRACTICAL" alphabrain 0,1 19100 "$SMOKE" 10
@@ -112,12 +119,28 @@ launch_eval() {
 }
 
 launch_eval official "$OFFICIAL" openpi 0,1 19200
-launch_eval broad64-practical "$PRACTICAL" alphabrain 2,3 19220
-launch_eval broad64-state-matched "$STATE_MATCHED" alphabrain 4,5 19240
-launch_eval broad64-paired-fm "$PAIRED_FM" alphabrain 6,7 19260
+early_practical_inflight=0
+if tmux has-session -t "$EARLY_PRACTICAL_SESSION" 2>/dev/null; then
+  early_practical_inflight=1
+  printf 'reuse_inflight_eval=broad64-practical session=%s\n' "$EARLY_PRACTICAL_SESSION"
+else
+  launch_eval broad64-practical "$PRACTICAL" alphabrain 6,7 19220
+fi
+launch_eval broad64-state-matched "$STATE_MATCHED" alphabrain 2,3 19240
+launch_eval broad64-paired-fm "$PAIRED_FM" alphabrain 4,5 19260
 failed=0
 for pid in "${pids[@]}"; do if ! wait "$pid"; then failed=1; fi; done
 [[ "$failed" == 0 ]] || { echo "constructed M1 wave one failed" >&2; exit 1; }
+if [[ "$early_practical_inflight" == 1 ]]; then
+  while tmux has-session -t "$EARLY_PRACTICAL_SESSION" 2>/dev/null; do
+    printf 'waiting_for_early_practical=%s at=%s\n' "$EARLY_PRACTICAL_SESSION" "$(date -u +%FT%TZ)"
+    sleep "$POLL_SECONDS"
+  done
+fi
+[[ -s "$OUTPUT_ROOT/broad64-practical/analysis/metrics.json" ]] || {
+  echo "broad64-practical evaluation did not complete" >&2
+  exit 1
+}
 
 pids=()
 launch_eval broad64-paired-consistency "$PAIRED_CONSISTENCY" alphabrain 0,1 19300

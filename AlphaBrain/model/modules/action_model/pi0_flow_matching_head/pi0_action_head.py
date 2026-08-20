@@ -458,7 +458,8 @@ class Pi0FlowMatchingHead(nn.Module):
         device: torch.device,
         noise: Optional[torch.Tensor] = None,
         num_steps: Optional[int] = None,
-    ) -> torch.Tensor:
+        return_velocity_trace: bool = False,
+    ) -> torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """
         Multi-step denoising inference using KV cache (matches openpi's inference path).
 
@@ -468,7 +469,9 @@ class Pi0FlowMatchingHead(nn.Module):
         Returns:
             [B, action_horizon, action_dim] predicted actions
         """
-        num_steps = num_steps or self.num_inference_steps
+        num_steps = self.num_inference_steps if num_steps is None else int(num_steps)
+        if num_steps <= 0:
+            raise ValueError("num_steps must be positive")
         bsize = prefix_pad_masks.shape[0]
 
         if noise is None:
@@ -513,6 +516,8 @@ class Pi0FlowMatchingHead(nn.Module):
         dt = torch.tensor(dt, dtype=torch.float32, device=device)
         x_t = noise  # keep float32, openpi uses float32 for noise/actions
         time = torch.tensor(1.0, dtype=torch.float32, device=device)
+        velocity_trace = [] if return_velocity_trace else None
+        flow_times = [] if return_velocity_trace else None
 
         # Force eager attention on action expert
         expert_model = self.action_expert.model.model
@@ -565,9 +570,19 @@ class Pi0FlowMatchingHead(nn.Module):
             suffix_out = suffix_out.to(dtype=torch.float32)
             v_t = self.action_out_proj(suffix_out)
 
+            if return_velocity_trace:
+                velocity_trace.append(v_t.detach().clone())
+                flow_times.append(time.detach().clone())
+
             x_t = x_t + dt * v_t
             time = time + dt
 
+        if return_velocity_trace:
+            return x_t, {
+                "velocities": torch.stack(velocity_trace, dim=1),
+                "times": torch.stack(flow_times),
+                "initial_noise": noise.detach().clone(),
+            }
         return x_t
 
     @torch.no_grad()
@@ -580,7 +595,8 @@ class Pi0FlowMatchingHead(nn.Module):
         device: torch.device,
         noise: Optional[torch.Tensor] = None,
         num_steps: Optional[int] = None,
-    ) -> torch.Tensor:
+        return_velocity_trace: bool = False,
+    ) -> torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """
         Multi-step denoising inference using prefix-cache mode.
         
@@ -596,7 +612,9 @@ class Pi0FlowMatchingHead(nn.Module):
         Returns:
             [B, action_horizon, action_dim] predicted actions
         """
-        num_steps = num_steps or self.num_inference_steps
+        num_steps = self.num_inference_steps if num_steps is None else int(num_steps)
+        if num_steps <= 0:
+            raise ValueError("num_steps must be positive")
         bsize = prefix_pad_masks.shape[0]
 
         if noise is None:
@@ -633,6 +651,8 @@ class Pi0FlowMatchingHead(nn.Module):
         dt = torch.tensor(dt, dtype=torch.float32, device=device)
         x_t = noise  # keep float32
         time = torch.tensor(1.0, dtype=torch.float32, device=device)
+        velocity_trace = [] if return_velocity_trace else None
+        flow_times = [] if return_velocity_trace else None
 
         while time >= -dt / 2:
             expanded_time = time.expand(bsize)
@@ -671,9 +691,19 @@ class Pi0FlowMatchingHead(nn.Module):
             suffix_out = suffix_out.to(dtype=torch.float32)
             v_t = self.action_out_proj(suffix_out)
 
+            if return_velocity_trace:
+                velocity_trace.append(v_t.detach().clone())
+                flow_times.append(time.detach().clone())
+
             x_t = x_t + dt * v_t
             time = time + dt
 
+        if return_velocity_trace:
+            return x_t, {
+                "velocities": torch.stack(velocity_trace, dim=1),
+                "times": torch.stack(flow_times),
+                "initial_noise": noise.detach().clone(),
+            }
         return x_t
 
     def _shared_forward(

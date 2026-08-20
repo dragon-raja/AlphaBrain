@@ -1550,6 +1550,7 @@ class PaliGemmaPi(BaseFramework):
         device = next(self.parameters()).device
 
         inference_noise = kwargs.get("noise")
+        return_flow_trace = bool(kwargs.get("return_flow_trace", False))
         if inference_noise is not None:
             inference_noise = torch.as_tensor(
                 inference_noise,
@@ -1579,7 +1580,12 @@ class PaliGemmaPi(BaseFramework):
                 state=state,
                 device=device,
                 noise=inference_noise,
+                return_velocity_trace=return_flow_trace,
             )
+
+            flow_trace = None
+            if return_flow_trace:
+                actions, flow_trace = actions
 
             # Unnormalize actions if MEAN_STD normalization was used
             if self.use_action_norm:
@@ -1587,7 +1593,17 @@ class PaliGemmaPi(BaseFramework):
                 actions = self._maybe_remap_gripper(actions)
 
             actions_np = actions.cpu().float().numpy()
-            return {"normalized_actions": actions_np.tolist()}
+            result = {"normalized_actions": actions_np.tolist()}
+            if flow_trace is not None:
+                result.update(
+                    {
+                        "flow_velocity_trace": flow_trace["velocities"].cpu().float().numpy().tolist(),
+                        "flow_times": flow_trace["times"].cpu().float().numpy().tolist(),
+                        "flow_initial_noise": flow_trace["initial_noise"].cpu().float().numpy().tolist(),
+                        "flow_trace_coordinate_system": "normalized_action",
+                    }
+                )
+            return result
 
         # Training and inference must share the exact image/token/camera path.
         prefix_embs, prefix_pad_masks, prefix_att_masks = (
@@ -1616,7 +1632,12 @@ class PaliGemmaPi(BaseFramework):
             state=state,
             device=device,
             noise=inference_noise,
+            return_velocity_trace=return_flow_trace,
         )
+
+        flow_trace = None
+        if return_flow_trace:
+            actions, flow_trace = actions
 
         # Unnormalize actions if MEAN_STD normalization was used
         if self.use_action_norm:
@@ -1626,4 +1647,14 @@ class PaliGemmaPi(BaseFramework):
         actions_np = actions.cpu().float().numpy()
 
         # Return actions (unnormalized if norm was enabled, raw otherwise)
-        return {"normalized_actions": actions_np.tolist()}
+        result = {"normalized_actions": actions_np.tolist()}
+        if flow_trace is not None:
+            result.update(
+                {
+                    "flow_velocity_trace": flow_trace["velocities"].cpu().float().numpy().tolist(),
+                    "flow_times": flow_trace["times"].cpu().float().numpy().tolist(),
+                    "flow_initial_noise": flow_trace["initial_noise"].cpu().float().numpy().tolist(),
+                    "flow_trace_coordinate_system": "normalized_action",
+                }
+            )
+        return result

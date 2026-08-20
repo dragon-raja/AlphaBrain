@@ -3,6 +3,8 @@
 状态：`ACTIVE_PREREGISTERED_PROTOCOL`
 日期：2026-08-19
 
+并行执行与资源调度见 `view_revalidation_parallel_execution_v4_zh.md`。该执行协议不改变本文冻结的科学定义与统计门槛。
+
 ## 1. 研究问题
 
 本研究重做旧 Phase A/B/M0/M1，回答三个递进问题：

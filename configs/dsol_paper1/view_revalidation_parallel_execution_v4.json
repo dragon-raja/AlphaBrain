@@ -1,0 +1,92 @@
+{
+  "schema_version": "dsol-view-revalidation-parallel-execution-v4",
+  "date": "2026-08-20",
+  "status": "ACTIVE_EXECUTION_SCHEDULE",
+  "scope": {
+    "included": ["LIBERO", "LIBERO-Plus"],
+    "excluded_from_critical_path": ["RoboCasa"]
+  },
+  "scientific_protocol": "docs/dsol_paper1/view_revalidation_master_protocol_v3_zh.md",
+  "milestones": [
+    {
+      "id": "M-A",
+      "hours": [72, 96],
+      "deliverable": "seed41 mechanism decision package"
+    },
+    {
+      "id": "M-B",
+      "days": [5, 7],
+      "deliverable": "decision-complete LIBERO main evidence"
+    },
+    {
+      "id": "M-C",
+      "days": [7, 10],
+      "deliverable": "full LIBERO and LIBERO-Plus evidence without RoboCasa"
+    }
+  ],
+  "parallel_lanes": {
+    "A_gpu_benchmark_training": [
+      "original_full_retention",
+      "broad64_pairing",
+      "seed41_exposure_and_support",
+      "selected_multiseed_camera_full",
+      "selected_plus_full"
+    ],
+    "B_constructed_information": [
+      "blind_reveal_scene_pilot",
+      "matched_control",
+      "m0_visibility_gate",
+      "info_pose_support",
+      "m1_full_closed_loop"
+    ],
+    "C_accel": [
+      "flow_velocity_trace",
+      "accel_2_to_10",
+      "dense_relation",
+      "dynamic_shortlist"
+    ],
+    "D_statistics_archive": [
+      "cluster_bootstrap",
+      "wilson_interval",
+      "seed_aggregation",
+      "wandb_metrics_only",
+      "atomic_artifacts"
+    ]
+  },
+  "training_scheduler": {
+    "preferred": {"concurrent_jobs": 4, "gpus_per_job": 2},
+    "fallback": {"concurrent_jobs": 2, "gpus_per_job": 4},
+    "smoke_only": {"concurrent_jobs": 8, "gpus_per_job": 1},
+    "global_batch_size": 32,
+    "preserve_optimizer_updates": true,
+    "expand_seeds_42_43_only_after_seed41_gate": true
+  },
+  "evaluation_scheduler": {
+    "current_workers": 8,
+    "candidate_workers": 16,
+    "candidate_workers_require_smoke": true,
+    "max_gpu_memory_gib": 28,
+    "minimum_wall_clock_improvement_fraction": 0.3,
+    "require_zero_invalid_episodes": true,
+    "require_snapshot_hash_match": true,
+    "require_policy_output_equivalence": true
+  },
+  "non_negotiable_controls": [
+    "official_frozen",
+    "canonical_unique",
+    "canonical_repeat",
+    "broad_unpaired_practical",
+    "broad_unpaired_state_matched",
+    "broad_paired_fm",
+    "broad_paired_consistency",
+    "matched_control",
+    "wrist_on_off"
+  ],
+  "evaluation_only_views": ["extreme", "look_away", "all_camera_blackout"],
+  "wandb": {
+    "mode": "online_with_offline_fallback",
+    "upload_artifacts": false,
+    "upload_media": false,
+    "upload_checkpoints": false
+  }
+}

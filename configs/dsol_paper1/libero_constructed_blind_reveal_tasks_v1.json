@@ -1,0 +1,30 @@
+{
+  "schema": "dsol_libero_pair_collection_plan_v1",
+  "name": "libero_constructed_blind_reveal_tasks_v1",
+  "seed": 41,
+  "analysis_role": "constructed_m0_operational_reveal_pilot",
+  "selection_rule": "selected_on_validation_only_for_positive_broad_or_wide_visibility_headroom",
+  "pilot_statistics": {
+    "states_per_split_per_task": 30,
+    "source_episodes_per_split_per_task": 2,
+    "frames_are_not_independent_statistical_units": true,
+    "independent_unit": "source_episode"
+  },
+  "tasks": [
+    {
+      "task_id": "goal_wine_rack",
+      "source": "libero_goal/put_the_wine_bottle_on_the_rack_demo.hdf5",
+      "diagnostic_role": "thin target geometry and placement visibility"
+    },
+    {
+      "task_id": "libero10_bowl_bottom_drawer",
+      "source": "libero_10/KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it_demo.hdf5",
+      "diagnostic_role": "drawer interior and long-horizon interaction"
+    },
+    {
+      "task_id": "libero10_mug_microwave",
+      "source": "libero_10/KITCHEN_SCENE6_put_the_yellow_and_white_mug_in_the_microwave_and_close_it_demo.hdf5",
+      "diagnostic_role": "appliance interior and long-horizon interaction"
+    }
+  ]
+}

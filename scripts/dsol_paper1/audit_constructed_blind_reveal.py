@@ -360,6 +360,7 @@ def audit_snapshot(
         "task_id": scan["task_id"],
         "split": scan["split"],
         "scene_variant_id": scan["scene_variant_id"],
+        "source_episode_id": scan.get("source_episode_id"),
         "snapshot_sha256": snapshot_sha,
         "status": status,
         "checks": checks,
@@ -386,6 +387,15 @@ def audit_collection(
         group for group, count in Counter(group_ids).items() if count > 1
     )
     task_counts = Counter(str(gate.get("task_id")) for gate in gates)
+    task_episode_sets: dict[str, set[str]] = {}
+    for gate in gates:
+        task_id = str(gate.get("task_id"))
+        episode_id = str(gate.get("source_episode_id"))
+        task_episode_sets.setdefault(task_id, set()).add(episode_id)
+    task_episode_counts = {
+        task_id: len(episodes)
+        for task_id, episodes in sorted(task_episode_sets.items())
+    }
     population = config["population_gate"]
     population_checks = [
         _check(
@@ -413,6 +423,15 @@ def audit_collection(
             observed=dict(sorted(task_counts.items())),
             required=int(population["minimum_states_per_task"]),
         ),
+        _check(
+            "minimum_episodes_per_task",
+            bool(task_episode_counts)
+            and min(task_episode_counts.values())
+            >= int(population["minimum_episodes_per_task"]),
+            observed=task_episode_counts,
+            required=int(population["minimum_episodes_per_task"]),
+            statistical_unit="source_episode",
+        ),
     ]
     snapshot_status_counts = Counter(gate["status"] for gate in gates)
     population_passed = all(check["status"] == "PASS" for check in population_checks)
@@ -430,6 +449,7 @@ def audit_collection(
         "visibility_definition": VISIBILITY_DEFINITION,
         "snapshot_count": len(gates),
         "task_state_counts": dict(sorted(task_counts.items())),
+        "task_episode_counts": task_episode_counts,
         "snapshot_status_counts": dict(sorted(snapshot_status_counts.items())),
         "population_checks": population_checks,
         "snapshot_gates": gates,
@@ -447,6 +467,7 @@ def _condition_rows(scans: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
                 "task_id": scan["task_id"],
                 "split": scan["split"],
                 "scene_variant_id": scan["scene_variant_id"],
+                "source_episode_id": scan.get("source_episode_id"),
                 "condition_id": record["condition_id"],
                 "condition_role": record["condition_role"],
                 "visibility_score": record["visibility_score"],

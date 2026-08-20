@@ -108,6 +108,7 @@ def _config(*, manual_required: bool = True) -> dict:
             "minimum_snapshot_groups": 1,
             "minimum_task_count": 1,
             "minimum_states_per_task": 1,
+            "minimum_episodes_per_task": 1,
         },
     }
 
@@ -158,6 +159,7 @@ def _scan(tmp_path: Path, *, manual_status: str = "PASS") -> dict:
         "task_id": "task_a",
         "split": "val",
         "scene_variant_id": "occlusion_v1",
+        "source_episode_id": "task_a::demo_0",
         "snapshot": identity,
         "task_entities": list(ENTITIES),
         "camera_names": list(CAMERAS),

@@ -177,6 +177,18 @@ def package(manifest_path: Path) -> dict[str, Any]:
         "task_id": str(manifest["task_id"]),
         "split": split,
         "scene_variant_id": str(manifest["scene_variant_id"]),
+        "source_episode_id": str(
+            source_scan.get(
+                "episode_id",
+                (
+                    f"{source_scan.get('suite', 'unknown')}::"
+                    f"{Path(source_scan.get('hdf5', 'unknown')).stem}::"
+                    f"{source_scan.get('demo', 'unknown')}"
+                ),
+            )
+        ),
+        "source_demo": source_scan.get("demo"),
+        "source_frame": source_scan.get("frame"),
         "snapshot": identity,
         "task_entities": list(canonical_source["visibility"]["entity_names"]),
         "camera_names": list(canonical_source["visibility"]["camera_names"]),

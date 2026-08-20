@@ -39,7 +39,8 @@
   "population_gate": {
     "minimum_snapshot_groups": 90,
     "minimum_task_count": 3,
-    "minimum_states_per_task": 30
+    "minimum_states_per_task": 30,
+    "minimum_episodes_per_task": 2
   },
   "split_policy": {
     "freeze_thresholds_on": "validation",

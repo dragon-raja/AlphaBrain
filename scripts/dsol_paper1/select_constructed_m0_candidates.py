@@ -266,6 +266,7 @@ def freeze_validation_rules(
         translation_by_episode = _episode_values(translation_rows)
         rotation_by_episode = _episode_values(rotation_rows)
         reasons = []
+        clamp_events = []
         minimum_episodes = int(
             resolved["population"]["minimum_val_episodes_per_task"]
         )
@@ -289,7 +290,7 @@ def freeze_validation_rules(
             if strong_threshold > float(
                 resolved["strong_info"]["maximum_frozen_delta"]
             ):
-                reasons.append("strong_threshold_exceeds_protocol_cap")
+                clamp_events.append("strong_threshold_clamped_to_protocol_cap")
                 strong_threshold = float(
                     resolved["strong_info"]["maximum_frozen_delta"]
                 )
@@ -304,7 +305,9 @@ def freeze_validation_rules(
             if control_abs_delta > float(
                 resolved["matched_control"]["maximum_abs_delta"]
             ):
-                reasons.append("matched_control_delta_exceeds_protocol_cap")
+                clamp_events.append(
+                    "matched_control_delta_clamped_to_protocol_cap"
+                )
                 control_abs_delta = float(
                     resolved["matched_control"]["maximum_abs_delta"]
                 )
@@ -323,7 +326,9 @@ def freeze_validation_rules(
             if translation_tolerance > float(
                 resolved["matched_control"]["maximum_translation_tolerance_m"]
             ):
-                reasons.append("matched_translation_tolerance_exceeds_protocol_cap")
+                clamp_events.append(
+                    "matched_translation_tolerance_clamped_to_protocol_cap"
+                )
                 translation_tolerance = float(
                     resolved["matched_control"]["maximum_translation_tolerance_m"]
                 )
@@ -340,7 +345,9 @@ def freeze_validation_rules(
             if rotation_tolerance > float(
                 resolved["matched_control"]["maximum_rotation_tolerance_deg"]
             ):
-                reasons.append("matched_rotation_tolerance_exceeds_protocol_cap")
+                clamp_events.append(
+                    "matched_rotation_tolerance_clamped_to_protocol_cap"
+                )
                 rotation_tolerance = float(
                     resolved["matched_control"]["maximum_rotation_tolerance_deg"]
                 )
@@ -348,6 +355,7 @@ def freeze_validation_rules(
         task_rules[task_id] = {
             "status": "PASS" if not reasons else "HOLD",
             "insufficient_reasons": sorted(set(reasons)),
+            "protocol_clamp_events": sorted(set(clamp_events)),
             "strong_info_min_delta": strong_threshold,
             "matched_control_max_abs_delta": control_abs_delta,
             "matched_translation_tolerance_m": translation_tolerance,

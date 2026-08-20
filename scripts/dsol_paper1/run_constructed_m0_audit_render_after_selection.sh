@@ -12,10 +12,12 @@ RUNTIME=${DSOL_LIBERO_RUNTIME:-/share/longjunyu/alphabrain/datasets/libero-plus/
 CONFIG_ROOT=${DSOL_LIBERO_CONFIG_ROOT:-/share/longjunyu/alphabrain/envs/libero-plus-runtime-config-v1}
 OUTPUT_ROOT=${DSOL_CONSTRUCTED_M0_AUDIT_ROOT:-$SCAN_ROOT/manual_audit_renders_v1}
 PER_TASK=${DSOL_CONSTRUCTED_M0_AUDIT_PER_TASK:-7}
+TARGET_TOTAL=${DSOL_CONSTRUCTED_M0_AUDIT_TARGET_TOTAL:-21}
 RENDER_GPU=${DSOL_CONSTRUCTED_M0_AUDIT_GPU:-7}
 
 [[ "$POLL_SECONDS" =~ ^[1-9][0-9]*$ ]] || { echo "invalid DSOL_WAIT_POLL_SECONDS" >&2; exit 2; }
 [[ "$PER_TASK" =~ ^[1-9][0-9]*$ ]] || { echo "invalid DSOL_CONSTRUCTED_M0_AUDIT_PER_TASK" >&2; exit 2; }
+[[ "$TARGET_TOTAL" =~ ^[1-9][0-9]*$ ]] || { echo "invalid DSOL_CONSTRUCTED_M0_AUDIT_TARGET_TOTAL" >&2; exit 2; }
 [[ "$RENDER_GPU" =~ ^[0-9]+$ ]] || { echo "invalid DSOL_CONSTRUCTED_M0_AUDIT_GPU" >&2; exit 2; }
 
 mkdir -p "$OUTPUT_ROOT"
@@ -53,6 +55,7 @@ PYTHONPATH="$REPO_ROOT:$REPO_ROOT/scripts/dsol_paper1" \
   --config-root "$CONFIG_ROOT" \
   --output-root "$OUTPUT_ROOT" \
   --per-task "$PER_TASK" \
+  --target-total "$TARGET_TOTAL" \
   --render-gpu "$RENDER_GPU"
 
 jq -e '

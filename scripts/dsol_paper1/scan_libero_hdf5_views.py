@@ -204,6 +204,25 @@ def _filter_catalog_poses(
     return selected
 
 
+def _remove_materialized_canonical(
+    poses: list[tuple[str, Mapping[str, Any]]],
+) -> list[tuple[str, Mapping[str, Any]]]:
+    """Avoid rendering the canonical record twice.
+
+    ``scan`` materializes canonical directly from the restored simulator state
+    before applying catalog transforms.  The catalog entry is metadata, not an
+    additional candidate.
+    """
+    return [
+        item
+        for item in poses
+        if not (
+            str(item[0]) == "canonical"
+            and str(item[1].get("pose_id")) == "canonical"
+        )
+    ]
+
+
 def _save_montage(
     *,
     path: Path,
@@ -289,6 +308,7 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
         else None
     )
     poses = _filter_catalog_poses(poses, pose_filter)
+    poses = _remove_materialized_canonical(poses)
 
     suite = hdf5_path.parent.name
     with h5py.File(hdf5_path, "r") as handle:

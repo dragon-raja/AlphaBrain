@@ -194,6 +194,19 @@ class SelectConstructedM0CandidatesTest(unittest.TestCase):
         self.assertEqual(output["manual_visual_audit"]["status"], "PENDING")
         self.assertFalse(output["manual_visual_audit"]["automatically_promoted"])
 
+    def test_validation_threshold_is_clamped_without_invalidating_task(self) -> None:
+        protocol = copy.deepcopy(TEST_PROTOCOL)
+        protocol["strong_info"]["maximum_frozen_delta"] = 0.02
+        output = build_selection(complete_population(), protocol=protocol)
+        rule = output["frozen_rules"]["task_rules"]["task-a"]
+        self.assertEqual(rule["status"], "PASS")
+        self.assertEqual(rule["strong_info_min_delta"], 0.02)
+        self.assertIn(
+            "strong_threshold_clamped_to_protocol_cap",
+            rule["protocol_clamp_events"],
+        )
+        self.assertEqual(output["status"], "PASS")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -54,11 +54,15 @@
     "seed41_models": 7
   },
   "execution_queue": {
-    "currently_running": [],
+    "currently_running": [
+      "original_libero_retention_official_then_broad64_seed41"
+    ],
     "currently_queued": [],
-    "coverage": "SEED41_PASSIVE_CALIBRATION_GATE_COMPLETE",
+    "coverage": "G0_COMPLETE_ORIGINAL_LIBERO_RETENTION_RUNNING",
     "is_full_research_program": false,
-    "runner_sessions": []
+    "runner_sessions": [
+      "dsol-original-retention-s41-v2"
+    ]
   },
   "overall_status": "PARTIAL_QUICK_GATE_EVIDENCE_ONLY",
   "research_dag": [

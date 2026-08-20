@@ -41,3 +41,10 @@ def test_compare_original_full_is_strictly_paired() -> None:
     comparison = compare_rows(baseline, candidate)
     assert comparison["paired_episode_count"] == 8
     assert comparison["independent_task_count"] == 4
+
+
+def test_summarize_original_full_accepts_single_suite_smoke() -> None:
+    rows = [row for row in _rows() if row["suite"] == "libero_spatial"]
+    summary = summarize_rows(rows, expected_count=2, expected_trials_per_task=2)
+    assert set(summary["by_suite"]) == {"libero_spatial"}
+    assert summary["independent_task_count"] == 1

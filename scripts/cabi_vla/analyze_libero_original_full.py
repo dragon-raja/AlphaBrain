@@ -79,14 +79,15 @@ def summarize_rows(
     by_suite_rows: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
     for row in rows:
         by_suite_rows[str(row["suite"])].append(row)
-    by_suite = {suite: _rate(by_suite_rows[suite]) for suite in EXPECTED_SUITES}
+    observed_suites = [suite for suite in EXPECTED_SUITES if by_suite_rows[suite]]
+    by_suite = {suite: _rate(by_suite_rows[suite]) for suite in observed_suites}
     task_values = _task_values(rows)
     return {
         "schema_version": 1,
         "benchmark": "Original LIBERO Full",
         "pooled": _rate(rows),
         "suite_macro_average": float(
-            np.mean([by_suite[suite]["success_rate"] for suite in EXPECTED_SUITES])
+            np.mean([by_suite[suite]["success_rate"] for suite in observed_suites])
         ),
         "task_macro": bootstrap_mean_ci(list(task_values.values())),
         "independent_task_count": len(task_values),

@@ -38,6 +38,11 @@ done
   exit 1
 }
 
+while [[ -n "$(git -C "$REPO_ROOT" status --porcelain)" ]]; do
+  printf 'waiting_for_clean_worktree=%s at=%s\n' "$REPO_ROOT" "$(date -u +%FT%TZ)"
+  sleep "$POLL_SECONDS"
+done
+
 arms=(broad_unpaired_state_matched broad_paired_fm broad_paired_consistency)
 devices=(0,1 2,3 4,5)
 ports=(31941 31942 31943)

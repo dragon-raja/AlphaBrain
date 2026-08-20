@@ -6,6 +6,7 @@ CHECKPOINT=${CHECKPOINT:?set CHECKPOINT to a self-contained AlphaBrain or OpenPI
 OUTPUT_DIR=${OUTPUT_DIR:?set OUTPUT_DIR to a new or resumable evaluation directory}
 PROTOCOL=${PROTOCOL:-$REPO_ROOT/configs/dsol_paper1/libero_hdf5_closed_loop_quick_gate_v1.json}
 GPU_COUNT=${GPU_COUNT:-8}
+GPU_DEVICES=${DSOL_GPU_DEVICES:-}
 BASE_PORT=${BASE_PORT:-18600}
 REPLAN_STEPS=${REPLAN_STEPS:-5}
 WAIT_STEPS=${WAIT_STEPS:-10}
@@ -57,6 +58,23 @@ case "$POLICY_BACKEND" in
     ;;
 esac
 [[ "$GPU_COUNT" =~ ^[1-8]$ ]] || { echo "GPU_COUNT must be in [1,8]" >&2; exit 2; }
+if [[ -z "$GPU_DEVICES" ]]; then
+  physical_gpus=()
+  for ((gpu=0; gpu<GPU_COUNT; gpu++)); do physical_gpus+=("$gpu"); done
+  GPU_DEVICES=$(IFS=,; echo "${physical_gpus[*]}")
+else
+  IFS=, read -r -a physical_gpus <<< "$GPU_DEVICES"
+fi
+[[ "${#physical_gpus[@]}" -eq "$GPU_COUNT" ]] || {
+  echo "DSOL_GPU_DEVICES must list exactly GPU_COUNT=$GPU_COUNT devices" >&2
+  exit 2
+}
+declare -A seen_gpus=()
+for gpu in "${physical_gpus[@]}"; do
+  [[ "$gpu" =~ ^[0-7]$ ]] || { echo "invalid physical GPU index: $gpu" >&2; exit 2; }
+  [[ -z "${seen_gpus[$gpu]:-}" ]] || { echo "duplicate physical GPU index: $gpu" >&2; exit 2; }
+  seen_gpus[$gpu]=1
+done
 [[ -z "$MAX_EPISODES_PER_SHARD" || "$MAX_EPISODES_PER_SHARD" =~ ^[1-9][0-9]*$ ]] || {
   echo "MAX_EPISODES_PER_SHARD must be empty or a positive integer" >&2
   exit 2
@@ -83,37 +101,45 @@ jq -n \
   --arg protocol_sha256 "$protocol_sha256" \
   --arg analyzer "$ANALYZER" \
   --arg code_sha256 "$code_sha256" \
+  --arg gpu_devices "$GPU_DEVICES" \
   --argjson gpu_count "$GPU_COUNT" \
   --argjson replan_steps "$REPLAN_STEPS" \
   --argjson wait_steps "$WAIT_STEPS" \
   --argjson eval_seed "$EVAL_SEED" \
   --arg max_episodes_per_shard "$MAX_EPISODES_PER_SHARD" \
   --argjson run_analysis "$RUN_ANALYSIS" \
-  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,policy_backend:$policy_backend,openpi_config:(if $policy_backend == "openpi" then $openpi_config else null end),protocol:$protocol,protocol_sha256:$protocol_sha256,analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,replan_steps:$replan_steps,wait_steps:$wait_steps,eval_seed:$eval_seed,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1)}' \
+  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,policy_backend:$policy_backend,openpi_config:(if $policy_backend == "openpi" then $openpi_config else null end),protocol:$protocol,protocol_sha256:$protocol_sha256,analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,gpu_devices:($gpu_devices|split(",")|map(tonumber)),replan_steps:$replan_steps,wait_steps:$wait_steps,eval_seed:$eval_seed,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1)}' \
   > "$OUTPUT_DIR/run_manifest.json"
 
 policy_pids=()
 eval_pids=()
-keepalive_stopped=0
+stopped_keepalives=()
 cleanup() {
   for pid in "${eval_pids[@]:-}" "${policy_pids[@]:-}"; do
     [[ -n "$pid" ]] && kill "$pid" 2>/dev/null || true
   done
-  if [[ "$keepalive_stopped" == 1 ]]; then
-    bash /workspace/ai2r/gpu_compute_keepalive/start_all.sh 1 8192 gpu-keepalive >/dev/null || true
-  fi
+  for gpu in "${stopped_keepalives[@]:-}"; do
+    [[ -n "$gpu" ]] || continue
+    bash /workspace/ai2r/gpu_compute_keepalive/start.sh \
+      1 8192 "gpu-keepalive-${gpu}" "$gpu" >/dev/null || true
+  done
 }
 trap cleanup EXIT INT TERM
-bash /workspace/ai2r/gpu_compute_keepalive/stop_all.sh gpu-keepalive >/dev/null
-keepalive_stopped=1
+for gpu in "${physical_gpus[@]}"; do
+  if tmux has-session -t "gpu-keepalive-${gpu}" 2>/dev/null; then
+    tmux kill-session -t "gpu-keepalive-${gpu}"
+    stopped_keepalives+=("$gpu")
+  fi
+done
 
 max_episode_args=()
 if [[ -n "$MAX_EPISODES_PER_SHARD" ]]; then
   max_episode_args=(--max-episodes "$MAX_EPISODES_PER_SHARD")
 fi
 
-for ((gpu=0; gpu<GPU_COUNT; gpu++)); do
-  port=$((BASE_PORT + gpu))
+for ((shard=0; shard<GPU_COUNT; shard++)); do
+  gpu=${physical_gpus[$shard]}
+  port=$((BASE_PORT + shard))
   if [[ "$POLICY_BACKEND" == alphabrain ]]; then
     CUDA_VISIBLE_DEVICES=$gpu \
     PRETRAINED_MODELS_DIR=/share/longjunyu/alphabrain/pretrained_models \
@@ -121,7 +147,7 @@ for ((gpu=0; gpu<GPU_COUNT; gpu++)); do
     PYTHONPATH="$REPO_ROOT:/projects/openpi/src:/projects/openpi/packages/openpi-client/src" \
       "$POLICY_PYTHON" "$REPO_ROOT/scripts/cabi_vla/serve_alphabrain_pi05_websocket.py" \
         --checkpoint "$CHECKPOINT" --port "$port" --device cuda:0 \
-        > "$OUTPUT_DIR/logs/policy-gpu-${gpu}.log" 2>&1 &
+        > "$OUTPUT_DIR/logs/policy-shard-${shard}-gpu-${gpu}.log" 2>&1 &
   else
     CUDA_VISIBLE_DEVICES=$gpu \
     OPENPI_DATA_HOME="$OPENPI_DATA_HOME" \
@@ -129,7 +155,7 @@ for ((gpu=0; gpu<GPU_COUNT; gpu++)); do
       "$OPENPI_PYTHON" "$REPO_ROOT/scripts/cabi_vla/serve_openpi_deterministic.py" \
         --checkpoint "$CHECKPOINT" --config "$OPENPI_CONFIG" \
         --port "$port" --device cuda:0 \
-        > "$OUTPUT_DIR/logs/policy-gpu-${gpu}.log" 2>&1 &
+        > "$OUTPUT_DIR/logs/policy-shard-${shard}-gpu-${gpu}.log" 2>&1 &
   fi
   policy_pids+=("$!")
 done
@@ -149,8 +175,9 @@ while pending and time.monotonic() < deadline:
 if pending: raise SystemExit(f"policy servers did not become ready: {sorted(pending)}")
 PY
 
-for ((gpu=0; gpu<GPU_COUNT; gpu++)); do
-  port=$((BASE_PORT + gpu))
+for ((shard=0; shard<GPU_COUNT; shard++)); do
+  gpu=${physical_gpus[$shard]}
+  port=$((BASE_PORT + shard))
   LIBERO_CONFIG_PATH="$SIM_CONFIG" \
   IMAGEIO_FFMPEG_EXE="$FFMPEG_EXE" \
   PYTHONPATH="$REPO_ROOT:/projects/openpi/packages/openpi-client/src:$REPO_ROOT/scripts/cabi_vla:$REPO_ROOT/scripts/dsol_paper1" \
@@ -159,10 +186,10 @@ for ((gpu=0; gpu<GPU_COUNT; gpu++)); do
       --runtime "$RUNTIME" --config-root "$SIM_CONFIG" \
       --host 127.0.0.1 --port "$port" \
       --replan-steps "$REPLAN_STEPS" --wait-steps "$WAIT_STEPS" --seed "$EVAL_SEED" \
-      --num-shards "$GPU_COUNT" --shard-index "$gpu" --render-gpu "$gpu" \
+      --num-shards "$GPU_COUNT" --shard-index "$shard" --render-gpu "$gpu" \
       --video-episodes "$VIDEO_EPISODES" \
       "${max_episode_args[@]}" \
-      > "$OUTPUT_DIR/logs/eval-shard-${gpu}.log" 2>&1 &
+      > "$OUTPUT_DIR/logs/eval-shard-${shard}-gpu-${gpu}.log" 2>&1 &
   eval_pids+=("$!")
 done
 

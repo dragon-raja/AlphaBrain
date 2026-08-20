@@ -261,6 +261,7 @@ if [[ "$SKIP_ANALYSIS" == 0 ]]; then
     "$TOOLS_PYTHON" "${REPO_ROOT}/scripts/cabi_vla/analyze_libero_original_full.py" \
       --episodes "${episode_files[@]}" \
       --expected-count "$expected_episode_count" \
+      --expected-trials-per-task "$INIT_STATE_COUNT" \
       --output-json "$OUTPUT_DIR/metrics.json" \
       --output-report "$OUTPUT_DIR/report.md"
   else

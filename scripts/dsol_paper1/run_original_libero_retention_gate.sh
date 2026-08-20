@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
-EXPERIMENT_ROOT=${EXPERIMENT_ROOT:-/share/longjunyu/alphabrain/experiments/libero-original-full-retention-v1}
+EXPERIMENT_ROOT=${EXPERIMENT_ROOT:-/share/longjunyu/alphabrain/experiments/libero-original-full-retention-v2}
 PROTOCOL=${PROTOCOL:-/share/longjunyu/alphabrain/experiments/libero-plus-camera-full-v1/protocol.json}
 BROAD_RUN=${BROAD_RUN:-/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_broad64-quick-gate-v1_seed41_g8_gb32_steps2000}
 OFFICIAL_CHECKPOINT=${OFFICIAL_CHECKPOINT:-/share/longjunyu/alphabrain/pretrained_models/openpi/pi05_libero_pytorch}

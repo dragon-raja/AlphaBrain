@@ -187,6 +187,23 @@ def _sensor_control_records(canonical: Mapping[str, Any]) -> list[dict[str, Any]
     ]
 
 
+def _filter_catalog_poses(
+    poses: list[tuple[str, Mapping[str, Any]]],
+    requested_pose_ids: Iterable[str] | None,
+) -> list[tuple[str, Mapping[str, Any]]]:
+    if requested_pose_ids is None:
+        return poses
+    requested = {str(value) for value in requested_pose_ids if str(value)}
+    if not requested:
+        raise ValueError("pose-id filter must not be empty")
+    selected = [item for item in poses if str(item[1]["pose_id"]) in requested]
+    found = {str(item[1]["pose_id"]) for item in selected}
+    missing = sorted(requested - found)
+    if missing:
+        raise ValueError(f"requested pose IDs are absent from selected groups: {missing}")
+    return selected
+
+
 def _save_montage(
     *,
     path: Path,
@@ -266,6 +283,12 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
         if group not in catalog:
             raise KeyError(f"catalog has no group {group!r}")
         poses.extend((group, pose) for pose in catalog[group])
+    pose_filter = (
+        [value.strip() for value in args.pose_ids.split(",") if value.strip()]
+        if args.pose_ids
+        else None
+    )
+    poses = _filter_catalog_poses(poses, pose_filter)
 
     suite = hdf5_path.parent.name
     with h5py.File(hdf5_path, "r") as handle:
@@ -416,6 +439,7 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
         "catalog": str(args.catalog.resolve()),
         "montage_image_transform": "rot180_display_only",
         "groups": groups,
+        "requested_pose_ids": pose_filter,
         "asset_path_rewrites": rewrite_counts,
         "records": records,
         "valid_records": len(valid),
@@ -444,6 +468,10 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--config-root", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--groups", required=True)
+    parser.add_argument(
+        "--pose-ids",
+        help="Optional comma-separated subset of pose IDs from the selected groups.",
+    )
     parser.add_argument("--demo-index", type=int, default=0)
     parser.add_argument("--frame-index", type=int, default=0)
     parser.add_argument("--resolution", type=int, default=224)

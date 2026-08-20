@@ -31,7 +31,7 @@ CATALOG="$CATALOG" \
 OUTPUT_ROOT="$OUTPUT_ROOT" \
 GPU_COUNT=2 \
 DSOL_GPU_DEVICES=6,7 \
-CANDIDATE_GROUPS=canonical,broad_heldout_32,wide_extrapolation_24,diagnostic_extreme_orbit,diagnostic_crossed_orbit,diagnostic_look_away,sensor_controls \
+CANDIDATE_GROUPS=canonical,broad_heldout_32,wide_extrapolation_24,diagnostic_extreme_orbit,diagnostic_crossed_orbit,diagnostic_look_away \
   "$REPO_ROOT/scripts/dsol_paper1/run_libero_visibility_scan_matrix.sh"
 
 printf 'controller_complete=%s\n' "$(date -u +%FT%TZ)"

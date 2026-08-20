@@ -61,10 +61,26 @@
     "coverage": "G0_COMPLETE_ORIGINAL_LIBERO_RETENTION_RUNNING",
     "is_full_research_program": false,
     "runner_sessions": [
-      "dsol-original-retention-s41-v2"
+      "dsol-original-retention-s41-v3"
     ]
   },
   "overall_status": "PARTIAL_QUICK_GATE_EVIDENCE_ONLY",
+  "paper_level_progress": {
+    "complete_gates": [
+      "G0_SEED41_PASSIVE_CALIBRATION"
+    ],
+    "estimate_range": [
+      0.2,
+      0.3
+    ],
+    "not_started_core_gates": [
+      "G3_FORMAL_MULTI_SEED",
+      "G4_CONSTRUCTED_M0_BLIND_REVEAL",
+      "G6_ACCEL_RELATION_ANALYSIS",
+      "G8_ROBOCASA_EXPERIMENTS"
+    ],
+    "status": "ONE_COMPLETE_GATE_WITH_PARTIAL_DEVELOPMENT_EVIDENCE"
+  },
   "research_dag": [
     {
       "automation": "COMPLETE_PASS_WITH_RETENTION_AUDIT_REQUIRED",
@@ -72,12 +88,12 @@
       "scope": "Official and Broad64 seed-41 exact-state, Camera-Dev40, and Camera Full"
     },
     {
-      "automation": "WAITING_FOR_G0_RESULT",
+      "automation": "AUDIT_COMPLETE_READY_AFTER_RETENTION",
       "id": "G1_COVERAGE_AND_EXPOSURE",
       "scope": "Legacy-MV8, Broad32, Broad64, and Broad64 1x/2x/4x exposure"
     },
     {
-      "automation": "WAITING_FOR_G0_RESULT",
+      "automation": "AUDIT_COMPLETE_READY_AFTER_RETENTION",
       "id": "G2_PAIRING_MECHANISM",
       "scope": "Unpaired practical, state-matched, paired FM, and paired consistency"
     },
@@ -87,17 +103,17 @@
       "scope": "Selected methods with seeds 41, 42, and 43 on Camera Full"
     },
     {
-      "automation": "REQUIRES_DATA_AND_HUMAN_VISUAL_AUDIT",
+      "automation": "NOT_IMPLEMENTED_REQUIRES_CONSTRUCTED_DATA_AND_VISUAL_AUDIT",
       "id": "G4_CONSTRUCTED_M0_BLIND_REVEAL",
       "scope": "Visibility-based Strong-info, Matched-control, Blind, Reveal, blackout, and wrist controls"
     },
     {
-      "automation": "BLOCKED_BY_G4",
+      "automation": "NATURAL_DEV_SUBGATE_ONLY_BLOCKED_BY_CONSTRUCTED_G4",
       "id": "G5_INFO_POSE_SUPPORT_AND_M1",
       "scope": "Info-pose-support training and full closed-loop information-specificity evaluation"
     },
     {
-      "automation": "BLOCKED_BY_FROZEN_G4_CANDIDATES",
+      "automation": "CORE_NOT_IMPLEMENTED_FOUNDATIONS_PARTIAL",
       "id": "G6_ACCEL_RELATION_ANALYSIS",
       "scope": "Accel2-10, shared flow noise, dense ranking, dynamic shortlist, and oracle relation"
     },
@@ -124,5 +140,5 @@
     "wp0_legacy_anchor": "AVAILABLE_NOT_RERUN_UNDER_CURRENT_PROTOCOL",
     "wp1_view_catalog": "ENGINEERING_PASS_TRAINING_COVERAGE_PARTIAL"
   },
-  "updated_at": "2026-08-19"
+  "updated_at": "2026-08-20"
 }

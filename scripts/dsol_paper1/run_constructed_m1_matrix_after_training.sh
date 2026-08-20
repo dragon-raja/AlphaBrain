@@ -45,6 +45,13 @@ jq -e '
 for checkpoint in "$OFFICIAL" "$PRACTICAL" "$STATE_MATCHED" "$PAIRED_FM" "$PAIRED_CONSISTENCY"; do
   [[ -s "$checkpoint/model.safetensors" ]] || { echo "missing checkpoint: $checkpoint" >&2; exit 1; }
 done
+for gpu in 0 1 2 3 4 5 6 7; do
+  if tmux has-session -t "gpu-keepalive-$gpu" 2>/dev/null; then
+    tmux kill-session -t "gpu-keepalive-$gpu"
+    printf 'stopped_gpu_keepalive=%s\n' "$gpu"
+  fi
+done
+sleep 2
 
 run_eval() {
   local name=$1 checkpoint=$2 backend=$3 devices=$4 port=$5 output=$6 max_per_shard=${7:-}

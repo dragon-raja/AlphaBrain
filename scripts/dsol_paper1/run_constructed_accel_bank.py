@@ -552,6 +552,7 @@ def evaluate_state(
     spec: Mapping[str, Any],
     *,
     model: Any,
+    render_dir: Path,
     output_dir: Path,
     device: str,
     seed: int,
@@ -560,7 +561,7 @@ def evaluate_state(
     import torch
 
     state_seed = stable_seed(str(spec["pair_key"]), seed=seed)
-    examples, metadata, fixed_state_audit, bank = load_rendered_bundle(output_dir)
+    examples, metadata, fixed_state_audit, bank = load_rendered_bundle(render_dir)
     candidate_ids = list(bank["all_candidate_ids"])
     if len(examples) != len(candidate_ids):
         raise ValueError("rendered examples and frozen candidate IDs differ")
@@ -776,6 +777,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--runtime", type=Path)
     parser.add_argument("--config-root", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--render-source-dir", type=Path)
     parser.add_argument("--device", default="cuda:7")
     parser.add_argument("--render-gpu", type=int, default=7)
     parser.add_argument("--resize-size", type=int, default=224)
@@ -802,8 +804,19 @@ def main(argv: Sequence[str] | None = None) -> None:
         / hashlib.sha256(str(spec["pair_key"]).encode()).hexdigest()[:16]
         for spec in specs
     }
+    render_source_root = (
+        args.output_dir if args.render_source_dir is None else args.render_source_dir
+    ).resolve()
+    render_state_dirs = {
+        str(spec["pair_key"]): render_source_root
+        / "states"
+        / hashlib.sha256(str(spec["pair_key"]).encode()).hexdigest()[:16]
+        for spec in specs
+    }
 
     if args.stage == "render":
+        if render_source_root != args.output_dir.resolve():
+            raise ValueError("render stage cannot target a separate render source")
         if args.runtime is None or args.config_root is None:
             raise ValueError("render stage requires --runtime and --config-root")
         completed = 0
@@ -881,7 +894,7 @@ def main(argv: Sequence[str] | None = None) -> None:
             existing[str(row["pair_key"])] = row
     missing_renders = [
         pair_key
-        for pair_key, state_dir in state_dirs.items()
+        for pair_key, state_dir in render_state_dirs.items()
         if not (state_dir / "render_record.json").is_file()
     ]
     if missing_renders:
@@ -915,6 +928,7 @@ def main(argv: Sequence[str] | None = None) -> None:
             row = evaluate_state(
                 spec,
                 model=model,
+                render_dir=render_state_dirs[str(spec["pair_key"])],
                 output_dir=state_dir,
                 device=args.device,
                 seed=args.seed,

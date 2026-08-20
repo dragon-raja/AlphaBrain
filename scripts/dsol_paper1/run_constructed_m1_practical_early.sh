@@ -44,6 +44,7 @@ run_eval() {
 
 SMOKE=$OUTPUT_ROOT/protocol-smoke-broad64-practical
 smoke_count=$(awk 'NF {n++} END {print n+0}' "$SMOKE"/episodes-shard-*.jsonl 2>/dev/null || true)
+smoke_count=${smoke_count:-0}
 if [[ "$smoke_count" != 20 ]]; then
   if [[ "$smoke_count" != 0 ]]; then
     stale="$SMOKE.partial.$(date -u +%Y%m%dT%H%M%SZ)"
@@ -60,6 +61,7 @@ printf 'early_protocol_smoke_complete=%s episodes=%s\n' "$(date -u +%FT%TZ)" "$s
 FULL=$OUTPUT_ROOT/broad64-practical
 if [[ ! -s "$FULL/analysis/metrics.json" ]]; then
   partial_count=$(awk 'NF {n++} END {print n+0}' "$FULL"/episodes-shard-*.jsonl 2>/dev/null || true)
+  partial_count=${partial_count:-0}
   if [[ "$partial_count" != 0 ]]; then
     stale="$FULL.partial.$(date -u +%Y%m%dT%H%M%SZ)"
     mv "$FULL" "$stale"

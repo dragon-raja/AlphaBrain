@@ -50,6 +50,11 @@ support, their closed-loop success was identical. This closes the pose-support
 confound but does not release a paper-level claim; the next gate requires a
 controlled strong Blind-Reveal construction with symmetric camera support.
 
+The current data-to-training-to-evaluation evidence, including Broad64,
+constructed M0/M1, Camera Full, Accel, limitations, and the running M-B gate,
+is consolidated in
+[view_revalidation_interim_report_20260821_zh.md](view_revalidation_interim_report_20260821_zh.md).
+
 The authoritative whole-program completion audit is
 [view_revalidation_full_program_status_20260819_zh.md](view_revalidation_full_program_status_20260819_zh.md).
 It distinguishes completed seed-41 quick-gate evidence from pending Legacy,

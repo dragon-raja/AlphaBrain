@@ -97,7 +97,7 @@ def plot_data_and_passive(output: Path) -> None:
 
     fig, axes = plt.subplots(1, 3, figsize=(17, 5.4), constrained_layout=True)
     fig.suptitle(
-        "Broad-view data and passive camera robustness (interim)",
+        "Broad-view training: custom diagnostics and official camera benchmark (interim)",
         fontsize=17,
         fontweight="bold",
         color=COLORS["ink"],
@@ -110,7 +110,7 @@ def plot_data_and_passive(output: Path) -> None:
     ax.set_title("A. Broad64 paired render records", loc="left", fontweight="bold")
     ax.set_ylabel("Record count")
     ax.set_ylim(0, max(split_values) * 1.18)
-    for bar, value in zip(bars, split_values, strict=True):
+    for bar, value in zip(bars, split_values):
         ax.text(bar.get_x() + bar.get_width() / 2, value + 500, f"{value:,}", ha="center", fontsize=9)
     ax.text(
         0.02,
@@ -131,11 +131,11 @@ def plot_data_and_passive(output: Path) -> None:
     x = np.arange(len(arms))
     width = 0.25
     for offset, condition, label, color in zip(
-        [-width, 0, width], conditions, condition_labels, condition_colors, strict=True
+        [-width, 0, width], conditions, condition_labels, condition_colors
     ):
         values = [100 * dev["success_rates"][arm][condition] for arm in arms]
         ax.bar(x + offset, values, width, label=label, color=color)
-    ax.set_title("B. Exact-state development gate", loc="left", fontweight="bold")
+    ax.set_title("B. LIBERO-derived exact-state diagnostic", loc="left", fontweight="bold")
     ax.set_ylabel("Closed-loop success (%)")
     ax.set_xticks(x, [ARM_LABELS[arm] for arm in arms], fontsize=8)
     ax.set_ylim(0, 108)
@@ -143,7 +143,7 @@ def plot_data_and_passive(output: Path) -> None:
     ax.text(
         0.02,
         0.96,
-        "24 paired source episodes; development evidence only",
+        "24 paired episodes; custom protocol, not an official leaderboard score",
         transform=ax.transAxes,
         va="top",
         fontsize=9,
@@ -152,7 +152,13 @@ def plot_data_and_passive(output: Path) -> None:
 
     ax = axes[2]
     suites = ["libero_10", "libero_goal", "libero_object", "libero_spatial", "overall"]
-    labels = ["LIBERO-10", "Goal", "Object", "Spatial", "Pooled"]
+    labels = [
+        "LIBERO-10\nsuite",
+        "Goal\nsuite",
+        "Object\nsuite",
+        "Spatial\nsuite",
+        "All 1,599\n(Pooled)",
+    ]
     official_values = [
         *[100 * official["by_suite"][suite]["success_rate"] for suite in suites[:-1]],
         100 * official["official_pooled"]["success_rate"],
@@ -164,7 +170,7 @@ def plot_data_and_passive(output: Path) -> None:
     x = np.arange(len(labels))
     bars_a = ax.bar(x - 0.19, official_values, 0.38, label="Official Pi0.5", color=COLORS["gray"])
     bars_b = ax.bar(x + 0.19, broad_values, 0.38, label="Broad64 seed 41", color=COLORS["teal"])
-    ax.set_title("C. LIBERO-Plus Camera Full anchor", loc="left", fontweight="bold")
+    ax.set_title("C. Official LIBERO-Plus Camera track", loc="left", fontweight="bold")
     ax.set_ylabel("Closed-loop success (%)")
     ax.set_xticks(x, labels, rotation=18, ha="right", fontsize=8)
     ax.set_ylim(0, 103)
@@ -174,7 +180,7 @@ def plot_data_and_passive(output: Path) -> None:
     ax.text(
         0.02,
         0.96,
-        "1,599 episodes; seed-41 anchor, three-seed confirmation running",
+        "All bars are camera-perturbed; first four are suite subsets",
         transform=ax.transAxes,
         va="top",
         fontsize=9,
@@ -210,7 +216,7 @@ def plot_m0_m1_accel(output: Path) -> None:
     m0_labels = ["Broad held-out", "Wide extrap.", "Crossed orbit", "Extreme", "Look-away", "Sensor ctrl"]
     stats = [m0["group_delta_statistics"][f"test::{group}"] for group in m0_groups]
     positions = np.arange(len(stats))
-    for y, stat in zip(positions, stats, strict=True):
+    for y, stat in zip(positions, stats):
         ax.hlines(y, stat["q05"], stat["q95"], color=COLORS["gray"], linewidth=2)
         ax.hlines(y, stat["q25"], stat["q75"], color=COLORS["blue"], linewidth=7)
         ax.plot(stat["median"], y, "o", color=COLORS["red"], markersize=5)
@@ -236,7 +242,7 @@ def plot_m0_m1_accel(output: Path) -> None:
     x = np.arange(len(models))
     width = 0.19
     for index, (condition, label, color) in enumerate(
-        zip(conditions, condition_labels, condition_colors, strict=True)
+        zip(conditions, condition_labels, condition_colors)
     ):
         values = [100 * lookup[(model, condition)]["state_success_rate"] for model in models]
         ax.bar(x + (index - 1.5) * width, values, width, label=label, color=color)
@@ -263,7 +269,7 @@ def plot_m0_m1_accel(output: Path) -> None:
     role_colors = [COLORS["gray"], COLORS["gold"], COLORS["teal"], COLORS["red"]]
     left = np.zeros(len(accel_models))
     delta_text = []
-    for role, color in zip(role_order, role_colors, strict=True):
+    for role, color in zip(role_order, role_colors):
         values = []
         for model in accel_models:
             metrics = load(ACCEL_ROOT / model / "metrics.json")

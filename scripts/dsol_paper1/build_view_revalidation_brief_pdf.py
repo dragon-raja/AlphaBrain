@@ -166,7 +166,7 @@ def page_questions(pdf, preview_dir):
         ("03", "Information use", "新视角增加任务实体可见像素后，策略能否改善完整闭环？", "DIRECTIONAL SUPPORT", BLUE),
     ]
     y_values = [0.63, 0.41, 0.19]
-    for y, (number, name, question, status, color) in zip(y_values, items, strict=True):
+    for y, (number, name, question, status, color) in zip(y_values, items):
         box(canvas, 0.065, y, 0.87, 0.155)
         fig.text(0.09, y + 0.115, number, fontsize=17, fontweight="bold", color=color, va="top")
         fig.text(0.16, y + 0.12, name, fontsize=14, fontweight="bold", color=INK, va="top")
@@ -277,7 +277,11 @@ def page_training(pdf, preview_dir):
 
 
 def page_passive(pdf, preview_dir):
-    fig, canvas = new_page("结果 1：宽视角覆盖显著改善被动相机泛化", "Exact-state 用于机制诊断；Camera Full 1,599 episodes 是正式 benchmark 锚点。", 5)
+    fig, canvas = new_page(
+        "结果 1：宽视角覆盖显著改善被动相机泛化",
+        "中图是 LIBERO 来源状态的自建诊断；右图才是 LIBERO-Plus 官方 Camera track，Pooled 为 1,599 条总分。",
+        5,
+    )
     add_image(fig, PASSIVE_FIGURE, [0.035, 0.20, 0.93, 0.59])
     box(canvas, 0.06, 0.08, 0.87, 0.085, face="#EAF3F0", edge="#BFD8D0")
     fig.text(0.085, 0.13, "结论", fontsize=9.5, fontweight="bold", color=TEAL, va="center")
@@ -365,7 +369,7 @@ def page_takeaway(pdf, preview_dir):
         ("当前停止", RED, ["不把 Accel 称为主动视角选择器", "不以旧窄视角 Phase B/M0/M1 作泛化结论", "不在 M-B 前启动动态视角或复杂新模块"]),
     ]
     x_values = [0.055, 0.365, 0.675]
-    for x, (title, color, bullets) in zip(x_values, sections, strict=True):
+    for x, (title, color, bullets) in zip(x_values, sections):
         box(canvas, x, 0.31, 0.27, 0.46)
         canvas.add_patch(Rectangle((x, 0.70), 0.27, 0.07, transform=canvas.transAxes, color=color))
         fig.text(x + 0.025, 0.735, title, fontsize=12, fontweight="bold", color=WHITE, va="center")

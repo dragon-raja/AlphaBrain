@@ -120,7 +120,7 @@ cleanup() {
     fi
   done
   if [[ "$keepalive_stopped" == 1 ]]; then
-    bash /workspace/ai2r/gpu_compute_keepalive/start_all.sh 1 8192 gpu-keepalive >/dev/null || true
+    bash /workspace/ai2r/gpu_compute_keepalive/start_all.sh 0 4096 gpu-keepalive >/dev/null || true
   fi
 }
 trap cleanup EXIT INT TERM

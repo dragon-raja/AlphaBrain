@@ -54,6 +54,8 @@ The current data-to-training-to-evaluation evidence, including Broad64,
 constructed M0/M1, Camera Full, Accel, limitations, and the running M-B gate,
 is consolidated in
 [view_revalidation_interim_report_20260821_zh.md](view_revalidation_interim_report_20260821_zh.md).
+The presentation-ready Chinese PDF is
+[view_revalidation_interim_brief_20260821_zh.pdf](view_revalidation_interim_brief_20260821_zh.pdf).
 
 The authoritative whole-program completion audit is
 [view_revalidation_full_program_status_20260819_zh.md](view_revalidation_full_program_status_20260819_zh.md).

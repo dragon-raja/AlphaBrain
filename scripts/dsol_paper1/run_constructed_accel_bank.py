@@ -970,6 +970,8 @@ def main(argv: Sequence[str] | None = None) -> None:
             "seed": args.seed,
             "device": args.device,
             "batch_size": args.batch_size,
+            "analysis_role": protocol.get("analysis_role"),
+            "diagnostic_role_semantics": protocol.get("diagnostic_role_semantics"),
             "model_load_seconds_this_invocation": load_seconds,
             "cuda_peak_memory_bytes_this_invocation": peak_memory,
         }

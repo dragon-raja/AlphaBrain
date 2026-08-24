@@ -120,6 +120,10 @@ def aggregate_model(seed_runs: dict[int, dict[str, dict[str, Any]]]) -> dict[str
     role_ranks: dict[str, list[int]] = {}
     relative_spreads = []
     state_rows = []
+    ensemble_rankings = {}
+    ensemble_category_counts: Counter[str] = Counter()
+    ensemble_score_rank_agreement = []
+    ensemble_relative_margins = []
     for pair_key in pair_keys:
         rows = [seed_runs[seed][pair_key] for seed in seeds]
         top1_counts = Counter(row["top1"] for row in rows)
@@ -140,6 +144,41 @@ def aggregate_model(seed_runs: dict[int, dict[str, dict[str, Any]]]) -> dict[str
             pairwise_spearman.append(spearman_from_ranks(left["ranks"], right["ranks"]))
             pairwise_top5.append(jaccard_top_k(left["ranks"], right["ranks"], 5))
             pairwise_top10.append(jaccard_top_k(left["ranks"], right["ranks"], 10))
+        candidate_ids = sorted(rows[0]["scores"])
+        mean_scores = {
+            candidate_id: float(
+                np.mean([row["scores"][candidate_id] for row in rows])
+            )
+            for candidate_id in candidate_ids
+        }
+        mean_ranks = {
+            candidate_id: float(
+                np.mean([row["ranks"][candidate_id] for row in rows])
+            )
+            for candidate_id in candidate_ids
+        }
+        score_order = sorted(candidate_ids, key=lambda value: (mean_scores[value], value))
+        rank_order = sorted(candidate_ids, key=lambda value: (mean_ranks[value], value))
+        ensemble_ranking = {
+            candidate_id: rank for rank, candidate_id in enumerate(score_order, start=1)
+        }
+        ensemble_rankings[pair_key] = ensemble_ranking
+        ensemble_top1 = score_order[0]
+        ensemble_category = (
+            "canonical"
+            if ensemble_top1 == "canonical"
+            else (
+                "broad64_training_support"
+                if ensemble_top1.startswith("broad_train_")
+                else "broad32_heldout"
+            )
+        )
+        ensemble_category_counts[ensemble_category] += 1
+        ensemble_score_rank_agreement.append(score_order[0] == rank_order[0])
+        ensemble_relative_margins.append(
+            (mean_scores[score_order[1]] - mean_scores[score_order[0]])
+            / max(abs(mean_scores[score_order[0]]), 1e-12)
+        )
         state_rows.append(
             {
                 "pair_key": pair_key,
@@ -150,6 +189,9 @@ def aggregate_model(seed_runs: dict[int, dict[str, dict[str, Any]]]) -> dict[str
                 "category_unique_count": len(category_count),
                 "modal_top1": top1_counts.most_common(1)[0][0],
                 "modal_category": category_count.most_common(1)[0][0],
+                "ensemble_top1": ensemble_top1,
+                "ensemble_category": ensemble_category,
+                "ensemble_top1_relative_margin": ensemble_relative_margins[-1],
             }
         )
     denominator = len(pair_keys) * len(seeds)
@@ -169,11 +211,22 @@ def aggregate_model(seed_runs: dict[int, dict[str, dict[str, Any]]]) -> dict[str
             category: category_counts[category] / denominator
             for category in CATEGORY_ORDER
         },
+        "ensemble_selected_category_rates": {
+            category: ensemble_category_counts[category] / len(pair_keys)
+            for category in CATEGORY_ORDER
+        },
+        "ensemble_score_vs_mean_rank_top1_agreement_rate": float(
+            np.mean(ensemble_score_rank_agreement)
+        ),
+        "mean_ensemble_top1_relative_margin": float(
+            np.mean(ensemble_relative_margins)
+        ),
         "mean_role_ranks": {
             role: float(np.mean(values)) for role, values in role_ranks.items()
         },
         "mean_accel_relative_spread": float(np.mean(relative_spreads)),
         "state_rows": state_rows,
+        "ensemble_rankings": ensemble_rankings,
     }
 
 
@@ -197,7 +250,7 @@ def plot_summary(path: Path, models: dict[str, dict[str, Any]]) -> None:
     category_labels = ("Canonical", "Train support", "Held-out")
     for category, label, color in zip(CATEGORY_ORDER, category_labels, colors):
         values = np.asarray(
-            [models[key]["selected_category_rates"][category] for key in keys]
+            [models[key]["ensemble_selected_category_rates"][category] for key in keys]
         )
         axes[1].bar(labels, values, bottom=bottom, label=label, color=color)
         bottom += values
@@ -245,6 +298,7 @@ def main() -> None:
 
     model_payloads = {}
     state_rows = []
+    ensemble_rankings = {}
     for model_key in MODEL_DIRS:
         seed_runs = {
             seed: load_run(
@@ -262,7 +316,24 @@ def main() -> None:
         state_rows.extend(
             {"model": model_key, **row} for row in aggregate.pop("state_rows")
         )
+        ensemble_rankings[model_key] = aggregate.pop("ensemble_rankings")
         model_payloads[model_key] = aggregate
+
+    cross_model = {}
+    for left, right in combinations(MODEL_DIRS, 2):
+        pair_keys = sorted(ensemble_rankings[left])
+        values = [
+            spearman_from_ranks(
+                ensemble_rankings[left][pair_key],
+                ensemble_rankings[right][pair_key],
+            )
+            for pair_key in pair_keys
+        ]
+        cross_model[f"{left}__vs__{right}"] = {
+            "mean_ensemble_rank_spearman": float(np.mean(values)),
+            "minimum": float(np.min(values)),
+            "maximum": float(np.max(values)),
+        }
 
     output = {
         "schema": "dsol_accel_flow_noise_stability_v1",
@@ -270,6 +341,7 @@ def main() -> None:
         "reference_seed": args.reference_seed,
         "flow_noise_seeds": seeds,
         "models": model_payloads,
+        "cross_model_ensemble_relations": cross_model,
         "claim_scope": (
             "Fixed-state rank stability and view-support diagnostics only; no "
             "closed-loop view-value claim."

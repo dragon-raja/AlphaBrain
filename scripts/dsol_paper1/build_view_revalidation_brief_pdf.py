@@ -458,8 +458,8 @@ def page_m0(pdf, preview_dir):
 
 def page_m1(pdf, preview_dir):
     fig, canvas = new_page(
-        "结果 4：M1 再检验新增可见信息能否改善完整闭环",
-        "同一冻结状态、同一模型与同一任务预算；只替换外部相机观测，腕部相机保持启用，并持续重规划到成功或超时。",
+        "结果 4：M1 检验新增可见信息能否改善闭环 continuation",
+        "从筛选后的中间状态恢复并执行到官方任务成功或超时；这不是从任务初始状态开始的标准 benchmark 成功率。",
         8,
     )
 
@@ -476,14 +476,14 @@ def page_m1(pdf, preview_dir):
         process_arrow(canvas, left + 0.175, 0.732, right - 0.005)
 
     labels = ["Canonical", "Strong-info", "Matched-control", "Blind"]
-    values = [57.1, 71.4, 52.4, 23.8]
+    values = [42.5, 52.5, 39.2, 18.3]
     colors = [BLUE, TEAL, GOLD, RED]
     ax = fig.add_axes([0.065, 0.265, 0.44, 0.33])
     bars = ax.bar(range(4), values, color=colors, width=0.62)
-    ax.set_title("Broad practical：21 个 frame states 的原始成功率", loc="left", fontsize=10.5, fontweight="bold")
-    ax.set_ylabel("闭环成功率 (%)", fontsize=8.5)
+    ax.set_title("Broad practical：6 条独立 demonstration 等权", loc="left", fontsize=10.5, fontweight="bold")
+    ax.set_ylabel("闭环 continuation 成功率 (%)", fontsize=8.5)
     ax.set_xticks(range(4), ["规范", "信息", "位姿对照", "盲视角"], fontsize=8.2)
-    ax.set_ylim(0, 82)
+    ax.set_ylim(0, 65)
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(axis="y", color=LINE, linewidth=0.8)
     ax.set_axisbelow(True)
@@ -503,7 +503,7 @@ def page_m1(pdf, preview_dir):
         va="top",
     )
     fig.text(0.575, 0.382, r"$=SR_{info}-SR_{control}$", fontsize=11, fontweight="bold", color=TEAL, va="top")
-    fig.text(0.575, 0.342, "原始 21 states：71.4% − 52.4% = +19.0pp", fontsize=8.8, color=MUTED, va="top")
+    fig.text(0.575, 0.342, "主统计：52.5% − 39.2% = +13.3pp", fontsize=8.8, color=MUTED, va="top")
 
     box(canvas, 0.06, 0.09, 0.26, 0.15)
     canvas.add_patch(Rectangle((0.06, 0.09), 0.008, 0.15, transform=canvas.transAxes, color=TEAL))
@@ -523,7 +523,7 @@ def page_m1(pdf, preview_dir):
         0.66,
         0.17,
         "宽覆盖双相机模型出现方向性信息利用信号。\n"
-        "不可写成最终普遍结论：仅 6 条独立演示，且 external-only 全部为 0%。",
+        "21-state 原始率为 57.1/71.4/52.4/23.8%；\n不可写成标准初始状态任务成功率。",
         fontsize=7.8,
         color=INK,
         va="top",

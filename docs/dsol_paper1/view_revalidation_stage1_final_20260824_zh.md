@@ -79,15 +79,16 @@ M1。这里能得出的结论是“候选池中确实存在稀疏的信息上尾
 
 ### 3.2 M1：再检验新增可见信息能否改善完整闭环
 
-M1 从上述同一冻结状态出发，只替换外部相机角色；腕部相机保持启用并随机器人正常动态更新。
-Pi0.5 持续闭环重规划，直到任务成功或超时。Broad practical 在 21 个 frame states 上的原始结果为：
+M1 从上述筛选后的中间状态出发，只替换外部相机角色；腕部相机保持启用并随机器人正常动态更新。
+Pi0.5 持续闭环重规划，直到达到官方任务成功条件或超时。它是 selected-state closed-loop continuation，
+不是从任务初始状态开始的标准 benchmark 成功率。
 
-| 观测条件 | 完整闭环成功率 |
-|---|---:|
-| Canonical | 57.1% |
-| Strong-info | 71.4% |
-| Matched-control | 52.4% |
-| Blind | 23.8% |
+| 观测条件 | 21 frame states 原始率 | 6 demonstrations 等权率 |
+|---|---:|---:|
+| Canonical | 57.1% | 42.5% |
+| Strong-info | 71.4% | 52.5% |
+| Matched-control | 52.4% | 39.2% |
+| Blind | 23.8% | 18.3% |
 
 Matched-control 用于扣除普通相机移动的影响：
 
@@ -97,8 +98,9 @@ Matched-control 用于扣除普通相机移动的影响：
 =SR_{info}-SR_{control}.
 \]
 
-按 21 个 frame states 直接汇总时，信息特异性为 `71.4%-52.4%=+19.0pp`。预注册主统计先在每条
-source HDF5 demonstration 内聚合，再对 6 条独立演示等权，得到 +13.3pp，cluster 95% CI
+按 21 个相关 frame states 直接汇总时，信息特异性为 `71.4%-52.4%=+19.0pp`，仅作为描述性数字。
+预注册主统计先在每条 source HDF5 demonstration 内聚合，再对 6 条独立演示等权，得到
+`52.5%-39.2%=+13.3pp`，cluster 95% CI
 `[+3.3,+26.7]`。这种口径避免包含更多 frame states 的单条演示主导结果。
 
 因此当前可以写成：Broad practical 出现了“新增任务可见信息优于等幅普通换视角”的方向性闭环证据。

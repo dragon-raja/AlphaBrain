@@ -62,7 +62,9 @@ def run_dir(
 ) -> Path:
     stem = MODEL_DIRS[model_key]
     if seed == reference_seed:
-        return reference_root / f"{stem}-seed41-full"
+        legacy_reference = reference_root / f"{stem}-seed41-full"
+        if legacy_reference.is_dir():
+            return legacy_reference
     return run_root / f"{stem}-flow-seed{seed}"
 
 

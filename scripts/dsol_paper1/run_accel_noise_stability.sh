@@ -7,7 +7,9 @@ REFERENCE_ROOT=${DSOL_ACCEL_REFERENCE_ROOT:-/share/longjunyu/alphabrain/experime
 RUN_ROOT=${DSOL_ACCEL_NOISE_ROOT:-/share/longjunyu/alphabrain/experiments/dsol-accel-noise-stability-v1/runs}
 ANALYSIS_ROOT=${DSOL_ACCEL_NOISE_ANALYSIS_ROOT:-/share/longjunyu/alphabrain/experiments/dsol-accel-noise-stability-v1/analysis}
 RENDER_SOURCE=${DSOL_ACCEL_RENDER_SOURCE:-$REFERENCE_ROOT/broad64-practical-seed41-full}
-SEEDS=${DSOL_ACCEL_NOISE_SEEDS:-"20260821 20260822 20260823 20260824 20260825 20260826 20260827"}
+REFERENCE_SEED=${DSOL_ACCEL_NOISE_REFERENCE_SEED:-20260820}
+RUN_SEEDS=${DSOL_ACCEL_NOISE_SEEDS:-"20260821 20260822 20260823 20260824 20260825 20260826 20260827"}
+ANALYSIS_SEEDS=${DSOL_ACCEL_NOISE_ANALYSIS_SEEDS:-"$REFERENCE_SEED $RUN_SEEDS"}
 RUNNER=$REPO_ROOT/scripts/dsol_paper1/run_constructed_accel_bank.sh
 ANALYZER=$REPO_ROOT/scripts/dsol_paper1/analyze_accel_noise_stability.py
 
@@ -36,8 +38,9 @@ declare -a devices=(0 1 2 3)
 
 mkdir -p "$RUN_ROOT/logs" "$ANALYSIS_ROOT"
 exec > >(tee -a "$RUN_ROOT/controller.log") 2>&1
-printf 'accel_noise_stability_start=%s git_commit=%s seeds=%s\n' \
-  "$(date -u +%FT%TZ)" "$(git -C "$REPO_ROOT" rev-parse HEAD)" "$SEEDS"
+printf 'accel_noise_stability_start=%s git_commit=%s run_seeds=%s analysis_seeds=%s\n' \
+  "$(date -u +%FT%TZ)" "$(git -C "$REPO_ROOT" rev-parse HEAD)" \
+  "$RUN_SEEDS" "$ANALYSIS_SEEDS"
 
 declare -a pids=()
 for index in "${!names[@]}"; do
@@ -49,7 +52,7 @@ for index in "${!names[@]}"; do
     exit 2
   }
   (
-    for seed in $SEEDS; do
+    for seed in $RUN_SEEDS; do
       output="$RUN_ROOT/$name-flow-seed$seed"
       DSOL_ACCEL_CHECKPOINT="$checkpoint" \
       DSOL_ACCEL_OUTPUT_DIR="$output" \
@@ -70,12 +73,13 @@ for pid in "${pids[@]}"; do
 done
 [[ "$failed" == 0 ]] || { echo "one or more Accel noise workers failed" >&2; exit 1; }
 
-seed_args=(20260820)
-for seed in $SEEDS; do seed_args+=("$seed"); done
+seed_args=()
+for seed in $ANALYSIS_SEEDS; do seed_args+=("$seed"); done
 /alphabrain/.venv/bin/python "$ANALYZER" \
   --reference-root "$REFERENCE_ROOT" \
   --run-root "$RUN_ROOT" \
   --output-dir "$ANALYSIS_ROOT" \
+  --reference-seed "$REFERENCE_SEED" \
   --seeds "${seed_args[@]}"
 
 printf 'accel_noise_stability_complete=%s summary=%s\n' \

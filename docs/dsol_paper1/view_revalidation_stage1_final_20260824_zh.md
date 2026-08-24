@@ -49,11 +49,61 @@ Paired consistency 相对 Broad practical：
 
 - Exact-state 中 Broad practical 在 Broad held-out / Wide extrapolation 为 87.5% / 91.7%，
   Canonical unique 为 33.3% / 25.0%，Image-Aug 为 25.0% / 16.7%。
-- M0 证明信息视角是候选分布中的稀疏上尾；Look-away 和 sensor blackout 的正增量比例均为 0%。
-- M1 中 Broad practical 的信息特异性为 +13.3pp，cluster 95% CI `[+3.3,+26.7]`；但只有
-  6 条独立 source demonstrations，因此仍是 development evidence。
 - Accel 每 21 个状态有 15-18 个选择 canonical，相对 canonical 成功率为 -2.5pp 到 +3.3pp；
   它没有捕获已有 oracle headroom，不能作为当前主动视角选择器。
+
+### 3.1 M0：先构造可控的观测差异
+
+M0 不是策略效果实验。它在同一冻结 MuJoCo state 下渲染候选视角，通过 simulator
+instance segmentation 计算任务实体的可见像素比例：
+
+\[
+I_{task}(v)=\operatorname{mean}_{camera,entity}
+\frac{\text{visible pixels}}{224\times224},\qquad
+\Delta I(v)=I_{task}(v)-I_{task}(canonical).
+\]
+
+每个通过筛选的状态冻结四个角色：
+
+| 角色 | 定义 | 后续用途 |
+|---|---|---|
+| Canonical | 原规范外部视角，`ΔI=0` | 基准观测 |
+| Strong-info | 相对 canonical 明显增加任务实体可见像素 | 测试新增可见信息 |
+| Matched-control | 与 Strong-info 的相机平移/旋转相近，但 `ΔI≈0` | 控制普通相机移动影响 |
+| Blind | 任务实体可见性明显降低的极端视角 | 信息缺失负对照 |
+
+扫描覆盖 180 states / 15,840 candidates。Crossed-orbit 的最大 `ΔI` 为 +20.85pp；
+Look-away 与 sensor blackout 的正增量比例均为 0%。最终 21 个 test states 通过人工视觉审计进入
+M1。这里能得出的结论是“候选池中确实存在稀疏的信息上尾，并且可以构造位姿匹配对照”，不能据此
+宣称模型已经利用了信息。
+
+### 3.2 M1：再检验新增可见信息能否改善完整闭环
+
+M1 从上述同一冻结状态出发，只替换外部相机角色；腕部相机保持启用并随机器人正常动态更新。
+Pi0.5 持续闭环重规划，直到任务成功或超时。Broad practical 在 21 个 frame states 上的原始结果为：
+
+| 观测条件 | 完整闭环成功率 |
+|---|---:|
+| Canonical | 57.1% |
+| Strong-info | 71.4% |
+| Matched-control | 52.4% |
+| Blind | 23.8% |
+
+Matched-control 用于扣除普通相机移动的影响：
+
+\[
+\text{Information Specificity}
+=(SR_{info}-SR_{canonical})-(SR_{control}-SR_{canonical})
+=SR_{info}-SR_{control}.
+\]
+
+按 21 个 frame states 直接汇总时，信息特异性为 `71.4%-52.4%=+19.0pp`。预注册主统计先在每条
+source HDF5 demonstration 内聚合，再对 6 条独立演示等权，得到 +13.3pp，cluster 95% CI
+`[+3.3,+26.7]`。这种口径避免包含更多 frame states 的单条演示主导结果。
+
+因此当前可以写成：Broad practical 出现了“新增任务可见信息优于等幅普通换视角”的方向性闭环证据。
+仍不能写成最终普遍结论，因为独立统计单位只有 6 条演示、任务分布不均，而且五个模型的
+external-only 条件均为 0%；该信号依赖正常的 external + wrist 双相机输入。
 
 ## 4. KYC / CVC 方法边界
 
@@ -76,4 +126,3 @@ paired consistency 的普遍可能性。该限制不妨碍停止继续投入当�
 - Original Full：`/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/original_full/multiseed_metrics.json`
 - M0：`/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m0-v1/operational-three-task-scan-v2/analysis/summary.json`
 - M1：`/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m1-v2/cross-model-analysis/metrics.json`
-

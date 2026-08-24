@@ -10,7 +10,7 @@ from pathlib import Path
 import matplotlib.font_manager as font_manager
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-from matplotlib.patches import FancyBboxPatch, Rectangle
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle
 from PIL import Image
 
 
@@ -23,6 +23,13 @@ M0_MONTAGE = Path(
     "operational-three-task-scan-v2/manual_audit_renders_v1/states/"
     "1a785a92de084d0b/visibility_extremes.png"
 )
+M1_VIEW_ROLE_DIR = FIGURE_DIR / "m1_view_roles"
+M1_VIEW_ROLE_IMAGES = {
+    "canonical": M1_VIEW_ROLE_DIR / "canonical.png",
+    "strong_info": M1_VIEW_ROLE_DIR / "strong_info.png",
+    "matched_control": M1_VIEW_ROLE_DIR / "matched_control.png",
+    "blind": M1_VIEW_ROLE_DIR / "blind.png",
+}
 FORMAL_ROOT = Path(
     "/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/"
 )
@@ -99,6 +106,27 @@ def section_label(fig, x, y, text, color):
         color=WHITE,
         bbox={"boxstyle": "round,pad=0.35,rounding_size=0.3", "facecolor": color, "edgecolor": color},
         va="center",
+    )
+
+
+def process_step(fig, canvas, x, y, w, h, number, title, detail, color):
+    box(canvas, x, y, w, h, face=WHITE, edge=LINE)
+    fig.text(x + 0.018, y + h - 0.032, number, fontsize=8.5, fontweight="bold", color=color, va="top")
+    fig.text(x + 0.018, y + h - 0.065, title, fontsize=10.2, fontweight="bold", color=INK, va="top")
+    fig.text(x + 0.018, y + h - 0.092, detail, fontsize=7.4, color=MUTED, va="top", linespacing=1.25)
+
+
+def process_arrow(canvas, x1, y, x2):
+    canvas.add_patch(
+        FancyArrowPatch(
+            (x1, y),
+            (x2, y),
+            transform=canvas.transAxes,
+            arrowstyle="-|>",
+            mutation_scale=10,
+            linewidth=1.0,
+            color=GRAY,
+        )
     )
 
 
@@ -356,34 +384,150 @@ def page_formal_benchmarks(pdf, preview_dir):
 
 
 def page_m0(pdf, preview_dir):
-    fig, canvas = new_page("结果 3：信息视角是稀疏上尾，不等于随机换视角", "第一轮保持旧定义：任务实体在多相机中的等权可见像素比例。", 7)
-    add_image(fig, M0_MONTAGE, [0.055, 0.49, 0.89, 0.28])
-    add_image(fig, MECHANISM_FIGURE, [0.055, 0.14, 0.42, 0.28], crop=(0.0, 0.08, 0.335, 1.0))
-    box(canvas, 0.51, 0.14, 0.43, 0.28)
-    fig.text(0.54, 0.375, "M0 扫描", fontsize=12, fontweight="bold", color=INK)
-    fig.text(0.54, 0.335, "180 states · 15,840 candidates", fontsize=10, color=BLUE)
-    fig.text(0.54, 0.285, "• Crossed-orbit 最大 ΔI：+0.2085", fontsize=10, color=INK)
-    fig.text(0.54, 0.245, "• Look-away 正增量比例：0%", fontsize=10, color=INK)
-    fig.text(0.54, 0.205, "• Sensor blackout 正增量比例：0%", fontsize=10, color=INK)
-    fig.text(0.54, 0.16, "21 个 test states 通过 AI-assisted 视觉审计后进入 M1。", fontsize=9, color=MUTED)
+    fig, canvas = new_page(
+        "结果 3：M0 先构造可控的观测差异",
+        "M0 不评价策略优劣；它只回答：同一物理状态下，哪些视角增加任务实体可见像素，哪些只是普通换位姿？",
+        7,
+    )
+
+    steps = [
+        ("01", "冻结状态", "同一 MuJoCo state\n机器人与物体不变", BLUE),
+        ("02", "渲染候选", "每状态 88 个视角\n含宽视角与极端负对照", TEAL),
+        ("03", "实例分割", "统计任务实体\n在各相机的可见像素", GOLD),
+        ("04", "计算 ΔI", "相对 canonical\n得到可见性增减", RED),
+        ("05", "冻结四类", "Canonical / Info\nControl / Blind", BLUE),
+    ]
+    xs = [0.055, 0.245, 0.435, 0.625, 0.815]
+    for x, step in zip(xs, steps):
+        process_step(fig, canvas, x, 0.675, 0.135, 0.12, *step)
+    for left, right in zip(xs[:-1], xs[1:]):
+        process_arrow(canvas, left + 0.14, 0.735, right - 0.005)
+
+    roles = [
+        ("canonical", "规范视角", "ΔI = 0", BLUE),
+        ("strong_info", "信息视角", "ΔI = +1.40pp", TEAL),
+        ("matched_control", "位姿匹配对照", "ΔI = −0.02pp", GOLD),
+        ("blind", "盲视角", "ΔI = −1.50pp", RED),
+    ]
+    role_xs = [0.055, 0.285, 0.515, 0.745]
+    for x, (key, title, delta, color) in zip(role_xs, roles):
+        box(canvas, x, 0.39, 0.20, 0.225)
+        add_image(fig, M1_VIEW_ROLE_IMAGES[key], [x + 0.008, 0.465, 0.184, 0.132])
+        canvas.add_patch(Rectangle((x, 0.39), 0.006, 0.225, transform=canvas.transAxes, color=color))
+        fig.text(x + 0.018, 0.442, title, fontsize=9.5, fontweight="bold", color=INK, va="top")
+        fig.text(x + 0.018, 0.411, delta, fontsize=8.2, color=color, va="top")
+
+    fig.text(
+        0.055,
+        0.365,
+        "真实同状态示例：每格左半为外部相机，右半为固定腕部相机。Info 与 Control 的相机移动幅度相近，但可见性增量不同。",
+        fontsize=8.2,
+        color=MUTED,
+    )
+
+    box(canvas, 0.055, 0.12, 0.56, 0.205, face="#EDF3F7", edge="#C8D7E2")
+    fig.text(0.078, 0.295, "可见性定义", fontsize=10.2, fontweight="bold", color=BLUE, va="top")
+    fig.text(
+        0.078,
+        0.252,
+        r"$I_{task}(v)=\mathrm{mean}_{camera,entity}\;\frac{\mathrm{visible\ pixels}}{224\times224}$",
+        fontsize=11.2,
+        color=INK,
+        va="top",
+    )
+    fig.text(0.078, 0.205, r"$\Delta I(v)=I_{task}(v)-I_{task}(canonical)$", fontsize=11.2, color=INK, va="top")
+    fig.text(
+        0.078,
+        0.155,
+        "Matched-control 还必须与 Strong-info 具有相近的相机平移和旋转，\n"
+        "因此后续可以把“普通相机移动”与“新增任务可见信息”分开。",
+        fontsize=8.5,
+        color=MUTED,
+        va="top",
+        linespacing=1.35,
+    )
+
+    box(canvas, 0.645, 0.12, 0.30, 0.205)
+    fig.text(0.67, 0.295, "筛选结果", fontsize=10.2, fontweight="bold", color=INK, va="top")
+    fig.text(0.67, 0.252, "180 states / 15,840 candidates", fontsize=9.5, color=BLUE, va="top")
+    fig.text(0.67, 0.215, "Crossed-orbit 最大 ΔI：+20.85pp", fontsize=8.8, color=INK, va="top")
+    fig.text(0.67, 0.181, "Look-away / blackout 正增量：0%", fontsize=8.8, color=INK, va="top")
+    fig.text(0.67, 0.145, "21 states 通过人工视觉审计进入 M1", fontsize=8.8, color=TEAL, va="top")
     save_page(pdf, fig, 7, preview_dir)
 
 
 def page_m1(pdf, preview_dir):
-    fig, canvas = new_page("结果 4：宽覆盖模型出现闭环信息特异性", "同一冻结物理状态，分别执行 Canonical、Strong-info、Matched-control 和 Blind 到成功或超时。", 8)
-    add_image(fig, MECHANISM_FIGURE, [0.045, 0.18, 0.57, 0.59], crop=(0.335, 0.08, 0.625, 1.0))
-    metric(fig, canvas, 0.65, 0.57, 0.28, 0.17, "+13.3pp", "Broad practical 信息特异性", "cluster 95% CI [+3.3, +26.7]", TEAL)
-    metric(fig, canvas, 0.65, 0.36, 0.28, 0.17, "+34.2pp", "Strong-info 相对 Blind", "cluster 95% CI [+4.2, +67.5]", BLUE)
-    box(canvas, 0.65, 0.15, 0.28, 0.16, face="#FFF7E8", edge="#E6D2A8")
-    fig.text(0.675, 0.275, "限制", fontsize=10, fontweight="bold", color=GOLD, va="top")
+    fig, canvas = new_page(
+        "结果 4：M1 再检验新增可见信息能否改善完整闭环",
+        "同一冻结状态、同一模型与同一任务预算；只替换外部相机观测，腕部相机保持启用，并持续重规划到成功或超时。",
+        8,
+    )
+
+    steps = [
+        ("01", "恢复同一状态", "21 个 frame states\n归属于 6 条独立演示", BLUE),
+        ("02", "替换外部视角", "Canonical / Info /\nControl / Blind", TEAL),
+        ("03", "双相机策略输入", "外部相机变化\n腕部相机正常动态更新", GOLD),
+        ("04", "完整闭环", "Pi0.5 持续重规划\n直到成功或超时", RED),
+    ]
+    xs = [0.06, 0.285, 0.51, 0.735]
+    for x, step in zip(xs, steps):
+        process_step(fig, canvas, x, 0.67, 0.17, 0.125, *step)
+    for left, right in zip(xs[:-1], xs[1:]):
+        process_arrow(canvas, left + 0.175, 0.732, right - 0.005)
+
+    labels = ["Canonical", "Strong-info", "Matched-control", "Blind"]
+    values = [57.1, 71.4, 52.4, 23.8]
+    colors = [BLUE, TEAL, GOLD, RED]
+    ax = fig.add_axes([0.065, 0.265, 0.44, 0.33])
+    bars = ax.bar(range(4), values, color=colors, width=0.62)
+    ax.set_title("Broad practical：21 个 frame states 的原始成功率", loc="left", fontsize=10.5, fontweight="bold")
+    ax.set_ylabel("闭环成功率 (%)", fontsize=8.5)
+    ax.set_xticks(range(4), ["规范", "信息", "位姿对照", "盲视角"], fontsize=8.2)
+    ax.set_ylim(0, 82)
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.grid(axis="y", color=LINE, linewidth=0.8)
+    ax.set_axisbelow(True)
+    for bar, value in zip(bars, values):
+        ax.text(bar.get_x() + bar.get_width() / 2, value + 2.0, f"{value:.1f}%", ha="center", fontsize=8.5, color=INK)
+
+    box(canvas, 0.55, 0.315, 0.395, 0.28, face="#EAF3F0", edge="#BFD8D0")
+    fig.text(0.575, 0.56, "为什么要比较 Info 与 Matched-control？", fontsize=10.5, fontweight="bold", color=TEAL, va="top")
+    fig.text(0.575, 0.515, "信息视角增益 = 相机移动影响 + 新增可见信息", fontsize=9.2, color=INK, va="top")
+    fig.text(0.575, 0.477, "位姿对照增益 ≈ 只有相机移动影响", fontsize=9.2, color=INK, va="top")
     fig.text(
-        0.675,
-        0.235,
-        "仅 6 个独立 source demonstrations；\nexternal-only 在五个模型中均为 0%；\n当前结果仍是 development evidence。",
-        fontsize=9.2,
+        0.575,
+        0.425,
+        r"信息特异性 $=(SR_{info}-SR_{canon})-(SR_{control}-SR_{canon})$",
+        fontsize=9.5,
         color=INK,
         va="top",
-        linespacing=1.45,
+    )
+    fig.text(0.575, 0.382, r"$=SR_{info}-SR_{control}$", fontsize=11, fontweight="bold", color=TEAL, va="top")
+    fig.text(0.575, 0.342, "原始 21 states：71.4% − 52.4% = +19.0pp", fontsize=8.8, color=MUTED, va="top")
+
+    box(canvas, 0.06, 0.09, 0.26, 0.15)
+    canvas.add_patch(Rectangle((0.06, 0.09), 0.008, 0.15, transform=canvas.transAxes, color=TEAL))
+    fig.text(0.085, 0.215, "+13.3pp", fontsize=20, fontweight="bold", color=TEAL, va="top")
+    fig.text(0.085, 0.16, "主统计：信息特异性", fontsize=9.2, fontweight="bold", color=INK, va="top")
+    fig.text(0.085, 0.118, "6 条演示等权；95% CI [+3.3,+26.7]", fontsize=7.5, color=MUTED, va="top")
+
+    box(canvas, 0.35, 0.09, 0.26, 0.15)
+    canvas.add_patch(Rectangle((0.35, 0.09), 0.008, 0.15, transform=canvas.transAxes, color=BLUE))
+    fig.text(0.375, 0.215, "+34.2pp", fontsize=20, fontweight="bold", color=BLUE, va="top")
+    fig.text(0.375, 0.16, "Strong-info 相对 Blind", fontsize=9.2, fontweight="bold", color=INK, va="top")
+    fig.text(0.375, 0.118, "演示分组统计；95% CI [+4.2,+67.5]", fontsize=7.5, color=MUTED, va="top")
+
+    box(canvas, 0.64, 0.09, 0.305, 0.15, face="#FFF7E8", edge="#E6D2A8")
+    fig.text(0.66, 0.21, "当前可下结论", fontsize=9, fontweight="bold", color=GOLD, va="top")
+    fig.text(
+        0.66,
+        0.17,
+        "宽覆盖双相机模型出现方向性信息利用信号。\n"
+        "不可写成最终普遍结论：仅 6 条独立演示，且 external-only 全部为 0%。",
+        fontsize=7.8,
+        color=INK,
+        va="top",
+        linespacing=1.28,
     )
     save_page(pdf, fig, 8, preview_dir)
 

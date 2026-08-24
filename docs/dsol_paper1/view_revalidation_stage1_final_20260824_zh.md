@@ -49,8 +49,9 @@ Paired consistency 相对 Broad practical：
 
 - Exact-state 中 Broad practical 在 Broad held-out / Wide extrapolation 为 87.5% / 91.7%，
   Canonical unique 为 33.3% / 25.0%，Image-Aug 为 25.0% / 16.7%。
-- Accel 每 21 个状态有 15-18 个选择 canonical，相对 canonical 成功率为 -2.5pp 到 +3.3pp；
-  它没有捕获已有 oracle headroom，不能作为当前主动视角选择器。
+- Accel 核心曲率公式与单次 velocity trace 实现正确，但本地任务是原文之外的跨视角选择扩展，
+  不是原论文失败检测数值的完整复现。预注册 `accel_3` 每 21 个状态有 15-18 个选择 canonical，
+  source-demonstration 等权差值为 -2.5pp 到 +3.3pp；它没有捕获已有候选 oracle headroom。
 
 ### 3.1 M0：先构造可控的观测差异
 
@@ -107,6 +108,33 @@ Matched-control 用于扣除普通相机移动的影响：
 仍不能写成最终普遍结论，因为独立统计单位只有 6 条演示、任务分布不均，而且五个模型的
 external-only 条件均为 0%；该信号依赖正常的 external + wrist 双相机输入。
 
+### 3.3 Accel：不确定性分数能否直接充当视角价值
+
+原文 Accel 对 10-step flow-matching 轨迹的前 `p` 步计算：
+
+\[
+\mathrm{accel}_p
+=
+\frac{p\sum_{t=1}^{p-1}\lVert v_t-v_{t-1}\rVert_2}
+{\sum_{t=0}^{p-1}\lVert v_t\rVert_2}.
+\]
+
+低分表示当前动作去噪轨迹更直、模型内部更确定，不直接表示该视角包含更多任务信息。本地在同一
+物理状态的候选间共享完全相同的 `x0`，保存 `accel_2...10`，再扩展测试
+`argmin_v accel_3(v)` 能否选择闭环更好的视角。
+
+| 模型 | 选择 Canonical | Accel 所选成功率 | Canonical | 任一候选可成功 | 状态级差值 |
+|---|---:|---:|---:|---:|---:|
+| Broad practical | 18/21 | 57.1% | 57.1% | 85.7% | 0.0pp |
+| Broad state-matched | 16/21 | 57.1% | 52.4% | 76.2% | +4.8pp |
+| Broad paired FM | 15/21 | 47.6% | 52.4% | 71.4% | -4.8pp |
+| Broad paired consistency | 18/21 | 57.1% | 57.1% | 76.2% | 0.0pp |
+
+Broad practical 的任一候选成功率比 Canonical 高 28.6pp，但 Accel 所选成功率没有提高。前缀
+`p=2...10` 与官方参考式路径坐标缩放的事后敏感性分析也没有跨模型稳定正增益。因此当前结果
+否定的是“直接最小化 Accel 即可得到高价值视角”，不否定原文将 Accel 用作 uncertainty proxy
+和在线 failure detector 的主张。完整审计见 `accel_reproduction_audit_20260824_zh.md`。
+
 ## 4. KYC / CVC 方法边界
 
 - KYC matched Pi0.5：Control 44.49%，KYC 43.33%，差 -1.16pp；
@@ -128,3 +156,5 @@ paired consistency 的普遍可能性。该限制不妨碍停止继续投入当�
 - Original Full：`/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/original_full/multiseed_metrics.json`
 - M0：`/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m0-v1/operational-three-task-scan-v2/analysis/summary.json`
 - M1：`/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m1-v2/cross-model-analysis/metrics.json`
+- Accel 审计：`accel_reproduction_audit_20260824_zh.md`
+- Accel 机器可读敏感性：`accel_view_selector_audit.json`

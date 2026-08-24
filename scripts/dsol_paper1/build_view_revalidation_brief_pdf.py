@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[2]
 FIGURE_DIR = ROOT / "docs/dsol_paper1/figures"
 PASSIVE_FIGURE = FIGURE_DIR / "view_revalidation_data_passive_interim.png"
 MECHANISM_FIGURE = FIGURE_DIR / "view_revalidation_m0_m1_accel_interim.png"
+ACCEL_AUDIT_FIGURE = FIGURE_DIR / "accel_prefix_selector_audit.png"
 M0_MONTAGE = Path(
     "/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m0-v1/"
     "operational-three-task-scan-v2/manual_audit_renders_v1/states/"
@@ -611,42 +612,138 @@ def page_m1_task_breakdown(pdf, preview_dir):
     save_page(pdf, fig, 9, preview_dir)
 
 
-def page_accel_and_next(pdf, preview_dir):
-    fig, canvas = new_page("Accel 裁决与第一阶段状态", "Accel 目前更像训练熟悉度指标，而不是完整的 view-value selector。", 10)
-    add_image(fig, MECHANISM_FIGURE, [0.045, 0.34, 0.50, 0.42], crop=(0.625, 0.08, 1.0, 1.0))
-    box(canvas, 0.585, 0.48, 0.35, 0.28)
-    fig.text(0.615, 0.705, "Accel 观察", fontsize=12, fontweight="bold", color=INK)
-    fig.text(0.615, 0.655, "• 每 21 个状态有 15–18 个选择 canonical", fontsize=10, color=INK)
-    fig.text(0.615, 0.61, "• 相对 canonical 成功率：-2.5pp 到 +3.3pp", fontsize=10, color=INK)
-    fig.text(0.615, 0.565, "• Broad practical 任一候选可成功：85.7%", fontsize=10, color=INK)
-    fig.text(0.615, 0.52, "• Accel 未能捕获上述 oracle headroom", fontsize=10, color=RED)
-
-    box(canvas, 0.055, 0.13, 0.88, 0.16, face="#EDF3F7", edge="#C8D7E2")
-    fig.text(0.08, 0.25, "M-B 正式确认", fontsize=10, fontweight="bold", color=TEAL, va="top")
-    fig.text(
-        0.205,
-        0.25,
-        "状态 COMPLETE：6 个 Camera Full 模型 + 6 个 Original Full 模型；seeds 41/42/43。",
-        fontsize=10.5,
-        color=INK,
-        va="top",
+def page_accel_principle(pdf, preview_dir):
+    fig, canvas = new_page(
+        "Accel：原理、实现与复现边界",
+        "核心曲率公式实现正确；本地跨视角排序是原文之外的扩展，不是原论文完整数值复现。",
+        10,
     )
+    steps = [
+        ("1", "固定状态", "只改变相机观测", BLUE),
+        ("2", "共享噪声", "候选使用同一 x0", TEAL),
+        ("3", "记录轨迹", "10 个 velocity v_t", GOLD),
+        ("4", "计算 Accel", "越低表示轨迹越直", RED),
+        ("5", "本地扩展", "选择 argmin_v Accel", GRAY),
+    ]
+    x_values = [0.055, 0.235, 0.415, 0.595, 0.775]
+    for index, (number, title, detail, color) in enumerate(steps):
+        process_step(fig, canvas, x_values[index], 0.69, 0.15, 0.10, number, title, detail, color)
+        if index < len(steps) - 1:
+            process_arrow(canvas, x_values[index] + 0.153, 0.74, x_values[index + 1] - 0.008)
+
+    box(canvas, 0.055, 0.53, 0.89, 0.10, face="#EDF3F7", edge="#C8D7E2")
+    fig.text(0.08, 0.595, "离散定义", fontsize=10, fontweight="bold", color=BLUE, va="center")
     fig.text(
         0.205,
-        0.195,
-        "正式裁决：coverage 通过；当前 consistency 方案失败；Accel dynamic shortlist 继续 HOLD。",
-        fontsize=9.5,
-        color=MUTED,
-        va="top",
+        0.605,
+        r"$\mathrm{accel}_p = p\,\sum_{t=1}^{p-1}\|v_t-v_{t-1}\|_2\,/\,\sum_{t=0}^{p-1}\|v_t\|_2$",
+        fontsize=15,
+        color=INK,
+        va="center",
+    )
+    fig.text(0.205, 0.542, "低分 = 该次动作生成更确定；不等于该视角更有任务价值。", fontsize=9, color=MUTED)
+
+    audits = [
+        (
+            0.055,
+            "一致项",
+            TEAL,
+            ["10-step Euler velocity trace", "原文 accel_p 公式", "单次生成，无重采样", "保存 p=2...10；候选共享 x0"],
+        ),
+        (
+            0.365,
+            "未复现项",
+            RED,
+            ["K=32 后验重采样相关性", "CUSUM + conformal 检测", "论文 TPR / detection lead", "原论文完整 benchmark 数值"],
+        ),
+        (
+            0.675,
+            "任务边界",
+            GOLD,
+            ["原文：动作不确定性/失败检测", "本地：固定状态跨视角选择", "argmin Accel 是新增假设", "负结果不反驳原文 detector"],
+        ),
+    ]
+    for x, title, color, bullets in audits:
+        box(canvas, x, 0.20, 0.27, 0.26)
+        canvas.add_patch(Rectangle((x, 0.405), 0.27, 0.055, transform=canvas.transAxes, color=color))
+        fig.text(x + 0.02, 0.432, title, fontsize=11, fontweight="bold", color=WHITE, va="center")
+        y = 0.365
+        for bullet in bullets:
+            fig.text(x + 0.022, y, "•", fontsize=10, color=color, va="top")
+            fig.text(x + 0.044, y, bullet, fontsize=8.8, color=INK, va="top")
+            y -= 0.047
+
+    box(canvas, 0.055, 0.09, 0.89, 0.065, face="#FFF7E8", edge="#E6D2A8")
+    fig.text(0.075, 0.122, "审计结论", fontsize=9, fontweight="bold", color=GOLD, va="center")
+    fig.text(
+        0.16,
+        0.122,
+        "可称为“公式级实现 + 跨视角扩展实验”；不能称为“原论文完整复现”。",
+        fontsize=10.2,
+        color=INK,
+        va="center",
     )
     save_page(pdf, fig, 10, preview_dir)
+
+
+def page_accel_results(pdf, preview_dir):
+    fig, canvas = new_page(
+        "Accel：视角选择结果与结论",
+        "预注册 accel_3 未捕获候选行为上限；前缀和坐标尺度敏感性也没有给出跨模型稳定增益。",
+        11,
+    )
+    headers = ["模型", "选 Canonical", "所选成功", "Canonical", "任一候选", "差值"]
+    rows = [
+        ["Broad practical", "18/21", "57.1%", "57.1%", "85.7%", "0.0pp"],
+        ["Broad state-matched", "16/21", "57.1%", "52.4%", "76.2%", "+4.8pp"],
+        ["Broad paired FM", "15/21", "47.6%", "52.4%", "71.4%", "−4.8pp"],
+        ["Broad paired consistency", "18/21", "57.1%", "57.1%", "76.2%", "0.0pp"],
+    ]
+    ax = fig.add_axes([0.06, 0.61, 0.88, 0.20])
+    ax.set_axis_off()
+    table = ax.table(cellText=rows, colLabels=headers, loc="center", cellLoc="left", colLoc="left")
+    table.auto_set_font_size(False)
+    table.set_fontsize(8.5)
+    table.scale(1, 1.42)
+    for (row, _), cell in table.get_celld().items():
+        cell.set_edgecolor(LINE)
+        if row == 0:
+            cell.set_facecolor(INK)
+            cell.get_text().set_color(WHITE)
+            cell.get_text().set_fontweight("bold")
+        else:
+            cell.set_facecolor(WHITE if row % 2 else "#EEF2F5")
+    fig.text(
+        0.06,
+        0.575,
+        "表中为 21 个状态的描述性比例；预注册主统计按 6 条 source demonstrations 等权，差值范围 −2.5pp 至 +3.3pp。",
+        fontsize=8.2,
+        color=MUTED,
+    )
+
+    add_image(fig, ACCEL_AUDIT_FIGURE, [0.04, 0.085, 0.63, 0.46])
+    box(canvas, 0.69, 0.115, 0.255, 0.41)
+    fig.text(0.715, 0.49, "如何读结果", fontsize=11, fontweight="bold", color=INK, va="top")
+    observations = [
+        (TEAL, "候选池有空间", "Broad practical 的任一候选成功率\n比 Canonical 高 28.6pp。"),
+        (RED, "Accel 没转化空间", "所选成功率仍为 57.1%，\n没有得到行为收益。"),
+        (GOLD, "后验扫参不成立", "个别前缀的正峰不跨模型稳定，\n且会随坐标尺度改变。"),
+    ]
+    y = 0.43
+    for color, title, detail in observations:
+        fig.text(0.715, y, title, fontsize=9.5, fontweight="bold", color=color, va="top")
+        fig.text(0.715, y - 0.038, detail, fontsize=8.6, color=INK, va="top", linespacing=1.35)
+        y -= 0.115
+    box(canvas, 0.69, 0.065, 0.255, 0.04, face="#FFF2F3", edge="#E6C5CA")
+    fig.text(0.817, 0.085, "argmin Accel selector：HOLD", fontsize=8.8, fontweight="bold", color=RED, ha="center", va="center")
+    save_page(pdf, fig, 11, preview_dir)
 
 
 def page_kyc_cvc_boundary(pdf, preview_dir):
     fig, canvas = new_page(
         "方法边界：KYC 与跨视角一致性",
         "两者算法不同，但在标准 external + wrist Pi0.5 中暴露出相同的稳定视觉捷径问题。",
-        11,
+        12,
     )
     headers = ["方法 / 协议", "基线", "方法", "差值", "本地裁决"]
     rows = [
@@ -701,11 +798,11 @@ def page_kyc_cvc_boundary(pdf, preview_dir):
         color=MUTED,
         linespacing=1.45,
     )
-    save_page(pdf, fig, 11, preview_dir)
+    save_page(pdf, fig, 12, preview_dir)
 
 
 def page_takeaway(pdf, preview_dir):
-    fig, canvas = new_page("第一阶段结论：已经回答什么，还缺什么", "M-A / M-B 已完成；长期研究计划中的后置验证没有被冒充为已完成。", 12)
+    fig, canvas = new_page("第一阶段结论：已经回答什么，还缺什么", "M-A / M-B 已完成；长期研究计划中的后置验证没有被冒充为已完成。", 13)
     sections = [
         ("第一阶段完成", TEAL, ["Broad64 数据、训练和七臂诊断", "三 seed Camera / Original Full", "M0、M1 与 Accel fixed-state"]),
         ("后置未完成", GOLD, ["LIBERO-Plus Full 非相机副作用", "更大任务分布的 Blind–Reveal 确认", "RoboCasa 跨 benchmark 与真机"]),
@@ -731,7 +828,7 @@ def page_takeaway(pdf, preview_dir):
         color=INK,
         va="center",
     )
-    save_page(pdf, fig, 12, preview_dir)
+    save_page(pdf, fig, 13, preview_dir)
 
 
 def main() -> None:
@@ -756,7 +853,8 @@ def main() -> None:
         page_m0(pdf, args.preview_dir)
         page_m1(pdf, args.preview_dir)
         page_m1_task_breakdown(pdf, args.preview_dir)
-        page_accel_and_next(pdf, args.preview_dir)
+        page_accel_principle(pdf, args.preview_dir)
+        page_accel_results(pdf, args.preview_dir)
         page_kyc_cvc_boundary(pdf, args.preview_dir)
         page_takeaway(pdf, args.preview_dir)
 

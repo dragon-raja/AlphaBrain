@@ -14,6 +14,7 @@ DEVICE=${DSOL_ACCEL_DEVICE:-cuda:7}
 RENDER_GPU=${DSOL_ACCEL_RENDER_GPU:-7}
 BATCH_SIZE=${DSOL_ACCEL_BATCH_SIZE:-8}
 MAX_STATES=${DSOL_ACCEL_MAX_STATES:-}
+SEED=${DSOL_ACCEL_SEED:-20260820}
 
 for required in \
   "$PROTOCOL" \
@@ -26,6 +27,7 @@ for required in \
 done
 [[ "$RENDER_GPU" =~ ^[0-7]$ ]] || { echo "render GPU must be in [0,7]" >&2; exit 2; }
 [[ "$BATCH_SIZE" =~ ^[1-9][0-9]*$ ]] || { echo "batch size must be positive" >&2; exit 2; }
+[[ "$SEED" =~ ^[0-9]+$ ]] || { echo "seed must be a non-negative integer" >&2; exit 2; }
 [[ -z "$MAX_STATES" || "$MAX_STATES" =~ ^[1-9][0-9]*$ ]] || {
   echo "max states must be empty or positive" >&2
   exit 2
@@ -55,7 +57,7 @@ if [[ "$RENDER_SOURCE_DIR" == "$OUTPUT_DIR" ]]; then
       --output-dir "$OUTPUT_DIR" \
       --render-gpu "$RENDER_GPU" \
       --resize-size 224 \
-      --seed 20260820 \
+      --seed "$SEED" \
       "${max_state_args[@]}"
 else
   [[ -s "$RENDER_SOURCE_DIR/render_summary.json" ]] || {
@@ -76,7 +78,7 @@ PYTHONPATH="$REPO_ROOT:/projects/openpi/src:/projects/openpi/packages/openpi-cli
     --render-source-dir "$RENDER_SOURCE_DIR" \
     --device "$DEVICE" \
     --batch-size "$BATCH_SIZE" \
-    --seed 20260820 \
+    --seed "$SEED" \
     "${max_state_args[@]}"
 
 printf 'constructed_accel_complete=%s summary=%s\n' \

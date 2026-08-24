@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render reproducible interim figures for the view revalidation report."""
+"""Render reproducible development figures for the view revalidation report."""
 
 from __future__ import annotations
 
@@ -97,7 +97,7 @@ def plot_data_and_passive(output: Path) -> None:
 
     fig, axes = plt.subplots(1, 3, figsize=(17, 5.4), constrained_layout=True)
     fig.suptitle(
-        "Broad-view training: custom diagnostics and official camera benchmark (interim)",
+        "Broad-view training: development diagnostics and seed-41 benchmark anchor",
         fontsize=17,
         fontweight="bold",
         color=COLORS["ink"],
@@ -198,7 +198,7 @@ def plot_m0_m1_accel(output: Path) -> None:
 
     fig, axes = plt.subplots(1, 3, figsize=(17, 5.6), constrained_layout=True)
     fig.suptitle(
-        "Visibility intervention, full closed loop, and Accel selection (interim)",
+        "Visibility intervention, development closed loop, and Accel selection",
         fontsize=17,
         fontweight="bold",
         color=COLORS["ink"],

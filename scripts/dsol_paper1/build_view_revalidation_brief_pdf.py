@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import argparse
-import glob
+import json
 from pathlib import Path
 
 import matplotlib.font_manager as font_manager
@@ -23,10 +23,11 @@ M0_MONTAGE = Path(
     "operational-three-task-scan-v2/manual_audit_renders_v1/states/"
     "1a785a92de084d0b/visibility_extremes.png"
 )
-FORMAL_CAMERA_ROOT = Path(
+FORMAL_ROOT = Path(
     "/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/"
-    "camera_full/broad64-practical-seed41"
 )
+CAMERA_FORMAL_METRICS = FORMAL_ROOT / "camera_full/multiseed_metrics.json"
+ORIGINAL_FORMAL_METRICS = FORMAL_ROOT / "original_full/multiseed_metrics.json"
 FONT_PATH = Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc")
 
 BG = "#F7F8FA"
@@ -121,12 +122,9 @@ def save_page(pdf, fig, page_number, preview_dir):
     plt.close(fig)
 
 
-def formal_progress() -> int:
-    total = 0
-    for path in glob.glob(str(FORMAL_CAMERA_ROOT / "episodes-shard-*.jsonl")):
-        with open(path) as handle:
-            total += sum(1 for line in handle if line.strip())
-    return total
+def load_json(path: Path) -> dict:
+    with path.open() as handle:
+        return json.load(handle)
 
 
 def page_cover(pdf, preview_dir):
@@ -136,34 +134,34 @@ def page_cover(pdf, preview_dir):
     canvas.add_patch(Rectangle((0, 0), 0.025, 1, transform=canvas.transAxes, color=TEAL))
     fig.text(0.075, 0.86, "VLA 视角泛化与 Active-Ready 感知", fontsize=27, fontweight="bold", color=INK)
     fig.text(0.075, 0.79, "宽视角训练、信息视角与闭环利用重验证", fontsize=17, color=MUTED)
-    section_label(fig, 0.078, 0.71, "中期汇报 · M-A 完成 / M-B 运行中", BLUE)
+    section_label(fig, 0.078, 0.71, "第一阶段最终报告 · M-A / M-B 完成", TEAL)
 
-    metric(fig, canvas, 0.075, 0.43, 0.25, 0.20, "75.9 → 82.6%", "Camera Full 成功率", "Broad64 seed 41，1,599 episodes", TEAL)
-    metric(fig, canvas, 0.365, 0.43, 0.25, 0.20, "+5.23pp", "按 base task 配对增益", "95% CI [+0.12, +10.69]", BLUE)
-    metric(fig, canvas, 0.655, 0.43, 0.25, 0.20, "+13.3pp", "M1 信息特异性", "开发门，95% CI [+3.3, +26.7]", GOLD)
+    metric(fig, canvas, 0.075, 0.43, 0.25, 0.20, "75.9 → 82.2%", "Camera Full 成功率", "Broad64 三 seed 均值", TEAL)
+    metric(fig, canvas, 0.365, 0.43, 0.25, 0.20, "+5.15pp", "按 base task 配对增益", "95% CI [+0.99, +9.62]", BLUE)
+    metric(fig, canvas, 0.655, 0.43, 0.25, 0.20, "−4.75pp", "当前一致性方案", "相对 practical，CI [−7.85, −1.73]", RED)
 
     box(canvas, 0.075, 0.16, 0.83, 0.17, face="#EAF3F0", edge="#BFD8D0")
     fig.text(0.105, 0.285, "当前最稳妥结论", fontsize=10, fontweight="bold", color=TEAL, va="top")
     fig.text(
         0.105,
         0.235,
-        "宽且真实的相机位姿覆盖明显提高 Pi0.5 的被动视角鲁棒性，并让部分信息视角从视角 OOD\n"
-        "转为可利用输入。Pairing 的额外价值仍待三 seed 裁决，Accel 尚不是可靠的视角价值选择器。",
+        "宽且真实的相机位姿覆盖稳定提高 Pi0.5 的被动相机鲁棒性；当前 paired-consistency 方案\n"
+        "没有额外价值并明显损害基础能力。M1 显示信息利用方向性信号，Accel 仍不是可靠选择器。",
         fontsize=13,
         color=INK,
         va="top",
         linespacing=1.55,
     )
-    fig.text(0.075, 0.045, "2026-08-21 · AlphaBrain / Pi0.5 / LIBERO-Plus", fontsize=8.5, color=MUTED)
+    fig.text(0.075, 0.045, "2026-08-24 · AlphaBrain / Pi0.5 / LIBERO-Plus", fontsize=8.5, color=MUTED)
     save_page(pdf, fig, 1, preview_dir)
 
 
 def page_questions(pdf, preview_dir):
     fig, canvas = new_page("研究问题与证据链", "先验证 coverage，再检验 pairing，最后回答新增可见信息能否转化为闭环收益。", 2)
     items = [
-        ("01", "Coverage", "宽、多样相机训练数据能否改善被动视角泛化？", "SUPPORTED AT SEED 41", TEAL),
-        ("02", "Pairing", "固定覆盖和预算后，same-state pairing 与显式一致性是否额外有效？", "UNRESOLVED", GOLD),
-        ("03", "Information use", "新视角增加任务实体可见像素后，策略能否改善完整闭环？", "DIRECTIONAL SUPPORT", BLUE),
+        ("01", "Coverage", "宽、多样相机训练数据能否改善被动视角泛化？", "CONFIRMED · 3 SEEDS", TEAL),
+        ("02", "Pairing", "当前 paired-consistency 训练方案是否优于 practical coverage？", "CURRENT RECIPE REJECTED", RED),
+        ("03", "Information use", "新视角增加任务实体可见像素后，策略能否改善完整闭环？", "DEVELOPMENT SUPPORT", BLUE),
     ]
     y_values = [0.63, 0.41, 0.19]
     for y, (number, name, question, status, color) in zip(y_values, items):
@@ -176,7 +174,7 @@ def page_questions(pdf, preview_dir):
     fig.text(
         0.16,
         0.10,
-        "Broad64 数据 → 训练对照 → Exact-state → Camera Full → M0 可见性 → M1 完整闭环 → Accel",
+        "Broad64 数据 → 训练对照 → Exact-state → Camera Full / Original Full → M0 → M1 → Accel",
         fontsize=10.5,
         color=INK,
     )
@@ -268,7 +266,7 @@ def page_training(pdf, preview_dir):
     fig.text(
         0.18,
         0.155,
-        "M-B finalists：Broad practical 与 Broad paired consistency。其余机制臂在 M-A 后停止扩 seed。",
+        "M-B 已完成：Broad practical 与 Broad paired consistency 均完成 3 seeds、Camera Full 与 Original Full。",
         fontsize=9.5,
         color=MUTED,
         va="top",
@@ -288,7 +286,7 @@ def page_passive(pdf, preview_dir):
     fig.text(
         0.15,
         0.13,
-        "Broad practical 在 held-out / extrapolation 上远高于 Canonical 与 Image-Aug；Camera Full pooled 75.9% → 82.6%，困难 L5 提升 16.8pp。",
+        "Exact-state 中 Broad practical 远高于 Canonical 与 Image-Aug；正式三 seed Camera Full 结果见下一页。",
         fontsize=10,
         color=INK,
         va="center",
@@ -296,8 +294,69 @@ def page_passive(pdf, preview_dir):
     save_page(pdf, fig, 5, preview_dir)
 
 
+def page_formal_benchmarks(pdf, preview_dir):
+    camera = load_json(CAMERA_FORMAL_METRICS)
+    original = load_json(ORIGINAL_FORMAL_METRICS)
+    fig, canvas = new_page(
+        "结果 2：三 seed 正式基准完成",
+        "Camera Full 测视角泛化；Original Full 测基础能力保持。差值按 40 个 base task 配对统计。",
+        6,
+    )
+
+    labels = ["Official\nfrozen", "Broad64\npractical", "Paired +\nconsistency"]
+    colors = [GRAY, TEAL, RED]
+    camera_values = [
+        100 * camera["baseline_success_rate"],
+        100 * camera["methods"]["broad64_practical"]["cross_seed_mean_success_rate"],
+        100 * camera["methods"]["broad64_paired_consistency"]["cross_seed_mean_success_rate"],
+    ]
+    original_values = [
+        100 * original["baseline_success_rate"],
+        100 * original["methods"]["broad64_practical"]["cross_seed_mean_success_rate"],
+        100 * original["methods"]["broad64_paired_consistency"]["cross_seed_mean_success_rate"],
+    ]
+
+    ax = fig.add_axes([0.06, 0.41, 0.40, 0.35])
+    x = range(3)
+    bars = ax.bar(x, camera_values, color=colors, width=0.62)
+    ax.set_title("A. LIBERO-Plus Camera Full", loc="left", fontweight="bold")
+    ax.set_ylabel("闭环成功率 (%)")
+    ax.set_xticks(list(x), labels, fontsize=8.5)
+    ax.set_ylim(0, 103)
+    style = {"color": INK, "fontsize": 9, "ha": "center", "va": "bottom"}
+    for bar, value in zip(bars, camera_values):
+        ax.text(bar.get_x() + bar.get_width() / 2, value + 1.3, f"{value:.1f}%", **style)
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.grid(axis="y", color=LINE, linewidth=0.8)
+    ax.set_axisbelow(True)
+
+    ax = fig.add_axes([0.54, 0.41, 0.40, 0.35])
+    bars = ax.bar(x, original_values, color=colors, width=0.62)
+    ax.set_title("B. Original LIBERO Full", loc="left", fontweight="bold")
+    ax.set_ylabel("闭环成功率 (%)")
+    ax.set_xticks(list(x), labels, fontsize=8.5)
+    ax.set_ylim(0, 103)
+    for bar, value in zip(bars, original_values):
+        ax.text(bar.get_x() + bar.get_width() / 2, value + 1.3, f"{value:.1f}%", **style)
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.grid(axis="y", color=LINE, linewidth=0.8)
+    ax.set_axisbelow(True)
+
+    metric(fig, canvas, 0.06, 0.16, 0.26, 0.18, "+5.15pp", "Practical：Camera 增益", "95% CI [+0.99, +9.62]", TEAL)
+    metric(fig, canvas, 0.37, 0.16, 0.26, 0.18, "−2.53pp", "Practical：Original 退化", "95% CI [−4.05, −1.15]", GOLD)
+    metric(fig, canvas, 0.68, 0.16, 0.26, 0.18, "−9.25pp", "Consistency vs practical", "Original，CI [−13.32, −5.80]", RED)
+    fig.text(
+        0.06,
+        0.095,
+        "裁决：Broad64 practical 通过预注册的相机增益门和 5pp retention 门；当前 paired-consistency 方案跨三个 seed 均更差。",
+        fontsize=10.2,
+        color=INK,
+    )
+    save_page(pdf, fig, 6, preview_dir)
+
+
 def page_m0(pdf, preview_dir):
-    fig, canvas = new_page("结果 2：信息视角是稀疏上尾，不等于随机换视角", "第一轮保持旧定义：任务实体在多相机中的等权可见像素比例。", 6)
+    fig, canvas = new_page("结果 3：信息视角是稀疏上尾，不等于随机换视角", "第一轮保持旧定义：任务实体在多相机中的等权可见像素比例。", 7)
     add_image(fig, M0_MONTAGE, [0.055, 0.49, 0.89, 0.28])
     add_image(fig, MECHANISM_FIGURE, [0.055, 0.14, 0.42, 0.28], crop=(0.0, 0.08, 0.335, 1.0))
     box(canvas, 0.51, 0.14, 0.43, 0.28)
@@ -307,11 +366,11 @@ def page_m0(pdf, preview_dir):
     fig.text(0.54, 0.245, "• Look-away 正增量比例：0%", fontsize=10, color=INK)
     fig.text(0.54, 0.205, "• Sensor blackout 正增量比例：0%", fontsize=10, color=INK)
     fig.text(0.54, 0.16, "21 个 test states 通过 AI-assisted 视觉审计后进入 M1。", fontsize=9, color=MUTED)
-    save_page(pdf, fig, 6, preview_dir)
+    save_page(pdf, fig, 7, preview_dir)
 
 
 def page_m1(pdf, preview_dir):
-    fig, canvas = new_page("结果 3：宽覆盖模型出现闭环信息特异性", "同一冻结物理状态，分别执行 Canonical、Strong-info、Matched-control 和 Blind 到成功或超时。", 7)
+    fig, canvas = new_page("结果 4：宽覆盖模型出现闭环信息特异性", "同一冻结物理状态，分别执行 Canonical、Strong-info、Matched-control 和 Blind 到成功或超时。", 8)
     add_image(fig, MECHANISM_FIGURE, [0.045, 0.18, 0.57, 0.59], crop=(0.335, 0.08, 0.625, 1.0))
     metric(fig, canvas, 0.65, 0.57, 0.28, 0.17, "+13.3pp", "Broad practical 信息特异性", "cluster 95% CI [+3.3, +26.7]", TEAL)
     metric(fig, canvas, 0.65, 0.36, 0.28, 0.17, "+34.2pp", "Strong-info 相对 Blind", "cluster 95% CI [+4.2, +67.5]", BLUE)
@@ -326,12 +385,11 @@ def page_m1(pdf, preview_dir):
         va="top",
         linespacing=1.45,
     )
-    save_page(pdf, fig, 7, preview_dir)
+    save_page(pdf, fig, 8, preview_dir)
 
 
 def page_accel_and_next(pdf, preview_dir):
-    progress = formal_progress()
-    fig, canvas = new_page("Accel 裁决与当前执行状态", "Accel 目前更像训练熟悉度指标，而不是完整的 view-value selector。", 8)
+    fig, canvas = new_page("Accel 裁决与第一阶段状态", "Accel 目前更像训练熟悉度指标，而不是完整的 view-value selector。", 9)
     add_image(fig, MECHANISM_FIGURE, [0.045, 0.34, 0.50, 0.42], crop=(0.625, 0.08, 1.0, 1.0))
     box(canvas, 0.585, 0.48, 0.35, 0.28)
     fig.text(0.615, 0.705, "Accel 观察", fontsize=12, fontweight="bold", color=INK)
@@ -341,11 +399,11 @@ def page_accel_and_next(pdf, preview_dir):
     fig.text(0.615, 0.52, "• Accel 未能捕获上述 oracle headroom", fontsize=10, color=RED)
 
     box(canvas, 0.055, 0.13, 0.88, 0.16, face="#EDF3F7", edge="#C8D7E2")
-    fig.text(0.08, 0.25, "M-B 正式确认", fontsize=10, fontweight="bold", color=BLUE, va="top")
+    fig.text(0.08, 0.25, "M-B 正式确认", fontsize=10, fontweight="bold", color=TEAL, va="top")
     fig.text(
         0.205,
         0.25,
-        f"第一项 Camera Full 动态进度：{progress}/1,599；8 shards 并行，完整队列 23,594 episodes。",
+        "状态 COMPLETE：6 个 Camera Full 模型 + 6 个 Original Full 模型；seeds 41/42/43。",
         fontsize=10.5,
         color=INK,
         va="top",
@@ -353,20 +411,82 @@ def page_accel_and_next(pdf, preview_dir):
     fig.text(
         0.205,
         0.195,
-        "等待裁决：三 seed Camera Full 稳定性、pairing ≥3pp、Original LIBERO retention 不下降超过 5pp。",
+        "正式裁决：coverage 通过；当前 consistency 方案失败；Accel dynamic shortlist 继续 HOLD。",
         fontsize=9.5,
         color=MUTED,
         va="top",
     )
-    save_page(pdf, fig, 8, preview_dir)
+    save_page(pdf, fig, 9, preview_dir)
+
+
+def page_kyc_cvc_boundary(pdf, preview_dir):
+    fig, canvas = new_page(
+        "方法边界：KYC 与跨视角一致性",
+        "两者算法不同，但在标准 external + wrist Pi0.5 中暴露出相同的稳定视觉捷径问题。",
+        10,
+    )
+    headers = ["方法 / 协议", "基线", "方法", "差值", "本地裁决"]
+    rows = [
+        ["KYC · matched Pi0.5", "44.49%", "43.33%", "−1.16pp", "无显式几何增量"],
+        ["KYC · 双相机", "20.71%", "15.71%", "−5.00pp", "停止 raw-ray 扩展"],
+        ["CVC recipe · Camera Full", "82.16%", "77.78%", "−4.75pp", "当前方案失败"],
+        ["CVC recipe · Original Full", "93.92%", "84.67%", "−9.25pp", "基础能力受损"],
+    ]
+    ax = fig.add_axes([0.06, 0.48, 0.88, 0.28])
+    ax.set_axis_off()
+    table = ax.table(cellText=rows, colLabels=headers, loc="center", cellLoc="left", colLoc="left")
+    table.auto_set_font_size(False)
+    table.set_fontsize(9)
+    table.scale(1, 1.72)
+    for (row, _), cell in table.get_celld().items():
+        cell.set_edgecolor(LINE)
+        if row == 0:
+            cell.set_facecolor(INK)
+            cell.get_text().set_color(WHITE)
+            cell.get_text().set_fontweight("bold")
+        else:
+            cell.set_facecolor(WHITE if row % 2 else "#EEF2F5")
+
+    box(canvas, 0.06, 0.25, 0.42, 0.16, face="#FFF2F3", edge="#E6C5CA")
+    fig.text(0.085, 0.37, "停止", fontsize=10.5, fontweight="bold", color=RED, va="top")
+    fig.text(
+        0.085,
+        0.325,
+        "KYC raw-ray 与无条件跨视角一致性不再作为\n标准双相机 Pi0.5 的研究主线。",
+        fontsize=10.5,
+        color=INK,
+        va="top",
+        linespacing=1.5,
+    )
+    box(canvas, 0.52, 0.25, 0.42, 0.16, face="#EAF3F0", edge="#BFD8D0")
+    fig.text(0.545, 0.37, "保留", fontsize=10.5, fontweight="bold", color=TEAL, va="top")
+    fig.text(
+        0.545,
+        0.325,
+        "把二者作为单外部相机受控协议的强基线，\n研究重点转向冗余、缺失与互补视角的区分。",
+        fontsize=10.5,
+        color=INK,
+        va="top",
+        linespacing=1.5,
+    )
+    fig.text(
+        0.06,
+        0.13,
+        "注意：正式 CVC 比较同时改变了独立状态数量和数据组织，因此否定的是当前组合 recipe；\n"
+        "它足以支持停止投入，但不能被写成对所有 paired consistency 的普遍反例。",
+        fontsize=10,
+        color=MUTED,
+        linespacing=1.45,
+    )
+    save_page(pdf, fig, 10, preview_dir)
 
 
 def page_takeaway(pdf, preview_dir):
-    fig, canvas = new_page("汇报结论：已经回答什么，还缺什么", "当前结论控制在现有证据范围内，不使用运行中的 partial success。", 9)
+    fig, canvas = new_page("第一阶段结论：已经回答什么，还缺什么", "M-A / M-B 已完成；长期研究计划中的后置验证没有被冒充为已完成。", 11)
     sections = [
-        ("已支持", TEAL, ["宽相机覆盖是当前最强因素", "普通图像增强不能替代真实位姿覆盖", "强 Blind–Reveal 与 matched-control 可以被构造"]),
-        ("仍待裁决", GOLD, ["Pairing + consistency 是否稳定优于 practical", "M1 信息特异性是否跨更多任务和源轨迹复现", "Original LIBERO 基础能力是否保持"]),
-        ("当前停止", RED, ["不把 Accel 称为主动视角选择器", "不以旧窄视角 Phase B/M0/M1 作泛化结论", "不在 M-B 前启动动态视角或复杂新模块"]),
+        ("第一阶段完成", TEAL, ["Broad64 数据、训练和七臂诊断", "三 seed Camera / Original Full", "M0、M1 与 Accel fixed-state"]),
+        ("后置未完成", GOLD, ["LIBERO-Plus Full 非相机副作用", "更大任务分布的 Blind–Reveal 确认", "RoboCasa 跨 benchmark 与真机"]),
+        ("当前停止", RED, ["KYC raw-ray 双相机扩展", "当前 paired-consistency recipe", "Accel 直接作为主动视角选择器"]),
     ]
     x_values = [0.055, 0.365, 0.675]
     for x, (title, color, bullets) in zip(x_values, sections):
@@ -383,12 +503,12 @@ def page_takeaway(pdf, preview_dir):
     fig.text(
         0.16,
         0.19,
-        "宽视角训练已经显示实际价值；下一步不是继续堆新模块，而是完成三 seed、retention 和更充分的信息闭环统计。",
+        "第一阶段已经完成并足以裁决当前方法；下一阶段若继续，应扩大信息互补验证，而不是继续追 KYC/CVC 调参。",
         fontsize=11,
         color=INK,
         va="center",
     )
-    save_page(pdf, fig, 9, preview_dir)
+    save_page(pdf, fig, 11, preview_dir)
 
 
 def main() -> None:
@@ -396,7 +516,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=ROOT / "docs/dsol_paper1/view_revalidation_interim_brief_20260821_zh.pdf",
+        default=ROOT / "docs/dsol_paper1/view_revalidation_stage1_final_brief_20260824_zh.pdf",
     )
     parser.add_argument("--preview-dir", type=Path)
     args = parser.parse_args()
@@ -409,9 +529,11 @@ def main() -> None:
         page_data(pdf, args.preview_dir)
         page_training(pdf, args.preview_dir)
         page_passive(pdf, args.preview_dir)
+        page_formal_benchmarks(pdf, args.preview_dir)
         page_m0(pdf, args.preview_dir)
         page_m1(pdf, args.preview_dir)
         page_accel_and_next(pdf, args.preview_dir)
+        page_kyc_cvc_boundary(pdf, args.preview_dir)
         page_takeaway(pdf, args.preview_dir)
 
 if __name__ == "__main__":

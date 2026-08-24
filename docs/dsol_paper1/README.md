@@ -50,12 +50,15 @@ support, their closed-loop success was identical. This closes the pose-support
 confound but does not release a paper-level claim; the next gate requires a
 controlled strong Blind-Reveal construction with symmetric camera support.
 
-The current data-to-training-to-evaluation evidence, including Broad64,
-constructed M0/M1, Camera Full, Accel, limitations, and the running M-B gate,
-is consolidated in
-[view_revalidation_interim_report_20260821_zh.md](view_revalidation_interim_report_20260821_zh.md).
+The completed first-stage M-A/M-B evidence, including Broad64, constructed
+M0/M1, Accel, three-seed Camera Full and Original Full, is summarized in
+[view_revalidation_stage1_final_20260824_zh.md](view_revalidation_stage1_final_20260824_zh.md).
 The presentation-ready Chinese PDF is
-[view_revalidation_interim_brief_20260821_zh.pdf](view_revalidation_interim_brief_20260821_zh.pdf).
+[view_revalidation_stage1_final_brief_20260824_zh.pdf](view_revalidation_stage1_final_brief_20260824_zh.pdf).
+The earlier
+[interim report](view_revalidation_interim_report_20260821_zh.md) and
+[interim PDF](view_revalidation_interim_brief_20260821_zh.pdf) remain as a
+dated execution record and should not be used as the current status.
 
 The authoritative whole-program completion audit is
 [view_revalidation_full_program_status_20260819_zh.md](view_revalidation_full_program_status_20260819_zh.md).

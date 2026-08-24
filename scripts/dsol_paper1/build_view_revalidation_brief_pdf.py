@@ -532,8 +532,87 @@ def page_m1(pdf, preview_dir):
     save_page(pdf, fig, 8, preview_dir)
 
 
+def page_m1_task_breakdown(pdf, preview_dir):
+    fig, canvas = new_page(
+        "结果 4B：分任务拆解，平均增益并不均匀",
+        "以下仍是 selected-state closed-loop continuation；括号内为每个任务的中间状态数，不是独立任务 episode 数。",
+        9,
+    )
+
+    task_labels = ["酒瓶放酒架\n(n=2)", "黑碗放抽屉\n(n=10)", "杯子放微波炉\n(n=9)", "三任务宏平均"]
+    series = {
+        "Canonical": ([0.0, 50.0, 77.8, 42.6], BLUE),
+        "Strong-info": ([0.0, 90.0, 66.7, 52.2], TEAL),
+        "Matched-control": ([0.0, 70.0, 44.4, 38.1], GOLD),
+        "Blind": ([0.0, 0.0, 55.6, 18.5], RED),
+    }
+    ax = fig.add_axes([0.055, 0.37, 0.89, 0.40])
+    x = list(range(len(task_labels)))
+    width = 0.18
+    offsets = [-1.5 * width, -0.5 * width, 0.5 * width, 1.5 * width]
+    for offset, (name, (values, color)) in zip(offsets, series.items()):
+        bars = ax.bar([value + offset for value in x], values, width=width, label=name, color=color)
+        for bar, value in zip(bars, values):
+            if value > 0:
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    value + 1.7,
+                    f"{value:.1f}",
+                    ha="center",
+                    va="bottom",
+                    fontsize=6.8,
+                    color=INK,
+                )
+    ax.set_ylabel("闭环 continuation 成功率 (%)", fontsize=8.5)
+    ax.set_xticks(x, task_labels, fontsize=8.3)
+    ax.set_ylim(0, 103)
+    ax.legend(ncol=4, loc="upper left", fontsize=7.8, frameon=False)
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.grid(axis="y", color=LINE, linewidth=0.8)
+    ax.set_axisbelow(True)
+
+    headers = ["任务", "Info − Canonical", "Info − Control", "解释"]
+    rows = [
+        ["酒瓶放酒架", "+0.0pp", "+0.0pp", "四条件全失败，不能判断视角价值"],
+        ["黑碗放抽屉", "+40.0pp", "+20.0pp", "当前总增益的主要来源"],
+        ["杯子放微波炉", "−11.1pp", "+22.2pp", "低于规范，但高于等幅位姿对照"],
+        ["任务宏平均", "+9.6pp", "+14.1pp", "仅 3 个任务，不能外推为普遍结论"],
+    ]
+    table_ax = fig.add_axes([0.055, 0.17, 0.89, 0.16])
+    table_ax.set_axis_off()
+    table = table_ax.table(cellText=rows, colLabels=headers, loc="center", cellLoc="left", colLoc="left")
+    table.auto_set_font_size(False)
+    table.set_fontsize(8.2)
+    table.scale(1, 1.45)
+    widths = [0.20, 0.17, 0.17, 0.46]
+    for (row, col), cell in table.get_celld().items():
+        cell.set_edgecolor(LINE)
+        cell.set_linewidth(0.7)
+        cell.set_width(widths[col])
+        if row == 0:
+            cell.set_facecolor(INK)
+            cell.get_text().set_color(WHITE)
+            cell.get_text().set_fontweight("bold")
+        else:
+            cell.set_facecolor(WHITE if row % 2 else "#EEF2F5")
+            if col in (1, 2):
+                cell.get_text().set_fontweight("bold")
+
+    box(canvas, 0.055, 0.075, 0.89, 0.065, face="#FFF7E8", edge="#E6D2A8")
+    fig.text(0.075, 0.108, "审慎结论", fontsize=8.8, fontweight="bold", color=GOLD, va="center")
+    fig.text(
+        0.16,
+        0.108,
+        "现有正信号不是跨任务一致提升；它足以支持扩大验证，但不足以声称信息视角普遍提高完整任务成功率。",
+        fontsize=8.8,
+        color=INK,
+        va="center",
+    )
+    save_page(pdf, fig, 9, preview_dir)
+
+
 def page_accel_and_next(pdf, preview_dir):
-    fig, canvas = new_page("Accel 裁决与第一阶段状态", "Accel 目前更像训练熟悉度指标，而不是完整的 view-value selector。", 9)
+    fig, canvas = new_page("Accel 裁决与第一阶段状态", "Accel 目前更像训练熟悉度指标，而不是完整的 view-value selector。", 10)
     add_image(fig, MECHANISM_FIGURE, [0.045, 0.34, 0.50, 0.42], crop=(0.625, 0.08, 1.0, 1.0))
     box(canvas, 0.585, 0.48, 0.35, 0.28)
     fig.text(0.615, 0.705, "Accel 观察", fontsize=12, fontweight="bold", color=INK)
@@ -560,14 +639,14 @@ def page_accel_and_next(pdf, preview_dir):
         color=MUTED,
         va="top",
     )
-    save_page(pdf, fig, 9, preview_dir)
+    save_page(pdf, fig, 10, preview_dir)
 
 
 def page_kyc_cvc_boundary(pdf, preview_dir):
     fig, canvas = new_page(
         "方法边界：KYC 与跨视角一致性",
         "两者算法不同，但在标准 external + wrist Pi0.5 中暴露出相同的稳定视觉捷径问题。",
-        10,
+        11,
     )
     headers = ["方法 / 协议", "基线", "方法", "差值", "本地裁决"]
     rows = [
@@ -622,11 +701,11 @@ def page_kyc_cvc_boundary(pdf, preview_dir):
         color=MUTED,
         linespacing=1.45,
     )
-    save_page(pdf, fig, 10, preview_dir)
+    save_page(pdf, fig, 11, preview_dir)
 
 
 def page_takeaway(pdf, preview_dir):
-    fig, canvas = new_page("第一阶段结论：已经回答什么，还缺什么", "M-A / M-B 已完成；长期研究计划中的后置验证没有被冒充为已完成。", 11)
+    fig, canvas = new_page("第一阶段结论：已经回答什么，还缺什么", "M-A / M-B 已完成；长期研究计划中的后置验证没有被冒充为已完成。", 12)
     sections = [
         ("第一阶段完成", TEAL, ["Broad64 数据、训练和七臂诊断", "三 seed Camera / Original Full", "M0、M1 与 Accel fixed-state"]),
         ("后置未完成", GOLD, ["LIBERO-Plus Full 非相机副作用", "更大任务分布的 Blind–Reveal 确认", "RoboCasa 跨 benchmark 与真机"]),
@@ -652,7 +731,7 @@ def page_takeaway(pdf, preview_dir):
         color=INK,
         va="center",
     )
-    save_page(pdf, fig, 11, preview_dir)
+    save_page(pdf, fig, 12, preview_dir)
 
 
 def main() -> None:
@@ -676,6 +755,7 @@ def main() -> None:
         page_formal_benchmarks(pdf, args.preview_dir)
         page_m0(pdf, args.preview_dir)
         page_m1(pdf, args.preview_dir)
+        page_m1_task_breakdown(pdf, args.preview_dir)
         page_accel_and_next(pdf, args.preview_dir)
         page_kyc_cvc_boundary(pdf, args.preview_dir)
         page_takeaway(pdf, args.preview_dir)

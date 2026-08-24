@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -260,17 +261,21 @@ def page_stability(pdf, preview_dir, summary: dict) -> None:
 
     box(canvas, 0.07, 0.13, 0.86, 0.23, face="#EEF4F8", edge="#C6D7E1")
     fig.text(0.10, 0.315, "解释", fontsize=10.5, fontweight="bold", color=BLUE)
-    best_key = max(MODELS, key=lambda key: models[key]["mean_pairwise_rank_spearman"])
+    paired_relation = summary["cross_model_ensemble_relations"][
+        "broad64_state_matched__vs__broad64_paired_fm"
+    ]["mean_ensemble_rank_spearman"]
+    consistency = models["broad64_paired_consistency"]
     fig.text(
         0.10,
         0.27,
-        f"• 排名最稳定的是“{MODEL_LABELS[best_key]}”，但 Spearman 仍只有 "
-        f"{models[best_key]['mean_pairwise_rank_spearman']:.2f}。\n"
         "• 精确 Top-1 对 flow noise 高度敏感；单次生成得到的 10/21 等计数不能作为稳定模型属性。\n"
-        "• 后续只采用 6-noise 平均 Accel 排名，并把 Accel 定位为兼容性诊断，而非已验证的闭环视角价值。",
-        fontsize=10.2,
+        f"• 状态匹配重复与 Paired-FM 的 ensemble 排名相关性为 {paired_relation:.3f}：普通 FM 下 pairing 未形成独立结构。\n"
+        f"• 一致性模型的跨视角相对离散度仅 {100 * consistency['mean_accel_relative_spread']:.2f}%、Top-1 间隔 "
+        f"{100 * consistency['mean_ensemble_top1_relative_margin']:.2f}%：主要效果是压平。\n"
+        "• 后续只采用 6-noise 平均排名，并把 Accel 定位为兼容性诊断，而非已验证的闭环视角价值。",
+        fontsize=9.5,
         color=INK,
-        linespacing=1.55,
+        linespacing=1.42,
         va="top",
     )
     save(pdf, fig, preview_dir, 2)
@@ -450,6 +455,123 @@ def page_tasks(pdf, preview_dir, rows: list[dict[str, str]]) -> None:
     save(pdf, fig, preview_dir, 5)
 
 
+def stage_from_pair_key(pair_key: str) -> str:
+    match = re.search(r"stage-(\d+)", pair_key)
+    if match is None:
+        raise ValueError(f"pair key has no stage: {pair_key}")
+    return f"stage-{int(match.group(1)):02d}"
+
+
+def stage_category_rates(
+    rows: list[dict[str, str]], category: str
+) -> tuple[list[str], np.ndarray]:
+    stages = sorted({stage_from_pair_key(row["pair_key"]) for row in rows})
+    grouped: dict[tuple[str, str], Counter[str]] = defaultdict(Counter)
+    for row in rows:
+        grouped[(row["model"], stage_from_pair_key(row["pair_key"]))][
+            row["ensemble_category"]
+        ] += 1
+    values = np.asarray(
+        [
+            [
+                100
+                * grouped[(model, stage)][category]
+                / sum(grouped[(model, stage)].values())
+                for stage in stages
+            ]
+            for model in MODELS
+        ]
+    )
+    return stages, values
+
+
+def stage_rank_gap(rows: list[dict[str, str]], stages: list[str]) -> np.ndarray:
+    grouped: dict[tuple[str, str], list[float]] = defaultdict(list)
+    for row in rows:
+        grouped[(row["model"], stage_from_pair_key(row["pair_key"]))].append(
+            float(row["mean_rank_strong_info"])
+            - float(row["mean_rank_matched_control"])
+        )
+    return np.asarray(
+        [
+            [float(np.mean(grouped[(model, stage)])) for stage in stages]
+            for model in MODELS
+        ]
+    )
+
+
+def page_stages(pdf, preview_dir, rows: list[dict[str, str]]) -> None:
+    fig, canvas = page(
+        "扩大实测（五）：选择偏好是否随操作阶段变化",
+        "每个任务从轨迹中均衡抽取 stage-00..03；阶段仅表示轨迹进程，不在不同任务间强行赋予同一子目标语义。",
+        6,
+    )
+    stages, canonical = stage_category_rates(rows, "canonical")
+    _, heldout = stage_category_rates(rows, "broad32_heldout")
+    labels = [value.replace("stage-", "阶段 ") for value in stages]
+    for index, (values, title, cmap) in enumerate(
+        (
+            (canonical, "规范视角 Top-1 占比", "Blues"),
+            (heldout, "留出视角 Top-1 占比", "YlOrBr"),
+        )
+    ):
+        ax = fig.add_axes([0.07 + 0.31 * index, 0.39, 0.27, 0.35])
+        image = ax.imshow(values, vmin=0, vmax=100, cmap=cmap, aspect="auto")
+        ax.set_xticks(np.arange(len(stages)), labels, rotation=20, ha="right", fontsize=8)
+        ax.set_yticks(
+            np.arange(len(MODELS)),
+            [MODEL_LABELS[key] for key in MODELS] if index == 0 else [],
+            fontsize=8,
+        )
+        ax.set_title(title, loc="left", fontweight="bold", fontsize=10)
+        for row in range(values.shape[0]):
+            for column in range(values.shape[1]):
+                color = WHITE if values[row, column] >= 55 else INK
+                ax.text(
+                    column,
+                    row,
+                    f"{values[row, column]:.0f}",
+                    ha="center",
+                    va="center",
+                    fontsize=7.5,
+                    color=color,
+                )
+        colorbar = fig.colorbar(image, ax=ax, fraction=0.035, pad=0.025)
+        colorbar.set_label("%", fontsize=8)
+
+    gaps = stage_rank_gap(rows, stages)
+    ax = fig.add_axes([0.69, 0.39, 0.25, 0.35])
+    colors = (BLUE, TEAL, GOLD, RED)
+    for row, (model, color) in enumerate(zip(MODELS, colors)):
+        ax.plot(
+            np.arange(len(stages)),
+            gaps[row],
+            marker="o",
+            linewidth=1.8,
+            color=color,
+            label=MODEL_LABELS[model],
+        )
+    ax.axhline(0, color=INK, linewidth=1)
+    ax.set_xticks(np.arange(len(stages)), labels, rotation=20, ha="right", fontsize=8)
+    ax.set_title("可见性是否带来 Accel 偏好", loc="left", fontweight="bold", fontsize=10)
+    ax.grid(axis="y", color=LINE)
+    ax.legend(frameon=False, fontsize=6.8, loc="best")
+
+    box(canvas, 0.07, 0.11, 0.87, 0.18, face=WHITE)
+    fig.text(0.095, 0.255, "判读规则", fontsize=10.5, fontweight="bold", color=TEAL)
+    fig.text(
+        0.095,
+        0.215,
+        "右图小于 0 才表示最高可见性视角比等位移控制更受 Accel 偏好；若不同阶段围绕 0 波动，说明没有稳定的阶段特异信息对齐。\n"
+        "该分析只检查内部兼容性随阶段的变化；实际任务价值仍以同状态完整闭环成功率为准。",
+        fontsize=9.8,
+        color=INK,
+        linespacing=1.5,
+        va="top",
+    )
+    save(pdf, fig, preview_dir, 6)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
@@ -472,6 +594,7 @@ def main() -> None:
         page_support(pdf, args.preview_dir, summary)
         page_roles(pdf, args.preview_dir, summary)
         page_tasks(pdf, args.preview_dir, rows)
+        page_stages(pdf, args.preview_dir, rows)
     print(args.output)
 
 

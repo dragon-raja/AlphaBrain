@@ -181,6 +181,10 @@ def aggregate_model(seed_runs: dict[int, dict[str, dict[str, Any]]]) -> dict[str
             (mean_scores[score_order[1]] - mean_scores[score_order[0]])
             / max(abs(mean_scores[score_order[0]]), 1e-12)
         )
+        mean_role_ranks = {
+            role: float(np.mean([row["role_ranks"][role] for row in rows]))
+            for role in sorted(rows[0]["role_ranks"])
+        }
         state_rows.append(
             {
                 "pair_key": pair_key,
@@ -194,6 +198,10 @@ def aggregate_model(seed_runs: dict[int, dict[str, dict[str, Any]]]) -> dict[str
                 "ensemble_top1": ensemble_top1,
                 "ensemble_category": ensemble_category,
                 "ensemble_top1_relative_margin": ensemble_relative_margins[-1],
+                **{
+                    f"mean_rank_{role}": rank
+                    for role, rank in mean_role_ranks.items()
+                },
             }
         )
     denominator = len(pair_keys) * len(seeds)

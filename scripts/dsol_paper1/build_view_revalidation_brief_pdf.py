@@ -38,6 +38,10 @@ FORMAL_ROOT = Path(
 )
 CAMERA_FORMAL_METRICS = FORMAL_ROOT / "camera_full/multiseed_metrics.json"
 ORIGINAL_FORMAL_METRICS = FORMAL_ROOT / "original_full/multiseed_metrics.json"
+M1_CROSS_MODEL_METRICS = Path(
+    "/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m1-v2/"
+    "cross-model-analysis/metrics.json"
+)
 FONT_PATH = Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc")
 
 BG = "#F7F8FA"
@@ -478,59 +482,76 @@ def page_m1(pdf, preview_dir):
     for left, right in zip(xs[:-1], xs[1:]):
         process_arrow(canvas, left + 0.175, 0.732, right - 0.005)
 
-    labels = ["Canonical", "Strong-info", "Matched-control", "Blind"]
-    values = [42.5, 52.5, 39.2, 18.3]
-    colors = [BLUE, TEAL, GOLD, RED]
-    ax = fig.add_axes([0.065, 0.265, 0.44, 0.33])
-    bars = ax.bar(range(4), values, color=colors, width=0.62)
-    ax.set_title("Broad practical：6 条独立 demonstration 等权", loc="left", fontsize=10.5, fontweight="bold")
-    ax.set_ylabel("闭环 continuation 成功率 (%)", fontsize=8.5)
-    ax.set_xticks(range(4), ["规范", "信息", "位姿对照", "盲视角"], fontsize=8.2)
-    ax.set_ylim(0, 65)
+    payload = json.loads(M1_CROSS_MODEL_METRICS.read_text(encoding="utf-8"))
+    model_order = [
+        "official",
+        "broad64-practical",
+        "broad64-state-matched",
+        "broad64-paired-fm",
+        "broad64-paired-consistency",
+    ]
+    model_labels = ["Official", "实用非配对", "状态匹配", "配对 FM", "配对+一致性"]
+    condition_order = [
+        "canonical_both",
+        "strong_info_both",
+        "matched_control_both",
+        "blind_both",
+    ]
+    condition_labels = ["规范", "信息", "位姿对照", "Blind"]
+    condition_colors = [BLUE, TEAL, GOLD, RED]
+    rates = {
+        (row["model"], row["condition"]): 100 * float(row["state_success_rate"])
+        for row in payload["condition_success"]
+    }
+    comparisons = {
+        row["model"]: row
+        for row in payload["within_model_comparisons"]
+        if row["comparison"] == "information_specificity_both"
+    }
+
+    ax = fig.add_axes([0.06, 0.31, 0.57, 0.31])
+    x = list(range(len(model_order)))
+    width = 0.19
+    offsets = [-1.5 * width, -0.5 * width, 0.5 * width, 1.5 * width]
+    for offset, condition, label, color in zip(
+        offsets, condition_order, condition_labels, condition_colors
+    ):
+        values = [rates[(model, condition)] for model in model_order]
+        ax.bar([value + offset for value in x], values, width=width, color=color, label=label)
+    ax.set_title("五模型 × 四观测条件（相同 21 个冻结状态）", loc="left", fontsize=10.2, fontweight="bold")
+    ax.set_ylabel("闭环 continuation 成功率 (%)", fontsize=8.2)
+    ax.set_xticks(x, model_labels, fontsize=7.2, rotation=9)
+    ax.set_ylim(0, 82)
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(axis="y", color=LINE, linewidth=0.8)
     ax.set_axisbelow(True)
-    for bar, value in zip(bars, values):
-        ax.text(bar.get_x() + bar.get_width() / 2, value + 2.0, f"{value:.1f}%", ha="center", fontsize=8.5, color=INK)
+    ax.legend(ncol=4, loc="upper center", fontsize=7.3, frameon=False, bbox_to_anchor=(0.5, 1.17))
 
-    box(canvas, 0.55, 0.315, 0.395, 0.28, face="#EAF3F0", edge="#BFD8D0")
-    fig.text(0.575, 0.56, "为什么要比较 Info 与 Matched-control？", fontsize=10.5, fontweight="bold", color=TEAL, va="top")
-    fig.text(0.575, 0.515, "信息视角增益 = 相机移动影响 + 新增可见信息", fontsize=9.2, color=INK, va="top")
-    fig.text(0.575, 0.477, "位姿对照增益 ≈ 只有相机移动影响", fontsize=9.2, color=INK, va="top")
+    box(canvas, 0.66, 0.31, 0.285, 0.31, face="#EAF3F0", edge="#BFD8D0")
+    fig.text(0.682, 0.59, "独立演示分组主统计", fontsize=10.2, fontweight="bold", color=TEAL, va="top")
+    fig.text(0.682, 0.55, r"信息特异性 $=SR_{info}-SR_{control}$", fontsize=8.8, color=INK, va="top")
+    y = 0.505
+    for model, label in zip(model_order, model_labels):
+        row = comparisons[model]
+        value = float(row["difference_pp"])
+        interval = f"[{float(row['ci_low_pp']):+.1f},{float(row['ci_high_pp']):+.1f}]"
+        color = TEAL if row["ci_low_pp"] > 0 else (RED if row["ci_high_pp"] < 0 else INK)
+        fig.text(0.682, y, label, fontsize=7.8, color=INK, va="top")
+        fig.text(0.825, y, f"{value:+.1f}pp {interval}", fontsize=7.8, color=color, fontweight="bold", va="top")
+        y -= 0.043
+
+    box(canvas, 0.06, 0.09, 0.885, 0.15, face="#FFF7E8", edge="#E6D2A8")
+    fig.text(0.08, 0.21, "如何解释", fontsize=9.2, fontweight="bold", color=GOLD, va="top")
     fig.text(
-        0.575,
-        0.425,
-        r"信息特异性 $=(SR_{info}-SR_{canon})-(SR_{control}-SR_{canon})$",
-        fontsize=9.5,
+        0.08,
+        0.172,
+        "• 结果 4 并非只评测一种模型；底层已覆盖 Official 与四种 Broad64 训练组织。\n"
+        "• 只有实用非配对的演示分组 CI 明确高于 0（+13.3pp，[+3.3,+26.7]）；其他模型方向不稳定。\n"
+        "• 这说明信息利用信号与训练组织有关，不能把 Broad practical 的结果推广到所有多视角模型；本页仍不是标准初始状态 benchmark。",
+        fontsize=8.5,
         color=INK,
         va="top",
-    )
-    fig.text(0.575, 0.382, r"$=SR_{info}-SR_{control}$", fontsize=11, fontweight="bold", color=TEAL, va="top")
-    fig.text(0.575, 0.342, "主统计：52.5% − 39.2% = +13.3pp", fontsize=8.8, color=MUTED, va="top")
-
-    box(canvas, 0.06, 0.09, 0.26, 0.15)
-    canvas.add_patch(Rectangle((0.06, 0.09), 0.008, 0.15, transform=canvas.transAxes, color=TEAL))
-    fig.text(0.085, 0.215, "+13.3pp", fontsize=20, fontweight="bold", color=TEAL, va="top")
-    fig.text(0.085, 0.16, "主统计：信息特异性", fontsize=9.2, fontweight="bold", color=INK, va="top")
-    fig.text(0.085, 0.118, "6 条演示等权；95% CI [+3.3,+26.7]", fontsize=7.5, color=MUTED, va="top")
-
-    box(canvas, 0.35, 0.09, 0.26, 0.15)
-    canvas.add_patch(Rectangle((0.35, 0.09), 0.008, 0.15, transform=canvas.transAxes, color=BLUE))
-    fig.text(0.375, 0.215, "+34.2pp", fontsize=20, fontweight="bold", color=BLUE, va="top")
-    fig.text(0.375, 0.16, "Strong-info 相对 Blind", fontsize=9.2, fontweight="bold", color=INK, va="top")
-    fig.text(0.375, 0.118, "演示分组统计；95% CI [+4.2,+67.5]", fontsize=7.5, color=MUTED, va="top")
-
-    box(canvas, 0.64, 0.09, 0.305, 0.15, face="#FFF7E8", edge="#E6D2A8")
-    fig.text(0.66, 0.21, "当前可下结论", fontsize=9, fontweight="bold", color=GOLD, va="top")
-    fig.text(
-        0.66,
-        0.17,
-        "宽覆盖双相机模型出现方向性信息利用信号。\n"
-        "21-state 原始率为 57.1/71.4/52.4/23.8%；\n不可写成标准初始状态任务成功率。",
-        fontsize=7.8,
-        color=INK,
-        va="top",
-        linespacing=1.28,
+        linespacing=1.35,
     )
     save_page(pdf, fig, 8, preview_dir)
 

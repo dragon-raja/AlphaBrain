@@ -187,12 +187,14 @@ def summarize_oracle(rows: Sequence[Mapping[str, Any]], protocol: Mapping[str, A
         for state in protocol["selected_states"]
     }
     pre_registered = {}
+    selected_rows_by_condition: dict[str, list[Mapping[str, Any]]] = {}
     for condition in sorted(next(iter(selected_by_pair.values()))):
         selected_rows = []
         for pair_key, values in by_pair.items():
             candidate_id = selected_by_pair[pair_key][condition]
             by_id = {str(row["selected_candidate_id"]): row for row in values}
             selected_rows.append(by_id[candidate_id])
+        selected_rows_by_condition[condition] = selected_rows
         selected_groups: dict[str, list[float]] = defaultdict(list)
         for row in selected_rows:
             selected_groups[str(row["episode_id_source"])].append(float(row["success"]))
@@ -217,6 +219,35 @@ def summarize_oracle(rows: Sequence[Mapping[str, Any]], protocol: Mapping[str, A
             "vs_canonical_source_group_difference": float(np.mean(difference_rates)),
             "vs_canonical_source_group_ci": [difference_low, difference_high],
         }
+    pairwise = {}
+    requested_pairs = (
+        ("accel_single_noise", "random_operational"),
+        ("accel_ensemble", "random_operational"),
+        ("accel_top10_visibility", "random_operational"),
+        ("accel_ensemble", "visibility_top1"),
+        ("accel_top10_visibility", "visibility_top1"),
+        ("accel_top10_visibility", "accel_ensemble"),
+    )
+    for left, right in requested_pairs:
+        if left not in selected_rows_by_condition or right not in selected_rows_by_condition:
+            continue
+        left_by_pair = {str(row["pair_key"]): row for row in selected_rows_by_condition[left]}
+        right_by_pair = {str(row["pair_key"]): row for row in selected_rows_by_condition[right]}
+        differences_by_group: dict[str, list[float]] = defaultdict(list)
+        state_differences = []
+        for pair_key in sorted(left_by_pair):
+            left_row = left_by_pair[pair_key]
+            difference = float(left_row["success"]) - float(right_by_pair[pair_key]["success"])
+            state_differences.append(difference)
+            differences_by_group[str(left_row["episode_id_source"])].append(difference)
+        group_differences = [float(np.mean(values)) for values in differences_by_group.values()]
+        low, high = bootstrap_ci(group_differences)
+        pairwise[f"{left}_vs_{right}"] = {
+            "state_difference": float(np.mean(state_differences)),
+            "source_episode_groups": len(differences_by_group),
+            "source_group_difference": float(np.mean(group_differences)),
+            "source_group_ci": [low, high],
+        }
     return {
         "state_count": len(state_rows),
         "canonical_success_rate": float(np.mean([row["canonical_success"] for row in state_rows])),
@@ -236,6 +267,7 @@ def summarize_oracle(rows: Sequence[Mapping[str, Any]], protocol: Mapping[str, A
             None if not correlations else float(np.mean(correlations))
         ),
         "pre_registered_selection_success": pre_registered,
+        "pre_registered_pairwise": pairwise,
         "state_rows": state_rows,
     }
 

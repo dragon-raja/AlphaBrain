@@ -153,6 +153,7 @@ class GateA97ProtocolTest(unittest.TestCase):
                         "selected_candidates": {
                             "canonical": "canonical",
                             "accel_ensemble": "view_00",
+                            "random_operational": "view_01",
                         },
                     }
                     for pair_key in ("state-a", "state-b", "state-c")
@@ -170,6 +171,10 @@ class GateA97ProtocolTest(unittest.TestCase):
         self.assertEqual(selected["source_episode_groups"], 2)
         self.assertAlmostEqual(selected["state_success_rate"], 1 / 3)
         self.assertAlmostEqual(selected["vs_canonical_source_group_difference"], 0.0)
+        pairwise = result["pre_registered_pairwise"][
+            "accel_ensemble_vs_random_operational"
+        ]
+        self.assertEqual(pairwise["source_episode_groups"], 2)
 
 
 if __name__ == "__main__":

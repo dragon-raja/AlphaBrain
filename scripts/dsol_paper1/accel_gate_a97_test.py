@@ -143,13 +143,31 @@ class GateA97ProtocolTest(unittest.TestCase):
                     }
                 )
 
-        result = summarize_oracle(rows, {"episode_count": 291})
+        result = summarize_oracle(
+            rows,
+            {
+                "episode_count": 291,
+                "selected_states": [
+                    {
+                        "pair_key": pair_key,
+                        "selected_candidates": {
+                            "canonical": "canonical",
+                            "accel_ensemble": "view_00",
+                        },
+                    }
+                    for pair_key in ("state-a", "state-b", "state-c")
+                ],
+            },
+        )
 
         self.assertEqual(result["source_episode_groups"], 2)
         self.assertAlmostEqual(result["canonical_success_rate"], 1 / 3)
         self.assertAlmostEqual(result["oracle_at_97_success_rate"], 2 / 3)
         self.assertAlmostEqual(result["oracle_at_97_source_group_rate"], 0.5)
         self.assertEqual(len(result["oracle_at_97_source_group_ci"]), 2)
+        selected = result["pre_registered_selection_success"]["accel_ensemble"]
+        self.assertEqual(selected["source_episode_groups"], 2)
+        self.assertAlmostEqual(selected["state_success_rate"], 1 / 3)
 
 
 if __name__ == "__main__":

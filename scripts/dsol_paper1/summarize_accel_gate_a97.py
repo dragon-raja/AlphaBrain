@@ -167,6 +167,33 @@ def summarize_oracle(rows: Sequence[Mapping[str, Any]], protocol: Mapping[str, A
         for values in grouped.values()
     ]
     oracle_low, oracle_high = bootstrap_ci(oracle_group_rates)
+    selected_by_pair = {
+        str(state["pair_key"]): {
+            str(condition): str(candidate_id)
+            for condition, candidate_id in state["selected_candidates"].items()
+        }
+        for state in protocol["selected_states"]
+    }
+    pre_registered = {}
+    for condition in sorted(next(iter(selected_by_pair.values()))):
+        selected_rows = []
+        for pair_key, values in by_pair.items():
+            candidate_id = selected_by_pair[pair_key][condition]
+            by_id = {str(row["selected_candidate_id"]): row for row in values}
+            selected_rows.append(by_id[candidate_id])
+        selected_groups: dict[str, list[float]] = defaultdict(list)
+        for row in selected_rows:
+            selected_groups[str(row["episode_id_source"])].append(float(row["success"]))
+        group_rates = [float(np.mean(values)) for values in selected_groups.values()]
+        low, high = bootstrap_ci(group_rates)
+        pre_registered[condition] = {
+            "states": len(selected_rows),
+            "successes": sum(bool(row["success"]) for row in selected_rows),
+            "state_success_rate": float(np.mean([row["success"] for row in selected_rows])),
+            "source_episode_groups": len(selected_groups),
+            "source_group_rate": float(np.mean(group_rates)),
+            "source_group_ci": [low, high],
+        }
     return {
         "state_count": len(state_rows),
         "canonical_success_rate": float(np.mean([row["canonical_success"] for row in state_rows])),
@@ -181,6 +208,7 @@ def summarize_oracle(rows: Sequence[Mapping[str, Any]], protocol: Mapping[str, A
         "mean_accel_success_point_biserial": (
             None if not correlations else float(np.mean(correlations))
         ),
+        "pre_registered_selection_success": pre_registered,
         "state_rows": state_rows,
     }
 

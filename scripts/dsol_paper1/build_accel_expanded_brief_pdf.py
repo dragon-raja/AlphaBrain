@@ -132,7 +132,7 @@ def save(pdf: PdfPages, fig, preview_dir: Path | None, number: int) -> None:
     pdf.savefig(fig, facecolor=BG)
     if preview_dir is not None:
         preview_dir.mkdir(parents=True, exist_ok=True)
-        fig.savefig(preview_dir / f"page-{number:02d}.png", dpi=140, facecolor=BG)
+        fig.savefig(preview_dir / f"page-{number:02d}.png", dpi=120, facecolor=BG)
     plt.close(fig)
 
 
@@ -144,11 +144,13 @@ def pose_arrays(rows: list[dict]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     )
 
 
-def page_definition(pdf, preview_dir, catalog: dict, protocol: dict) -> None:
+def page_definition(
+    pdf, preview_dir, catalog: dict, protocol: dict, number: int = 1
+) -> None:
     fig, canvas = page(
         "训练支持视角与留出视角：严格定义",
         "两者共享相同的宽位姿范围；差别是具体相机位姿是否进入过训练。Blind / Look-away 属于另一组极端诊断。",
-        1,
+        number,
     )
     ax = fig.add_axes([0.07, 0.19, 0.49, 0.57], facecolor=WHITE)
     train_az, train_el, train_r = pose_arrays(catalog["broad_training_64"])
@@ -222,14 +224,14 @@ def page_definition(pdf, preview_dir, catalog: dict, protocol: dict) -> None:
         fontsize=9.2,
         color=MUTED,
     )
-    save(pdf, fig, preview_dir, 1)
+    save(pdf, fig, preview_dir, number)
 
 
-def page_stability(pdf, preview_dir, summary: dict) -> None:
+def page_stability(pdf, preview_dir, summary: dict, number: int = 2) -> None:
     fig, canvas = page(
         "扩大实测（一）：Accel 选择是否稳定",
         "每个模型使用 6 个共享 flow-noise seed；一次采样的最低 Accel 视角只有在跨噪声稳定后才可解释。",
-        2,
+        number,
     )
     x = np.arange(len(MODELS))
     labels = [MODEL_LABELS[key] for key in MODELS]
@@ -278,14 +280,14 @@ def page_stability(pdf, preview_dir, summary: dict) -> None:
         linespacing=1.42,
         va="top",
     )
-    save(pdf, fig, preview_dir, 2)
+    save(pdf, fig, preview_dir, number)
 
 
-def page_support(pdf, preview_dir, summary: dict) -> None:
+def page_support(pdf, preview_dir, summary: dict, number: int = 3) -> None:
     fig, canvas = page(
         "扩大实测（二）：模型最低 Accel 视角落在哪里",
         "对每个冻结状态，先对 6 个 flow-noise seed 的 Accel 取均值，再在 97 个视角中选择 Top-1。",
-        3,
+        number,
     )
     models = summary["models"]
     labels = [MODEL_LABELS[key] for key in MODELS]
@@ -342,14 +344,14 @@ def page_support(pdf, preview_dir, summary: dict) -> None:
         linespacing=1.5,
         va="top",
     )
-    save(pdf, fig, preview_dir, 3)
+    save(pdf, fig, preview_dir, number)
 
 
-def page_roles(pdf, preview_dir, summary: dict) -> None:
+def page_roles(pdf, preview_dir, summary: dict, number: int = 4) -> None:
     fig, canvas = page(
         "扩大实测（三）：信息视角与坏观测诊断",
         "平均排名越低，Accel 越偏好该视角；完整候选约 104 个，黑相机若接近末位表示坏观测诊断有效。",
-        4,
+        number,
     )
     role_order = (
         "canonical",
@@ -400,7 +402,7 @@ def page_roles(pdf, preview_dir, summary: dict) -> None:
         linespacing=1.45,
         va="top",
     )
-    save(pdf, fig, preview_dir, 4)
+    save(pdf, fig, preview_dir, number)
 
 
 def task_category_rates(rows: list[dict[str, str]], category: str) -> np.ndarray:
@@ -419,11 +421,13 @@ def task_category_rates(rows: list[dict[str, str]], category: str) -> np.ndarray
     )
 
 
-def page_tasks(pdf, preview_dir, rows: list[dict[str, str]]) -> None:
+def page_tasks(
+    pdf, preview_dir, rows: list[dict[str, str]], number: int = 5
+) -> None:
     fig, canvas = page(
         "扩大实测（四）：8 个任务上的支持区域分布",
         "每格为该任务 12 个冻结 test 状态中，6-noise ensemble Top-1 落入对应区域的比例。",
-        5,
+        number,
     )
     tasks = list(TASK_LABELS)
     task_labels = [TASK_LABELS[task] for task in tasks]
@@ -452,7 +456,7 @@ def page_tasks(pdf, preview_dir, rows: list[dict[str, str]]) -> None:
         color=INK,
         linespacing=1.5,
     )
-    save(pdf, fig, preview_dir, 5)
+    save(pdf, fig, preview_dir, number)
 
 
 def stage_from_pair_key(pair_key: str) -> str:
@@ -500,11 +504,13 @@ def stage_rank_gap(rows: list[dict[str, str]], stages: list[str]) -> np.ndarray:
     )
 
 
-def page_stages(pdf, preview_dir, rows: list[dict[str, str]]) -> None:
+def page_stages(
+    pdf, preview_dir, rows: list[dict[str, str]], number: int = 6
+) -> None:
     fig, canvas = page(
         "扩大实测（五）：选择偏好是否随操作阶段变化",
         "每个任务从轨迹中均衡抽取 stage-00..03；阶段仅表示轨迹进程，不在不同任务间强行赋予同一子目标语义。",
-        6,
+        number,
     )
     stages, canonical = stage_category_rates(rows, "canonical")
     _, heldout = stage_category_rates(rows, "broad32_heldout")
@@ -569,7 +575,7 @@ def page_stages(pdf, preview_dir, rows: list[dict[str, str]]) -> None:
         linespacing=1.5,
         va="top",
     )
-    save(pdf, fig, preview_dir, 6)
+    save(pdf, fig, preview_dir, number)
 
 
 def main() -> None:

@@ -135,6 +135,49 @@ Broad practical 的任一候选成功率比 Canonical 高 28.6pp，但 Accel 所
 否定的是“直接最小化 Accel 即可得到高价值视角”，不否定原文将 Accel 用作 uncertainty proxy
 和在线 failure detector 的主张。完整审计见 `accel_reproduction_audit_20260824_zh.md`。
 
+### 3.4 Accel 扩大诊断：训练支持、留出视角与跨噪声稳定性
+
+旧表和扩大表必须分开理解：旧表在 21 个状态的四个角色视角上已经运行闭环，因此能查询
+Accel 所选视角的成功或失败；扩大表覆盖 8 个任务、96 个 test 状态、97 个 operational 视角和
+6 个共享 flow-noise seed，只分析固定状态动作流排名，不包含这些 97 个视角的闭环成功率。
+
+97 个 operational 候选由以下三类组成：
+
+| 区域 | 候选数 | 精确定义 |
+|---|---:|---|
+| Canonical | 1 | 原始规范相机位姿 |
+| Broad64 training support | 64 | 具体位姿进入过 Broad64 全局训练 catalog；不表示同一 test 状态见过该位姿 |
+| Broad32 held-out | 32 | 与训练位姿处于同一宽范围，但具体位姿未参与训练；是同范围插值留出，不是极端 OOD |
+
+对每个状态先对 6 个 flow-noise seed 的 `accel_3` 取均值，再在 97 个视角中选择最低值。结果为：
+
+| 模型 | Canonical | 训练支持 | 同范围留出 | 六 seed 精确 Top-1 全同 | 跨噪声排名 Spearman |
+|---|---:|---:|---:|---:|---:|
+| Broad practical | 21.9% | 37.5% | 40.6% | 2.1% | 0.412 |
+| Broad state-matched | 32.3% | 32.3% | 35.4% | 3.1% | 0.416 |
+| Broad paired FM | 33.3% | 39.6% | 27.1% | 4.2% | 0.430 |
+| Broad paired consistency | 29.2% | 45.8% | 25.0% | 2.1% | 0.287 |
+
+这些百分比是“96 个状态中，ensemble Top-1 落入该区域的比例”，不是成功率。候选数也不相等，
+因此必须与均匀候选基准 `1/97、64/97、32/97` 比较。以 Broad practical 为例：Canonical
+为 `21/96=21.9%`，相对 `1/97` 富集 21.2 倍；训练支持为 `36/96=37.5%`，相对其候选占比
+仅 0.57 倍；留出为 `39/96=40.6%`，相对候选占比为 1.23 倍。这说明模型仍有很强的
+Canonical attractor，但低-Accel 兼容域并未锁死在 64 个训练精确位姿。
+
+扩大诊断还得到：
+
+- 单次 flow noise 的精确 Top-1 高度不稳定，不能把一次运行的 `10/21` 等计数当作模型属性；
+- State-matched 与 Paired-FM 的 ensemble 视角排名相关性为 0.815，说明普通 FM 下 same-state
+  pairing 没有形成明显不同的兼容域结构；
+- consistency 模型的跨视角 Accel 相对离散度仅 2.67%，ensemble Top-1 间隔仅 1.68%，主要作用
+  是压平视角差异，而非对齐任务可见性；
+- 全黑相机平均位于第 101/104，Look-away 位于第 86–92，说明 Accel 能稳定排斥明显无效观测；
+- 最高可见性视角平均只位于第 46–51，且相对 matched-control 的偏好随任务阶段改变符号，没有
+  形成稳定的“可见信息更多即 Accel 更低”关系。
+
+因此扩大结果支持把 Accel 用作模型视角兼容域和坏观测诊断器，不支持把单次 `argmin Accel`
+直接部署为主动视角价值函数。行为价值仍须在任务均衡的闭环 shortlist 上单独验证。
+
 ## 4. KYC / CVC 方法边界
 
 - KYC matched Pi0.5：Control 44.49%，KYC 43.33%，差 -1.16pp；
@@ -150,7 +193,9 @@ paired consistency 的普遍可能性。该限制不妨碍停止继续投入当�
 
 ## 5. 入口
 
-- 第一阶段 PDF：`view_revalidation_stage1_final_brief_20260824_zh.pdf`
+- 第一阶段统一 PDF：`view_revalidation_stage1_integrated_20260825_zh.pdf`
+- 旧版第一阶段 PDF：`view_revalidation_stage1_final_brief_20260824_zh.pdf`
+- Accel 扩大诊断原始汇总：`/share/longjunyu/alphabrain/experiments/dsol-accel-expanded-diagnostic-v1/analysis/summary.json`
 - 正式完成回执：`/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/formal_evaluation_completion.json`
 - Camera Full：`/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/camera_full/multiseed_metrics.json`
 - Original Full：`/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/original_full/multiseed_metrics.json`

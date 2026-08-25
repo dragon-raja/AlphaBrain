@@ -13,6 +13,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle
 from PIL import Image
 
+import build_accel_expanded_brief_pdf as expanded
+
 
 ROOT = Path(__file__).resolve().parents[2]
 FIGURE_DIR = ROOT / "docs/dsol_paper1/figures"
@@ -739,11 +741,84 @@ def page_accel_results(pdf, preview_dir):
     save_page(pdf, fig, 11, preview_dir)
 
 
-def page_kyc_cvc_boundary(pdf, preview_dir):
+def page_accel_expanded_guide(pdf, preview_dir, page_number=12):
+    fig, canvas = new_page(
+        "Accel：旧闭环表与扩大排名表怎么读",
+        "两张表回答不同问题：旧表含闭环行为结果；新表只分析固定状态下的视角排名结构。",
+        page_number,
+    )
+    box(canvas, 0.055, 0.56, 0.42, 0.24, face="#EEF4F8", edge="#C6D7E1")
+    fig.text(0.08, 0.755, "旧表：21 状态 × 4 个角色视角", fontsize=12, fontweight="bold", color=BLUE)
+    fig.text(
+        0.08,
+        0.705,
+        "每个角色都实际运行完整闭环\n"
+        "→ Accel 在 4 个角色中选一个\n"
+        "→ 查询该角色的闭环成功/失败\n\n"
+        "回答：argmin Accel 能否选到行为更好的视角？",
+        fontsize=10.0,
+        color=INK,
+        va="top",
+        linespacing=1.45,
+    )
+    box(canvas, 0.525, 0.56, 0.42, 0.24, face="#EAF3F0", edge="#BFD8D0")
+    fig.text(0.55, 0.755, "新表：96 状态 × 97 个视角 × 6 噪声", fontsize=12, fontweight="bold", color=TEAL)
+    fig.text(
+        0.55,
+        0.705,
+        "每个视角只运行固定状态动作流推理\n"
+        "→ 对 6 个 flow-noise 的 Accel 取均值\n"
+        "→ 统计最小值落入哪个相机支持区域\n\n"
+        "回答：排名是否稳定、兼容域在哪里、能否排斥坏观测？",
+        fontsize=10.0,
+        color=INK,
+        va="top",
+        linespacing=1.45,
+    )
+
+    fig.text(0.055, 0.505, "以 Broad practical 为例", fontsize=11, fontweight="bold", color=INK)
+    headers = ["区域", "候选数", "被选状态", "原始占比", "均匀候选基准", "单位候选富集"]
+    rows = [
+        ["规范视角", "1", "21 / 96", "21.9%", "1 / 97 = 1.0%", "21.2×"],
+        ["训练支持", "64", "36 / 96", "37.5%", "64 / 97 = 66.0%", "0.57×"],
+        ["同范围留出", "32", "39 / 96", "40.6%", "32 / 97 = 33.0%", "1.23×"],
+    ]
+    ax = fig.add_axes([0.06, 0.305, 0.88, 0.17])
+    ax.set_axis_off()
+    table = ax.table(cellText=rows, colLabels=headers, loc="center", cellLoc="left", colLoc="left")
+    table.auto_set_font_size(False)
+    table.set_fontsize(8.8)
+    table.scale(1, 1.48)
+    for (row, _), cell in table.get_celld().items():
+        cell.set_edgecolor(LINE)
+        if row == 0:
+            cell.set_facecolor(INK)
+            cell.get_text().set_color(WHITE)
+            cell.get_text().set_fontweight("bold")
+        else:
+            cell.set_facecolor(WHITE if row % 2 else "#EEF2F5")
+
+    box(canvas, 0.055, 0.09, 0.89, 0.15, face="#FFF7E8", edge="#E6D2A8")
+    fig.text(0.08, 0.205, "三个不能混淆的点", fontsize=10, fontweight="bold", color=GOLD)
+    fig.text(
+        0.08,
+        0.17,
+        "1. 新表的百分比不是成功率，而是 96 个状态中 Top-1 所属区域的比例。\n"
+        "2. “训练支持”指该精确相机位姿进入过全局训练 catalog；不表示同一 test 状态见过该位姿。\n"
+        "3. “留出”是同一宽范围内的精确位姿留出；Blind / Look-away / 黑相机才是极端诊断。",
+        fontsize=9.4,
+        color=INK,
+        va="top",
+        linespacing=1.42,
+    )
+    save_page(pdf, fig, page_number, preview_dir)
+
+
+def page_kyc_cvc_boundary(pdf, preview_dir, page_number=19):
     fig, canvas = new_page(
         "方法边界：KYC 与跨视角一致性",
         "两者算法不同，但在标准 external + wrist Pi0.5 中暴露出相同的稳定视觉捷径问题。",
-        12,
+        page_number,
     )
     headers = ["方法 / 协议", "基线", "方法", "差值", "本地裁决"]
     rows = [
@@ -798,11 +873,11 @@ def page_kyc_cvc_boundary(pdf, preview_dir):
         color=MUTED,
         linespacing=1.45,
     )
-    save_page(pdf, fig, 12, preview_dir)
+    save_page(pdf, fig, page_number, preview_dir)
 
 
-def page_takeaway(pdf, preview_dir):
-    fig, canvas = new_page("第一阶段结论：已经回答什么，还缺什么", "M-A / M-B 已完成；长期研究计划中的后置验证没有被冒充为已完成。", 13)
+def page_takeaway(pdf, preview_dir, page_number=20):
+    fig, canvas = new_page("第一阶段结论：已经回答什么，还缺什么", "M-A / M-B 已完成；长期研究计划中的后置验证没有被冒充为已完成。", page_number)
     sections = [
         ("第一阶段完成", TEAL, ["Broad64 数据、训练和七臂诊断", "三 seed Camera / Original Full", "M0、M1 与 Accel fixed-state"]),
         ("后置未完成", GOLD, ["LIBERO-Plus Full 非相机副作用", "更大任务分布的 Blind–Reveal 确认", "RoboCasa 跨 benchmark 与真机"]),
@@ -828,7 +903,7 @@ def page_takeaway(pdf, preview_dir):
         color=INK,
         va="center",
     )
-    save_page(pdf, fig, 13, preview_dir)
+    save_page(pdf, fig, page_number, preview_dir)
 
 
 def main() -> None:
@@ -842,6 +917,12 @@ def main() -> None:
     args = parser.parse_args()
 
     configure_font()
+    expanded_catalog = expanded.load_json(expanded.DEFAULT_CATALOG)
+    expanded_protocol = expanded.load_json(expanded.DEFAULT_PROTOCOL)
+    expanded_summary = expanded.load_json(expanded.DEFAULT_ANALYSIS / "summary.json")
+    expanded_rows = expanded.load_csv(expanded.DEFAULT_ANALYSIS / "state_stability.csv")
+    if expanded_summary.get("status") != "PASS":
+        raise ValueError("expanded Accel analysis is not PASS")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with PdfPages(args.output) as pdf:
         page_cover(pdf, args.preview_dir)
@@ -855,8 +936,17 @@ def main() -> None:
         page_m1_task_breakdown(pdf, args.preview_dir)
         page_accel_principle(pdf, args.preview_dir)
         page_accel_results(pdf, args.preview_dir)
-        page_kyc_cvc_boundary(pdf, args.preview_dir)
-        page_takeaway(pdf, args.preview_dir)
+        page_accel_expanded_guide(pdf, args.preview_dir, 12)
+        expanded.page_definition(
+            pdf, args.preview_dir, expanded_catalog, expanded_protocol, 13
+        )
+        expanded.page_stability(pdf, args.preview_dir, expanded_summary, 14)
+        expanded.page_support(pdf, args.preview_dir, expanded_summary, 15)
+        expanded.page_roles(pdf, args.preview_dir, expanded_summary, 16)
+        expanded.page_tasks(pdf, args.preview_dir, expanded_rows, 17)
+        expanded.page_stages(pdf, args.preview_dir, expanded_rows, 18)
+        page_kyc_cvc_boundary(pdf, args.preview_dir, 19)
+        page_takeaway(pdf, args.preview_dir, 20)
 
 if __name__ == "__main__":
     main()

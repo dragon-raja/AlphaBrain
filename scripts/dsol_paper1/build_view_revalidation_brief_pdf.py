@@ -955,9 +955,42 @@ def page_accel_failure_oracle(pdf, preview_dir, page_number=20):
     oracle_rate = 100 * analysis["oracle_at_97_success_rate"]
     mean_fraction = 100 * analysis["mean_successful_candidate_fraction"]
 
-    metric(fig, canvas, 0.055, 0.65, 0.25, 0.14, f"{oracle_rate:.1f}%", "Oracle@97 救援率", "15 个 canonical 失败态", TEAL)
-    metric(fig, canvas, 0.375, 0.65, 0.25, 0.14, f"{rates['accel_ensemble']:.1f}%", "六噪声 Accel 救援率", "argmin mean accel_3", RED)
-    metric(fig, canvas, 0.695, 0.65, 0.25, 0.14, f"{mean_fraction:.1f}%", "平均成功候选比例", "每状态 97 个视角", BLUE)
+    metric(
+        fig,
+        canvas,
+        0.055,
+        0.61,
+        0.25,
+        0.18,
+        f"{oracle_rate:.1f}%",
+        "Oracle@97 救援率",
+        "演示分组 83.3% [63.6,100]",
+        TEAL,
+    )
+    metric(
+        fig,
+        canvas,
+        0.375,
+        0.61,
+        0.25,
+        0.18,
+        f"{rates['accel_ensemble']:.1f}%",
+        "六噪声 Accel 救援率",
+        "演示分组 40.9% [13.6,68.2]",
+        RED,
+    )
+    metric(
+        fig,
+        canvas,
+        0.695,
+        0.61,
+        0.25,
+        0.18,
+        f"{mean_fraction:.1f}%",
+        "平均成功候选比例",
+        "Accel-成功相关 +0.023 ≈ 0",
+        BLUE,
+    )
 
     condition_order = [
         ("accel_single_noise", "Accel 单噪声", GRAY),
@@ -1000,8 +1033,9 @@ def page_accel_failure_oracle(pdf, preview_dir, page_number=20):
     fig.text(
         0.08,
         0.155,
-        "Oracle@97 用来确认视角是否具备可救援空间；Accel/可见性/随机条件则检验具体选择规则能否转化该空间。\n"
-        "若 Oracle 明显高而 Accel 仍低，结论是选择目标不足；若 Oracle 也低，则该状态的失败主要不是静态换视角可解。",
+        "Oracle@97 相对本轮 canonical 的演示分组增益为 +80.3pp [57.6,100]，候选池确有可救援空间。\n"
+        "六噪声 Accel 与随机视角同为 5/15；配对差 −4.5pp [−27.3,+13.6]。单噪声与 Top10+可见性为 6/15，也未稳定优于随机。\n"
+        "结论：Accel 能避开部分 canonical 失败，但没有证明它识别了行为更优视角；本页是条件失败诊断，不是总体 benchmark 成功率。",
         fontsize=8.8,
         color=INK,
         va="top",

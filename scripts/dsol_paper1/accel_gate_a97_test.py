@@ -165,9 +165,11 @@ class GateA97ProtocolTest(unittest.TestCase):
         self.assertAlmostEqual(result["oracle_at_97_success_rate"], 2 / 3)
         self.assertAlmostEqual(result["oracle_at_97_source_group_rate"], 0.5)
         self.assertEqual(len(result["oracle_at_97_source_group_ci"]), 2)
+        self.assertAlmostEqual(result["oracle_vs_canonical_source_group_difference"], 0.25)
         selected = result["pre_registered_selection_success"]["accel_ensemble"]
         self.assertEqual(selected["source_episode_groups"], 2)
         self.assertAlmostEqual(selected["state_success_rate"], 1 / 3)
+        self.assertAlmostEqual(selected["vs_canonical_source_group_difference"], 0.0)
 
 
 if __name__ == "__main__":

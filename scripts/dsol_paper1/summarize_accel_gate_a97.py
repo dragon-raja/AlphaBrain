@@ -166,7 +166,19 @@ def summarize_oracle(rows: Sequence[Mapping[str, Any]], protocol: Mapping[str, A
         float(np.mean([row["oracle_at_97_success"] for row in values]))
         for values in grouped.values()
     ]
+    oracle_group_differences = [
+        float(
+            np.mean(
+                [
+                    float(row["oracle_at_97_success"]) - float(row["canonical_success"])
+                    for row in values
+                ]
+            )
+        )
+        for values in grouped.values()
+    ]
     oracle_low, oracle_high = bootstrap_ci(oracle_group_rates)
+    oracle_diff_low, oracle_diff_high = bootstrap_ci(oracle_group_differences)
     selected_by_pair = {
         str(state["pair_key"]): {
             str(condition): str(candidate_id)
@@ -186,6 +198,15 @@ def summarize_oracle(rows: Sequence[Mapping[str, Any]], protocol: Mapping[str, A
             selected_groups[str(row["episode_id_source"])].append(float(row["success"]))
         group_rates = [float(np.mean(values)) for values in selected_groups.values()]
         low, high = bootstrap_ci(group_rates)
+        state_by_pair = {str(row["pair_key"]): row for row in state_rows}
+        paired_differences: dict[str, list[float]] = defaultdict(list)
+        for row in selected_rows:
+            pair_key = str(row["pair_key"])
+            paired_differences[str(row["episode_id_source"])].append(
+                float(row["success"]) - float(state_by_pair[pair_key]["canonical_success"])
+            )
+        difference_rates = [float(np.mean(values)) for values in paired_differences.values()]
+        difference_low, difference_high = bootstrap_ci(difference_rates)
         pre_registered[condition] = {
             "states": len(selected_rows),
             "successes": sum(bool(row["success"]) for row in selected_rows),
@@ -193,6 +214,8 @@ def summarize_oracle(rows: Sequence[Mapping[str, Any]], protocol: Mapping[str, A
             "source_episode_groups": len(selected_groups),
             "source_group_rate": float(np.mean(group_rates)),
             "source_group_ci": [low, high],
+            "vs_canonical_source_group_difference": float(np.mean(difference_rates)),
+            "vs_canonical_source_group_ci": [difference_low, difference_high],
         }
     return {
         "state_count": len(state_rows),
@@ -202,6 +225,10 @@ def summarize_oracle(rows: Sequence[Mapping[str, Any]], protocol: Mapping[str, A
         "canonical_source_group_rate": float(np.mean(canonical_group_rates)),
         "oracle_at_97_source_group_rate": float(np.mean(oracle_group_rates)),
         "oracle_at_97_source_group_ci": [oracle_low, oracle_high],
+        "oracle_vs_canonical_source_group_difference": float(
+            np.mean(oracle_group_differences)
+        ),
+        "oracle_vs_canonical_source_group_ci": [oracle_diff_low, oracle_diff_high],
         "mean_successful_candidate_fraction": float(
             np.mean([row["successful_candidate_count"] / 97 for row in state_rows])
         ),

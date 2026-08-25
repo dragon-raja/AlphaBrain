@@ -53,9 +53,13 @@ controlled strong Blind-Reveal construction with symmetric camera support.
 The completed first-stage M-A/M-B evidence, including Broad64, constructed
 M0/M1, Accel, three-seed Camera Full and Original Full, is summarized in
 [view_revalidation_stage1_final_20260824_zh.md](view_revalidation_stage1_final_20260824_zh.md).
-The current presentation-ready Chinese PDF, including the expanded 8-task / 96-state
-Accel stability and support audit, is
-[view_revalidation_stage1_integrated_20260825_zh.pdf](view_revalidation_stage1_integrated_20260825_zh.pdf).
+The current presentation-ready Chinese PDF organizes the behavior, reliability,
+support-domain, semantic-alignment, and task/stage evidence as one Accel decision
+chain:
+[view_revalidation_stage1_integrated_v2_20260825_zh.pdf](view_revalidation_stage1_integrated_v2_20260825_zh.pdf).
+The earlier 20-page integrated draft
+[view_revalidation_stage1_integrated_20260825_zh.pdf](view_revalidation_stage1_integrated_20260825_zh.pdf)
+is retained only as a dated layout record.
 The earlier 13-page
 [stage-one PDF](view_revalidation_stage1_final_brief_20260824_zh.pdf) and the
 focused [expanded Accel supplement](accel_expanded_diagnostic_20260824_zh.pdf)

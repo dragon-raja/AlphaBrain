@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from build_accel_gate_a97_protocol import selection_for_state
+from build_accel_gate_a97_protocol import build, selection_for_state
 from summarize_accel_gate_a97 import summarize_shortlist
 
 
@@ -38,6 +38,62 @@ class GateA97ProtocolTest(unittest.TestCase):
         self.assertEqual(selected["visibility_top1"], "view_95")
         self.assertIn(selected["accel_top10_visibility"], annotations)
         self.assertEqual(len(annotations), 97)
+
+    def test_targeted_oracle_uses_requested_pair_keys(self) -> None:
+        candidate_ids = ["canonical"] + [f"view_{index:02d}" for index in range(96)]
+        metadata = {
+            pair_key: {
+                candidate_id: {
+                    "visibility_score": index / 100,
+                    "delta_visibility": index / 100,
+                    "catalog_group": "canonical" if index == 0 else "broad_training_64",
+                }
+                for index, candidate_id in enumerate(candidate_ids)
+            }
+            for pair_key in ("state-a", "state-b")
+        }
+        scores = {
+            pair_key: {candidate_id: float(index) for index, candidate_id in enumerate(candidate_ids)}
+            for pair_key in metadata
+        }
+        base_protocol = {
+            "catalog": "/tmp/catalog.json",
+            "selected_state_count": 2,
+            "specs": [
+                {
+                    "pair_key": pair_key,
+                    "task_id": "task",
+                    "episode_id_source": f"episode-{pair_key}",
+                    "source_state_index": 0,
+                    "stage_fraction": 0.5,
+                }
+                for pair_key in metadata
+            ],
+        }
+        catalog = {
+            "poses": [
+                {"pose_id": candidate_id}
+                for candidate_id in candidate_ids
+                if candidate_id != "canonical"
+            ]
+        }
+
+        result = build(
+            base_protocol=base_protocol,
+            catalog=catalog,
+            render_metadata=metadata,
+            noise_runs=[scores, scores],
+            model="model",
+            mode="oracle",
+            random_seed=7,
+            oracle_states_per_task=1,
+            oracle_pair_keys=["state-b"],
+        )
+
+        self.assertEqual(result["analysis_role"], "targeted_97_view_exhaustive_oracle")
+        self.assertEqual(result["selected_state_count"], 1)
+        self.assertEqual(result["episode_count"], 97)
+        self.assertEqual(result["selected_states"][0]["pair_key"], "state-b")
 
     def test_shortlist_summary_uses_source_group_bootstrap(self) -> None:
         conditions = ("canonical", "accel_ensemble")

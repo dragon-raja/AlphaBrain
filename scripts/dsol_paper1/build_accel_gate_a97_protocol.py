@@ -235,6 +235,7 @@ def build(
     mode: str,
     random_seed: int,
     oracle_states_per_task: int,
+    oracle_pair_keys: Sequence[str] | None = None,
 ) -> dict[str, Any]:
     if len(noise_runs) < 2:
         raise ValueError("Gate A97 ensemble requires at least two flow-noise runs")
@@ -247,7 +248,15 @@ def build(
 
     pair_keys = sorted(bases)
     if mode == "oracle":
-        pair_keys = choose_oracle_states(bases, oracle_states_per_task)
+        if oracle_pair_keys is None:
+            pair_keys = choose_oracle_states(bases, oracle_states_per_task)
+        else:
+            pair_keys = list(dict.fromkeys(oracle_pair_keys))
+            missing = sorted(set(pair_keys) - set(bases))
+            if missing:
+                raise ValueError(f"oracle pair keys absent from base protocol: {missing}")
+            if not pair_keys:
+                raise ValueError("oracle pair-key selection is empty")
     specs = []
     selected_states = []
     for pair_key in pair_keys:
@@ -292,7 +301,11 @@ def build(
         "analysis_role": (
             "task_balanced_97_view_selector_closed_loop"
             if mode == "shortlist"
-            else "task_balanced_97_view_exhaustive_oracle_pilot"
+            else (
+                "targeted_97_view_exhaustive_oracle"
+                if oracle_pair_keys is not None
+                else "task_balanced_97_view_exhaustive_oracle_pilot"
+            )
         ),
         "mode": mode,
         "model": model,
@@ -322,11 +335,23 @@ def main() -> None:
     parser.add_argument("--model", required=True)
     parser.add_argument("--mode", choices=("shortlist", "oracle"), default="shortlist")
     parser.add_argument("--oracle-states-per-task", type=int, default=1)
+    parser.add_argument(
+        "--oracle-pair-key-file",
+        type=Path,
+        help="Optional newline-delimited pair keys for a targeted exhaustive oracle run.",
+    )
     parser.add_argument("--random-seed", type=int, default=20260825)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.oracle_states_per_task < 1:
         raise ValueError("oracle-states-per-task must be positive")
+    oracle_pair_keys = None
+    if args.oracle_pair_key_file is not None:
+        oracle_pair_keys = [
+            line.strip()
+            for line in args.oracle_pair_key_file.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
     base = json.loads(args.base_protocol.read_text(encoding="utf-8"))
     catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
     payload = build(
@@ -338,6 +363,7 @@ def main() -> None:
         mode=args.mode,
         random_seed=args.random_seed,
         oracle_states_per_task=args.oracle_states_per_task,
+        oracle_pair_keys=oracle_pair_keys,
     )
     payload.update(
         {

@@ -42,6 +42,15 @@ M1_CROSS_MODEL_METRICS = Path(
     "/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m1-v2/"
     "cross-model-analysis/metrics.json"
 )
+GATE_A97_ROOT = Path(
+    "/share/longjunyu/alphabrain/experiments/dsol-accel-gate-a97-v1"
+)
+GATE_A97_MODELS = (
+    "broad64-practical",
+    "broad64-state-matched",
+    "broad64-paired-fm",
+    "broad64-paired-consistency",
+)
 FONT_PATH = Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc")
 
 BG = "#F7F8FA"
@@ -711,8 +720,8 @@ def page_accel_principle(pdf, preview_dir):
 
 def page_accel_results(pdf, preview_dir):
     fig, canvas = new_page(
-        "Accel：视角选择结果与结论",
-        "预注册 accel_3 未捕获候选行为上限；前缀和坐标尺度敏感性也没有给出跨模型稳定增益。",
+        "Legacy Gate A：四个角色视角中的闭环选择",
+        "这是早期 21 状态 × 4 角色视角结果；它提出问题，但不再承担 97 候选池的最终裁决。",
         11,
     )
     headers = ["模型", "选 Canonical", "所选成功", "Canonical", "任一候选", "差值"]
@@ -764,8 +773,8 @@ def page_accel_results(pdf, preview_dir):
 
 def page_accel_expanded_guide(pdf, preview_dir, page_number=12):
     fig, canvas = new_page(
-        "Accel：旧闭环表与扩大排名表怎么读",
-        "两张表回答不同问题：旧表含闭环行为结果；新表只分析固定状态下的视角排名结构。",
+        "从 Legacy Gate A 到 97 候选正式 Gate A",
+        "先用扩大排名审计选择器稳定性，再把同一 97 候选选择过程送入正式完整闭环。",
         page_number,
     )
     box(canvas, 0.055, 0.56, 0.42, 0.24, face="#EEF4F8", edge="#C6D7E1")
@@ -835,6 +844,172 @@ def page_accel_expanded_guide(pdf, preview_dir, page_number=12):
     save_page(pdf, fig, page_number, preview_dir)
 
 
+def load_gate_a97_shortlist() -> dict[str, dict]:
+    payload = {}
+    for model in GATE_A97_MODELS:
+        path = GATE_A97_ROOT / "shortlist" / model / "analysis.json"
+        row = load_json(path)
+        if row.get("status") != "PASS" or row.get("state_count") != 96:
+            raise ValueError(f"invalid Gate A97 shortlist analysis: {path}")
+        payload[model] = row
+    return payload
+
+
+def page_accel_gate_a97(pdf, preview_dir, page_number=19):
+    fig, canvas = new_page(
+        "正式 Gate A97：97 候选排序后执行完整闭环",
+        "8 任务 × 12 状态 × 4 模型；每个状态先对 97 个视角做 6-noise Accel 排名，再执行六种预注册选择条件。",
+        page_number,
+    )
+    payload = load_gate_a97_shortlist()
+    model_labels = ["实用非配对", "状态匹配", "配对 FM", "配对+一致性"]
+    conditions = [
+        ("canonical", "规范", BLUE),
+        ("accel_single_noise", "Accel 单噪声", GRAY),
+        ("accel_ensemble", "Accel 六噪声", RED),
+        ("visibility_top1", "可见性最高", GOLD),
+        ("accel_top10_visibility", "Accel Top10+可见性", TEAL),
+        ("random_operational", "随机视角", "#A9AFB5"),
+    ]
+
+    ax = fig.add_axes([0.055, 0.35, 0.63, 0.43])
+    x = list(range(len(GATE_A97_MODELS)))
+    width = 0.12
+    offsets = [(-2.5 + index) * width for index in range(len(conditions))]
+    for offset, (condition, label, color) in zip(offsets, conditions):
+        values = [
+            100 * payload[model]["condition_success"][condition]["state_success_rate"]
+            for model in GATE_A97_MODELS
+        ]
+        ax.bar([value + offset for value in x], values, width=width, color=color, label=label)
+    oracle = [100 * payload[model]["oracle_at_shortlist_state_rate"] for model in GATE_A97_MODELS]
+    ax.scatter(x, oracle, marker="D", s=34, color=INK, label="Oracle@6", zorder=5)
+    ax.set_ylabel("完整闭环成功率 (%)", fontsize=8.4)
+    ax.set_xticks(x, model_labels, fontsize=8.0)
+    ax.set_ylim(68, 100)
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.grid(axis="y", color=LINE, linewidth=0.8)
+    ax.set_axisbelow(True)
+    ax.legend(ncol=4, loc="upper center", fontsize=6.8, frameon=False, bbox_to_anchor=(0.5, 1.16))
+
+    box(canvas, 0.715, 0.35, 0.23, 0.43, face="#EEF4F8", edge="#C6D7E1")
+    fig.text(0.738, 0.735, "相对规范视角", fontsize=10.2, fontweight="bold", color=BLUE, va="top")
+    y = 0.69
+    for model, label in zip(GATE_A97_MODELS, model_labels):
+        comparison = payload[model]["paired_source_bootstrap"]["accel_ensemble_vs_canonical"]
+        value = comparison["difference_pp"]
+        interval = f"[{comparison['ci_low_pp']:+.1f},{comparison['ci_high_pp']:+.1f}]"
+        color = TEAL if comparison["ci_low_pp"] > 0 else (RED if comparison["ci_high_pp"] < 0 else INK)
+        fig.text(0.738, y, label, fontsize=8.0, color=INK, va="top")
+        fig.text(0.91, y, f"{value:+.1f}pp", fontsize=8.2, fontweight="bold", color=color, ha="right", va="top")
+        fig.text(0.738, y - 0.028, interval, fontsize=7.2, color=MUTED, va="top")
+        y -= 0.083
+
+    box(canvas, 0.055, 0.095, 0.89, 0.18, face="#FFF7E8", edge="#E6D2A8")
+    fig.text(0.08, 0.24, "结论", fontsize=9.8, fontweight="bold", color=GOLD, va="top")
+    fig.text(
+        0.08,
+        0.205,
+        "• 97 候选并未让 Accel 获得稳定闭环收益：六噪声选择相对规范为 −1.0、+2.1、−4.2、−6.2pp。\n"
+        "• 只有配对+一致性的下降 CI 排除 0；其余差异不足以证明提升。随机换视角普遍有害。\n"
+        "• Oracle@6 仍高于规范 3.1–9.4pp，说明局部候选存在行为差异；当前缺的是可靠 view-value，而不是候选完全相同。",
+        fontsize=8.7,
+        color=INK,
+        va="top",
+        linespacing=1.4,
+    )
+    save_page(pdf, fig, page_number, preview_dir)
+
+
+def selected_oracle_rates(protocol: dict, result_root: Path) -> dict[str, float]:
+    rows = {}
+    for path in sorted(result_root.glob("episodes-shard-*.jsonl")):
+        with path.open(encoding="utf-8") as handle:
+            for line in handle:
+                row = json.loads(line)
+                rows[(row["pair_key"], row["selected_candidate_id"])] = bool(row["success"])
+    conditions = list(protocol["selected_states"][0]["selected_candidates"])
+    return {
+        condition: 100
+        * sum(
+            rows[(state["pair_key"], state["selected_candidates"][condition])]
+            for state in protocol["selected_states"]
+        )
+        / len(protocol["selected_states"])
+        for condition in conditions
+    }
+
+
+def page_accel_failure_oracle(pdf, preview_dir, page_number=20):
+    fig, canvas = new_page(
+        "Canonical 失败态 Oracle@97：候选池能否真正救援",
+        "从同一 96 状态正式集中取 Broad64 practical 的全部 15 个规范视角失败态，逐一执行完整 97 视角候选池。",
+        page_number,
+    )
+    result_root = GATE_A97_ROOT / "oracle97-canonical-failures" / "broad64-practical"
+    analysis = load_json(result_root / "analysis.json")
+    protocol = load_json(GATE_A97_ROOT / "protocols/broad64-practical-canonical-failure-oracle.json")
+    if analysis.get("status") != "PASS" or analysis.get("state_count") != 15:
+        raise ValueError("canonical-failure Oracle@97 analysis is incomplete")
+    rates = selected_oracle_rates(protocol, result_root)
+    oracle_rate = 100 * analysis["oracle_at_97_success_rate"]
+    mean_fraction = 100 * analysis["mean_successful_candidate_fraction"]
+
+    metric(fig, canvas, 0.055, 0.65, 0.25, 0.14, f"{oracle_rate:.1f}%", "Oracle@97 救援率", "15 个 canonical 失败态", TEAL)
+    metric(fig, canvas, 0.375, 0.65, 0.25, 0.14, f"{rates['accel_ensemble']:.1f}%", "六噪声 Accel 救援率", "argmin mean accel_3", RED)
+    metric(fig, canvas, 0.695, 0.65, 0.25, 0.14, f"{mean_fraction:.1f}%", "平均成功候选比例", "每状态 97 个视角", BLUE)
+
+    condition_order = [
+        ("accel_single_noise", "Accel 单噪声", GRAY),
+        ("accel_ensemble", "Accel 六噪声", RED),
+        ("visibility_top1", "可见性最高", GOLD),
+        ("accel_top10_visibility", "Top10+可见性", TEAL),
+        ("random_operational", "随机", "#A9AFB5"),
+    ]
+    ax = fig.add_axes([0.06, 0.30, 0.39, 0.27])
+    labels = [label for _, label, _ in condition_order] + ["Oracle@97"]
+    values = [rates[key] for key, _, _ in condition_order] + [oracle_rate]
+    colors = [color for _, _, color in condition_order] + [INK]
+    bars = ax.barh(range(len(labels)), values, color=colors)
+    ax.set_yticks(range(len(labels)), labels, fontsize=7.7)
+    ax.set_xlim(0, 100)
+    ax.set_xlabel("canonical 失败态中的救援率 (%)", fontsize=7.8)
+    ax.invert_yaxis()
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.grid(axis="x", color=LINE, linewidth=0.8)
+    ax.set_axisbelow(True)
+    for bar, value in zip(bars, values):
+        ax.text(min(value + 1.5, 95), bar.get_y() + bar.get_height() / 2, f"{value:.1f}", va="center", fontsize=7.2)
+
+    state_rows = sorted(
+        analysis["state_rows"], key=lambda row: row["successful_candidate_count"] / 97
+    )
+    ax2 = fig.add_axes([0.53, 0.30, 0.415, 0.27])
+    fractions = [100 * row["successful_candidate_count"] / 97 for row in state_rows]
+    ax2.bar(range(len(fractions)), fractions, color=[RED if value == 0 else TEAL for value in fractions])
+    ax2.set_ylim(0, 105)
+    ax2.set_xlabel("15 个 canonical 失败状态（按成功候选比例排序）", fontsize=7.8)
+    ax2.set_ylabel("97 视角中的成功候选比例 (%)", fontsize=7.8)
+    ax2.set_xticks([])
+    ax2.spines[["top", "right"]].set_visible(False)
+    ax2.grid(axis="y", color=LINE, linewidth=0.8)
+    ax2.set_axisbelow(True)
+
+    box(canvas, 0.055, 0.075, 0.89, 0.15, face="#EAF3F0", edge="#BFD8D0")
+    fig.text(0.08, 0.19, "判定", fontsize=9.8, fontweight="bold", color=TEAL, va="top")
+    fig.text(
+        0.08,
+        0.155,
+        "Oracle@97 用来确认视角是否具备可救援空间；Accel/可见性/随机条件则检验具体选择规则能否转化该空间。\n"
+        "若 Oracle 明显高而 Accel 仍低，结论是选择目标不足；若 Oracle 也低，则该状态的失败主要不是静态换视角可解。",
+        fontsize=8.8,
+        color=INK,
+        va="top",
+        linespacing=1.4,
+    )
+    save_page(pdf, fig, page_number, preview_dir)
+
+
 def page_kyc_cvc_boundary(pdf, preview_dir, page_number=19):
     fig, canvas = new_page(
         "方法边界：KYC 与跨视角一致性",
@@ -897,10 +1072,10 @@ def page_kyc_cvc_boundary(pdf, preview_dir, page_number=19):
     save_page(pdf, fig, page_number, preview_dir)
 
 
-def page_takeaway(pdf, preview_dir, page_number=20):
-    fig, canvas = new_page("第一阶段结论：已经回答什么，还缺什么", "M-A / M-B 已完成；长期研究计划中的后置验证没有被冒充为已完成。", page_number)
+def page_takeaway(pdf, preview_dir, page_number=22):
+    fig, canvas = new_page("第一阶段结论：已经回答什么，还缺什么", "M-A / M-B 与 97 候选 Gate A 已完成；长期研究计划中的后置验证没有被冒充为已完成。", page_number)
     sections = [
-        ("第一阶段完成", TEAL, ["Broad64 数据、训练和七臂诊断", "三 seed Camera / Original Full", "M0、M1 与 Accel fixed-state"]),
+        ("第一阶段完成", TEAL, ["Broad64 数据、训练和七臂诊断", "三 seed Camera / Original Full", "M0、M1 与 97 候选闭环 Gate A"]),
         ("后置未完成", GOLD, ["LIBERO-Plus Full 非相机副作用", "更大任务分布的 Blind–Reveal 确认", "RoboCasa 跨 benchmark 与真机"]),
         ("当前停止", RED, ["KYC raw-ray 双相机扩展", "当前 paired-consistency recipe", "Accel 直接作为主动视角选择器"]),
     ]
@@ -919,7 +1094,7 @@ def page_takeaway(pdf, preview_dir, page_number=20):
     fig.text(
         0.16,
         0.19,
-        "第一阶段已经完成并足以裁决当前方法；下一阶段若继续，应扩大信息互补验证，而不是继续追 KYC/CVC 调参。",
+        "第一阶段已足以否定当前 Accel/KYC/CVC 配方的稳定普适增益；下一阶段应围绕可救援信息关系设计，而不是继续追局部调参。",
         fontsize=11,
         color=INK,
         va="center",
@@ -966,8 +1141,10 @@ def main() -> None:
         expanded.page_roles(pdf, args.preview_dir, expanded_summary, 16)
         expanded.page_tasks(pdf, args.preview_dir, expanded_rows, 17)
         expanded.page_stages(pdf, args.preview_dir, expanded_rows, 18)
-        page_kyc_cvc_boundary(pdf, args.preview_dir, 19)
-        page_takeaway(pdf, args.preview_dir, 20)
+        page_accel_gate_a97(pdf, args.preview_dir, 19)
+        page_accel_failure_oracle(pdf, args.preview_dir, 20)
+        page_kyc_cvc_boundary(pdf, args.preview_dir, 21)
+        page_takeaway(pdf, args.preview_dir, 22)
 
 if __name__ == "__main__":
     main()

@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 
 from build_accel_gate_a97_protocol import build, selection_for_state
-from summarize_accel_gate_a97 import summarize_shortlist
+from summarize_accel_gate_a97 import summarize_oracle, summarize_shortlist
 
 
 class GateA97ProtocolTest(unittest.TestCase):
@@ -119,6 +119,37 @@ class GateA97ProtocolTest(unittest.TestCase):
         self.assertEqual(comparison["source_episode_groups"], 2)
         self.assertAlmostEqual(comparison["difference_pp"], 50.0)
         self.assertEqual(result["oracle_at_shortlist_state_rate"], 1.0)
+
+    def test_oracle_summary_clusters_states_by_source_episode(self) -> None:
+        rows = []
+        for pair_key, source, successful_candidate in (
+            ("state-a", "demo-a", "canonical"),
+            ("state-b", "demo-a", "view_00"),
+            ("state-c", "demo-b", None),
+        ):
+            for candidate_id in ["canonical"] + [f"view_{index:02d}" for index in range(96)]:
+                success = candidate_id == successful_candidate
+                rows.append(
+                    {
+                        "pair_key": pair_key,
+                        "task_id": "task",
+                        "episode_id_source": source,
+                        "selected_candidate_id": candidate_id,
+                        "success": success,
+                        "selection_metadata": {
+                            "ensemble_accel_3": float(candidate_id != "canonical"),
+                            "ensemble_accel_rank": 1 if candidate_id == "canonical" else 2,
+                        },
+                    }
+                )
+
+        result = summarize_oracle(rows, {"episode_count": 291})
+
+        self.assertEqual(result["source_episode_groups"], 2)
+        self.assertAlmostEqual(result["canonical_success_rate"], 1 / 3)
+        self.assertAlmostEqual(result["oracle_at_97_success_rate"], 2 / 3)
+        self.assertAlmostEqual(result["oracle_at_97_source_group_rate"], 0.5)
+        self.assertEqual(len(result["oracle_at_97_source_group_ci"]), 2)
 
 
 if __name__ == "__main__":

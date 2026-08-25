@@ -140,6 +140,7 @@ def summarize_oracle(rows: Sequence[Mapping[str, Any]], protocol: Mapping[str, A
             {
                 "pair_key": pair_key,
                 "task_id": str(values[0]["task_id"]),
+                "source_episode_id": str(values[0]["episode_id_source"]),
                 "canonical_success": bool(canonical["success"]),
                 "oracle_at_97_success": any(successes),
                 "successful_candidate_count": sum(successes),
@@ -154,10 +155,26 @@ def summarize_oracle(rows: Sequence[Mapping[str, Any]], protocol: Mapping[str, A
                 ),
             }
         )
+    grouped: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
+    for row in state_rows:
+        grouped[str(row["source_episode_id"])].append(row)
+    canonical_group_rates = [
+        float(np.mean([row["canonical_success"] for row in values]))
+        for values in grouped.values()
+    ]
+    oracle_group_rates = [
+        float(np.mean([row["oracle_at_97_success"] for row in values]))
+        for values in grouped.values()
+    ]
+    oracle_low, oracle_high = bootstrap_ci(oracle_group_rates)
     return {
         "state_count": len(state_rows),
         "canonical_success_rate": float(np.mean([row["canonical_success"] for row in state_rows])),
         "oracle_at_97_success_rate": float(np.mean([row["oracle_at_97_success"] for row in state_rows])),
+        "source_episode_groups": len(grouped),
+        "canonical_source_group_rate": float(np.mean(canonical_group_rates)),
+        "oracle_at_97_source_group_rate": float(np.mean(oracle_group_rates)),
+        "oracle_at_97_source_group_ci": [oracle_low, oracle_high],
         "mean_successful_candidate_fraction": float(
             np.mean([row["successful_candidate_count"] / 97 for row in state_rows])
         ),

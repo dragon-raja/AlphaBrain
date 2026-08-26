@@ -647,6 +647,133 @@ def page_m1_task_breakdown(pdf, preview_dir):
     save_page(pdf, fig, 9, preview_dir)
 
 
+def page_m1_gate_a97_crosswalk(pdf, preview_dir, page_number=9):
+    """Put the role-conditioned M1 and operational-bank Gate A97 results side by side."""
+    fig, canvas = new_page(
+        "同页对照：角色化信息视角与 97 候选自动选择不是同一实验",
+        "上表测试人工冻结的 Info / Control / Blind 因果角色；下表测试 97 个正常候选中的自动规则。百分比因状态集不同不能直接相减。",
+        page_number,
+    )
+    m1 = load_json(M1_CROSS_MODEL_METRICS)
+    m1_rates = {
+        (row["model"], row["condition"]): 100 * float(row["state_success_rate"])
+        for row in m1["condition_success"]
+    }
+    m1_specificity = {
+        row["model"]: row
+        for row in m1["within_model_comparisons"]
+        if row["comparison"] == "information_specificity_both"
+    }
+    m1_models = [
+        ("official", "Official"),
+        ("broad64-practical", "Broad practical"),
+        ("broad64-state-matched", "State-matched"),
+        ("broad64-paired-fm", "Paired FM"),
+        ("broad64-paired-consistency", "Paired+consistency"),
+    ]
+    m1_rows = []
+    for model, label in m1_models:
+        specificity = m1_specificity[model]
+        marker = " *" if specificity["ci_low_pp"] > 0 else ""
+        m1_rows.append(
+            [
+                label,
+                f"{m1_rates[(model, 'canonical_both')]:.1f}%",
+                f"{m1_rates[(model, 'strong_info_both')]:.1f}%",
+                f"{m1_rates[(model, 'matched_control_both')]:.1f}%",
+                f"{m1_rates[(model, 'blind_both')]:.1f}%",
+                f"{specificity['difference_pp']:+.1f}pp{marker}",
+            ]
+        )
+
+    fig.text(0.055, 0.80, "A. M1 角色化视角：21 个筛选状态，3 个任务，6 个独立演示组", fontsize=10.5, fontweight="bold", color=TEAL)
+    ax = fig.add_axes([0.055, 0.555, 0.89, 0.225])
+    ax.set_axis_off()
+    table = ax.table(
+        cellText=m1_rows,
+        colLabels=["模型", "规范", "Strong-info", "Matched-control", "Blind", "Info−Control"],
+        loc="center",
+        cellLoc="center",
+        colLoc="center",
+    )
+    table.auto_set_font_size(False)
+    table.set_fontsize(8.0)
+    table.scale(1, 1.38)
+    for (row, _), cell in table.get_celld().items():
+        cell.set_edgecolor(LINE)
+        if row == 0:
+            cell.set_facecolor(INK)
+            cell.get_text().set_color(WHITE)
+            cell.get_text().set_fontweight("bold")
+        else:
+            cell.set_facecolor("#EAF3F0" if row == 2 else (WHITE if row % 2 else "#EEF2F5"))
+            if row == 2:
+                cell.get_text().set_fontweight("bold")
+
+    a97 = load_gate_a97_shortlist()
+    gate_models = [
+        ("broad64-practical", "Broad practical"),
+        ("broad64-state-matched", "State-matched"),
+        ("broad64-paired-fm", "Paired FM"),
+        ("broad64-paired-consistency", "Paired+consistency"),
+    ]
+    gate_rows = []
+    for model, label in gate_models:
+        row = a97[model]
+        success = row["condition_success"]
+        gate_rows.append(
+            [
+                label,
+                f"{100 * success['canonical']['state_success_rate']:.1f}%",
+                f"{100 * success['visibility_top1']['state_success_rate']:.1f}%",
+                f"{100 * success['accel_ensemble']['state_success_rate']:.1f}%",
+                f"{100 * success['accel_top10_visibility']['state_success_rate']:.1f}%",
+                f"{100 * success['random_operational']['state_success_rate']:.1f}%",
+                f"{100 * row['oracle_at_shortlist_state_rate']:.1f}%",
+            ]
+        )
+
+    fig.text(0.055, 0.515, "B. Gate A97 自动选择：96 个任务均衡状态，8 个任务", fontsize=10.5, fontweight="bold", color=BLUE)
+    ax = fig.add_axes([0.055, 0.305, 0.89, 0.19])
+    ax.set_axis_off()
+    table = ax.table(
+        cellText=gate_rows,
+        colLabels=["模型", "规范", "可见性最高", "Accel 六噪声", "Accel Top10+可见性", "随机", "Oracle@6"],
+        loc="center",
+        cellLoc="center",
+        colLoc="center",
+    )
+    table.auto_set_font_size(False)
+    table.set_fontsize(7.7)
+    table.scale(1, 1.40)
+    for (row, _), cell in table.get_celld().items():
+        cell.set_edgecolor(LINE)
+        if row == 0:
+            cell.set_facecolor(INK)
+            cell.get_text().set_color(WHITE)
+            cell.get_text().set_fontweight("bold")
+        else:
+            cell.set_facecolor("#EAF3F0" if row == 1 else (WHITE if row % 2 else "#EEF2F5"))
+            if row == 1:
+                cell.get_text().set_fontweight("bold")
+
+    box(canvas, 0.055, 0.075, 0.89, 0.17, face="#FFF7E8", edge="#E6D2A8")
+    fig.text(0.078, 0.215, "如何连接两张表", fontsize=9.4, fontweight="bold", color=GOLD, va="top")
+    fig.text(
+        0.078,
+        0.18,
+        "1. M1 Strong-info 是逐状态从更大诊断池冻结的角色视角，不使用 Accel；* 表示 Info−Control 的分组 CI 排除 0。\n"
+        "2. A97“可见性最高”也是纯可见性，不使用 Accel；只有“Accel Top10+可见性”是混合规则。\n"
+        "3. Practical 在 M1 出现信息特异性，但在 A97 中全局最大可见性低于规范：可见信息可能有用，但“像素最多”不是普适 view-value。\n"
+        "4. Paired FM 的规范视角只是在六种规则里最好；Oracle@6 仍为 93.8%，不能据此声称规范视角优于全部 97 个候选。",
+        fontsize=8.3,
+        color=INK,
+        va="top",
+        linespacing=1.32,
+    )
+    save_page(pdf, fig, page_number, preview_dir)
+
+
 def page_accel_principle(pdf, preview_dir):
     fig, canvas = new_page(
         "Accel：原理、实现与复现边界",
@@ -1248,7 +1375,7 @@ def main() -> None:
         page_formal_benchmarks(pdf, args.preview_dir)
         page_m0(pdf, args.preview_dir)
         page_m1(pdf, args.preview_dir)
-        page_m1_task_breakdown(pdf, args.preview_dir)
+        page_m1_gate_a97_crosswalk(pdf, args.preview_dir, 9)
         page_accel_principle(pdf, args.preview_dir)
         expanded.page_definition(
             pdf, args.preview_dir, expanded_catalog, expanded_protocol, 11

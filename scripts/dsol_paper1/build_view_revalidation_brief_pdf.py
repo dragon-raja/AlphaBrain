@@ -268,15 +268,15 @@ def page_data(pdf, preview_dir):
 
 def page_training(pdf, preview_dir):
     fig, canvas = new_page("训练对照：覆盖、重复、配对和一致性分别控制", "模型相同、更新步数相同、global batch 相同；只改变数据组织和一致性目标。", 4)
-    headers = ["方法", "独立状态", "同状态跨视角", "显式一致性", "主要问题"]
+    headers = ["方法", "独立状态", "同状态跨视角", "显式一致性", "报告角色"]
     rows = [
-        ["Canonical-unique", "高", "否", "否", "固定视角 continuation"],
-        ["Canonical-repeat", "低，精确重复", "否", "否", "有效 batch 与重复效应"],
-        ["Image-Aug unique", "高", "否", "否", "图像增强能否替代相机变化"],
-        ["Broad practical", "高", "否", "否", "普通宽覆盖实用上限"],
-        ["Broad state-matched", "与 paired 相同", "否", "否", "严格状态和曝光预算控制"],
-        ["Broad paired FM", "与 paired 相同", "是", "否", "pairing 数据本身"],
-        ["Broad paired consistency", "与 paired 相同", "是", "是", "显式 action-flow 一致性"],
+        ["Canonical-unique", "高", "否", "否", "训练控制"],
+        ["Canonical-repeat", "低，精确重复", "否", "否", "重复效应控制"],
+        ["Image-Aug unique", "高", "否", "否", "增强基线"],
+        ["Broad practical", "高", "否", "否", "主模型候选"],
+        ["Broad state-matched", "与 paired 相同", "否", "否", "数据组织消融"],
+        ["Broad paired FM", "与 paired 相同", "是", "否", "数据组织消融"],
+        ["Broad paired consistency", "与 paired 相同", "是", "是", "算法消融"],
     ]
     ax = fig.add_axes([0.055, 0.28, 0.89, 0.48])
     ax.set_axis_off()
@@ -310,7 +310,7 @@ def page_training(pdf, preview_dir):
     fig.text(
         0.18,
         0.155,
-        "M-B 已完成：Broad practical 与 Broad paired consistency 均完成 3 seeds、Camera Full 与 Original Full。",
+        "报告规则：先用 Camera Full 与 Original Full 选择有效主模型；未过基础能力门的方法只作消融，不进入主动视角主结论。",
         fontsize=9.5,
         color=MUTED,
         va="top",
@@ -492,14 +492,8 @@ def page_m1(pdf, preview_dir):
         process_arrow(canvas, left + 0.175, 0.732, right - 0.005)
 
     payload = json.loads(M1_CROSS_MODEL_METRICS.read_text(encoding="utf-8"))
-    model_order = [
-        "official",
-        "broad64-practical",
-        "broad64-state-matched",
-        "broad64-paired-fm",
-        "broad64-paired-consistency",
-    ]
-    model_labels = ["Official", "实用非配对", "状态匹配", "配对 FM", "配对+一致性"]
+    model_order = ["official", "broad64-practical"]
+    model_labels = ["Official（冻结参考）", "Broad64 practical（主模型）"]
     condition_order = [
         "canonical_both",
         "strong_info_both",
@@ -518,7 +512,7 @@ def page_m1(pdf, preview_dir):
         if row["comparison"] == "information_specificity_both"
     }
 
-    ax = fig.add_axes([0.06, 0.31, 0.57, 0.31])
+    ax = fig.add_axes([0.06, 0.31, 0.53, 0.31])
     x = list(range(len(model_order)))
     width = 0.19
     offsets = [-1.5 * width, -0.5 * width, 0.5 * width, 1.5 * width]
@@ -527,36 +521,45 @@ def page_m1(pdf, preview_dir):
     ):
         values = [rates[(model, condition)] for model in model_order]
         ax.bar([value + offset for value in x], values, width=width, color=color, label=label)
-    ax.set_title("五模型 × 四观测条件（相同 21 个冻结状态）", loc="left", fontsize=10.2, fontweight="bold")
+    ax.set_title("主分析：两个有效参考 × 四种观测条件", loc="left", fontsize=10.2, fontweight="bold")
     ax.set_ylabel("闭环 continuation 成功率 (%)", fontsize=8.2)
-    ax.set_xticks(x, model_labels, fontsize=7.2, rotation=9)
+    ax.set_xticks(x, model_labels, fontsize=8.0)
     ax.set_ylim(0, 82)
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(axis="y", color=LINE, linewidth=0.8)
     ax.set_axisbelow(True)
     ax.legend(ncol=4, loc="upper center", fontsize=7.3, frameon=False, bbox_to_anchor=(0.5, 1.17))
 
-    box(canvas, 0.66, 0.31, 0.285, 0.31, face="#EAF3F0", edge="#BFD8D0")
-    fig.text(0.682, 0.59, "独立演示分组主统计", fontsize=10.2, fontweight="bold", color=TEAL, va="top")
-    fig.text(0.682, 0.55, r"信息特异性 $=SR_{info}-SR_{control}$", fontsize=8.8, color=INK, va="top")
-    y = 0.505
+    box(canvas, 0.62, 0.31, 0.325, 0.31, face="#EAF3F0", edge="#BFD8D0")
+    fig.text(0.642, 0.59, "主统计：信息是否优于等幅换视角", fontsize=10.2, fontweight="bold", color=TEAL, va="top")
+    fig.text(0.642, 0.55, r"信息特异性 $=SR_{info}-SR_{control}$", fontsize=8.8, color=INK, va="top")
+    y = 0.495
     for model, label in zip(model_order, model_labels):
         row = comparisons[model]
         value = float(row["difference_pp"])
         interval = f"[{float(row['ci_low_pp']):+.1f},{float(row['ci_high_pp']):+.1f}]"
         color = TEAL if row["ci_low_pp"] > 0 else (RED if row["ci_high_pp"] < 0 else INK)
-        fig.text(0.682, y, label, fontsize=7.8, color=INK, va="top")
-        fig.text(0.825, y, f"{value:+.1f}pp {interval}", fontsize=7.8, color=color, fontweight="bold", va="top")
-        y -= 0.043
+        fig.text(0.642, y, label, fontsize=8.0, color=INK, va="top")
+        fig.text(0.91, y, f"{value:+.1f}pp {interval}", fontsize=8.0, color=color, fontweight="bold", ha="right", va="top")
+        y -= 0.055
+    fig.text(
+        0.642,
+        0.385,
+        "仅主模型的 CI 排除 0：新增可见信息\n相对等幅位姿对照有正向信号。",
+        fontsize=8.3,
+        color=INK,
+        va="top",
+        linespacing=1.35,
+    )
 
     box(canvas, 0.06, 0.09, 0.885, 0.15, face="#FFF7E8", edge="#E6D2A8")
     fig.text(0.08, 0.21, "如何解释", fontsize=9.2, fontweight="bold", color=GOLD, va="top")
     fig.text(
         0.08,
         0.172,
-        "• 结果 4 并非只评测一种模型；底层已覆盖 Official 与四种 Broad64 训练组织。\n"
-        "• 只有实用非配对的演示分组 CI 明确高于 0（+13.3pp，[+3.3,+26.7]）；其他模型方向不稳定。\n"
-        "• 这说明信息利用信号与训练组织有关，不能把 Broad practical 的结果推广到所有多视角模型；本页仍不是标准初始状态 benchmark。",
+        "• Broad64 practical 已由前页的正式 benchmark 门选为主模型，不是根据本页结果事后挑选。\n"
+        "• 其信息视角成功率 71.4%，规范视角 57.1%，等幅位姿对照 52.4%；关键因果量 Info−Control 为 +13.3pp。\n"
+        "• 其余训练组织已完成相同评测，但只用于附录稳健性审计；本页仍是中间状态 continuation，不是标准初始状态 benchmark。",
         fontsize=8.5,
         color=INK,
         va="top",
@@ -718,6 +721,103 @@ def page_accel_principle(pdf, preview_dir):
     save_page(pdf, fig, 10, preview_dir)
 
 
+def page_accel_reliability(pdf, preview_dir, expanded_summary, page_number=12):
+    """Explain the fixed-state ranking audit before showing behavior results."""
+    fig, canvas = new_page(
+        "闭环前先审计：Accel 的 97 视角排序是否可重复",
+        "主模型的同一冻结状态、同一 97 视角，改变 6 次 flow 初始噪声；这里只测排名可靠性，不执行机器人动作。",
+        page_number,
+    )
+    row = expanded_summary["models"]["broad64_practical"]
+    spearman = row["mean_pairwise_rank_spearman"]
+    top1 = row["all_seed_top1_agreement_rate"]
+    margin = row["mean_ensemble_top1_relative_margin"]
+
+    metric(
+        fig,
+        canvas,
+        0.055,
+        0.62,
+        0.25,
+        0.17,
+        f"{spearman:.2f}",
+        "排名 Spearman",
+        "1=两次完整排序相同；0=无稳定次序",
+        GOLD,
+    )
+    metric(
+        fig,
+        canvas,
+        0.375,
+        0.62,
+        0.25,
+        0.17,
+        f"{100 * top1:.1f}%",
+        "六次 Top-1 完全相同",
+        "96 个状态中仅 2 个选中同一精确位姿",
+        RED,
+    )
+    metric(
+        fig,
+        canvas,
+        0.695,
+        0.62,
+        0.25,
+        0.17,
+        f"{100 * margin:.1f}%",
+        "Ensemble 前二相对间隔",
+        "第一名与第二名非常接近，选择易翻转",
+        BLUE,
+    )
+
+    definitions = [
+        (
+            "排名 Spearman 怎么算",
+            "任选两次噪声：\n"
+            "对 97 个视角各自排序，\n"
+            "再计算两份名次表相关性。\n\n"
+            "0.42 = 中等偏弱一致性。",
+            GOLD,
+        ),
+        (
+            "Top-1 完全相同是什么意思",
+            "同一状态重复 6 次：\n"
+            "仅 2.1% 的状态六次都选中\n"
+            "完全相同的精确相机位姿。\n\n"
+            "单噪声 argmin 不可靠。",
+            RED,
+        ),
+        (
+            "前二间隔为什么重要",
+            "先对 6 次 Accel 取均值，\n"
+            "再比较第一、第二名分数。\n\n"
+            "平均仅差 3.2%，说明\n"
+            "大量候选近似并列。",
+            BLUE,
+        ),
+    ]
+    xs = [0.055, 0.365, 0.675]
+    for x, (title, detail, color) in zip(xs, definitions):
+        box(canvas, x, 0.30, 0.27, 0.245)
+        canvas.add_patch(Rectangle((x, 0.49), 0.27, 0.055, transform=canvas.transAxes, color=color))
+        fig.text(x + 0.018, 0.517, title, fontsize=9.6, fontweight="bold", color=WHITE, va="center")
+        fig.text(x + 0.02, 0.455, detail, fontsize=8.5, color=INK, va="top", linespacing=1.35)
+
+    box(canvas, 0.055, 0.09, 0.89, 0.14, face="#FFF7E8", edge="#E6D2A8")
+    fig.text(0.08, 0.195, "这一页能下什么结论", fontsize=9.6, fontweight="bold", color=GOLD, va="top")
+    fig.text(
+        0.08,
+        0.158,
+        "Accel 对初始 flow noise 较敏感，因此正式闭环必须同时报告单噪声与六噪声均值选择。"
+        "但排名不稳定不等于行为一定无效，下一页仍需真实执行所选视角。",
+        fontsize=9.2,
+        color=INK,
+        va="top",
+        linespacing=1.4,
+    )
+    save_page(pdf, fig, page_number, preview_dir)
+
+
 def page_accel_results(pdf, preview_dir):
     fig, canvas = new_page(
         "Legacy Gate A：四个角色视角中的闭环选择",
@@ -857,12 +957,12 @@ def load_gate_a97_shortlist() -> dict[str, dict]:
 
 def page_accel_gate_a97(pdf, preview_dir, page_number=19):
     fig, canvas = new_page(
-        "正式 Gate A97：97 候选排序后执行完整闭环",
-        "8 任务 × 12 状态 × 4 模型；每个状态先对 97 个视角做 6-noise Accel 排名，再执行六种预注册选择条件。",
+        "97 视角闭环选择：Accel 没有改善主模型成功率",
+        "主分析固定为已通过基准门的 Broad64 practical：8 任务 × 12 状态；先排名 97 个视角，再真实执行六种选择规则。",
         page_number,
     )
     payload = load_gate_a97_shortlist()
-    model_labels = ["实用非配对", "状态匹配", "配对 FM", "配对+一致性"]
+    primary = payload["broad64-practical"]
     conditions = [
         ("canonical", "规范", BLUE),
         ("accel_single_noise", "Accel 单噪声", GRAY),
@@ -872,47 +972,57 @@ def page_accel_gate_a97(pdf, preview_dir, page_number=19):
         ("random_operational", "随机视角", "#A9AFB5"),
     ]
 
-    ax = fig.add_axes([0.055, 0.35, 0.63, 0.43])
-    x = list(range(len(GATE_A97_MODELS)))
-    width = 0.12
-    offsets = [(-2.5 + index) * width for index in range(len(conditions))]
-    for offset, (condition, label, color) in zip(offsets, conditions):
-        values = [
-            100 * payload[model]["condition_success"][condition]["state_success_rate"]
-            for model in GATE_A97_MODELS
-        ]
-        ax.bar([value + offset for value in x], values, width=width, color=color, label=label)
-    oracle = [100 * payload[model]["oracle_at_shortlist_state_rate"] for model in GATE_A97_MODELS]
-    ax.scatter(x, oracle, marker="D", s=34, color=INK, label="Oracle@6", zorder=5)
+    ax = fig.add_axes([0.055, 0.36, 0.59, 0.42])
+    labels = [label for _, label, _ in conditions] + ["Oracle@6"]
+    values = [
+        100 * primary["condition_success"][condition]["state_success_rate"]
+        for condition, _, _ in conditions
+    ] + [100 * primary["oracle_at_shortlist_state_rate"]]
+    colors = [color for _, _, color in conditions] + [INK]
+    bars = ax.bar(range(len(labels)), values, color=colors, width=0.68)
+    for bar, value in zip(bars, values):
+        ax.text(bar.get_x() + bar.get_width() / 2, value + 0.7, f"{value:.1f}", fontsize=7.5, ha="center")
     ax.set_ylabel("完整闭环成功率 (%)", fontsize=8.4)
-    ax.set_xticks(x, model_labels, fontsize=8.0)
-    ax.set_ylim(68, 100)
+    ax.set_xticks(range(len(labels)), labels, fontsize=7.0, rotation=12)
+    ax.set_ylim(72, 96)
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(axis="y", color=LINE, linewidth=0.8)
     ax.set_axisbelow(True)
-    ax.legend(ncol=4, loc="upper center", fontsize=6.8, frameon=False, bbox_to_anchor=(0.5, 1.16))
 
-    box(canvas, 0.715, 0.35, 0.23, 0.43, face="#EEF4F8", edge="#C6D7E1")
-    fig.text(0.738, 0.735, "相对规范视角", fontsize=10.2, fontweight="bold", color=BLUE, va="top")
-    y = 0.69
-    for model, label in zip(GATE_A97_MODELS, model_labels):
-        comparison = payload[model]["paired_source_bootstrap"]["accel_ensemble_vs_canonical"]
-        value = comparison["difference_pp"]
-        interval = f"[{comparison['ci_low_pp']:+.1f},{comparison['ci_high_pp']:+.1f}]"
-        color = TEAL if comparison["ci_low_pp"] > 0 else (RED if comparison["ci_high_pp"] < 0 else INK)
-        fig.text(0.738, y, label, fontsize=8.0, color=INK, va="top")
-        fig.text(0.91, y, f"{value:+.1f}pp", fontsize=8.2, fontweight="bold", color=color, ha="right", va="top")
-        fig.text(0.738, y - 0.028, interval, fontsize=7.2, color=MUTED, va="top")
-        y -= 0.083
+    box(canvas, 0.68, 0.36, 0.265, 0.42, face="#EEF4F8", edge="#C6D7E1")
+    fig.text(0.705, 0.735, "先把三个百分比说清楚", fontsize=10.2, fontweight="bold", color=BLUE, va="top")
+    fig.text(0.705, 0.68, "84.4%  规范视角", fontsize=11.0, fontweight="bold", color=BLUE, va="top")
+    fig.text(0.705, 0.645, "81 / 96 个状态完成任务", fontsize=8.2, color=INK, va="top")
+    fig.text(0.705, 0.585, "83.3%  六噪声 Accel", fontsize=11.0, fontweight="bold", color=RED, va="top")
+    fig.text(0.705, 0.55, "80 / 96；相对规范 −1.0pp", fontsize=8.2, color=INK, va="top")
+    fig.text(0.705, 0.49, "91.7%  Oracle@6", fontsize=11.0, fontweight="bold", color=INK, va="top")
+    fig.text(
+        0.705,
+        0.455,
+        "六种已执行条件中，只要任一成功\n就记为成功；这是事后上限，不是算法。",
+        fontsize=8.2,
+        color=INK,
+        va="top",
+        linespacing=1.35,
+    )
+    comparison = primary["paired_source_bootstrap"]["accel_ensemble_vs_canonical"]
+    fig.text(
+        0.705,
+        0.385,
+        f"配对 95% CI：[{comparison['ci_low_pp']:+.1f}, {comparison['ci_high_pp']:+.1f}]pp",
+        fontsize=8.0,
+        color=MUTED,
+        va="top",
+    )
 
     box(canvas, 0.055, 0.095, 0.89, 0.18, face="#FFF7E8", edge="#E6D2A8")
     fig.text(0.08, 0.24, "结论", fontsize=9.8, fontweight="bold", color=GOLD, va="top")
     fig.text(
         0.08,
         0.205,
-        "• 97 候选并未让 Accel 获得稳定闭环收益：六噪声选择相对规范为 −1.0、+2.1、−4.2、−6.2pp。\n"
-        "• 只有配对+一致性的下降 CI 排除 0；其余差异不足以证明提升。随机换视角普遍有害。\n"
-        "• Oracle@6 仍高于规范 3.1–9.4pp，说明局部候选存在行为差异；当前缺的是可靠 view-value，而不是候选完全相同。",
+        "• 主模型上，Accel 单噪声与规范相同；六噪声平均反而低 1.0pp，95% CI 跨 0，不能证明提升。\n"
+        "• 可见性最高也低 2.1pp；Top10+可见性高 2.1pp，但 CI 同样跨 0。现有规则没有稳定识别行为最优视角。\n"
+        "• 其他三种训练组织的六噪声差值为 +2.1、−4.2、−6.2pp，只作为稳健性审计；其中 consistency 已在基准门被判为基础能力受损。",
         fontsize=8.7,
         color=INK,
         va="top",
@@ -942,8 +1052,8 @@ def selected_oracle_rates(protocol: dict, result_root: Path) -> dict[str, float]
 
 def page_accel_failure_oracle(pdf, preview_dir, page_number=20):
     fig, canvas = new_page(
-        "Canonical 失败态 Oracle@97：候选池能否真正救援",
-        "从同一 96 状态正式集中取 Broad64 practical 的全部 15 个规范视角失败态，逐一执行完整 97 视角候选池。",
+        "只看规范视角失败的 15 个状态：换视角能救回几个",
+        "原 96 状态中规范视角成功 81 个、失败 15 个；本页只对这 15 个失败状态逐一执行全部 97 个候选视角。",
         page_number,
     )
     result_root = GATE_A97_ROOT / "oracle97-canonical-failures" / "broad64-practical"
@@ -955,44 +1065,12 @@ def page_accel_failure_oracle(pdf, preview_dir, page_number=20):
     oracle_rate = 100 * analysis["oracle_at_97_success_rate"]
     mean_fraction = 100 * analysis["mean_successful_candidate_fraction"]
 
-    metric(
-        fig,
-        canvas,
-        0.055,
-        0.61,
-        0.25,
-        0.18,
-        f"{oracle_rate:.1f}%",
-        "Oracle@97 救援率",
-        "演示分组 83.3% [63.6,100]",
-        TEAL,
-    )
-    metric(
-        fig,
-        canvas,
-        0.375,
-        0.61,
-        0.25,
-        0.18,
-        f"{rates['accel_ensemble']:.1f}%",
-        "六噪声 Accel 救援率",
-        "演示分组 40.9% [13.6,68.2]",
-        RED,
-    )
-    metric(
-        fig,
-        canvas,
-        0.695,
-        0.61,
-        0.25,
-        0.18,
-        f"{mean_fraction:.1f}%",
-        "平均成功候选比例",
-        "Accel-成功相关 +0.023 ≈ 0",
-        BLUE,
-    )
+    metric(fig, canvas, 0.055, 0.61, 0.25, 0.18, "15 / 96", "条件母集", "只分析规范视角失败状态", BLUE)
+    metric(fig, canvas, 0.375, 0.61, 0.25, 0.18, "12 / 15", "候选池可救回", "Oracle@97 = 80.0%，事后上限", TEAL)
+    metric(fig, canvas, 0.695, 0.61, 0.25, 0.18, "5 / 15", "六噪声 Accel 救回", "33.3%，与随机视角相同", RED)
 
     condition_order = [
+        ("canonical", "规范重放", BLUE),
         ("accel_single_noise", "Accel 单噪声", GRAY),
         ("accel_ensemble", "Accel 六噪声", RED),
         ("visibility_top1", "可见性最高", GOLD),
@@ -1001,29 +1079,37 @@ def page_accel_failure_oracle(pdf, preview_dir, page_number=20):
     ]
     ax = fig.add_axes([0.06, 0.30, 0.39, 0.27])
     labels = [label for _, label, _ in condition_order] + ["Oracle@97"]
-    values = [rates[key] for key, _, _ in condition_order] + [oracle_rate]
+    values = [round(rates[key] * 15 / 100) for key, _, _ in condition_order] + [round(oracle_rate * 15 / 100)]
     colors = [color for _, _, color in condition_order] + [INK]
     bars = ax.barh(range(len(labels)), values, color=colors)
     ax.set_yticks(range(len(labels)), labels, fontsize=7.7)
-    ax.set_xlim(0, 100)
-    ax.set_xlabel("canonical 失败态中的救援率 (%)", fontsize=7.8)
+    ax.set_xlim(0, 15.8)
+    ax.set_xticks([0, 3, 6, 9, 12, 15])
+    ax.set_xlabel("15 个条件失败状态中，当前规则执行成功的数量", fontsize=7.8)
     ax.invert_yaxis()
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(axis="x", color=LINE, linewidth=0.8)
     ax.set_axisbelow(True)
     for bar, value in zip(bars, values):
-        ax.text(min(value + 1.5, 95), bar.get_y() + bar.get_height() / 2, f"{value:.1f}", va="center", fontsize=7.2)
+        ax.text(value + 0.25, bar.get_y() + bar.get_height() / 2, f"{value}/15", va="center", fontsize=7.2)
 
-    state_rows = sorted(
-        analysis["state_rows"], key=lambda row: row["successful_candidate_count"] / 97
-    )
+    success_counts = [row["successful_candidate_count"] for row in analysis["state_rows"]]
+    bin_labels = ["0 个\n不可救", "1–24 个\n少量可救", "25–49 个\n部分可救", "50–97 个\n多数可救"]
+    bin_counts = [
+        sum(value == 0 for value in success_counts),
+        sum(1 <= value <= 24 for value in success_counts),
+        sum(25 <= value <= 49 for value in success_counts),
+        sum(50 <= value <= 97 for value in success_counts),
+    ]
     ax2 = fig.add_axes([0.53, 0.30, 0.415, 0.27])
-    fractions = [100 * row["successful_candidate_count"] / 97 for row in state_rows]
-    ax2.bar(range(len(fractions)), fractions, color=[RED if value == 0 else TEAL for value in fractions])
-    ax2.set_ylim(0, 105)
-    ax2.set_xlabel("15 个 canonical 失败状态（按成功候选比例排序）", fontsize=7.8)
-    ax2.set_ylabel("97 视角中的成功候选比例 (%)", fontsize=7.8)
-    ax2.set_xticks([])
+    bars2 = ax2.bar(range(4), bin_counts, color=[RED, GOLD, BLUE, TEAL], width=0.65)
+    ax2.set_ylim(0, 5)
+    ax2.set_xlabel("每个失败状态在 97 个候选中有多少个视角能成功", fontsize=7.8)
+    ax2.set_ylabel("状态数量（共 15 个）", fontsize=7.8)
+    ax2.set_xticks(range(4), bin_labels, fontsize=7.2)
+    ax2.set_yticks(range(0, 6))
+    for bar, value in zip(bars2, bin_counts):
+        ax2.text(bar.get_x() + bar.get_width() / 2, value + 0.12, str(value), ha="center", fontsize=8.0)
     ax2.spines[["top", "right"]].set_visible(False)
     ax2.grid(axis="y", color=LINE, linewidth=0.8)
     ax2.set_axisbelow(True)
@@ -1033,9 +1119,9 @@ def page_accel_failure_oracle(pdf, preview_dir, page_number=20):
     fig.text(
         0.08,
         0.155,
-        "Oracle@97 相对本轮 canonical 的演示分组增益为 +80.3pp [57.6,100]，候选池确有可救援空间。\n"
-        "六噪声 Accel 与随机视角同为 5/15；配对差 −4.5pp [−27.3,+13.6]。单噪声与 Top10+可见性为 6/15，也未稳定优于随机。\n"
-        "结论：Accel 能避开部分 canonical 失败，但没有证明它识别了行为更优视角；本页是条件失败诊断，不是总体 benchmark 成功率。",
+        "定义：某规则的救援率 = 该规则在这 15 个规范失败状态中执行成功的数量 ÷ 15；它不是前页 96 状态总体成功率。\n"
+        "Oracle@97 表示事后查看同一状态的 97 次完整闭环，只要其中至少一个成功就计为可救；12/15 证明候选池存在真实视角空间。\n"
+        "Accel 六噪声、可见性最高和随机视角均为 5/15；Accel 没有识别出这份空间。规范重放为 1/15，反映闭环 GPU/仿真重放并非完全确定。",
         fontsize=8.8,
         color=INK,
         va="top",
@@ -1150,7 +1236,6 @@ def main() -> None:
     expanded_catalog = expanded.load_json(expanded.DEFAULT_CATALOG)
     expanded_protocol = expanded.load_json(expanded.DEFAULT_PROTOCOL)
     expanded_summary = expanded.load_json(expanded.DEFAULT_ANALYSIS / "summary.json")
-    expanded_rows = expanded.load_csv(expanded.DEFAULT_ANALYSIS / "state_stability.csv")
     if expanded_summary.get("status") != "PASS":
         raise ValueError("expanded Accel analysis is not PASS")
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -1165,20 +1250,14 @@ def main() -> None:
         page_m1(pdf, args.preview_dir)
         page_m1_task_breakdown(pdf, args.preview_dir)
         page_accel_principle(pdf, args.preview_dir)
-        page_accel_results(pdf, args.preview_dir)
-        page_accel_expanded_guide(pdf, args.preview_dir, 12)
         expanded.page_definition(
-            pdf, args.preview_dir, expanded_catalog, expanded_protocol, 13
+            pdf, args.preview_dir, expanded_catalog, expanded_protocol, 11
         )
-        expanded.page_stability(pdf, args.preview_dir, expanded_summary, 14)
-        expanded.page_support(pdf, args.preview_dir, expanded_summary, 15)
-        expanded.page_roles(pdf, args.preview_dir, expanded_summary, 16)
-        expanded.page_tasks(pdf, args.preview_dir, expanded_rows, 17)
-        expanded.page_stages(pdf, args.preview_dir, expanded_rows, 18)
-        page_accel_gate_a97(pdf, args.preview_dir, 19)
-        page_accel_failure_oracle(pdf, args.preview_dir, 20)
-        page_kyc_cvc_boundary(pdf, args.preview_dir, 21)
-        page_takeaway(pdf, args.preview_dir, 22)
+        page_accel_reliability(pdf, args.preview_dir, expanded_summary, 12)
+        page_accel_gate_a97(pdf, args.preview_dir, 13)
+        page_accel_failure_oracle(pdf, args.preview_dir, 14)
+        page_kyc_cvc_boundary(pdf, args.preview_dir, 15)
+        page_takeaway(pdf, args.preview_dir, 16)
 
 if __name__ == "__main__":
     main()

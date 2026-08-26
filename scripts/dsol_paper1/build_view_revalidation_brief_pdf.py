@@ -650,8 +650,8 @@ def page_m1_task_breakdown(pdf, preview_dir):
 def page_m1_gate_a97_crosswalk(pdf, preview_dir, page_number=9):
     """Put the role-conditioned M1 and operational-bank Gate A97 results side by side."""
     fig, canvas = new_page(
-        "同页对照：角色化信息视角与 97 候选自动选择不是同一实验",
-        "使用同一个 seed41 checkpoint，但两套起始状态交集为 0；上表是信息敏感状态诊断，下表是任务均衡普通状态上的自动选择。",
+        "范围对照：A97 不承担“信息视角有效”的因果验证",
+        "使用同一个 seed41 checkpoint，但两套起始状态交集为 0；本页用于解释研究范围，不能把上下表的原始成功率直接比较。",
         page_number,
     )
     m1 = load_json(M1_CROSS_MODEL_METRICS)
@@ -1376,16 +1376,17 @@ def main() -> None:
         page_formal_benchmarks(pdf, args.preview_dir)
         page_m0(pdf, args.preview_dir)
         page_m1(pdf, args.preview_dir)
-        page_m1_gate_a97_crosswalk(pdf, args.preview_dir, 9)
+        page_m1_task_breakdown(pdf, args.preview_dir)
         page_accel_principle(pdf, args.preview_dir)
         expanded.page_definition(
             pdf, args.preview_dir, expanded_catalog, expanded_protocol, 11
         )
         page_accel_reliability(pdf, args.preview_dir, expanded_summary, 12)
         page_accel_gate_a97(pdf, args.preview_dir, 13)
-        page_accel_failure_oracle(pdf, args.preview_dir, 14)
-        page_kyc_cvc_boundary(pdf, args.preview_dir, 15)
-        page_takeaway(pdf, args.preview_dir, 16)
+        page_m1_gate_a97_crosswalk(pdf, args.preview_dir, 14)
+        page_accel_failure_oracle(pdf, args.preview_dir, 15)
+        page_kyc_cvc_boundary(pdf, args.preview_dir, 16)
+        page_takeaway(pdf, args.preview_dir, 17)
 
 if __name__ == "__main__":
     main()

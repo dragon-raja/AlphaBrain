@@ -946,90 +946,6 @@ def page_accel_reliability(pdf, preview_dir, expanded_summary, page_number=12):
     save_page(pdf, fig, page_number, preview_dir)
 
 
-def page_accel_a97_cohort(pdf, preview_dir, page_number=11):
-    """Define the custom Original LIBERO cohort used by the A97 selector gate."""
-    fig, canvas = new_page(
-        "B / A97 评测集：Original LIBERO 8-task exact-state diagnostic",
-        "不是全量 LIBERO，也不是 LIBERO-Plus Camera Full；它是跨套件、跨轨迹阶段的自定义选择器压力测试。",
-        page_number,
-    )
-
-    steps = [
-        ("1", "人工选 8 个任务", "覆盖 4 个 LIBERO 套件\n偏向容器、抽屉与遮挡关系", BLUE),
-        ("2", "Episode 级隔离", "原始演示按 SHA-256\n固定划分 train / val / test", TEAL),
-        ("3", "Test demo 抽样", "每任务从 test split\n按冻结哈希选 3 条演示", GOLD),
-        ("4", "阶段分层", "每条演示取 5% / 35% /\n65% / 90% 四个状态", RED),
-        ("5", "形成 96 状态", "8 任务 × 3 demos × 4 stages\n再扫描 97 个正常候选视角", GRAY),
-    ]
-    xs = [0.055, 0.238, 0.421, 0.604, 0.787]
-    for index, (number, title, detail, color) in enumerate(steps):
-        x = xs[index]
-        box(canvas, x, 0.675, 0.158, 0.125, face=WHITE, edge=LINE)
-        fig.text(x + 0.015, 0.772, number, fontsize=8.5, fontweight="bold", color=color, va="top")
-        fig.text(x + 0.04, 0.772, title, fontsize=9.0, fontweight="bold", color=INK, va="top")
-        fig.text(x + 0.015, 0.735, detail, fontsize=7.4, color=MUTED, va="top", linespacing=1.25)
-
-    rows = [
-        ["LIBERO-Goal", "奶油奶酪放入碗", "对象—容器可见性"],
-        ["LIBERO-Goal", "打开上层抽屉并放入碗", "抽屉内部与放置区域"],
-        ["LIBERO-Goal", "酒瓶放到酒架", "细目标几何与放置关系"],
-        ["LIBERO-10", "书放入收纳盒后格", "分隔空间与遮挡"],
-        ["LIBERO-10", "碗放入下层抽屉并关闭", "长程抽屉交互"],
-        ["LIBERO-10", "杯子放入微波炉并关闭", "电器内部与长程交互"],
-        ["LIBERO-Object", "奶油奶酪放入篮子", "宽视角下的对象识别"],
-        ["LIBERO-Spatial", "上层抽屉取碗并放到盘子", "抽屉遮挡与空间关系"],
-    ]
-    fig.text(0.055, 0.635, "任务组成：每项 12 个状态，共 96 个", fontsize=10.2, fontweight="bold", color=INK)
-    ax = fig.add_axes([0.055, 0.285, 0.89, 0.325])
-    ax.set_axis_off()
-    table = ax.table(
-        cellText=rows,
-        colLabels=["来源套件", "任务语义", "人工选择时希望覆盖的诊断关系"],
-        loc="center",
-        cellLoc="left",
-        colLoc="left",
-    )
-    table.auto_set_font_size(False)
-    table.set_fontsize(7.8)
-    table.scale(1, 1.25)
-    widths = [0.19, 0.37, 0.44]
-    for (row, col), cell in table.get_celld().items():
-        cell.set_edgecolor(LINE)
-        cell.set_width(widths[col])
-        if row == 0:
-            cell.set_facecolor(INK)
-            cell.get_text().set_color(WHITE)
-            cell.get_text().set_fontweight("bold")
-        else:
-            cell.set_facecolor(WHITE if row % 2 else "#EEF2F5")
-
-    box(canvas, 0.055, 0.075, 0.425, 0.15, face="#EAF3F0", edge="#BFD8D0")
-    fig.text(0.078, 0.195, "可以支撑", fontsize=9.3, fontweight="bold", color=TEAL, va="top")
-    fig.text(
-        0.078,
-        0.16,
-        "检验视角选择规则在多任务、不同操作阶段的普遍收益与伤害；\n"
-        "任务与状态均未按 Accel 分数筛选，因此可作为选择器安全性压力测试。",
-        fontsize=8.0,
-        color=INK,
-        va="top",
-        linespacing=1.35,
-    )
-    box(canvas, 0.505, 0.075, 0.44, 0.15, face="#FFF2F3", edge="#E6C5CA")
-    fig.text(0.528, 0.195, "不能支撑", fontsize=9.3, fontweight="bold", color=RED, va="top")
-    fig.text(
-        0.528,
-        0.16,
-        "不能代表全量 LIBERO / LIBERO-Plus Camera Full；任务为人工选择，\n"
-        "且 Strong-info 未设最小增量门槛，不能单独裁决信息视角因果效应。",
-        fontsize=8.0,
-        color=INK,
-        va="top",
-        linespacing=1.35,
-    )
-    save_page(pdf, fig, page_number, preview_dir)
-
-
 def page_accel_results(pdf, preview_dir):
     fig, canvas = new_page(
         "Legacy Gate A：四个角色视角中的闭环选择",
@@ -1170,7 +1086,7 @@ def load_gate_a97_shortlist() -> dict[str, dict]:
 def page_accel_gate_a97(pdf, preview_dir, page_number=19):
     fig, canvas = new_page(
         "97 视角闭环选择：Accel 没有改善主模型成功率",
-        "主分析固定为已通过基准门的 Broad64 practical：8 任务 × 12 状态；先排名 97 个视角，再真实执行六种选择规则。",
+        "Original LIBERO 自定义诊断集：8 任务 × 3 条 test demo × 4 个轨迹阶段；不是全量 LIBERO 或 LIBERO-Plus Camera Full。",
         page_number,
     )
     payload = load_gate_a97_shortlist()
@@ -1462,16 +1378,14 @@ def main() -> None:
         page_m1(pdf, args.preview_dir)
         page_m1_task_breakdown(pdf, args.preview_dir)
         page_accel_principle(pdf, args.preview_dir)
-        page_accel_a97_cohort(pdf, args.preview_dir, 11)
         expanded.page_definition(
-            pdf, args.preview_dir, expanded_catalog, expanded_protocol, 12
+            pdf, args.preview_dir, expanded_catalog, expanded_protocol, 11
         )
-        page_accel_reliability(pdf, args.preview_dir, expanded_summary, 13)
-        page_accel_gate_a97(pdf, args.preview_dir, 14)
-        page_m1_gate_a97_crosswalk(pdf, args.preview_dir, 15)
-        page_accel_failure_oracle(pdf, args.preview_dir, 16)
-        page_kyc_cvc_boundary(pdf, args.preview_dir, 17)
-        page_takeaway(pdf, args.preview_dir, 18)
+        page_accel_reliability(pdf, args.preview_dir, expanded_summary, 12)
+        page_accel_gate_a97(pdf, args.preview_dir, 13)
+        page_accel_failure_oracle(pdf, args.preview_dir, 14)
+        page_kyc_cvc_boundary(pdf, args.preview_dir, 15)
+        page_takeaway(pdf, args.preview_dir, 16)
 
 if __name__ == "__main__":
     main()

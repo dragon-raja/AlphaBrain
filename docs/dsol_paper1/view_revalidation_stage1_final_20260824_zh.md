@@ -144,9 +144,26 @@ Broad practical 的任一候选成功率比 Canonical 高 28.6pp，但 Accel 所
 状态级选择增益为 `0、+4.8、-4.8、0pp`；按 6 条 source demonstrations 等权后的预注册差值仅
 `-2.5pp` 至 `+3.3pp`。因此候选行为上限存在，但 Accel 没有稳定兑现。
 
+#### 96-state A97 cohort：数据来源与用途
+
+后续 97 视角审计和闭环选择使用的不是全量 LIBERO，也不是 LIBERO-Plus Camera Full，而是从
+Original LIBERO HDF5 构造的自定义 exact-state diagnostic。任务人工覆盖四个套件中的八类
+可见性相关操作：三个 LIBERO-Goal、三个 LIBERO-10、一个 LIBERO-Object 和一个
+LIBERO-Spatial。任务包括对象放入容器、抽屉内部操作、酒架放置、分隔空间放置和电器内部操作。
+
+原始演示先按 episode SHA-256 固定划分为 train/val/test；每个任务再从 test split 中按冻结哈希
+选择三条演示，并在每条演示约 `5% / 35% / 65% / 90%` 的轨迹位置恢复四个状态。因此总数为
+`8 tasks × 3 source demonstrations × 4 stages = 96 states`。状态选择不使用 Accel 分数，但同一
+演示的四个状态相关，正式统计单位应为 24 条 source demonstrations，而不是把 96 帧视为完全独立。
+
+这个 cohort 可以检验视角选择规则在多个任务和操作阶段上的普遍收益与伤害；不能代表官方完整
+LIBERO 成功率或 LIBERO-Plus Camera Full，也不能单独裁决“信息视角是否有效”。原因是任务为
+人工诊断性选择，而且该 cohort 的最高可见性候选没有设置最小 `Delta I` 准入阈值，包含大量
+没有明显信息机会、规范视角已经成功的普通状态。
+
 #### Gate B：跨 flow noise 测量可靠性
 
-随后在 8 个任务、96 个独立 test 状态上扩大固定状态诊断。每个状态使用 97 个正常候选和 6 个
+随后在 8 个任务、96 个 test 状态上扩大固定状态诊断。每个状态使用 97 个正常候选和 6 个
 共享 flow-noise seed。该层不替代闭环成功率，而是检验作为选择依据的 Accel 排名本身是否可重复：
 
 - 跨噪声完整排名 Spearman 仅 `0.287–0.430`；

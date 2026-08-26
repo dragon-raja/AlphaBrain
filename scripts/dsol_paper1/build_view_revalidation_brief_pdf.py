@@ -651,7 +651,7 @@ def page_m1_gate_a97_crosswalk(pdf, preview_dir, page_number=9):
     """Put the role-conditioned M1 and operational-bank Gate A97 results side by side."""
     fig, canvas = new_page(
         "同页对照：角色化信息视角与 97 候选自动选择不是同一实验",
-        "上表测试人工冻结的 Info / Control / Blind 因果角色；下表测试 97 个正常候选中的自动规则。百分比因状态集不同不能直接相减。",
+        "使用同一个 seed41 checkpoint，但两套起始状态交集为 0；上表是信息敏感状态诊断，下表是任务均衡普通状态上的自动选择。",
         page_number,
     )
     m1 = load_json(M1_CROSS_MODEL_METRICS)
@@ -762,14 +762,15 @@ def page_m1_gate_a97_crosswalk(pdf, preview_dir, page_number=9):
     fig.text(
         0.078,
         0.18,
-        "1. M1 Strong-info 是逐状态从更大诊断池冻结的角色视角，不使用 Accel；* 表示 Info−Control 的分组 CI 排除 0。\n"
-        "2. A97“可见性最高”也是纯可见性，不使用 Accel；只有“Accel Top10+可见性”是混合规则。\n"
-        "3. Practical 在 M1 出现信息特异性，但在 A97 中全局最大可见性低于规范：可见信息可能有用，但“像素最多”不是普适 view-value。\n"
-        "4. Paired FM 的规范视角只是在六种规则里最好；Oracle@6 仍为 93.8%，不能据此声称规范视角优于全部 97 个候选。",
-        fontsize=8.3,
+        "1. 没有额外训练：两表使用同一 Broad64 practical checkpoint；M1 与 A97 的状态交集为 0。\n"
+        "2. M1：21 个信息阈值/人工审计状态，3 任务且分布为 2/10/9，平均轨迹阶段 25.9%；Strong-info 不使用 Accel。\n"
+        "3. A97：8 任务 × 12 状态，平均轨迹阶段 48.8%；“可见性最高”不使用 Accel，只有 Top10+可见性是混合规则。\n"
+        "4. M1 正信号集中于抽屉任务（50%→90%）；微波炉下降（77.8%→66.7%），酒架均为 0%，所以 A 没有建立普遍增益。\n"
+        "5. A97 否定的是“在普通状态中直接最大化可见像素能普遍增益”；Paired FM 的规范视角也只是六种规则中最好，并非全部 97 个候选最优。",
+        fontsize=7.8,
         color=INK,
         va="top",
-        linespacing=1.32,
+        linespacing=1.28,
     )
     save_page(pdf, fig, page_number, preview_dir)
 

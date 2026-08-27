@@ -86,6 +86,7 @@ def snapshot(
         "task_id": "task-a",
         "episode_id": episode_id,
         "frame": 0,
+        "stage_fraction": 0.5,
         "initial_task_success": False,
         "scan_path": f"/{scan_id}/scan.json",
         "montage_path": f"/{scan_id}/visibility_extremes.png",
@@ -119,6 +120,30 @@ class SelectConstructedM0CandidatesTest(unittest.TestCase):
             ],
             1,
         )
+
+    def test_late_states_are_excluded_before_threshold_freeze(self) -> None:
+        rows = complete_population()
+        rows[0]["stage_fraction"] = 0.75
+        output = build_selection(rows, protocol=TEST_PROTOCOL)
+        self.assertEqual(output["status"], "HOLD")
+        self.assertEqual(output["ineligible_snapshot_group_count"], 1)
+        self.assertEqual(
+            output["ineligible_snapshot_groups"][0]["reason"],
+            "stage_fraction_above_protocol_max",
+        )
+        self.assertEqual(
+            output["frozen_rules"]["task_rules"]["task-a"][
+                "validation_snapshot_count"
+            ],
+            1,
+        )
+
+    def test_selected_records_preserve_stage_eligibility_fields(self) -> None:
+        output = build_selection(complete_population(), protocol=TEST_PROTOCOL)
+        selected = output["selected_snapshot_groups"]
+        self.assertEqual(len(selected), 2)
+        self.assertTrue(all(row["stage_fraction"] == 0.5 for row in selected))
+        self.assertTrue(all(row["initial_task_success"] is False for row in selected))
 
     def test_explicit_task_scope_is_audited_without_mutating_full_input(self) -> None:
         rows = complete_population()

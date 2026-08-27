@@ -29,6 +29,10 @@ LOOK_AWAY_GROUPS = ("diagnostic_look_away",)
 DEFAULT_PROTOCOL: dict[str, Any] = {
     "eligibility": {
         "require_initial_task_unsolved": True,
+        # The scan grid samples nominal 5%, 15%, ..., 95% trajectory stages.
+        # Keep only the prefix through the 65% cell so near-terminal states
+        # cannot inflate closed-loop success independently of observation.
+        "maximum_stage_fraction": 0.70,
     },
     "strong_info": {
         "episode_quantile": 0.25,
@@ -567,6 +571,8 @@ def select_snapshot(
         "split": str(snapshot["split"]),
         "source_episode_id": str(snapshot["episode_id"]),
         "source_frame": int(snapshot["frame"]),
+        "stage_fraction": float(snapshot["stage_fraction"]),
+        "initial_task_success": bool(snapshot["initial_task_success"]),
         "source_scan_path": str(snapshot.get("scan_path", "")),
         "montage_path": str(snapshot.get("montage_path", "")),
         "conditions": conditions,
@@ -628,13 +634,25 @@ def build_selection(
     require_unsolved = bool(
         resolved["eligibility"]["require_initial_task_unsolved"]
     )
+    maximum_stage_fraction = float(
+        resolved["eligibility"]["maximum_stage_fraction"]
+    )
+    if not 0.0 < maximum_stage_fraction < 1.0:
+        raise ValueError("eligibility.maximum_stage_fraction must be in (0, 1)")
     for snapshot in snapshots:
         initial_success = snapshot.get("initial_task_success")
+        stage_fraction = snapshot.get("stage_fraction")
         reason = None
         if require_unsolved and not isinstance(initial_success, bool):
             reason = "initial_task_success_missing"
         elif require_unsolved and initial_success:
             reason = "initial_task_already_successful"
+        elif not isinstance(stage_fraction, (int, float)) or not math.isfinite(
+            float(stage_fraction)
+        ):
+            reason = "stage_fraction_missing_or_invalid"
+        elif float(stage_fraction) > maximum_stage_fraction:
+            reason = "stage_fraction_above_protocol_max"
         if reason is None:
             eligible_snapshots.append(snapshot)
         else:
@@ -644,6 +662,8 @@ def build_selection(
                     "split": snapshot["split"],
                     "task_id": snapshot["task_id"],
                     "source_episode_id": snapshot["episode_id"],
+                    "stage_fraction": stage_fraction,
+                    "maximum_stage_fraction": maximum_stage_fraction,
                     "reason": reason,
                 }
             )

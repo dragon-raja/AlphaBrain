@@ -1,6 +1,7 @@
 {
   "eligibility": {
-    "require_initial_task_unsolved": true
+    "require_initial_task_unsolved": true,
+    "maximum_stage_fraction": 0.70
   },
   "strong_info": {
     "episode_quantile": 0.25,

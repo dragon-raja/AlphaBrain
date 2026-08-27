@@ -54,12 +54,50 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=20260818)
     parser.add_argument("--calibration-episodes-per-task", type=int, default=2)
     parser.add_argument("--test-episodes-per-task", type=int, default=3)
+    parser.add_argument(
+        "--all-test-episodes",
+        action="store_true",
+        help="Use every eligible test episode instead of a fixed per-task limit.",
+    )
+    parser.add_argument(
+        "--splits",
+        default="val,test",
+        help="Comma-separated split subset to emit (default: val,test).",
+    )
+    parser.add_argument(
+        "--exclude-plan",
+        type=Path,
+        help="Exclude every source episode already present in another scan plan.",
+    )
+    parser.add_argument(
+        "--allow-empty-task-splits",
+        action="store_true",
+        help="Permit an incremental plan to have no new episodes for a task/split.",
+    )
     parser.add_argument("--stage-fractions", default="0.05,0.35,0.65,0.90")
     args = parser.parse_args()
 
     fractions = [float(value) for value in args.stage_fractions.split(",")]
     if not fractions or any(not 0.0 <= value <= 1.0 for value in fractions):
         raise ValueError("stage fractions must lie in [0, 1]")
+    requested_splits = tuple(
+        value.strip() for value in args.splits.split(",") if value.strip()
+    )
+    if not requested_splits or any(
+        value not in {"val", "test"} for value in requested_splits
+    ):
+        raise ValueError("splits must be a nonempty subset of val,test")
+    excluded_episode_ids: set[str] = set()
+    excluded_plan_sha256 = None
+    if args.exclude_plan is not None:
+        excluded_plan_path = args.exclude_plan.resolve()
+        excluded_plan = json.loads(excluded_plan_path.read_text())
+        excluded_episode_ids = {
+            str(row["episode_id"]) for row in excluded_plan.get("records", [])
+        }
+        excluded_plan_sha256 = hashlib.sha256(
+            excluded_plan_path.read_bytes()
+        ).hexdigest()
     episode_splits = load_episode_splits(args.pair_root.resolve())
     collection = json.loads(args.collection_plan.read_text())
     records = []
@@ -74,17 +112,32 @@ def main() -> None:
             for demo_index, demo_name in enumerate(demos):
                 episode_id = f"{suite}::{stem}::{demo_name}"
                 split = episode_splits.get(episode_id)
-                if split in {"val", "test"}:
+                if split in requested_splits and episode_id not in excluded_episode_ids:
                     candidates[split].append((demo_index, demo_name, episode_id))
             for split, episode_limit in (
                 ("val", args.calibration_episodes_per_task),
                 ("test", args.test_episodes_per_task),
             ):
-                ranked = sorted(
+                if split not in requested_splits:
+                    continue
+                ranked_all = sorted(
                     candidates[split],
                     key=lambda row: stable_key(args.seed, row[2]),
-                )[:episode_limit]
-                if len(ranked) < episode_limit:
+                )
+                ranked = (
+                    ranked_all
+                    if split == "test" and args.all_test_episodes
+                    else ranked_all[:episode_limit]
+                )
+                if not ranked and args.allow_empty_task_splits:
+                    continue
+                if not ranked:
+                    raise ValueError(
+                        f"{task['task_id']} has no eligible {split} episodes after exclusions"
+                    )
+                if not (split == "test" and args.all_test_episodes) and len(
+                    ranked
+                ) < episode_limit:
                     raise ValueError(
                         f"{task['task_id']} has {len(ranked)} {split} episodes; "
                         f"requires {episode_limit}"
@@ -121,6 +174,13 @@ def main() -> None:
             (args.pair_root.resolve() / "manifest.json").read_bytes()
         ).hexdigest(),
         "collection_plan": str(args.collection_plan.resolve()),
+        "requested_splits": list(requested_splits),
+        "all_test_episodes": bool(args.all_test_episodes),
+        "excluded_source_episode_count": len(excluded_episode_ids),
+        "exclude_plan": (
+            None if args.exclude_plan is None else str(args.exclude_plan.resolve())
+        ),
+        "exclude_plan_sha256": excluded_plan_sha256,
         "stage_fractions": fractions,
         "record_count": len(records),
         "counts": dict(sorted(counts.items())),

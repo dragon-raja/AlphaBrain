@@ -7,12 +7,17 @@ import argparse
 import csv
 import glob
 import json
+import sys
 import tempfile
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 import numpy as np
+
+REPO_ROOT = str(Path(__file__).resolve().parents[2])
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
 from scripts.dsol_paper1.summarize_view_repeatability import (
     BOOTSTRAP_RESAMPLES,

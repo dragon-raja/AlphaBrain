@@ -61,7 +61,7 @@ for index in "${!SEEDS[@]}"; do
   REPLAN_STEPS=5 \
   WAIT_STEPS=0 \
   EVAL_SEED="$seed" \
-  VIDEO_EPISODES=64 \
+  VIDEO_EPISODES=1 \
   RUN_ANALYSIS=0 \
     "$EVALUATOR"
 done

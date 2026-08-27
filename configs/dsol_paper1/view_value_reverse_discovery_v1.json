@@ -1,0 +1,134 @@
+{
+  "schema": "dsol_view_value_reverse_discovery_protocol_v1",
+  "status": "FROZEN_FOR_DISCOVERY_PILOT",
+  "purpose": "Construct genuine visibility-opportunity states, measure the behavior-oracle view envelope, and derive view-value hypotheses before changing the visibility definition.",
+  "research_questions": [
+    "Does a large physically valid candidate bank contain views that improve closed-loop behavior over canonical?",
+    "Which observation and geometry properties distinguish behavior-positive views within the same task state?",
+    "Can a selector learned on disjoint source demonstrations recover the behavior-oracle headroom on untouched states?"
+  ],
+  "data_roles": {
+    "legacy_a97": {
+      "role": "post_hoc_discovery_only",
+      "confirmatory_test_eligible": false,
+      "reason": "Outcomes have already been inspected and each state-view has only one rollout."
+    },
+    "new_discovery": {
+      "source_demonstrations": "disjoint from calibration and final test",
+      "allowed_uses": [
+        "task construction",
+        "feature discovery",
+        "selector fitting"
+      ]
+    },
+    "new_calibration": {
+      "source_demonstrations": "disjoint from discovery and final test",
+      "allowed_uses": [
+        "threshold freezing",
+        "candidate budget selection",
+        "model selection"
+      ]
+    },
+    "new_final_test": {
+      "source_demonstrations": "untouched until all definitions and thresholds are frozen",
+      "allowed_uses": [
+        "one-shot confirmatory evaluation"
+      ]
+    }
+  },
+  "task_tracks": {
+    "natural_screen": {
+      "priority_tasks": [
+        "goal_top_drawer_bowl",
+        "goal_wine_rack",
+        "libero10_bowl_bottom_drawer",
+        "spatial_drawer_bowl_plate"
+      ],
+      "selection": "Sample multiple stages and retain states with measurable canonical-to-candidate evidence variation without using closed-loop test outcomes."
+    },
+    "constructed_visibility": {
+      "priority_tasks": [
+        "goal_cream_cheese_bowl",
+        "spatial_drawer_bowl_plate",
+        "goal_top_drawer_bowl",
+        "object_cream_cheese_basket"
+      ],
+      "requirements": [
+        "same physics state across camera conditions",
+        "canonical or blind view hides a task-relevant entity or region",
+        "reveal view exposes that evidence",
+        "matched-control pose has similar displacement without evidence gain",
+        "constructed states are evaluation-only"
+      ]
+    }
+  },
+  "candidate_banks": {
+    "operational_dense_97": "canonical + broad training 64 + broad held-out 32",
+    "diagnostic_extremes": "look-away + crossed orbit + all-camera blackout; evaluation-only negative controls",
+    "constructed_reveal_pairs": "task-specific reveal and displacement-matched control poses"
+  },
+  "visibility_policy": {
+    "primary_v1_frozen": "equal mean visible-pixel fraction over frozen task entities and deployed camera channels",
+    "primary_delta": "visibility(candidate) - visibility(canonical)",
+    "exploratory_features": [
+      "external-camera visibility",
+      "minimum entity visibility",
+      "harmonic mean entity visibility",
+      "visible entity count",
+      "occlusion and border contact",
+      "target-receptacle joint visibility",
+      "stage-conditioned entity relevance"
+    ],
+    "rule": "Do not replace the primary definition until an alternative wins source-group cross-validation and untouched calibration."
+  },
+  "behavior_value": {
+    "ordering": [
+      "task success",
+      "stage progress",
+      "negative completion steps"
+    ],
+    "single_rollout_label": "weak discovery label",
+    "stable_label": "mean over at least three shared policy-noise seeds",
+    "pairing": "All views for one state share physics, task, controller, horizon, and policy-noise seeds."
+  },
+  "pilot_scale": {
+    "discovery_source_episodes_per_task": 4,
+    "states_per_source_episode": 3,
+    "minimum_tasks": 4,
+    "target_states": 48,
+    "first_pass_views_per_state": 97,
+    "first_pass_rollouts_per_view": 1,
+    "repeat_shortlist_size": 8,
+    "repeat_policy_noise_seeds": 3
+  },
+  "selection_baselines": [
+    "canonical",
+    "global fixed pose selected on discovery",
+    "random candidate",
+    "visibility top-1",
+    "Accel top-1",
+    "Accel top-10 then visibility",
+    "learned within-state pairwise ranker",
+    "behavior oracle"
+  ],
+  "analysis": {
+    "independent_unit": "source demonstration",
+    "ranking_unit": "candidate views within the same physical state",
+    "required_metrics": [
+      "canonical success",
+      "oracle-at-bank success",
+      "selector top-1 success",
+      "selector top-k hit curve",
+      "state-conditional ranking AUC",
+      "paired source-group bootstrap confidence interval",
+      "rescue and harm counts"
+    ]
+  },
+  "gates": {
+    "candidate_headroom": "Oracle-at-bank improves over canonical by at least 15 percentage points on source-group macro success.",
+    "repeatability": "Behavior-positive views remain positive across at least three shared policy-noise seeds.",
+    "information_specificity": "Reveal outperforms a displacement-matched control, not only canonical.",
+    "selector_viability": "A non-oracle selector beats random and a discovery-selected global fixed pose on untouched calibration sources.",
+    "final_test": "Definitions, shortlist budget, and selector are frozen before final-test outcomes are generated."
+  }
+}

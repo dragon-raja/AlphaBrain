@@ -838,11 +838,45 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--ledger", type=Path, action="append", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
+        "--task-id",
+        action="append",
+        dest="task_ids",
+        help=(
+            "Restrict selection to an explicit task scope. Repeat for multiple "
+            "tasks; the full scan input is still audited before filtering."
+        ),
+    )
+    parser.add_argument(
         "--protocol-json",
         type=Path,
         help="Optional selector-only overrides; test measurements must not appear here.",
     )
     return parser.parse_args(argv)
+
+
+def restrict_task_scope(
+    snapshots: Sequence[Mapping[str, Any]],
+    task_ids: Sequence[str],
+    requested_task_ids: Sequence[str] | None,
+    input_audit: Mapping[str, Any],
+) -> tuple[list[Mapping[str, Any]], list[str], dict[str, Any]]:
+    if not requested_task_ids:
+        return list(snapshots), list(task_ids), dict(input_audit)
+    requested = sorted(set(str(value) for value in requested_task_ids))
+    available = set(str(value) for value in task_ids)
+    unknown = sorted(set(requested).difference(available))
+    if unknown:
+        raise ValueError(f"requested tasks are absent from the scan plan: {unknown}")
+    filtered = [row for row in snapshots if str(row["task_id"]) in requested]
+    audit = dict(input_audit)
+    audit.update(
+        {
+            "task_scope": "explicit_subset",
+            "requested_task_ids": requested,
+            "filtered_pass_scan_count": len(filtered),
+        }
+    )
+    return filtered, requested, audit
 
 
 def main() -> None:
@@ -853,6 +887,12 @@ def main() -> None:
         else None
     )
     snapshots, task_ids, audit = load_scan_inputs(args.scan_plan, args.ledger)
+    snapshots, task_ids, audit = restrict_task_scope(
+        snapshots,
+        task_ids,
+        args.task_ids,
+        audit,
+    )
     result = build_selection(
         snapshots,
         task_ids=task_ids,

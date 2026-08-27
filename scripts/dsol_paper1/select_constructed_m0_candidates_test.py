@@ -3,7 +3,10 @@ from __future__ import annotations
 import copy
 import unittest
 
-from scripts.dsol_paper1.select_constructed_m0_candidates import build_selection
+from scripts.dsol_paper1.select_constructed_m0_candidates import (
+    build_selection,
+    restrict_task_scope,
+)
 
 
 TEST_PROTOCOL = {
@@ -99,6 +102,35 @@ def complete_population() -> list[dict]:
 
 
 class SelectConstructedM0CandidatesTest(unittest.TestCase):
+    def test_explicit_task_scope_is_audited_without_mutating_full_input(self) -> None:
+        rows = complete_population()
+        second_task = copy.deepcopy(rows)
+        for row in second_task:
+            row["scan_id"] = f"task-b-{row['scan_id']}"
+            row["task_id"] = "task-b"
+        full = rows + second_task
+        audit = {"status": "PASS", "planned_scan_count": len(full)}
+        filtered, task_ids, filtered_audit = restrict_task_scope(
+            full,
+            ["task-a", "task-b"],
+            ["task-b"],
+            audit,
+        )
+        self.assertEqual(task_ids, ["task-b"])
+        self.assertEqual(len(filtered), len(second_task))
+        self.assertEqual(filtered_audit["task_scope"], "explicit_subset")
+        self.assertEqual(filtered_audit["filtered_pass_scan_count"], len(second_task))
+        self.assertEqual(audit, {"status": "PASS", "planned_scan_count": len(full)})
+
+    def test_explicit_task_scope_rejects_unknown_task(self) -> None:
+        with self.assertRaisesRegex(ValueError, "absent from the scan plan"):
+            restrict_task_scope(
+                complete_population(),
+                ["task-a"],
+                ["missing-task"],
+                {"status": "PASS"},
+            )
+
     def test_test_measurements_cannot_change_frozen_thresholds(self) -> None:
         first = complete_population()
         second = copy.deepcopy(first)

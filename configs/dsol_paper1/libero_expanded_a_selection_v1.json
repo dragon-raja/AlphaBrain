@@ -1,0 +1,25 @@
+{
+  "strong_info": {
+    "episode_quantile": 0.25,
+    "minimum_delta": 0.005,
+    "maximum_frozen_delta": 0.05
+  },
+  "matched_control": {
+    "episode_quantile": 0.75,
+    "minimum_abs_delta": 0.001,
+    "maximum_abs_delta": 0.01,
+    "minimum_translation_tolerance_m": 0.02,
+    "maximum_translation_tolerance_m": 0.15,
+    "minimum_rotation_tolerance_deg": 3.0,
+    "maximum_rotation_tolerance_deg": 30.0,
+    "geometry_translation_scale_m": 0.05,
+    "geometry_rotation_scale_deg": 10.0
+  },
+  "population": {
+    "minimum_task_count": 6,
+    "minimum_val_episodes_per_task": 2,
+    "minimum_test_episodes_per_task": 2,
+    "minimum_selected_test_snapshots_per_episode": 1
+  },
+  "manual_visual_audit_required": true
+}

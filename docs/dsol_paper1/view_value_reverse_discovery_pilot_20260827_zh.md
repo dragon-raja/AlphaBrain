@@ -44,3 +44,29 @@
 7. 仅在 untouched calibration 上确认稳定后，冻结 selector 并进入一次性 final test。
 
 正式协议见 `configs/dsol_paper1/view_value_reverse_discovery_v1.json`。
+
+## 构造场景 Dense-View Pilot
+
+在 2 个构造任务、4 条 validation source demonstrations 上各选择两个阶段状态。每个状态使用相同物理快照穷举 97 个 operational views，共完成 776 个完整闭环 episode；无错误，所有同状态记录的物理哈希一致。
+
+| 指标 | 结果 |
+|---|---:|
+| 状态 / source demonstrations | 8 / 4 |
+| Canonical 成功率 | 75.0% |
+| Oracle@97 成功率 | 100.0% |
+| Oracle 相对 Canonical 上限 | +25.0pp |
+| 当前可见性 Top-1 成功率 | 75.0% |
+| 当前可见性同状态排序 AUC | 0.489 |
+| 最小实体可见性排序 AUC | 0.458 |
+| 留一 source 全局固定视角成功率 | 75.0% |
+
+任务分解：
+
+| 任务 | 状态数 | Canonical | Oracle@97 | 平均成功视角占比 |
+|---|---:|---:|---:|---:|
+| Cream cheese -> bowl | 4 | 100.0% | 100.0% | 96.4% |
+| Drawer bowl -> plate | 4 | 50.0% | 100.0% | 48.2% |
+
+Cream-cheese 构造状态没有行为 headroom，不应继续作为信息价值主任务。Drawer-bowl-plate 出现两个 canonical-failure states：一个仅 5/97 个视角成功，另一个 77/97 个视角成功，说明同一任务内同时存在稀疏救援与宽救援状态。
+
+当前可见性没有兑现 Oracle 上限。在 5/97 的稀疏救援状态中，成功视角的实体可见性普遍低于 canonical，可见性排序 AUC 仅 0.284。这表明当前构造仍混合了任务证据、策略视角兼容性与 rollout 随机性；必须先对行为候选做多 seed 重复，再从稳定正例中学习信息定义。

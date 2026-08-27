@@ -25,6 +25,8 @@ def main() -> None:
         "accel_ensemble": ("Accel-ranked top-k", "#C55A6A", "-"),
     }
     for key, (label, color, linestyle) in styles.items():
+        if key not in curves:
+            continue
         rows = curves[key]
         axes[0].plot(
             [row["budget"] for row in rows],
@@ -43,8 +45,14 @@ def main() -> None:
     axes[0].legend(frameon=False)
 
     diagnostics = data["score_diagnostics"]
-    names = ["Visibility", "Min-entity", "Accel"]
-    keys = ["visibility_mean", "visibility_min_entity", "accel_ensemble"]
+    labels_and_keys = [
+        ("Visibility", "visibility_mean"),
+        ("Min-entity", "visibility_min_entity"),
+        ("Accel", "accel_ensemble"),
+    ]
+    labels_and_keys = [item for item in labels_and_keys if item[1] in diagnostics]
+    names = [item[0] for item in labels_and_keys]
+    keys = [item[1] for item in labels_and_keys]
     top1 = [100 * diagnostics[key]["top1_success_rate"] for key in keys]
     auc = [100 * diagnostics[key]["state_conditional_auc"] for key in keys]
     x = range(len(names))
@@ -63,7 +71,7 @@ def main() -> None:
         axes[1].text(index + 0.18, value + 1.5, f"{value:.1f}", ha="center", fontsize=9)
 
     fig.suptitle(
-        f"A97 canonical-failure discovery: {data['states']} states, "
+        f"Dense-view behavior discovery: {data['states']} states, "
         f"Oracle@97={100 * data['oracle_at_all_success_rate']:.1f}%",
         fontsize=14,
         fontweight="bold",

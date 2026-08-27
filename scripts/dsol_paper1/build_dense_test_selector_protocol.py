@@ -186,6 +186,7 @@ def build(
         ),
         "episode_count": len(specs),
         "candidate_count": int(protocol["candidate_count"]),
+        "catalog": str(protocol["catalog"]),
         "visibility_gain_threshold": visibility_gain_threshold,
         "validation_global_fixed_candidate": global_fixed_candidate,
         "dense_test_protocol": str(dense_protocol_path.resolve()),

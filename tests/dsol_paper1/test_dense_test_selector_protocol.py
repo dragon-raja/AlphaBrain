@@ -43,6 +43,7 @@ def test_builder_freezes_outcome_blind_selector_methods(tmp_path: Path) -> None:
         "status": "PASS",
         "split": "test",
         "candidate_count": 2,
+        "catalog": "/tmp/catalog.json",
         "specs": [_spec(pair_key, "canonical"), _spec(pair_key, "view-b")],
     }
     scans = {
@@ -61,6 +62,7 @@ def test_builder_freezes_outcome_blind_selector_methods(tmp_path: Path) -> None:
     assert payload["selection_uses_test_policy_outcomes"] is False
     assert payload["selector_methods"] == list(SELECTOR_METHODS)
     assert payload["episode_count"] == len(SELECTOR_METHODS)
+    assert payload["catalog"] == "/tmp/catalog.json"
     selected = payload["selected_states"][0]["selections"]
     assert selected["canonical"] == "canonical"
     assert selected["visibility_mean"] == "view-b"

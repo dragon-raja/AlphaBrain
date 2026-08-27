@@ -80,6 +80,34 @@ def select_state_categories(rows: Sequence[Mapping[str, Any]]) -> dict[str, str]
     }
 
 
+def categorize_all_states(rows: Sequence[Mapping[str, Any]]) -> dict[str, str]:
+    by_state: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
+    for row in rows:
+        by_state[str(row["pair_key"])].append(row)
+    categories = {}
+    for pair_key, values in sorted(by_state.items()):
+        canonical = next(
+            row for row in values if row["selected_candidate_id"] == "canonical"
+        )
+        success_fraction = float(np.mean([row["success"] for row in values]))
+        if success_fraction == 0.0:
+            category = "no_discovery_success"
+        elif not bool(canonical["success"]):
+            category = (
+                "canonical_failure_sparse"
+                if success_fraction <= 0.10
+                else "canonical_failure_broad"
+            )
+        else:
+            category = (
+                "canonical_success_harm"
+                if success_fraction <= 0.50
+                else "canonical_success_broad"
+            )
+        categories[pair_key] = category
+    return categories
+
+
 def best_global_candidate(rows: Sequence[Mapping[str, Any]]) -> str:
     by_candidate: dict[str, list[bool]] = defaultdict(list)
     for row in rows:
@@ -96,29 +124,57 @@ def choose_candidates(
     by_id = {str(row["selected_candidate_id"]): row for row in values}
     successes = [row for row in values if row["success"]]
     failures = [row for row in values if not row["success"]]
-    fastest = min(successes, key=lambda row: (row["completion_steps"], row["selected_candidate_id"]))
     visibility_high = max(values, key=lambda row: (row["initial_metrics"]["task_entity_visibility"]["score"], row["selected_candidate_id"]))
     visibility_low = min(values, key=lambda row: (row["initial_metrics"]["task_entity_visibility"]["score"], row["selected_candidate_id"]))
-    success_high = max(successes, key=lambda row: (row["initial_metrics"]["task_entity_visibility"]["score"], row["selected_candidate_id"]))
-    success_low = min(successes, key=lambda row: (row["initial_metrics"]["task_entity_visibility"]["score"], row["selected_candidate_id"]))
-    if failures:
-        nearest_failure = min(
-            failures,
-            key=lambda row: (normalized_pose_distance(row, fastest), row["selected_candidate_id"]),
-        )
-    else:
-        nearest_failure = visibility_low
-
     requested = [
         ("canonical", "canonical"),
         ("visibility_top1", str(visibility_high["selected_candidate_id"])),
         ("visibility_bottom1", str(visibility_low["selected_candidate_id"])),
-        ("discovery_fastest_success", str(fastest["selected_candidate_id"])),
-        ("highest_visibility_success", str(success_high["selected_candidate_id"])),
-        ("lowest_visibility_success", str(success_low["selected_candidate_id"])),
-        ("nearest_failure_to_fastest", str(nearest_failure["selected_candidate_id"])),
         ("discovery_global_fixed", global_candidate),
     ]
+    if successes:
+        fastest = min(
+            successes,
+            key=lambda row: (row["completion_steps"], row["selected_candidate_id"]),
+        )
+        success_high = max(
+            successes,
+            key=lambda row: (
+                row["initial_metrics"]["task_entity_visibility"]["score"],
+                row["selected_candidate_id"],
+            ),
+        )
+        success_low = min(
+            successes,
+            key=lambda row: (
+                row["initial_metrics"]["task_entity_visibility"]["score"],
+                row["selected_candidate_id"],
+            ),
+        )
+        nearest_failure = (
+            min(
+                failures,
+                key=lambda row: (
+                    normalized_pose_distance(row, fastest),
+                    row["selected_candidate_id"],
+                ),
+            )
+            if failures
+            else visibility_low
+        )
+        requested.extend(
+            [
+                ("discovery_fastest_success", str(fastest["selected_candidate_id"])),
+                ("highest_visibility_success", str(success_high["selected_candidate_id"])),
+                ("lowest_visibility_success", str(success_low["selected_candidate_id"])),
+                (
+                    "nearest_failure_to_fastest",
+                    str(nearest_failure["selected_candidate_id"]),
+                ),
+            ]
+        )
+    else:
+        requested.append(("no_discovery_success", "canonical"))
     roles: dict[str, list[str]] = defaultdict(list)
     selected = []
     for role, candidate in requested:
@@ -146,9 +202,17 @@ def build_protocols(
     *,
     eval_seeds: Sequence[int],
     shortlist_size: int,
+    selection_mode: str = "key_states",
 ) -> dict[int, dict[str, Any]]:
-    categories = select_state_categories(discovery_rows)
-    selected_pairs = {pair_key: category for category, pair_key in categories.items()}
+    if selection_mode == "key_states":
+        categories = select_state_categories(discovery_rows)
+        selected_pairs = {
+            pair_key: category for category, pair_key in categories.items()
+        }
+    elif selection_mode == "all_states":
+        selected_pairs = categorize_all_states(discovery_rows)
+    else:
+        raise ValueError(f"unsupported selection mode: {selection_mode}")
     by_state: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
     for row in discovery_rows:
         by_state[str(row["pair_key"])].append(row)
@@ -200,6 +264,7 @@ def build_protocols(
             "selection_uses_policy_outcomes": True,
             "statistical_unit": "source HDF5 demonstration",
             "catalog": base_protocol["catalog"],
+            "selection_mode": selection_mode,
             "eval_seed": seed,
             "state_count": len(selected_states),
             "candidate_count_per_state": shortlist_size,
@@ -217,6 +282,9 @@ def main() -> None:
     parser.add_argument("--base-protocol", type=Path, required=True)
     parser.add_argument("--eval-seeds", default="20260831,20260832,20260833")
     parser.add_argument("--shortlist-size", type=int, default=8)
+    parser.add_argument(
+        "--selection-mode", choices=("key_states", "all_states"), default="key_states"
+    )
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     protocols = build_protocols(
@@ -224,6 +292,7 @@ def main() -> None:
         json.loads(args.base_protocol.read_text(encoding="utf-8")),
         eval_seeds=[int(value) for value in args.eval_seeds.split(",")],
         shortlist_size=args.shortlist_size,
+        selection_mode=args.selection_mode,
     )
     for seed, protocol in protocols.items():
         atomic_json(args.output_dir / f"protocol-seed-{seed}.json", protocol)

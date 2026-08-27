@@ -28,6 +28,7 @@ printf 'dense_test_selector_start=%s git_commit=%s\n' \
 for index in "${!SEEDS[@]}"; do
   seed=${SEEDS[$index]}
   output=$RUN_ROOT/runs/seed-$seed
+  mkdir -p "$output"
   actual=$(find "$output" -maxdepth 1 -name 'episodes-shard-*.jsonl' -type f \
     -exec awk 'NF {n++} END {print n+0}' {} + 2>/dev/null | \
     awk '{sum += $1} END {print sum + 0}')

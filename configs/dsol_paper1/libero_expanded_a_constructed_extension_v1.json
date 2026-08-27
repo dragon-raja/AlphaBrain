@@ -20,30 +20,32 @@
   "task_extensions": [
     {
       "task_id": "goal_cream_cheese_bowl",
-      "observed_failure": "strong_info_below_frozen_validation_threshold_in_30_of_30_test_states",
+      "observed_failure": "strong_info_below_frozen_validation_threshold_in_all_21_prefix_eligible_test_states",
       "construction": "Place or occlude the cream-cheese box so canonical has weak evidence while a side or elevated reveal pose exposes both object and target bowl.",
       "matched_control": "Use a camera pose with matched translation and rotation magnitude that does not expose the cream-cheese box or bowl interior."
     },
     {
       "task_id": "object_cream_cheese_basket",
-      "observed_failure": "strong_info_below_frozen_validation_threshold_in_30_of_30_test_states",
+      "observed_failure": "strong_info_below_frozen_validation_threshold_in_all_21_prefix_eligible_test_states",
       "construction": "Place the cream-cheese box behind the basket rim or a task-neutral occluder in canonical, then reveal it from a lateral pose.",
       "matched_control": "Use the mirrored or azimuth-matched pose that preserves the occlusion."
     },
     {
       "task_id": "goal_top_drawer_bowl",
-      "observed_failure": "strong_info_and_geometry_matched_control_do_not_coexist_reliably",
+      "observed_failure": "no_geometry_matched_control_in_all_21_prefix_eligible_test_states; 12_also_lack_frozen_strong_info",
       "construction": "Expose the top-drawer interior from an elevated oblique reveal pose while a pose at matched displacement observes the drawer exterior without the bowl/interior.",
       "matched_control": "Generate reveal and control as an explicit equal-radius, equal-angle pair rather than selecting them independently from the global catalog."
     },
     {
-      "task_id": "libero10_book_caddy",
-      "observed_failure": "no_geometry_matched_low_information_control_in_30_of_30_test_states",
-      "construction": "Reveal the back caddy compartment from one side while an equal-radius, equal-angle counterpart preserves compartment occlusion.",
-      "matched_control": "Generate a task-specific paired camera arc with shared displacement magnitude and opposite azimuth."
+      "task_id": "spatial_drawer_bowl_plate",
+      "observed_failure": "20_of_21_prefix_eligible_test_states_lack_both_frozen_strong_info_and_geometry_matched_control; natural_candidates_exist_only_after_the_70_percent_stage_cap",
+      "construction": "At an independently generated mid-trajectory state, occlude the bowl or target plate in canonical and reveal it from a lateral or elevated pose without moving the robot or task objects across camera conditions.",
+      "matched_control": "Generate an equal-radius, equal-angle counterpart that preserves the task-entity occlusion; do not reuse the near-terminal natural states."
     }
   ],
   "pilot_population": {
+    "require_initial_task_unsolved": true,
+    "maximum_stage_fraction": 0.70,
     "validation_source_episodes_per_task": 2,
     "test_source_episodes_per_task": 3,
     "stage_samples_per_episode": 10,

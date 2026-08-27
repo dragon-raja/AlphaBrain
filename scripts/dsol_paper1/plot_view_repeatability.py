@@ -22,6 +22,17 @@ CATEGORY_LABELS = {
     "no_discovery_success": "No single-seed success",
 }
 
+TASK_LABELS = {
+    "goal_cream_cheese_bowl": "Cream cheese -> bowl",
+    "goal_top_drawer_bowl": "Bowl -> top drawer",
+    "goal_wine_rack": "Wine bottle -> rack",
+    "libero10_book_caddy": "Book -> caddy",
+    "libero10_bowl_bottom_drawer": "Bowl -> bottom drawer",
+    "libero10_mug_microwave": "Mug -> microwave",
+    "object_cream_cheese_basket": "Cream cheese -> basket",
+    "spatial_drawer_bowl_plate": "Drawer bowl -> plate",
+}
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -35,18 +46,19 @@ def main() -> None:
         candidates = list(csv.DictReader(handle))
 
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10})
-    figure, axes = plt.subplots(1, 3, figsize=(15.5, 4.8))
+    expanded = summary["states"] > 8
+    figure, axes = plt.subplots(1, 3, figsize=(16.5, 6.2 if expanded else 4.8))
 
     state_rows = summary["state_rows"]
-    if len(state_rows) > 8:
+    if expanded:
         grouped = defaultdict(list)
         for row in state_rows:
-            grouped[row["category"]].append(row)
+            grouped[row["task_id"]].append(row)
         plot_rows = []
-        for category, values in sorted(grouped.items()):
+        for task_id, values in sorted(grouped.items()):
             plot_rows.append(
                 {
-                    "category": category,
+                    "task_id": task_id,
                     "canonical_repeat_success_rate": float(
                         np.mean(
                             [row["canonical_repeat_success_rate"] for row in values]
@@ -65,11 +77,31 @@ def main() -> None:
                             ]
                         )
                     ),
+                    "stable_rescue_count": sum(
+                        row["canonical_repeat_success_rate"] < 2 / 3
+                        and row["best_shortlist_repeat_success_rate"] >= 2 / 3
+                        for row in values
+                    ),
+                    "visibility_rescue_count": sum(
+                        row["canonical_repeat_success_rate"] < 2 / 3
+                        and row["visibility_repeat_success_rate"] >= 2 / 3
+                        for row in values
+                    ),
+                    "visibility_harm_count": sum(
+                        row["canonical_repeat_success_rate"] >= 2 / 3
+                        and row["visibility_repeat_success_rate"] < 2 / 3
+                        for row in values
+                    ),
                 }
             )
     else:
         plot_rows = state_rows
-    labels = [CATEGORY_LABELS[row["category"]] for row in plot_rows]
+    labels = [
+        TASK_LABELS.get(row["task_id"], row["task_id"])
+        if expanded
+        else CATEGORY_LABELS[row["category"]]
+        for row in plot_rows
+    ]
     y = np.arange(len(labels))
     width = 0.23
     axes[0].barh(
@@ -97,31 +129,58 @@ def main() -> None:
     axes[0].invert_yaxis()
     axes[0].set_xlim(0, 105)
     axes[0].set_xlabel("Success across 3 independent noise draws (%)")
-    axes[0].set_title("A. Repeatability by state type")
+    axes[0].set_title("A. Repeatability by task" if expanded else "A. Repeatability by state type")
     axes[0].legend(frameon=False, fontsize=8, loc="lower right")
     axes[0].grid(axis="x", alpha=0.2)
 
-    transition = defaultdict(Counter)
-    for row in candidates:
-        transition[row["category"]][int(row["repeat_successes"])] += 1
-    bottoms = np.zeros(len(labels))
-    colors = ["#D7DEE8", "#E6B566", "#67A9CF", "#238B6B"]
-    for successes in range(4):
-        values = [transition[row["category"]][successes] for row in plot_rows]
+    if expanded:
+        axes[1].barh(
+            y - width,
+            [row["stable_rescue_count"] for row in plot_rows],
+            height=width,
+            color="#C55A6A",
+            label="Best-of-8 rescue",
+        )
         axes[1].barh(
             y,
-            values,
-            left=bottoms,
-            color=colors[successes],
-            label=f"{successes}/3",
+            [row["visibility_rescue_count"] for row in plot_rows],
+            height=width,
+            color="#3FA37C",
+            label="Visibility rescue",
         )
-        bottoms += np.asarray(values)
+        axes[1].barh(
+            y + width,
+            [row["visibility_harm_count"] for row in plot_rows],
+            height=width,
+            color="#E6B566",
+            label="Visibility harm",
+        )
+        axes[1].set_xlim(0, 4.3)
+        axes[1].set_xlabel("States (4 per task)")
+        axes[1].set_title("B. Stable rescue and harm (2-of-3)")
+        axes[1].legend(frameon=False, fontsize=8, loc="lower right")
+    else:
+        transition = defaultdict(Counter)
+        for row in candidates:
+            transition[row["category"]][int(row["repeat_successes"])] += 1
+        bottoms = np.zeros(len(labels))
+        colors = ["#D7DEE8", "#E6B566", "#67A9CF", "#238B6B"]
+        for successes in range(4):
+            values = [transition[row["category"]][successes] for row in plot_rows]
+            axes[1].barh(
+                y,
+                values,
+                left=bottoms,
+                color=colors[successes],
+                label=f"{successes}/3",
+            )
+            bottoms += np.asarray(values)
+        axes[1].set_xlim(0, max(8, float(max(bottoms, default=8))))
+        axes[1].set_xlabel("Shortlisted candidates")
+        axes[1].set_title("B. Candidate stability distribution")
+        axes[1].legend(title="Repeat wins", frameon=False, fontsize=8, ncol=2)
     axes[1].set_yticks(y, labels)
     axes[1].invert_yaxis()
-    axes[1].set_xlim(0, 8)
-    axes[1].set_xlabel("Shortlisted candidates")
-    axes[1].set_title("B. Candidate stability distribution")
-    axes[1].legend(title="Repeat wins", frameon=False, fontsize=8, ncol=2)
     axes[1].grid(axis="x", alpha=0.2)
 
     for discovery, marker, color, label in (
@@ -145,15 +204,12 @@ def main() -> None:
     axes[2].set_title("C. Single-run outcome vs repeatability")
     axes[2].grid(axis="y", alpha=0.2)
 
-    figure.suptitle(
-        "Dense-view rescue is not stable under policy-flow noise",
-        fontsize=15,
-        fontweight="bold",
-    )
+    figure.suptitle("Expanded dense-view repeatability audit", fontsize=15, fontweight="bold")
     figure.text(
         0.5,
         0.012,
-        "Exploratory shortlist: 4 physical states x 8 views x 3 new noise draws. "
+        f"Exploratory shortlist: {summary['states']} physical states x 8 views x "
+        f"{summary['expected_noise_draws_per_candidate']} new noise draws. "
         "Best-of-8 remains post-hoc and is not a deployable selector.",
         ha="center",
         color="#44505E",

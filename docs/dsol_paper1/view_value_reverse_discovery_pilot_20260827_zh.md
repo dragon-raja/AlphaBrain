@@ -111,3 +111,51 @@ Validation 冻结门要求任务级 Strong-info 中位增量至少 `+0.5pp`，�
 6/8 个任务通过严格方向分离门。底层抽屉和微波炉不是没有可见性变化，而是镜像两侧都显著改善，无法用作 Strong-vs-Control 的严格因果对照；它们仍可进入 97-view 行为发现，但不能进入 matched-control 主结论。
 
 下一阶段使用 32 个 validation 状态、16 条独立 source demonstrations 和每状态 97 个 operational views 做一次候选发现。随后每个状态仅保留 8 个代表候选，并以 3 个新 noise 重跑。Test source 保持未触碰，待 view-value 规则在独立 calibration 上冻结后再使用。
+
+## 八任务 97 视角闭环发现
+
+完整运行包含 8 个任务、32 个 validation 物理状态、16 条 source demonstrations 和每状态 97 个 operational views，共 `3,104/3,104` 条完整闭环 episode。所有候选共享各自状态的 MuJoCo 初态；候选池由 canonical、64 个训练支持位姿和 32 个留出位姿组成。
+
+| 指标 | 单噪声发现结果 |
+|---|---:|
+| Canonical 成功率 | 68.75% |
+| Oracle@97 成功率 | 93.75% |
+| 平均成功候选比例 | 66.59% |
+| 可见性 Top-1 成功率 | 71.88% |
+| 可见性状态条件 AUC | 0.538 |
+| 训练支持位姿平均成功率 | 66.65% |
+| 留出位姿平均成功率 | 66.41% |
+
+Oracle@97 相对 canonical 的单次上限为 +25.0pp，但它是检查了闭环结果后的 post-hoc 上限。可见性 Top-1 只比 canonical 高 3.13pp，且排序 AUC 接近随机；单次发现不能据此声明视角选择有效。
+
+## 三噪声全任务复验
+
+每个状态在查看单次发现结果后冻结 8 个具有预定义角色的候选，再使用 3 个新 policy-flow noise 重跑，共 `768/768` 条闭环 episode。稳定成功定义为 3 次中至少成功 2 次。
+
+| 指标 | 三噪声结果 |
+|---|---:|
+| Canonical 平均成功率 | 69.79% |
+| 可见性 Top-1 平均成功率 | 65.63% |
+| Post-hoc Best-of-8 平均成功率 | 82.29% |
+| 稳定 Rescue 状态 | 5/32，15.63% |
+| 可见性直接 Rescue | 2/32，6.25% |
+| 可见性 Harm | 4/32，12.50% |
+| 单次成功候选的稳定阳性预测率 | 79.67% |
+
+以 16 条 source demonstration 为独立单位进行 10,000 次 paired bootstrap：
+
+| 配对差值 | 点估计 | 95% CI |
+|---|---:|---:|
+| 可见性 Top-1 - Canonical | -4.17pp | [-10.42, +2.08] |
+| Post-hoc Best-of-8 - Canonical | +12.50pp | [+6.25, +18.75] |
+
+![八任务三噪声视角复验](/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/dense-repeatability/analysis/view_repeatability.png)
+
+任务级结果显示，稳定 Rescue 分布在 wine-rack、book-caddy、bottom-drawer、microwave 和 drawer-bowl-plate 五个任务中；当前可见性只在 wine-rack 和 book-caddy 各命中一个，同时在 wine-rack、book-caddy 与 bottom-drawer 产生四个稳定 Harm。Cream-cheese-bowl 与 cream-cheese-basket 均为 100% ceiling 对照，没有 Rescue 空间。
+
+因此，本轮扩展支持两个不同结论：
+
+1. 候选视角包含可重复的行为价值，Best-of-8 的稳定上限并非完全由单次 flow noise 造成；
+2. 现有等权实体可见像素分数不是可部署的 view-value selector，平均上反而低于 canonical，且 CI 未排除零。
+
+Best-of-8 使用了复验结果选择候选，只能证明 headroom，不能作为算法结果。下一步应在 validation 的稳定正负候选上审计几何支持、任务阶段、实体关系与 Accel 特征；冻结新打分规则后，只在未触碰 test source 上做一次选择与三噪声闭环验证。

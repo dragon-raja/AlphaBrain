@@ -15,6 +15,90 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 
 
+BOOTSTRAP_SEED = 20260827
+BOOTSTRAP_RESAMPLES = 10_000
+
+
+def source_group_from_pair_key(pair_key: str) -> str:
+    if "::stage-" not in pair_key:
+        raise ValueError(f"pair key does not contain a stage suffix: {pair_key}")
+    return pair_key.rsplit("::stage-", 1)[0]
+
+
+def bootstrap_interval(values: np.ndarray, rng: np.random.Generator) -> dict[str, float]:
+    group_count = len(values)
+    indices = rng.integers(0, group_count, size=(BOOTSTRAP_RESAMPLES, group_count))
+    draws = values[indices].mean(axis=1)
+    low, high = np.quantile(draws, [0.025, 0.975])
+    return {
+        "estimate": float(values.mean()),
+        "ci_low": float(low),
+        "ci_high": float(high),
+    }
+
+
+def grouped_bootstrap(
+    state_rows: Sequence[Mapping[str, Any]], majority_rate: float
+) -> dict[str, Any]:
+    grouped: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
+    for row in state_rows:
+        grouped[str(row["source_group"])].append(row)
+    metric_names = (
+        "canonical_success_rate",
+        "visibility_success_rate",
+        "best_shortlist_success_rate",
+        "visibility_minus_canonical_pp",
+        "best_shortlist_minus_canonical_pp",
+        "stable_rescue_state_fraction",
+        "visibility_rescue_state_fraction",
+        "visibility_harm_state_fraction",
+    )
+    group_metrics: dict[str, list[float]] = {name: [] for name in metric_names}
+    for rows in grouped.values():
+        canonical = np.asarray(
+            [float(row["canonical_repeat_success_rate"]) for row in rows]
+        )
+        visibility = np.asarray(
+            [float(row["visibility_repeat_success_rate"]) for row in rows]
+        )
+        best = np.asarray(
+            [float(row["best_shortlist_repeat_success_rate"]) for row in rows]
+        )
+        group_metrics["canonical_success_rate"].append(float(canonical.mean()))
+        group_metrics["visibility_success_rate"].append(float(visibility.mean()))
+        group_metrics["best_shortlist_success_rate"].append(float(best.mean()))
+        group_metrics["visibility_minus_canonical_pp"].append(
+            float(100 * (visibility - canonical).mean())
+        )
+        group_metrics["best_shortlist_minus_canonical_pp"].append(
+            float(100 * (best - canonical).mean())
+        )
+        group_metrics["stable_rescue_state_fraction"].append(
+            float(np.mean((canonical < majority_rate) & (best >= majority_rate)))
+        )
+        group_metrics["visibility_rescue_state_fraction"].append(
+            float(
+                np.mean((canonical < majority_rate) & (visibility >= majority_rate))
+            )
+        )
+        group_metrics["visibility_harm_state_fraction"].append(
+            float(
+                np.mean((canonical >= majority_rate) & (visibility < majority_rate))
+            )
+        )
+    rng = np.random.default_rng(BOOTSTRAP_SEED)
+    return {
+        "independent_unit": "source_episode",
+        "source_groups": len(grouped),
+        "resamples": BOOTSTRAP_RESAMPLES,
+        "seed": BOOTSTRAP_SEED,
+        "metrics": {
+            name: bootstrap_interval(np.asarray(values, dtype=np.float64), rng)
+            for name, values in group_metrics.items()
+        },
+    }
+
+
 def atomic_json(path: Path, payload: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(
@@ -55,6 +139,7 @@ def summarize(rows: Sequence[Mapping[str, Any]], expected_seeds: int) -> tuple[d
         candidate_rows.append(
             {
                 "pair_key": pair_key,
+                "source_group": source_group_from_pair_key(pair_key),
                 "task_id": str(values[0]["task_id"]),
                 "category": str(values[0]["diagnostic_role"]).split("::", 1)[-1],
                 "candidate_id": candidate,
@@ -82,6 +167,7 @@ def summarize(rows: Sequence[Mapping[str, Any]], expected_seeds: int) -> tuple[d
         state_rows.append(
             {
                 "pair_key": pair_key,
+                "source_group": values[0]["source_group"],
                 "task_id": values[0]["task_id"],
                 "category": values[0]["category"],
                 "canonical_repeat_success_rate": canonical["repeat_success_rate"],
@@ -110,6 +196,44 @@ def summarize(rows: Sequence[Mapping[str, Any]], expected_seeds: int) -> tuple[d
         if row["canonical_repeat_success_rate"] < majority / expected_seeds
         and row["best_shortlist_repeat_success_rate"] >= majority / expected_seeds
     ]
+    visibility_rescue_states = [
+        row
+        for row in state_rows
+        if row["canonical_repeat_success_rate"] < majority / expected_seeds
+        and row["visibility_repeat_success_rate"] >= majority / expected_seeds
+    ]
+    visibility_harm_states = [
+        row
+        for row in state_rows
+        if row["canonical_repeat_success_rate"] >= majority / expected_seeds
+        and row["visibility_repeat_success_rate"] < majority / expected_seeds
+    ]
+    task_groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in state_rows:
+        task_groups[str(row["task_id"])].append(row)
+    task_summary = {}
+    for task_id, values in sorted(task_groups.items()):
+        task_summary[task_id] = {
+            "states": len(values),
+            "source_groups": len({row["source_group"] for row in values}),
+            "canonical_mean_repeat_success_rate": float(
+                np.mean([row["canonical_repeat_success_rate"] for row in values])
+            ),
+            "visibility_mean_repeat_success_rate": float(
+                np.mean([row["visibility_repeat_success_rate"] for row in values])
+            ),
+            "best_shortlist_mean_repeat_success_rate": float(
+                np.mean([row["best_shortlist_repeat_success_rate"] for row in values])
+            ),
+            "stable_rescue_state_count": sum(row in stable_rescue_states for row in values),
+            "visibility_rescue_state_count": sum(
+                row in visibility_rescue_states for row in values
+            ),
+            "visibility_harm_state_count": sum(
+                row in visibility_harm_states for row in values
+            ),
+        }
+    majority_rate = majority / expected_seeds
     payload = {
         "schema": "dsol_view_repeatability_summary_v1",
         "status": "PASS",
@@ -131,6 +255,11 @@ def summarize(rows: Sequence[Mapping[str, Any]], expected_seeds: int) -> tuple[d
         ),
         "stable_rescue_state_count": len(stable_rescue_states),
         "stable_rescue_state_fraction": len(stable_rescue_states) / len(state_rows),
+        "visibility_rescue_state_count": len(visibility_rescue_states),
+        "visibility_rescue_state_fraction": len(visibility_rescue_states)
+        / len(state_rows),
+        "visibility_harm_state_count": len(visibility_harm_states),
+        "visibility_harm_state_fraction": len(visibility_harm_states) / len(state_rows),
         "single_run_transition": {
             "discovery_positive_candidates": len(discovery_positive),
             "discovery_negative_candidates": len(discovery_negative),
@@ -154,6 +283,8 @@ def summarize(rows: Sequence[Mapping[str, Any]], expected_seeds: int) -> tuple[d
             ),
         },
         "role_summary": role_summary,
+        "task_summary": task_summary,
+        "group_bootstrap_95ci": grouped_bootstrap(state_rows, majority_rate),
         "state_rows": state_rows,
     }
     return payload, candidate_rows

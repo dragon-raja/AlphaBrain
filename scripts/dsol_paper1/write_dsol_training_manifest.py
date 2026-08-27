@@ -55,6 +55,7 @@ def main() -> None:
     parser.add_argument("--calibration-items", type=int, required=True)
     parser.add_argument("--skip-final-save", type=int, choices=(0, 1), required=True)
     parser.add_argument("--wandb-mode", choices=("online", "offline", "disabled"), required=True)
+    parser.add_argument("--pretrained-checkpoint", type=Path, required=True)
     parser.add_argument("--budget-decision", type=Path)
     args = parser.parse_args()
 
@@ -63,10 +64,11 @@ def main() -> None:
 
     root = args.repo_root.resolve()
     data_manifest = args.data_root.resolve() / "manifest.json"
-    model_manifest = Path(
-        "/share/longjunyu/alphabrain/pretrained_models/openpi/"
-        "pi05_libero_pytorch/source_manifest.json"
-    )
+    pretrained_checkpoint = args.pretrained_checkpoint.resolve()
+    model_weights = pretrained_checkpoint / "model.safetensors"
+    if not model_weights.is_file():
+        parser.error(f"missing pretrained model weights: {model_weights}")
+    model_manifest = pretrained_checkpoint / "source_manifest.json"
     patch = subprocess.check_output(("git", "diff", "--binary", "--", *CRITICAL_CODE), cwd=root)
     manifest = {
         "schema": "dsol_training_run_manifest_v1",
@@ -92,8 +94,14 @@ def main() -> None:
         "wandb_mode": args.wandb_mode,
         "data_root": str(args.data_root.resolve()),
         "data_manifest_sha256": sha256(data_manifest),
-        "pretrained_checkpoint_manifest": str(model_manifest),
-        "pretrained_checkpoint_manifest_sha256": sha256(model_manifest),
+        "pretrained_checkpoint": str(pretrained_checkpoint),
+        "pretrained_checkpoint_model_sha256": sha256(model_weights),
+        "pretrained_checkpoint_manifest": (
+            str(model_manifest) if model_manifest.is_file() else None
+        ),
+        "pretrained_checkpoint_manifest_sha256": (
+            sha256(model_manifest) if model_manifest.is_file() else None
+        ),
         "git_commit": git_output(root, "rev-parse", "HEAD"),
         "git_dirty": bool(git_output(root, "status", "--short")),
         "critical_tracked_patch_sha256": hashlib.sha256(patch).hexdigest(),

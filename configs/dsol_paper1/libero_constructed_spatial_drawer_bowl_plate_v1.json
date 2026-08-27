@@ -1,0 +1,32 @@
+{
+  "schema": "dsol_libero_constructed_view_spec_v1",
+  "task_id": "spatial_drawer_bowl_plate",
+  "target_entity": "akita_black_bowl_1",
+  "camera_pivot_entities": [
+    "akita_black_bowl_1",
+    "plate_1"
+  ],
+  "camera_name": "agentview",
+  "camera_ray_fraction": 0.2,
+  "half_size_xyz": [
+    0.008,
+    0.14,
+    0.17
+  ],
+  "rgba": [
+    0.12,
+    0.12,
+    0.12,
+    1.0
+  ],
+  "candidate_pairs": [
+    {"pair_id": "side30_near", "azimuth_deg": 30.0, "elevation_deg": 0.0, "radius_scale": 0.7},
+    {"pair_id": "side45_near", "azimuth_deg": 45.0, "elevation_deg": 0.0, "radius_scale": 0.7},
+    {"pair_id": "side60_near", "azimuth_deg": 60.0, "elevation_deg": 0.0, "radius_scale": 0.7},
+    {"pair_id": "side75_near", "azimuth_deg": 75.0, "elevation_deg": 0.0, "radius_scale": 0.7},
+    {"pair_id": "side30_high", "azimuth_deg": 30.0, "elevation_deg": 20.0, "radius_scale": 0.8},
+    {"pair_id": "side45_high", "azimuth_deg": 45.0, "elevation_deg": 20.0, "radius_scale": 0.8},
+    {"pair_id": "side60_high", "azimuth_deg": 60.0, "elevation_deg": 20.0, "radius_scale": 0.8},
+    {"pair_id": "side75_high", "azimuth_deg": 75.0, "elevation_deg": 20.0, "radius_scale": 0.8}
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "dsol_libero_pair_collection_plan_v1",
+  "name": "libero_pair_book_caddy_strong_information_gate_v1",
+  "seed": 41,
+  "pose_set": "broad_32",
+  "frame_stride": 2,
+  "action_horizon": 10,
+  "resolution": 224,
+  "jpeg_quality": 95,
+  "split_policy": "episode_sha256_80_10_10",
+  "tasks": [
+    {
+      "task_id": "libero10_book_caddy",
+      "source": "libero_10/STUDY_SCENE1_pick_up_the_book_and_place_it_in_the_back_compartment_of_the_caddy_demo.hdf5",
+      "expected_records": 4746,
+      "diagnostic_role": "compartment occlusion and placement"
+    }
+  ]
+}

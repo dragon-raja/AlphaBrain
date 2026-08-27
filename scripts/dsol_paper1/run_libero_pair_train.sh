@@ -19,6 +19,8 @@ CALIBRATION_INTERVAL=${DSOL_CALIBRATION_INTERVAL:-250}
 CALIBRATION_ITEMS=${DSOL_CALIBRATION_ITEMS:-256}
 SKIP_FINAL_SAVE=${DSOL_SKIP_FINAL_SAVE:-1}
 BUDGET_DECISION=${DSOL_BUDGET_DECISION:-}
+PRETRAINED_CHECKPOINT=${DSOL_PRETRAINED_CHECKPOINT:-}
+EFFECTIVE_PRETRAINED_CHECKPOINT=${PRETRAINED_CHECKPOINT:-/share/longjunyu/alphabrain/pretrained_models/openpi/pi05_libero_pytorch}
 
 ARM=${1:?usage: run_libero_pair_train.sh ARM SEED NUM_GPUS STEPS [RUN_TAG]}
 SEED=${2:?usage: run_libero_pair_train.sh ARM SEED NUM_GPUS STEPS [RUN_TAG]}
@@ -162,6 +164,15 @@ if [[ -n "$BUDGET_DECISION" ]]; then
   budget_manifest_args=(--budget-decision "$BUDGET_DECISION")
 fi
 
+checkpoint_override=()
+if [[ -n "$PRETRAINED_CHECKPOINT" ]]; then
+  [[ -s "$PRETRAINED_CHECKPOINT/model.safetensors" ]] || {
+    echo "invalid DSOL_PRETRAINED_CHECKPOINT: $PRETRAINED_CHECKPOINT" >&2
+    exit 2
+  }
+  checkpoint_override=("trainer.pretrained_checkpoint=$PRETRAINED_CHECKPOINT")
+fi
+
 "$PYTHON" scripts/dsol_paper1/write_dsol_training_manifest.py \
   --repo-root "$REPO_ROOT" \
   --output "$OUTPUT_DIR/run_manifest.json" \
@@ -181,6 +192,7 @@ fi
   --calibration-items "$CALIBRATION_ITEMS" \
   --skip-final-save "$SKIP_FINAL_SAVE" \
   --wandb-mode "$WANDB_MODE_VALUE" \
+  --pretrained-checkpoint "$EFFECTIVE_PRETRAINED_CHECKPOINT" \
   "${budget_manifest_args[@]}"
 
 printf 'arm=%s seed=%s num_gpus=%s gpu_devices=%s main_process_port=%s examples_per_item=%s grad_acc=%s global_model_examples=%s\n' \
@@ -207,4 +219,5 @@ printf 'arm=%s seed=%s num_gpus=%s gpu_devices=%s main_process_port=%s examples_
   "trainer.dsol_validation.enabled=$([[ "$CALIBRATION" == 1 ]] && echo true || echo false)" \
   "trainer.dsol_validation.max_data_items=$CALIBRATION_ITEMS" \
   "trainer.skip_final_save=$([[ "$SKIP_FINAL_SAVE" == 1 ]] && echo true || echo false)" \
+  "${checkpoint_override[@]}" \
   2>&1 | tee "$OUTPUT_DIR/launcher.log"

@@ -118,6 +118,11 @@ def generate(args: argparse.Namespace) -> dict[str, Any]:
         install_camera_pose,
         mujoco_camera_calibration,
     )
+    from libero_constructed_view import (
+        install_constructed_camera_pose,
+        resolve_task_view_context,
+        task_orbit_pose_from_specification,
+    )
 
     catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
     pose_by_id = {}
@@ -154,6 +159,22 @@ def generate(args: argparse.Namespace) -> dict[str, Any]:
             f"{explicitly_excluded}"
         )
     poses = [pose_by_id[name] for name in pose_ids]
+    task_view_specification = None
+    task_view_specification_sha256 = None
+    if args.task_view_spec is not None:
+        task_view_specification = json.loads(
+            args.task_view_spec.read_text(encoding="utf-8")
+        )
+        if task_view_specification.get("schema") != "dsol_libero_constructed_view_spec_v1":
+            raise ValueError("unsupported task-view specification schema")
+        if not args.task_view_pair_id or not args.task_view_pair_member:
+            raise ValueError(
+                "--task-view-spec requires --task-view-pair-id and "
+                "--task-view-pair-member"
+            )
+        task_view_specification_sha256 = hashlib.sha256(
+            args.task_view_spec.read_bytes()
+        ).hexdigest()
     suite = hdf5_path.parent.name
     acquisition = json.loads(args.acquisition.read_text(encoding="utf-8"))
     relative_hdf5 = f"{suite}/{hdf5_path.name}"
@@ -213,10 +234,30 @@ def generate(args: argparse.Namespace) -> dict[str, Any]:
                         if args.record_limit is not None and record_count >= args.record_limit:
                             break
                         sample_id = f"{episode_id}::frame-{frame:05d}"
-                        pose_a, pose_b = _pose_pair(poses, args.seed, sample_id)
                         state = np.asarray(demo["states"][frame])
                         _restore_reference(env, reference)
                         canonical = env.set_init_state(state)
+                        task_view_context = None
+                        if task_view_specification is None:
+                            pose_a, pose_b = _pose_pair(poses, args.seed, sample_id)
+                        else:
+                            task_view_context = resolve_task_view_context(
+                                env, task_view_specification
+                            )
+                            pose_a = task_orbit_pose_from_specification(
+                                context=task_view_context,
+                                specification=task_view_specification,
+                                pair_id=args.task_view_pair_id,
+                                pair_member=args.task_view_pair_member,
+                            )
+                            pose_b = poses[
+                                _stable_index(
+                                    args.seed,
+                                    sample_id,
+                                    "task_view_companion_pose",
+                                    len(poses),
+                                )
+                            ]
                         canonical_calibration = mujoco_camera_calibration(
                             env,
                             camera_name="agentview",
@@ -228,7 +269,12 @@ def generate(args: argparse.Namespace) -> dict[str, Any]:
                             canonical["robot0_eye_in_hand_image"]
                         )
 
-                        camera_a = install_camera_pose(env, reference, pose_a)
+                        if task_view_specification is None:
+                            camera_a = install_camera_pose(env, reference, pose_a)
+                        else:
+                            camera_a = install_constructed_camera_pose(
+                                env, reference, pose_a
+                            )
                         observation_a = _render_observation(env)
                         calibration_a = mujoco_camera_calibration(
                             env,
@@ -281,6 +327,18 @@ def generate(args: argparse.Namespace) -> dict[str, Any]:
                             ).hexdigest(),
                             "pose_a": camera_a,
                             "pose_b": camera_b,
+                            "task_view_support": (
+                                None
+                                if task_view_specification is None
+                                else {
+                                    "specification": str(args.task_view_spec.resolve()),
+                                    "specification_sha256": task_view_specification_sha256,
+                                    "pair_id": args.task_view_pair_id,
+                                    "pair_member": args.task_view_pair_member,
+                                    "context": task_view_context,
+                                    "scene_construction_applied": False,
+                                }
+                            ),
                             "camera_intrinsics": np.asarray(
                                 canonical_calibration["intrinsics"]
                             ).tolist(),
@@ -338,6 +396,19 @@ def generate(args: argparse.Namespace) -> dict[str, Any]:
         "pose_set": pose_set,
         "pose_ids": pose_ids,
         "pose_groups": sorted({pose_group_by_id[pose_id] for pose_id in pose_ids}),
+        "task_view_support": (
+            None
+            if task_view_specification is None
+            else {
+                "specification": str(args.task_view_spec.resolve()),
+                "specification_sha256": task_view_specification_sha256,
+                "pair_id": args.task_view_pair_id,
+                "pair_member": args.task_view_pair_member,
+                "slot": "pose_a",
+                "companion_pose_set": pose_set,
+                "scene_construction_applied": False,
+            }
+        ),
         "diagnostic_pose_training_override": bool(
             explicitly_excluded and args.allow_diagnostic_pose_training
         ),
@@ -377,6 +448,12 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--pose-id", action="append", default=[])
     parser.add_argument("--allow-diagnostic-pose-training", action="store_true")
+    parser.add_argument("--task-view-spec", type=Path)
+    parser.add_argument("--task-view-pair-id")
+    parser.add_argument(
+        "--task-view-pair-member",
+        choices=("negative", "positive"),
+    )
     parser.add_argument("--seed", type=int, default=41)
     parser.add_argument("--resolution", type=int, default=224)
     parser.add_argument("--action-horizon", type=int, default=10)

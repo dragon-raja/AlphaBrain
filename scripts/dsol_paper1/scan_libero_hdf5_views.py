@@ -278,6 +278,36 @@ def _save_montage(
     canvas.save(path)
 
 
+def _save_pose_images(
+    *,
+    output_dir: Path,
+    images: Mapping[str, tuple[np.ndarray, np.ndarray]],
+    requested: str | None,
+) -> None:
+    if requested is None:
+        return
+    from PIL import Image
+
+    pose_ids = (
+        sorted(images)
+        if requested.strip().lower() == "all"
+        else [value.strip() for value in requested.split(",") if value.strip()]
+    )
+    missing = sorted(set(pose_ids) - set(images))
+    if missing:
+        raise ValueError(f"requested saved pose images are unavailable: {missing}")
+    view_dir = output_dir / "views"
+    view_dir.mkdir(parents=True, exist_ok=True)
+    for pose_id in pose_ids:
+        agent, wrist = images[pose_id]
+        display_image = np.concatenate(
+            [agent[::-1, ::-1], wrist[::-1, ::-1]], axis=1
+        )
+        Image.fromarray(np.ascontiguousarray(display_image)).save(
+            view_dir / f"{pose_id}.png"
+        )
+
+
 def scan(args: argparse.Namespace) -> dict[str, Any]:
     import h5py
 
@@ -293,6 +323,12 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
 
     from libero.libero.envs import OffScreenRenderEnv
     from libero_camera_pose import capture_camera_reference, install_camera_pose
+    from libero_constructed_view import (
+        inject_static_visual_occluder,
+        install_constructed_camera_pose,
+        paired_task_orbit_poses,
+        resolve_static_visual_occluder,
+    )
     from libero_visibility import task_entity_visibility
 
     catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
@@ -307,8 +343,6 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
         if args.pose_ids
         else None
     )
-    poses = _filter_catalog_poses(poses, pose_filter)
-    poses = _remove_materialized_canonical(poses)
 
     suite = hdf5_path.parent.name
     with h5py.File(hdf5_path, "r") as handle:
@@ -325,6 +359,39 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
         bddl_name = Path(_decode(handle["data"].attrs["bddl_file_name"])).name
     bddl = runtime / "libero" / "libero" / "bddl_files" / suite / bddl_name
 
+    scene_construction = None
+    if args.construction_spec is not None:
+        construction_spec = json.loads(
+            args.construction_spec.read_text(encoding="utf-8")
+        )
+        probe = OffScreenRenderEnv(
+            bddl_file_name=str(bddl),
+            camera_names=("agentview", "robot0_eye_in_hand"),
+            camera_heights=args.resolution,
+            camera_widths=args.resolution,
+            render_gpu_device_id=args.render_gpu,
+        )
+        try:
+            probe.reset()
+            probe.reset_from_xml_string(model_xml)
+            probe.set_init_state(state)
+            original_nq = int(probe.env.sim.model.nq)
+            scene_construction = resolve_static_visual_occluder(
+                probe, construction_spec
+            )
+        finally:
+            probe.close()
+        model_xml = inject_static_visual_occluder(model_xml, scene_construction)
+        poses.extend(
+            ("constructed_task_orbit", pose)
+            for pose in paired_task_orbit_poses(
+                scene_construction,
+                construction_spec.get("candidate_pairs", []),
+            )
+        )
+    poses = _filter_catalog_poses(poses, pose_filter)
+    poses = _remove_materialized_canonical(poses)
+
     env = OffScreenRenderEnv(
         bddl_file_name=str(bddl),
         camera_names=("agentview", "robot0_eye_in_hand"),
@@ -338,6 +405,8 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
         env.reset()
         env.reset_from_xml_string(model_xml)
         env.set_init_state(state)
+        if scene_construction is not None and int(env.env.sim.model.nq) != original_nq:
+            raise RuntimeError("visual occluder changed the MuJoCo state dimension")
         initial_task_success = bool(env.check_success())
         entities = list(env.env.obj_of_interest)
         reference = capture_camera_reference(
@@ -377,6 +446,7 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
                     "translation_m": 0.0,
                     "rotation_geodesic_deg": 0.0,
                 },
+                "pose": None,
             }
         )
 
@@ -386,6 +456,8 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
             try:
                 if pose.get("orientation_mode") == "relative_look_away":
                     camera = _install_look_away(env, reference, pose)
+                elif pose.get("orientation_mode") == "explicit_world_look_at":
+                    camera = install_constructed_camera_pose(env, reference, pose)
                 else:
                     camera = install_camera_pose(env, reference, pose)
                 observation = _render_observation(env)
@@ -415,6 +487,7 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
                         },
                         "visibility": visibility,
                         "camera": camera,
+                        "pose": dict(pose),
                         "camera_displacement_from_canonical": _camera_displacement(
                             canonical_camera,
                             camera,
@@ -462,6 +535,7 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
         "groups": groups,
         "requested_pose_ids": pose_filter,
         "asset_path_rewrites": rewrite_counts,
+        "scene_construction": scene_construction,
         "initial_task_success": initial_task_success,
         "records": records,
         "valid_records": len(valid),
@@ -476,6 +550,11 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
         images=images,
         records=records,
         top_k=args.montage_top_k,
+    )
+    _save_pose_images(
+        output_dir=output_dir,
+        images=images,
+        requested=args.save_pose_images,
     )
     return result
 
@@ -499,6 +578,18 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--resolution", type=int, default=224)
     parser.add_argument("--render-gpu", type=int, default=0)
     parser.add_argument("--montage-top-k", type=int, default=6)
+    parser.add_argument(
+        "--save-pose-images",
+        help="Comma-separated pose IDs to save, or 'all'.",
+    )
+    parser.add_argument(
+        "--construction-spec",
+        type=Path,
+        help=(
+            "Optional JSON specification for a state-dependent static visual "
+            "occluder and task-centric paired candidates."
+        ),
+    )
     return parser.parse_args(argv)
 
 

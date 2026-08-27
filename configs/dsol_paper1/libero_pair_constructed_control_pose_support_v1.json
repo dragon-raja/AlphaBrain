@@ -1,0 +1,37 @@
+{
+  "schema": "dsol_libero_pair_collection_plan_v1",
+  "name": "libero_pair_constructed_control_pose_support_v1",
+  "analysis_role": "independent_train_episode_taskcentric_matched_control_support",
+  "seed": 41,
+  "pose_set": "broad_64",
+  "frame_stride": 2,
+  "action_horizon": 10,
+  "resolution": 224,
+  "jpeg_quality": 95,
+  "expected_record_count": 6441,
+  "split_policy": "episode_sha256_80_10_10",
+  "scene_construction_applied": false,
+  "diagnostic_views_in_training": false,
+  "tasks": [
+    {
+      "task_id": "goal_cream_cheese_bowl",
+      "source": "libero_goal/put_the_cream_cheese_in_the_bowl_demo.hdf5",
+      "expected_records": 2687,
+      "task_view_support": {
+        "specification": "libero_constructed_goal_cream_cheese_bowl_v1.json",
+        "pair_id": "side30_near",
+        "pair_member": "positive"
+      }
+    },
+    {
+      "task_id": "spatial_drawer_bowl_plate",
+      "source": "libero_spatial/pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_demo.hdf5",
+      "expected_records": 3754,
+      "task_view_support": {
+        "specification": "libero_constructed_spatial_drawer_bowl_plate_v1.json",
+        "pair_id": "side45_near",
+        "pair_member": "negative"
+      }
+    }
+  ]
+}

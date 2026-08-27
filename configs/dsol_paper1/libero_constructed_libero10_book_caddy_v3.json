@@ -1,0 +1,31 @@
+{
+  "schema": "dsol_libero_constructed_view_spec_v1",
+  "task_id": "libero10_book_caddy",
+  "target_entity": "black_book_1",
+  "camera_pivot_entities": [
+    "black_book_1",
+    "desk_caddy_1"
+  ],
+  "camera_name": "agentview",
+  "camera_ray_fraction": 0.65,
+  "half_size_xyz": [
+    0.01,
+    0.18,
+    0.24
+  ],
+  "rgba": [
+    0.12,
+    0.12,
+    0.12,
+    1.0
+  ],
+  "candidate_pairs": [
+    {"pair_id": "side30_close", "azimuth_deg": 30.0, "elevation_deg": 0.0, "radius_scale": 0.45},
+    {"pair_id": "side45_close", "azimuth_deg": 45.0, "elevation_deg": 0.0, "radius_scale": 0.45},
+    {"pair_id": "side60_close", "azimuth_deg": 60.0, "elevation_deg": 0.0, "radius_scale": 0.45},
+    {"pair_id": "side75_close", "azimuth_deg": 75.0, "elevation_deg": 0.0, "radius_scale": 0.45},
+    {"pair_id": "side45_close_high", "azimuth_deg": 45.0, "elevation_deg": 18.0, "radius_scale": 0.5},
+    {"pair_id": "side60_close_high", "azimuth_deg": 60.0, "elevation_deg": 18.0, "radius_scale": 0.5},
+    {"pair_id": "side75_close_high", "azimuth_deg": 75.0, "elevation_deg": 18.0, "radius_scale": 0.5}
+  ]
+}

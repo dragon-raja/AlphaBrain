@@ -102,6 +102,10 @@ def run_episode(
     _configure_runtime(runtime, hdf5_path.parent.parent, config_root)
     from libero.libero.envs import OffScreenRenderEnv
     from libero_camera_pose import capture_camera_reference, install_camera_pose
+    from libero_constructed_view import (
+        inject_static_visual_occluder,
+        install_constructed_camera_pose,
+    )
     from libero_visibility import task_entity_visibility
     from scan_libero_hdf5_views import _install_look_away
     from evaluate_pi05_libero_plus_views import (
@@ -121,6 +125,9 @@ def run_episode(
         bddl_name = Path(_decode(data.attrs["bddl_file_name"])).name
         problem_info = json.loads(_decode(data.attrs["problem_info"]))
         prompt = str(problem_info["language_instruction"])
+    scene_construction = spec.get("scene_construction")
+    if scene_construction is not None:
+        model_xml = inject_static_visual_occluder(model_xml, scene_construction)
     suite = str(spec["suite"])
     bddl = runtime / "libero" / "libero" / "bddl_files" / suite / bddl_name
     env = OffScreenRenderEnv(
@@ -158,6 +165,10 @@ def run_episode(
         if pose is not None:
             if pose.get("orientation_mode") == "relative_look_away":
                 camera_metadata = _install_look_away(env, reference, pose)
+            elif pose.get("orientation_mode") == "explicit_world_look_at":
+                camera_metadata = install_constructed_camera_pose(
+                    env, reference, pose
+                )
             else:
                 camera_metadata = install_camera_pose(env, reference, pose)
             env.env._update_observables(force=True)
@@ -262,6 +273,7 @@ def run_episode(
                 "bddl_file": str(bddl),
                 "asset_path_rewrites": rewrites,
                 "camera_metadata": camera_metadata,
+                "scene_construction": scene_construction,
                 "initial_metrics": initial_metrics,
             },
             env,

@@ -81,6 +81,10 @@ def main() -> None:
             "--render-gpu",
             str(args.render_gpu),
         ]
+        if row.get("construction_spec"):
+            command.extend(
+                ["--construction-spec", str(row["construction_spec"])]
+            )
         print(
             json.dumps(
                 {"ordinal": ordinal, "total": len(selected), "scan_id": scan_id},

@@ -99,6 +99,21 @@ def _run_task(
             command.append("--allow-diagnostic-pose-training")
     else:
         command.extend(("--pose-set", str(plan["pose_set"])))
+    task_view = task.get("task_view_support")
+    if task_view is not None:
+        specification = Path(str(task_view["specification"]))
+        if not specification.is_absolute():
+            specification = (args.plan.parent / specification).resolve()
+        command.extend(
+            (
+                "--task-view-spec",
+                str(specification),
+                "--task-view-pair-id",
+                str(task_view["pair_id"]),
+                "--task-view-pair-member",
+                str(task_view["pair_member"]),
+            )
+        )
     with log_path.open("w", encoding="utf-8") as log:
         result = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT)
     if result.returncode != 0:

@@ -5,7 +5,8 @@ REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 ROOT=${DSOL_CONSTRUCTED_ALL8_ROOT:-/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1}
 PROTOCOL=${DSOL_CONSTRUCTED_ALL8_DENSE_PROTOCOL:-$ROOT/dense-discovery-protocol.json}
 CHECKPOINT=${DSOL_CONSTRUCTED_ALL8_CHECKPOINT:-/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_broad64-quick-gate-v1_seed41_g8_gb32_steps2000/final_model}
-RUN_ROOT=$ROOT/dense-discovery-run
+RUN_ROOT=${DSOL_CONSTRUCTED_ALL8_DENSE_RUN_ROOT:-$ROOT/dense-discovery-run-w32}
+EVAL_WORKER_COUNT=${DSOL_CONSTRUCTED_ALL8_EVAL_WORKERS:-32}
 EVALUATOR=$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh
 ANALYZER=$REPO_ROOT/scripts/dsol_paper1/analyze_view_value_discovery.py
 
@@ -26,6 +27,7 @@ OUTPUT_DIR="$RUN_ROOT" \
 PROTOCOL="$PROTOCOL" \
 POLICY_BACKEND=alphabrain \
 GPU_COUNT=8 \
+EVAL_WORKER_COUNT="$EVAL_WORKER_COUNT" \
 DSOL_GPU_DEVICES=0,1,2,3,4,5,6,7 \
 BASE_PORT=20300 \
 REPLAN_STEPS=5 \

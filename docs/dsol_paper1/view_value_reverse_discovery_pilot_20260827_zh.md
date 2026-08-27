@@ -70,3 +70,44 @@
 Cream-cheese 构造状态没有行为 headroom，不应继续作为信息价值主任务。Drawer-bowl-plate 出现两个 canonical-failure states：一个仅 5/97 个视角成功，另一个 77/97 个视角成功，说明同一任务内同时存在稀疏救援与宽救援状态。
 
 当前可见性没有兑现 Oracle 上限。在 5/97 的稀疏救援状态中，成功视角的实体可见性普遍低于 canonical，可见性排序 AUC 仅 0.284。这表明当前构造仍混合了任务证据、策略视角兼容性与 rollout 随机性；必须先对行为候选做多 seed 重复，再从稳定正例中学习信息定义。
+
+## 三噪声重复性审计
+
+从上述 8 个状态中预先选取四类状态：单次稀疏救援、单次宽救援、换视角伤害和简单视角不敏感。每个状态保留 8 个具有明确角色的候选，并使用 3 个新的独立 policy-flow noise 重跑完整闭环，共 96 episodes。
+
+| 指标 | 结果 |
+|---|---:|
+| 状态 / 候选 / 新噪声 | 4 / 8 / 3 |
+| Canonical 三噪声平均成功率 | 50.0% |
+| 可见性 Top-1 三噪声平均成功率 | 50.0% |
+| Post-hoc Best-of-8 平均成功率 | 58.3% |
+| Canonical 多数失败但 Best-of-8 多数成功 | 0 / 4 |
+| 单次成功候选 | 20 / 32 |
+| 单次成功且重复后多数成功 | 9 / 20 |
+| 单次失败但重复后多数成功 | 3 / 12 |
+| 单次成功对稳定成功的阳性预测率 | 45.0% |
+
+![单次行为发现的三噪声重复性](/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-repeatability-v1/analysis/view_repeatability.png)
+
+两个 canonical-failure 状态中没有任何候选达到 2/3 稳定成功。原先 5/97 和 77/97 的一次性救援不能继续作为稳定视角价值证据；单次成功标签受 flow noise 明显影响。后续 97-view 搜索只承担候选发现，所有候选价值结论必须经过独立噪声复验。
+
+## 八任务构造扩展
+
+新的构造扫描覆盖 8 个任务、16 条 validation source demonstrations 和独立 test demonstrations。共扫描 260 个前 65% 轨迹状态；每个状态加入同一静态、无碰撞遮挡构造，并渲染 8 组左右镜像 task-centric pairs。筛选不使用策略输出。
+
+Validation 冻结门要求任务级 Strong-info 中位增量至少 `+0.5pp`，同一镜像 pair 的 Matched-control 绝对变化不超过 `0.5pp`。
+
+| 任务 | Strong 增量 | Control 增量 | Gate |
+|---|---:|---:|---|
+| Cream cheese -> bowl | +0.56pp | -0.04pp | PASS |
+| Bowl -> top drawer | +7.39pp | +0.41pp | PASS |
+| Wine bottle -> rack | +1.24pp | -0.12pp | PASS |
+| Book -> caddy | +3.38pp | +0.45pp | PASS |
+| Bowl -> bottom drawer | +7.32pp | +1.17pp | Control FAIL |
+| Mug -> microwave | +10.09pp | +2.33pp | Control FAIL |
+| Cream cheese -> basket | +2.76pp | -0.13pp | PASS |
+| Drawer bowl -> plate | +0.91pp | -0.30pp | PASS |
+
+6/8 个任务通过严格方向分离门。底层抽屉和微波炉不是没有可见性变化，而是镜像两侧都显著改善，无法用作 Strong-vs-Control 的严格因果对照；它们仍可进入 97-view 行为发现，但不能进入 matched-control 主结论。
+
+下一阶段使用 32 个 validation 状态、16 条独立 source demonstrations 和每状态 97 个 operational views 做一次候选发现。随后每个状态仅保留 8 个代表候选，并以 3 个新 noise 重跑。Test source 保持未触碰，待 view-value 规则在独立 calibration 上冻结后再使用。

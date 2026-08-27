@@ -6,6 +6,7 @@ CHECKPOINT=${CHECKPOINT:?set CHECKPOINT to a self-contained AlphaBrain or OpenPI
 OUTPUT_DIR=${OUTPUT_DIR:?set OUTPUT_DIR to a new or resumable evaluation directory}
 PROTOCOL=${PROTOCOL:-$REPO_ROOT/configs/dsol_paper1/libero_hdf5_closed_loop_quick_gate_v1.json}
 GPU_COUNT=${GPU_COUNT:-8}
+EVAL_WORKER_COUNT=${EVAL_WORKER_COUNT:-$GPU_COUNT}
 GPU_DEVICES=${DSOL_GPU_DEVICES:-}
 BASE_PORT=${BASE_PORT:-18600}
 REPLAN_STEPS=${REPLAN_STEPS:-5}
@@ -58,6 +59,10 @@ case "$POLICY_BACKEND" in
     ;;
 esac
 [[ "$GPU_COUNT" =~ ^[1-8]$ ]] || { echo "GPU_COUNT must be in [1,8]" >&2; exit 2; }
+[[ "$EVAL_WORKER_COUNT" =~ ^[1-9][0-9]*$ ]] && (( EVAL_WORKER_COUNT <= 64 )) || {
+  echo "EVAL_WORKER_COUNT must be in [1,64]" >&2
+  exit 2
+}
 if [[ -z "$GPU_DEVICES" ]]; then
   physical_gpus=()
   for ((gpu=0; gpu<GPU_COUNT; gpu++)); do physical_gpus+=("$gpu"); done
@@ -103,12 +108,13 @@ jq -n \
   --arg code_sha256 "$code_sha256" \
   --arg gpu_devices "$GPU_DEVICES" \
   --argjson gpu_count "$GPU_COUNT" \
+  --argjson eval_worker_count "$EVAL_WORKER_COUNT" \
   --argjson replan_steps "$REPLAN_STEPS" \
   --argjson wait_steps "$WAIT_STEPS" \
   --argjson eval_seed "$EVAL_SEED" \
   --arg max_episodes_per_shard "$MAX_EPISODES_PER_SHARD" \
   --argjson run_analysis "$RUN_ANALYSIS" \
-  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,policy_backend:$policy_backend,openpi_config:(if $policy_backend == "openpi" then $openpi_config else null end),protocol:$protocol,protocol_sha256:$protocol_sha256,analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,gpu_devices:($gpu_devices|split(",")|map(tonumber)),replan_steps:$replan_steps,wait_steps:$wait_steps,eval_seed:$eval_seed,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1)}' \
+  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,policy_backend:$policy_backend,openpi_config:(if $policy_backend == "openpi" then $openpi_config else null end),protocol:$protocol,protocol_sha256:$protocol_sha256,analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,eval_worker_count:$eval_worker_count,gpu_devices:($gpu_devices|split(",")|map(tonumber)),replan_steps:$replan_steps,wait_steps:$wait_steps,eval_seed:$eval_seed,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1)}' \
   > "$OUTPUT_DIR/run_manifest.json"
 
 policy_pids=()
@@ -175,9 +181,10 @@ while pending and time.monotonic() < deadline:
 if pending: raise SystemExit(f"policy servers did not become ready: {sorted(pending)}")
 PY
 
-for ((shard=0; shard<GPU_COUNT; shard++)); do
-  gpu=${physical_gpus[$shard]}
-  port=$((BASE_PORT + shard))
+for ((shard=0; shard<EVAL_WORKER_COUNT; shard++)); do
+  server_index=$((shard % GPU_COUNT))
+  gpu=${physical_gpus[$server_index]}
+  port=$((BASE_PORT + server_index))
   LIBERO_CONFIG_PATH="$SIM_CONFIG" \
   IMAGEIO_FFMPEG_EXE="$FFMPEG_EXE" \
   PYTHONPATH="$REPO_ROOT:/projects/openpi/packages/openpi-client/src:$REPO_ROOT/scripts/cabi_vla:$REPO_ROOT/scripts/dsol_paper1" \
@@ -186,7 +193,7 @@ for ((shard=0; shard<GPU_COUNT; shard++)); do
       --runtime "$RUNTIME" --config-root "$SIM_CONFIG" \
       --host 127.0.0.1 --port "$port" \
       --replan-steps "$REPLAN_STEPS" --wait-steps "$WAIT_STEPS" --seed "$EVAL_SEED" \
-      --num-shards "$GPU_COUNT" --shard-index "$shard" --render-gpu "$gpu" \
+      --num-shards "$EVAL_WORKER_COUNT" --shard-index "$shard" --render-gpu "$gpu" \
       --video-episodes "$VIDEO_EPISODES" \
       "${max_episode_args[@]}" \
       > "$OUTPUT_DIR/logs/eval-shard-${shard}-gpu-${gpu}.log" 2>&1 &
@@ -197,19 +204,19 @@ failed=0
 for pid in "${eval_pids[@]}"; do wait "$pid" || failed=1; done
 [[ "$failed" == 0 ]] || { echo "one or more evaluation shards failed" >&2; exit 1; }
 actual=$(awk 'NF {n++} END {print n+0}' "$OUTPUT_DIR"/episodes-shard-*.jsonl)
-expected=$(PROTOCOL="$PROTOCOL" GPU_COUNT="$GPU_COUNT" MAX_EPISODES_PER_SHARD="$MAX_EPISODES_PER_SHARD" \
+expected=$(PROTOCOL="$PROTOCOL" EVAL_WORKER_COUNT="$EVAL_WORKER_COUNT" MAX_EPISODES_PER_SHARD="$MAX_EPISODES_PER_SHARD" \
   "$READY_PYTHON" - <<'PY'
 import json
 import os
 
 with open(os.environ["PROTOCOL"], encoding="utf-8") as handle:
     protocol = json.load(handle)
-gpu_count = int(os.environ["GPU_COUNT"])
+worker_count = int(os.environ["EVAL_WORKER_COUNT"])
 limit_text = os.environ["MAX_EPISODES_PER_SHARD"]
 limit = int(limit_text) if limit_text else None
 count = 0
-for shard in range(gpu_count):
-    shard_count = sum(index % gpu_count == shard for index in range(len(protocol["specs"])))
+for shard in range(worker_count):
+    shard_count = sum(index % worker_count == shard for index in range(len(protocol["specs"])))
     count += min(shard_count, limit) if limit is not None else shard_count
 print(count)
 PY

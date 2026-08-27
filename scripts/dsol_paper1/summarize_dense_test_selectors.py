@@ -107,9 +107,19 @@ def summarize(
         raise ValueError("selector methods differ across test states")
 
     grouped_states: dict[str, list[str]] = defaultdict(list)
+    group_tasks: dict[str, str] = {}
     for pair_key, values in by_state.items():
-        grouped_states[str(values["canonical"]["source_group"])].append(pair_key)
+        group_name = str(values["canonical"]["source_group"])
+        task_id = str(values["canonical"]["task_id"])
+        grouped_states[group_name].append(pair_key)
+        previous_task = group_tasks.setdefault(group_name, task_id)
+        if previous_task != task_id:
+            raise ValueError("a source group spans multiple tasks")
     group_names = sorted(grouped_states)
+    task_groups: dict[str, list[str]] = defaultdict(list)
+    for group_name in group_names:
+        task_groups[group_tasks[group_name]].append(group_name)
+    task_ids = sorted(task_groups)
     rng = np.random.default_rng(BOOTSTRAP_SEED)
     bootstrap_indices = rng.integers(
         0, len(group_names), size=(BOOTSTRAP_RESAMPLES, len(group_names))
@@ -152,6 +162,33 @@ def summarize(
         difference_draws = group_differences[bootstrap_indices].mean(axis=1)
         rate_low, rate_high = percentile_interval(rate_draws)
         diff_low, diff_high = percentile_interval(difference_draws)
+        rates_by_group = dict(zip(group_names, group_rates, strict=True))
+        differences_by_group = dict(
+            zip(group_names, group_differences, strict=True)
+        )
+        task_rate_points = []
+        task_difference_points = []
+        task_rate_draws = np.zeros(BOOTSTRAP_RESAMPLES, dtype=np.float64)
+        task_difference_draws = np.zeros(BOOTSTRAP_RESAMPLES, dtype=np.float64)
+        for task_id in task_ids:
+            names = task_groups[task_id]
+            task_rates = np.asarray([rates_by_group[name] for name in names])
+            task_differences = np.asarray(
+                [differences_by_group[name] for name in names]
+            )
+            task_rate_points.append(float(task_rates.mean()))
+            task_difference_points.append(float(task_differences.mean()))
+            task_indices = rng.integers(
+                0,
+                len(names),
+                size=(BOOTSTRAP_RESAMPLES, len(names)),
+            )
+            task_rate_draws += task_rates[task_indices].mean(axis=1)
+            task_difference_draws += task_differences[task_indices].mean(axis=1)
+        task_rate_draws /= len(task_ids)
+        task_difference_draws /= len(task_ids)
+        task_rate_low, task_rate_high = percentile_interval(task_rate_draws)
+        task_diff_low, task_diff_high = percentile_interval(task_difference_draws)
         selector_summary[method] = {
             "mean_repeat_success_rate": float(rates.mean()),
             "success_rate_ci_low": rate_low,
@@ -159,6 +196,16 @@ def summarize(
             "difference_from_canonical_pp": float(100 * (rates - canonical_rates).mean()),
             "difference_ci_low_pp": diff_low,
             "difference_ci_high_pp": diff_high,
+            "task_macro_mean_repeat_success_rate": float(
+                np.mean(task_rate_points)
+            ),
+            "task_macro_success_rate_ci_low": task_rate_low,
+            "task_macro_success_rate_ci_high": task_rate_high,
+            "task_macro_difference_from_canonical_pp": float(
+                np.mean(task_difference_points)
+            ),
+            "task_macro_difference_ci_low_pp": task_diff_low,
+            "task_macro_difference_ci_high_pp": task_diff_high,
             "stable_success_state_count": sum(
                 by_state[key][method]["stable_success"] for key in by_state
             ),
@@ -175,7 +222,6 @@ def summarize(
         }
 
     task_summary = {}
-    task_ids = sorted({row["task_id"] for row in state_method_rows})
     for task_id in task_ids:
         task_summary[task_id] = {}
         for method in methods:
@@ -203,6 +249,12 @@ def summarize(
         "stable_success_minimum_repeats": majority,
         "bootstrap": {
             "independent_unit": "source_episode",
+            "resamples": BOOTSTRAP_RESAMPLES,
+            "seed": BOOTSTRAP_SEED,
+        },
+        "task_macro_bootstrap": {
+            "definition": "equal_task_mean_with_source_episode_resampling_within_task",
+            "task_count": len(task_ids),
             "resamples": BOOTSTRAP_RESAMPLES,
             "seed": BOOTSTRAP_SEED,
         },

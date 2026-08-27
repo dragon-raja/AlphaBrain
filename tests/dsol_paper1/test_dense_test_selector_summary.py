@@ -5,7 +5,13 @@ import pytest
 from scripts.dsol_paper1.summarize_dense_test_selectors import summarize
 
 
-def _rows(pair_key: str, method: str, outcomes: list[int]) -> list[dict]:
+def _rows(
+    pair_key: str,
+    method: str,
+    outcomes: list[int],
+    *,
+    task_id: str = "task-a",
+) -> list[dict]:
     return [
         {
             "episode_id": f"{pair_key}::{method}",
@@ -13,7 +19,7 @@ def _rows(pair_key: str, method: str, outcomes: list[int]) -> list[dict]:
             "status": "complete",
             "condition": f"selector__{method}",
             "pair_key": pair_key,
-            "task_id": "task-a",
+            "task_id": task_id,
             "selected_candidate_id": method,
             "success": bool(outcome),
             "completion_steps": 20 + index,
@@ -56,3 +62,23 @@ def test_summary_uses_majority_of_five_repeats() -> None:
     visibility = payload["selector_summary"]["visibility_mean"]
     assert visibility["stable_rescue_state_count"] == 1
     assert visibility["stable_harm_state_count"] == 0
+
+
+def test_summary_reports_task_macro_effect_for_unbalanced_tasks() -> None:
+    rows = []
+    for demo in ("demo_1", "demo_2"):
+        pair_key = f"task-a::test::{demo}::stage-01::frame-00010"
+        rows.extend(_rows(pair_key, "canonical", [1, 1, 1], task_id="task-a"))
+        rows.extend(
+            _rows(pair_key, "visibility_mean", [1, 1, 1], task_id="task-a")
+        )
+    pair_key = "task-b::test::demo_3::stage-01::frame-00010"
+    rows.extend(_rows(pair_key, "canonical", [0, 0, 0], task_id="task-b"))
+    rows.extend(_rows(pair_key, "visibility_mean", [1, 1, 1], task_id="task-b"))
+
+    payload, _state_rows = summarize(rows, expected_repeats=3)
+
+    visibility = payload["selector_summary"]["visibility_mean"]
+    assert visibility["difference_from_canonical_pp"] == pytest.approx(100 / 3)
+    assert visibility["task_macro_difference_from_canonical_pp"] == pytest.approx(50)
+    assert payload["task_macro_bootstrap"]["task_count"] == 2

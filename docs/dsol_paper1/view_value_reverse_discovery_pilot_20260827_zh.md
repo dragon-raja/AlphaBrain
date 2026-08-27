@@ -159,3 +159,96 @@ Oracle@97 相对 canonical 的单次上限为 +25.0pp，但它是检查了闭环
 2. 现有等权实体可见像素分数不是可部署的 view-value selector，平均上反而低于 canonical，且 CI 未排除零。
 
 Best-of-8 使用了复验结果选择候选，只能证明 headroom，不能作为算法结果。下一步应在 validation 的稳定正负候选上审计几何支持、任务阶段、实体关系与 Accel 特征；冻结新打分规则后，只在未触碰 test source 上做一次选择与三噪声闭环验证。
+
+## 冻结选择器独立测试
+
+选择规则在 validation 上冻结后，第一次独立测试使用 8 个任务、24 条未参与规则设计的 source demonstrations 和 48 个状态。每个状态只执行 6 个预先确定的选择器结果，而不是再次用闭环结果挑视角；每个结果使用 5 个独立 policy-flow noise，共完成 `1,440/1,440` 条闭环 episode。
+
+| 选择器 | 五噪声成功率 | 相对 Canonical | Source-level 95% CI | 稳定 Rescue / Harm |
+|---|---:|---:|---:|---:|
+| Canonical | 66.67% | 0.00pp | [0.00, 0.00] | - |
+| Validation 全局固定视角 | 62.08% | -4.58pp | [-9.17, +0.42] | 1 / 4 |
+| 可见性增量门控 | 67.92% | +1.25pp | [-2.92, +5.83] | 3 / 2 |
+| 实体可见性调和平均 | 66.25% | -0.42pp | [-4.58, +4.17] | 1 / 2 |
+| 实体可见性算术平均 | 67.50% | +0.83pp | [-4.17, +5.83] | 3 / 1 |
+| 最小实体可见性 | 65.00% | -1.67pp | [-6.25, +3.33] | 1 / 3 |
+
+该批数据中，可见性门控的点估计为正，但区间跨零，尚不能确认收益。五个噪声下相对 Canonical 的差值依次为 `0.00pp`、`+8.33pp`、`+4.17pp`、`-4.17pp`、`-2.08pp`，已经显示明显的噪声敏感性。
+
+## Source-disjoint 来源扩展
+
+为排除第一批 source demonstrations 的偶然性，继续使用同一冻结规则纳入 split 中剩余的 18 条 test source demonstrations。新批次含 7 个任务、36 个状态和 5 个相同独立噪声；选择前仍先对每个状态扫描 97 个视角的静态可见性特征，但未使用任何 test policy outcome。最终完成 `1,080/1,080` 条闭环 episode。
+
+| 选择器 | 五噪声成功率 | 相对 Canonical | Source-level 95% CI | 任务等权差值 | 稳定 Rescue / Harm |
+|---|---:|---:|---:|---:|---:|
+| Canonical | 83.89% | 0.00pp | [0.00, 0.00] | 0.00pp | - |
+| Validation 全局固定视角 | 75.00% | -8.89pp | [-15.56, -2.22] | -9.05pp | 1 / 4 |
+| 可见性增量门控 | 72.22% | -11.67pp | [-18.89, -4.44] | -12.14pp | 0 / 5 |
+| 实体可见性调和平均 | 74.44% | -9.44pp | [-16.67, -2.78] | -10.05pp | 0 / 4 |
+| 实体可见性算术平均 | 71.11% | -12.78pp | [-19.44, -6.11] | -13.86pp | 0 / 5 |
+| 最小实体可见性 | 72.22% | -11.67pp | [-18.89, -4.44] | -14.33pp | 1 / 4 |
+
+![新来源冻结选择器复验](/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/dense-test-selector-eval/analysis/dense_test_selectors.png)
+
+可见性门控在五个噪声上的差值依次为 `-5.56pp`、`-16.67pp`、`-5.56pp`、`-19.44pp`、`-11.11pp`，五次方向全部为负。任务等权差值同样显著为负，因此该结果不能由新批次任务数量不均单独解释。
+
+## 42 来源合并审计
+
+两批测试合并后共覆盖 8 个任务、42 条独立 source demonstrations、84 个状态、5 个噪声和 `2,520` 条闭环 episode。统计单位是 source demonstration；另行报告每个任务等权、任务内重采样的 bootstrap 结果。
+
+| 选择器 | 五噪声成功率 | 相对 Canonical | Source-level 95% CI | 任务等权差值 | 稳定 Rescue / Harm |
+|---|---:|---:|---:|---:|---:|
+| Canonical | 74.05% | 0.00pp | [0.00, 0.00] | 0.00pp | - |
+| Validation 全局固定视角 | 67.62% | -6.43pp | [-10.48, -2.38] | -5.73pp | 2 / 8 |
+| 可见性增量门控 | 69.76% | -4.29pp | [-8.57, 0.00] | -3.60pp | 3 / 7 |
+| 实体可见性调和平均 | 69.76% | -4.29pp | [-8.33, -0.24] | -3.76pp | 1 / 6 |
+| 实体可见性算术平均 | 69.05% | -5.00pp | [-9.52, -0.48] | -4.45pp | 3 / 6 |
+| 最小实体可见性 | 68.10% | -5.95pp | [-10.24, -1.67] | -5.95pp | 2 / 7 |
+
+![42 来源合并选择器审计](/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/combined-analysis/dense_test_selectors.png)
+
+合并后，可见性门控在五个噪声上的差值为 `-2.38pp`、`-2.38pp`、`0.00pp`、`-10.71pp`、`-5.95pp`，没有一次为正。原 24 条来源上的弱正点估计没有跨来源复现。
+
+## 任务异质性
+
+下表给出可见性增量门控相对 Canonical 的任务级成功率差值。第一批与新增来源中，同一任务的构造、候选池和规则均未变化。
+
+| 任务 | 原 24 来源子集 | 新 18 来源子集 | 合并 |
+|---|---:|---:|---:|
+| Cream cheese -> bowl | 0.0pp | 0.0pp | 0.0pp |
+| Bowl -> top drawer | -6.7pp | -6.7pp | -6.7pp |
+| Wine bottle -> rack | -10.0pp | -5.0pp | -8.0pp |
+| Book -> caddy | +10.0pp | -26.7pp | -8.3pp |
+| Bowl -> bottom drawer | +6.7pp | -26.7pp | -10.0pp |
+| Mug -> microwave | +3.3pp | -20.0pp | -2.5pp |
+| Cream cheese -> basket | 0.0pp | 0.0pp | 0.0pp |
+| Drawer bowl -> plate | +6.7pp | 未含新来源 | +6.7pp |
+
+Book、bottom-drawer 和 microwave 在相同任务定义下由正转负，说明选择收益依赖具体 source state，而不是稳定的任务级规律。两个 cream-cheese 任务接近 ceiling，只能作为无收益/不应伤害的控制，不能证明主动视角价值。
+
+当前门控选择也高度集中：84 个状态中 29 个保持 canonical，其余状态只使用 7 个不同的非 canonical 位姿，远少于 97-view 候选池。等权实体可见性在实践中接近“按任务选择少数固定大视野位姿”，没有学到状态、阶段和关系条件下的 view value。
+
+## 当前裁决与样本充分性
+
+当前构造规模足以支持以下裁决：
+
+1. 97-view 候选池确实包含可重复的行为 headroom；validation 上 Post-hoc Best-of-8 相对 Canonical 为 `+12.50pp`，95% CI `[+6.25,+18.75]`。
+2. 现有等权实体可见像素分数不能可靠识别该 headroom；在来源扩展中它产生 `0` 个稳定 Rescue 和 `5` 个稳定 Harm。
+3. 第一批 test 的 `+1.25pp` 是来源和噪声敏感的弱信号，不能作为方法效果。
+4. “更多可见像素”与“策略能够利用该观测”是两个独立条件；单纯扩大对象像素可能同时增加相机分布偏移。
+
+当前规模不足以支持以下结论：
+
+- 不能据此否定所有可学习的 view-value selector；
+- 不能声称所有任务都没有主动视角空间；
+- 不能在已经查看结果的 42 条 test sources 上继续调分数后仍称为独立测试；
+- 不能把 Post-hoc Best-of-8 报告为可部署算法。
+
+下一阶段应把现有等权可见性冻结为弱基线，在 discovery/validation 的稳定候选标签上研究 `任务阶段 × 实体关系 × 相机支持距离 × 遮挡/可见性 × Accel` 的组合预测。正例必须在多个 policy-noise 下稳定优于 canonical，负例应包含 matched-control 与稳定 Harm；冻结后需要新增任务或新的 source split 做一次性测试，而不是继续消耗当前 42 条已查看来源。
+
+原始结果入口：
+
+- 第一次独立测试：`/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/dense-test-selector-eval/analysis/analysis.json`
+- 新来源复验：`/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/dense-test-selector-eval/analysis/analysis.json`
+- 42 来源合并统计：`/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/combined-analysis/analysis.json`
+- 完成回执：`/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/completion.json`

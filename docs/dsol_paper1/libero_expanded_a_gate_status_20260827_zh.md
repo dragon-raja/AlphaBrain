@@ -68,13 +68,35 @@ Expanded A 已分成两个不可混用的层级：
 
 冻结闭环协议包含 20 个状态、10 个条件，共 200 episodes。统计单位为 source episode；同一 episode 的多个阶段状态必须聚类统计。
 
+## Natural-4 prefix 闭环结果
+
+Broad64 practical primary model 已完成 200/200 episodes。20 个状态均有完整 10 条条件，组内初始物理哈希不一致为 0，初始成功状态为 0；视频为 448 x 224 AV1/WebM。
+
+| 条件 | 状态成功数 | 状态成功率 | source-episode 宏平均 |
+|---|---:|---:|---:|
+| canonical，外部 + wrist | 16/20 | 80% | 85.0% |
+| strong-info，外部 + wrist | 14/20 | 70% | 76.7% |
+| matched-control，外部 + wrist | 11/20 | 55% | 58.3% |
+| blind，外部 + wrist | 12/20 | 60% | 60.0% |
+| canonical，wrist-only | 10/20 | 50% | 51.7% |
+| all-camera blackout | 0/20 | 0% | 0% |
+
+配对 source-episode bootstrap 的主要差值：
+
+- strong-info - canonical：-8.3pp，95% CI [-20.0, 0.0]；
+- strong-info - matched-control：+18.3pp，95% CI [-11.7, +50.0]；
+- strong-info - blind：+16.7pp，95% CI [-13.3, +45.0]；
+- blackout - canonical：-85.0pp，95% CI [-100.0, -68.3]。
+
+全黑成功率从旧污染运行的 30% 降为 0%，证明 prefix eligibility 修复有效。strong-info 相对 matched-control 有正点估计，但区间较宽且相对 canonical 未提升；当前自然场景结果只能支持“信息视角可能缓解部分普通视角位移损失”，不能支持“信息视角提高标准闭环成功率”。正式裁决必须依赖更强、独立构造的 Blind--Reveal 任务。
+
 ## 数据是否还需扩展
 
-### 可立即执行
+### 已完成
 
-- 使用 Natural-4 prefix 协议重跑 Broad64 practical primary model 的完整闭环；
-- 报告 full-task success、progress、Rescue/Harm 和 `Info - Matched-control`；
-- 把全黑、Blind 和 Look-away 仅作为诊断负对照。
+- Natural-4 prefix 的 Broad64 practical 完整闭环；
+- full-task success、Rescue/Harm 与 `Info - Matched-control` 配对统计；
+- 全黑、Blind 和 Look-away 诊断负对照。
 
 ### 正式 A 仍需构造
 
@@ -98,3 +120,4 @@ Expanded A 已分成两个不可混用的层级：
 - Natural-4 筛选：`/share/longjunyu/alphabrain/experiments/dsol-libero-expanded-a-v1/selection/natural4_pilot_selection_400_v3_prefix70.json`
 - 人工审计：`/share/longjunyu/alphabrain/experiments/dsol-libero-expanded-a-v1/manual_audit_natural4_v3_prefix70/manual_visual_audit_v3.json`
 - 冻结协议：`/share/longjunyu/alphabrain/experiments/dsol-libero-expanded-a-v1/constructed_m1_natural4_prefix70_protocol_v3.json`
+- 闭环指标：`/share/longjunyu/alphabrain/experiments/dsol-libero-expanded-a-v1/closed_loop_natural4_prefix70_v3/broad64-practical/analysis/metrics.json`

@@ -1,4 +1,7 @@
 {
+  "eligibility": {
+    "require_initial_task_unsolved": true
+  },
   "strong_info": {
     "episode_quantile": 0.25,
     "minimum_delta": 0.005,

@@ -141,6 +141,8 @@ def run_episode(
         env.reset()
         env.reset_from_xml_string(model_xml)
         observation = env.set_init_state(state)
+        initial_task_success = bool(env.check_success())
+        success = initial_task_success
         physics_sha256, physics_size = physics_state_sha256(env)
         catalog_path = Path(spec["catalog"]) if "catalog" in spec else None
         table_plane_z = 0.0
@@ -214,6 +216,7 @@ def run_episode(
             "physics_state_stage": "after_set_init_state_before_camera_install_and_wait",
             "post_wait_physics_state_sha256_exact": post_wait_physics_sha256,
             "post_wait_physics_state_size": post_wait_physics_size,
+            "initial_task_success": initial_task_success,
         }
         max_steps = MAX_STEPS_BY_SUITE[suite]
         step = 0

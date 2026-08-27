@@ -27,6 +27,9 @@ BLIND_GROUPS = ("diagnostic_extreme_orbit", "diagnostic_crossed_orbit")
 LOOK_AWAY_GROUPS = ("diagnostic_look_away",)
 
 DEFAULT_PROTOCOL: dict[str, Any] = {
+    "eligibility": {
+        "require_initial_task_unsolved": True,
+    },
     "strong_info": {
         "episode_quantile": 0.25,
         "minimum_delta": 0.005,
@@ -620,10 +623,36 @@ def build_selection(
     tasks = sorted(
         set(str(value) for value in (task_ids or [row["task_id"] for row in snapshots]))
     )
-    frozen = freeze_validation_rules(
-        snapshots, task_ids=tasks, protocol=resolved
+    eligible_snapshots = []
+    ineligible_snapshots = []
+    require_unsolved = bool(
+        resolved["eligibility"]["require_initial_task_unsolved"]
     )
-    test_snapshots = [snapshot for snapshot in snapshots if snapshot["split"] == "test"]
+    for snapshot in snapshots:
+        initial_success = snapshot.get("initial_task_success")
+        reason = None
+        if require_unsolved and not isinstance(initial_success, bool):
+            reason = "initial_task_success_missing"
+        elif require_unsolved and initial_success:
+            reason = "initial_task_already_successful"
+        if reason is None:
+            eligible_snapshots.append(snapshot)
+        else:
+            ineligible_snapshots.append(
+                {
+                    "scan_id": snapshot["scan_id"],
+                    "split": snapshot["split"],
+                    "task_id": snapshot["task_id"],
+                    "source_episode_id": snapshot["episode_id"],
+                    "reason": reason,
+                }
+            )
+    frozen = freeze_validation_rules(
+        eligible_snapshots, task_ids=tasks, protocol=resolved
+    )
+    test_snapshots = [
+        snapshot for snapshot in eligible_snapshots if snapshot["split"] == "test"
+    ]
     selected = []
     insufficient = []
     for snapshot in sorted(test_snapshots, key=lambda row: str(row["scan_id"])):
@@ -652,7 +681,7 @@ def build_selection(
             selected.append(result)
 
     validation_snapshots = [
-        snapshot for snapshot in snapshots if snapshot["split"] == "val"
+        snapshot for snapshot in eligible_snapshots if snapshot["split"] == "val"
     ]
     val_coverage = _episode_coverage(validation_snapshots, [])
     test_coverage = _episode_coverage(test_snapshots, selected)
@@ -742,6 +771,8 @@ def build_selection(
         "selected_snapshot_groups": selected,
         "insufficient_snapshot_group_count": len(insufficient),
         "insufficient_snapshot_groups": insufficient,
+        "ineligible_snapshot_group_count": len(ineligible_snapshots),
+        "ineligible_snapshot_groups": ineligible_snapshots,
         "population_insufficient_reasons": sorted(set(population_reasons)),
         "val_test_episode_leakage": split_leakage,
         "statistical_unit": "source_episode",
@@ -809,6 +840,7 @@ def load_scan_inputs(
                 "episode_id": str(plan_row["episode_id"]),
                 "frame": int(plan_row["frame"]),
                 "stage_fraction": float(plan_row["stage_fraction"]),
+                "initial_task_success": scan.get("initial_task_success"),
                 "scan_path": str(scan_path.resolve()),
                 "montage_path": str(
                     scan_path.with_name("visibility_extremes.png").resolve()

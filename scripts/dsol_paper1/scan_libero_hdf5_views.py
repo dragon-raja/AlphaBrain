@@ -338,6 +338,7 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
         env.reset()
         env.reset_from_xml_string(model_xml)
         env.set_init_state(state)
+        initial_task_success = bool(env.check_success())
         entities = list(env.env.obj_of_interest)
         reference = capture_camera_reference(
             env,
@@ -461,6 +462,7 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
         "groups": groups,
         "requested_pose_ids": pose_filter,
         "asset_path_rewrites": rewrite_counts,
+        "initial_task_success": initial_task_success,
         "records": records,
         "valid_records": len(valid),
         "invalid_records": sum(record.get("status") == "INVALID" for record in records),

@@ -16,13 +16,15 @@ DENSE_PROTOCOL=$ROOT/dense-test-protocol.json
 FEATURE_PLAN=$ROOT/test-feature-scan-plan.json
 FEATURE_SCAN=$ROOT/test-feature-scan
 SELECTOR_PROTOCOL=$ROOT/dense-test-selector-protocol.json
+REPEATED_PROTOCOL=$ROOT/dense-test-selector-protocol-five-noise.json
 RUN_ROOT=$ROOT/dense-test-selector-eval
 COMBINED_ANALYSIS=$ROOT/combined-analysis
 CHECKPOINT=${DSOL_CONSTRUCTED_ALL8_CHECKPOINT:-/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_broad64-quick-gate-v1_seed41_g8_gb32_steps2000/final_model}
 SIM_PYTHON=${DSOL_SIM_PYTHON:-/workspace/envs/fresh-libero/bin/python}
 ANALYSIS_PYTHON=${DSOL_ANALYSIS_PYTHON:-/alphabrain/.venv/bin/python}
 EVAL_WORKER_COUNT=${DSOL_CONSTRUCTED_ALL8_EVAL_WORKERS:-32}
-SEEDS=(20260841 20260842 20260843 20260844 20260845)
+SEEDS_CSV=20260841,20260842,20260843,20260844,20260845
+NOISE_REPEATS=5
 
 mkdir -p "$ROOT/logs" "$RUN_ROOT/logs"
 exec > >(tee -a "$ROOT/logs/controller.log") 2>&1
@@ -108,36 +110,40 @@ jq -e '.status == "PASS" and .selection_uses_test_policy_outcomes == false and
   .selector_method_count == 6 and .episode_count == 216' \
   "$SELECTOR_PROTOCOL" >/dev/null
 
-for index in "${!SEEDS[@]}"; do
-  seed=${SEEDS[$index]}
-  output=$RUN_ROOT/runs/seed-$seed
-  mkdir -p "$output"
-  actual=$(find "$output" -maxdepth 1 -name 'episodes-shard-*.jsonl' -type f \
-    -exec awk 'NF {n++} END {print n+0}' {} + 2>/dev/null | \
-    awk '{sum += $1} END {print sum + 0}')
-  if [[ "$actual" == 216 ]]; then
-    printf 'dense_test_source_extension_skip seed=%s\n' "$seed"
-    continue
-  fi
+"$ANALYSIS_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/expand_protocol_noise_repeats.py" \
+  --protocol "$SELECTOR_PROTOCOL" \
+  --seeds "$SEEDS_CSV" \
+  --output "$REPEATED_PROTOCOL"
+jq -e '.status == "PASS" and .base_episode_count == 216 and
+  .noise_repeat_count == 5 and .episode_count == 1080' "$REPEATED_PROTOCOL" >/dev/null
+
+output=$RUN_ROOT/run-five-noise
+mkdir -p "$output"
+actual=$(find "$output" -maxdepth 1 -name 'episodes-shard-*.jsonl' -type f \
+  -exec awk 'NF {n++} END {print n+0}' {} + 2>/dev/null | \
+  awk '{sum += $1} END {print sum + 0}')
+if [[ "$actual" != 1080 ]]; then
   CHECKPOINT="$CHECKPOINT" \
   OUTPUT_DIR="$output" \
-  PROTOCOL="$SELECTOR_PROTOCOL" \
+  PROTOCOL="$REPEATED_PROTOCOL" \
   POLICY_BACKEND=alphabrain \
   GPU_COUNT=8 \
   EVAL_WORKER_COUNT="$EVAL_WORKER_COUNT" \
   DSOL_GPU_DEVICES=0,1,2,3,4,5,6,7 \
-  BASE_PORT=$((20900 + index * 20)) \
+  BASE_PORT=20900 \
   REPLAN_STEPS=5 \
   WAIT_STEPS=0 \
-  EVAL_SEED="$seed" \
+  EVAL_SEED=0 \
   VIDEO_EPISODES=1 \
   RUN_ANALYSIS=0 \
     "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
-done
+else
+  printf 'dense_test_source_extension_skip_complete episodes=%s\n' "$actual"
+fi
 
 "$ANALYSIS_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/summarize_dense_test_selectors.py" \
-  "$RUN_ROOT"/runs/seed-*/episodes-shard-*.jsonl \
-  --expected-repeats "${#SEEDS[@]}" \
+  "$RUN_ROOT"/run-five-noise/episodes-shard-*.jsonl \
+  --expected-repeats "$NOISE_REPEATS" \
   --output-dir "$RUN_ROOT/analysis"
 "$ANALYSIS_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/plot_dense_test_selectors.py" \
   --analysis "$RUN_ROOT/analysis/analysis.json" \
@@ -145,8 +151,8 @@ done
 
 "$ANALYSIS_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/summarize_dense_test_selectors.py" \
   "$BASE_ROOT"/dense-test-selector-eval/runs/seed-*/episodes-shard-*.jsonl \
-  "$RUN_ROOT"/runs/seed-*/episodes-shard-*.jsonl \
-  --expected-repeats "${#SEEDS[@]}" \
+  "$RUN_ROOT"/run-five-noise/episodes-shard-*.jsonl \
+  --expected-repeats "$NOISE_REPEATS" \
   --output-dir "$COMBINED_ANALYSIS"
 "$ANALYSIS_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/plot_dense_test_selectors.py" \
   --analysis "$COMBINED_ANALYSIS/analysis.json" \
@@ -155,7 +161,7 @@ done
 jq -n \
   --arg completed_at "$(date -u +%FT%TZ)" \
   --arg git_commit "$(git -C "$REPO_ROOT" rev-parse HEAD)" \
-  --argjson repeats "${#SEEDS[@]}" \
+  --argjson repeats "$NOISE_REPEATS" \
   '{schema:"dsol_dense_test_source_extension_completion_v1",status:"COMPLETE",completed_at:$completed_at,git_commit:$git_commit,new_source_groups:18,new_states:36,new_episodes:1080,combined_source_groups:42,combined_states:84,combined_episodes:2520,policy_noise_repeats:$repeats,selection_uses_test_policy_outcomes:false}' \
   > "$ROOT/completion.json"
 

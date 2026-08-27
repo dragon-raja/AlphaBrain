@@ -364,7 +364,7 @@ def main() -> None:
         replan_steps=args.replan_steps,
         wait_steps=args.wait_steps,
         resize_size=args.resize_size,
-        seed=args.seed,
+        seed=int(spec.get("evaluation_seed", args.seed)),
         save_video=args.episode_index < args.video_episodes,
         video_dir=args.output_dir / "videos_av1",
         render_gpu=args.render_gpu,

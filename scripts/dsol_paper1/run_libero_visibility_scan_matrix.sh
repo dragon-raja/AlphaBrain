@@ -9,6 +9,7 @@ GPU_COUNT=${GPU_COUNT:-8}
 GPU_DEVICES=${DSOL_GPU_DEVICES:-}
 MAX_STATES_PER_SHARD=${MAX_STATES_PER_SHARD:-}
 CANDIDATE_GROUPS=${CANDIDATE_GROUPS:-broad_heldout_32,wide_extrapolation_24,diagnostic_extreme_orbit,diagnostic_look_away}
+POSE_IDS=${POSE_IDS:-}
 SIM_PYTHON=${SIM_PYTHON:-/workspace/envs/fresh-libero/bin/python}
 RUNTIME=${RUNTIME:-/share/longjunyu/alphabrain/datasets/libero-plus/runtime/LIBERO-plus}
 SIM_CONFIG=${SIM_CONFIG:-/share/longjunyu/alphabrain/envs/libero-plus-runtime-config-v1}
@@ -55,9 +56,9 @@ jq -n \
   --arg catalog "$CATALOG" --arg catalog_sha256 "$catalog_sha256" \
   --arg code_sha256 "$code_sha256" \
   --arg gpu_devices "$GPU_DEVICES" \
-  --arg groups "$CANDIDATE_GROUPS" --arg max_states_per_shard "$MAX_STATES_PER_SHARD" \
+  --arg groups "$CANDIDATE_GROUPS" --arg pose_ids "$POSE_IDS" --arg max_states_per_shard "$MAX_STATES_PER_SHARD" \
   --argjson gpu_count "$GPU_COUNT" \
-  '{schema:"dsol_libero_visibility_scan_run_v1",plan:$plan,plan_sha256:$plan_sha256,catalog:$catalog,catalog_sha256:$catalog_sha256,code_sha256:$code_sha256,groups:$groups,gpu_count:$gpu_count,gpu_devices:($gpu_devices|split(",")|map(tonumber)),max_states_per_shard:(if $max_states_per_shard == "" then null else ($max_states_per_shard|tonumber) end)}' \
+  '{schema:"dsol_libero_visibility_scan_run_v1",plan:$plan,plan_sha256:$plan_sha256,catalog:$catalog,catalog_sha256:$catalog_sha256,code_sha256:$code_sha256,groups:$groups,pose_ids:(if $pose_ids == "" then null else ($pose_ids|split(",")) end),gpu_count:$gpu_count,gpu_devices:($gpu_devices|split(",")|map(tonumber)),max_states_per_shard:(if $max_states_per_shard == "" then null else ($max_states_per_shard|tonumber) end)}' \
   > "$OUTPUT_ROOT/run_manifest.json"
 
 pids=()
@@ -77,6 +78,10 @@ max_state_args=()
 if [[ -n "$MAX_STATES_PER_SHARD" ]]; then
   max_state_args=(--max-states "$MAX_STATES_PER_SHARD")
 fi
+pose_args=()
+if [[ -n "$POSE_IDS" ]]; then
+  pose_args=(--pose-ids "$POSE_IDS")
+fi
 for ((shard=0; shard<GPU_COUNT; shard++)); do
   gpu=${physical_gpus[$shard]}
   if tmux has-session -t "gpu-keepalive-${gpu}" 2>/dev/null; then
@@ -89,7 +94,7 @@ for ((shard=0; shard<GPU_COUNT; shard++)); do
       --plan "$PLAN" --output-root "$OUTPUT_ROOT" \
       --runtime "$RUNTIME" --catalog "$CATALOG" --config-root "$SIM_CONFIG" \
       --groups "$CANDIDATE_GROUPS" --num-shards "$GPU_COUNT" --shard-index "$shard" \
-      --render-gpu "$gpu" "${max_state_args[@]}" \
+      --render-gpu "$gpu" "${max_state_args[@]}" "${pose_args[@]}" \
       > "$OUTPUT_ROOT/logs/shard-${shard}-gpu-${gpu}.log" 2>&1 &
   pids+=("$!")
 done

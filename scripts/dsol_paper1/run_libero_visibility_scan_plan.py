@@ -25,6 +25,7 @@ def main() -> None:
     parser.add_argument("--catalog", type=Path, required=True)
     parser.add_argument("--config-root", type=Path, required=True)
     parser.add_argument("--groups", default="broad_heldout_32,wide_extrapolation_24,diagnostic_extreme_orbit,diagnostic_look_away")
+    parser.add_argument("--pose-ids", default="")
     parser.add_argument("--num-shards", type=int, default=1)
     parser.add_argument("--shard-index", type=int, default=0)
     parser.add_argument("--max-states", type=int)
@@ -81,6 +82,8 @@ def main() -> None:
             "--render-gpu",
             str(args.render_gpu),
         ]
+        if args.pose_ids:
+            command.extend(["--pose-ids", args.pose_ids])
         if row.get("construction_spec"):
             command.extend(
                 ["--construction-spec", str(row["construction_spec"])]

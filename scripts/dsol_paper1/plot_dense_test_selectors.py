@@ -62,7 +62,7 @@ def main() -> None:
     axes[0].set_yticks(y, labels)
     axes[0].invert_yaxis()
     axes[0].set_xlim(0, 105)
-    axes[0].set_xlabel("Three-noise success rate (%)")
+    axes[0].set_xlabel(f"{payload['expected_repeats']}-noise success rate (%)")
     axes[0].set_title("A. Independent test success")
     axes[0].grid(axis="x", alpha=0.2)
 

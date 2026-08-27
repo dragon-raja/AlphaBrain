@@ -11,7 +11,7 @@ SUMMARIZER=$REPO_ROOT/scripts/dsol_paper1/summarize_dense_test_selectors.py
 PLOTTER=$REPO_ROOT/scripts/dsol_paper1/plot_dense_test_selectors.py
 ANALYSIS_PYTHON=${DSOL_ANALYSIS_PYTHON:-/alphabrain/.venv/bin/python}
 EVAL_WORKER_COUNT=${DSOL_CONSTRUCTED_ALL8_EVAL_WORKERS:-32}
-SEEDS=(20260841 20260842 20260843)
+SEEDS=(20260841 20260842 20260843 20260844 20260845)
 
 mkdir -p "$RUN_ROOT/logs"
 exec > >(tee -a "$RUN_ROOT/logs/controller.log") 2>&1
@@ -54,7 +54,7 @@ done
 
 "$ANALYSIS_PYTHON" "$SUMMARIZER" \
   "$RUN_ROOT"/runs/seed-*/episodes-shard-*.jsonl \
-  --expected-repeats 3 \
+  --expected-repeats "${#SEEDS[@]}" \
   --output-dir "$RUN_ROOT/analysis"
 
 "$ANALYSIS_PYTHON" "$PLOTTER" \
@@ -64,7 +64,9 @@ done
 jq -n \
   --arg completed_at "$(date -u +%FT%TZ)" \
   --arg git_commit "$(git -C "$REPO_ROOT" rev-parse HEAD)" \
-  '{schema:"dsol_dense_test_selector_completion_v1",status:"COMPLETE",completed_at:$completed_at,git_commit:$git_commit,selection_uses_test_policy_outcomes:false}' \
+  --argjson repeats "${#SEEDS[@]}" \
+  --argjson episodes "$((288 * ${#SEEDS[@]}))" \
+  '{schema:"dsol_dense_test_selector_completion_v1",status:"COMPLETE",completed_at:$completed_at,git_commit:$git_commit,selection_uses_test_policy_outcomes:false,policy_noise_repeats:$repeats,total_episodes:$episodes}' \
   > "$RUN_ROOT/completion.json"
 
 printf 'dense_test_selector_complete=%s\n' "$(date -u +%FT%TZ)"

@@ -230,7 +230,19 @@ def main() -> None:
     payload, state_rows = summarize(load_rows(args.episodes), args.expected_repeats)
     atomic_json(args.output_dir / "analysis.json", payload)
     write_csv(args.output_dir / "state_method_results.csv", state_rows)
-    print(json.dumps(payload, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "status": payload["status"],
+                "episodes": payload["episodes"],
+                "states": payload["states"],
+                "source_groups": payload["source_groups"],
+                "expected_repeats": payload["expected_repeats"],
+                "selector_summary": payload["selector_summary"],
+            },
+            sort_keys=True,
+        )
+    )
 
 
 if __name__ == "__main__":

@@ -42,3 +42,17 @@ def test_summary_reports_independent_test_rescue_and_harm() -> None:
     assert visibility["difference_from_canonical_pp"] == pytest.approx(0.0)
     assert visibility["stable_rescue_state_count"] == 1
     assert visibility["stable_harm_state_count"] == 1
+
+
+def test_summary_uses_majority_of_five_repeats() -> None:
+    pair_key = "task-a::test::demo_3::stage-01::frame-00014"
+    rows = []
+    rows.extend(_rows(pair_key, "canonical", [1, 1, 0, 0, 0]))
+    rows.extend(_rows(pair_key, "visibility_mean", [1, 1, 1, 0, 0]))
+
+    payload, _state_rows = summarize(rows, expected_repeats=5)
+
+    assert payload["stable_success_minimum_repeats"] == 3
+    visibility = payload["selector_summary"]["visibility_mean"]
+    assert visibility["stable_rescue_state_count"] == 1
+    assert visibility["stable_harm_state_count"] == 0

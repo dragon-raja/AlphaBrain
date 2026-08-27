@@ -18,6 +18,8 @@ CATEGORY_LABELS = {
     "canonical_failure_sparse": "Sparse single-seed rescue",
     "canonical_success_harm": "View-harm state",
     "canonical_failure_broad": "Broad single-seed rescue",
+    "canonical_success_broad": "Canonical success / broad support",
+    "no_discovery_success": "No single-seed success",
 }
 
 
@@ -36,26 +38,57 @@ def main() -> None:
     figure, axes = plt.subplots(1, 3, figsize=(15.5, 4.8))
 
     state_rows = summary["state_rows"]
-    labels = [CATEGORY_LABELS[row["category"]] for row in state_rows]
+    if len(state_rows) > 8:
+        grouped = defaultdict(list)
+        for row in state_rows:
+            grouped[row["category"]].append(row)
+        plot_rows = []
+        for category, values in sorted(grouped.items()):
+            plot_rows.append(
+                {
+                    "category": category,
+                    "canonical_repeat_success_rate": float(
+                        np.mean(
+                            [row["canonical_repeat_success_rate"] for row in values]
+                        )
+                    ),
+                    "visibility_repeat_success_rate": float(
+                        np.mean(
+                            [row["visibility_repeat_success_rate"] for row in values]
+                        )
+                    ),
+                    "best_shortlist_repeat_success_rate": float(
+                        np.mean(
+                            [
+                                row["best_shortlist_repeat_success_rate"]
+                                for row in values
+                            ]
+                        )
+                    ),
+                }
+            )
+    else:
+        plot_rows = state_rows
+    labels = [CATEGORY_LABELS[row["category"]] for row in plot_rows]
     y = np.arange(len(labels))
     width = 0.23
     axes[0].barh(
         y - width,
-        [100 * row["canonical_repeat_success_rate"] for row in state_rows],
+        [100 * row["canonical_repeat_success_rate"] for row in plot_rows],
         height=width,
         label="Canonical",
         color="#3E7CB1",
     )
     axes[0].barh(
         y,
-        [100 * row["visibility_repeat_success_rate"] for row in state_rows],
+        [100 * row["visibility_repeat_success_rate"] for row in plot_rows],
         height=width,
         label="Visibility top-1",
         color="#3FA37C",
     )
     axes[0].barh(
         y + width,
-        [100 * row["best_shortlist_repeat_success_rate"] for row in state_rows],
+        [100 * row["best_shortlist_repeat_success_rate"] for row in plot_rows],
         height=width,
         label="Best of 8 (post hoc)",
         color="#C55A6A",
@@ -74,7 +107,7 @@ def main() -> None:
     bottoms = np.zeros(len(labels))
     colors = ["#D7DEE8", "#E6B566", "#67A9CF", "#238B6B"]
     for successes in range(4):
-        values = [transition[row["category"]][successes] for row in state_rows]
+        values = [transition[row["category"]][successes] for row in plot_rows]
         axes[1].barh(
             y,
             values,

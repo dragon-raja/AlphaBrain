@@ -41,6 +41,7 @@ def load_rows(patterns: Sequence[str]) -> list[dict[str, Any]]:
 
 
 def summarize(rows: Sequence[Mapping[str, Any]], expected_seeds: int) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    majority = expected_seeds // 2 + 1
     by_candidate: dict[tuple[str, str], list[Mapping[str, Any]]] = defaultdict(list)
     for row in rows:
         by_candidate[(str(row["pair_key"]), str(row["selected_candidate_id"]))].append(row)
@@ -61,7 +62,9 @@ def summarize(rows: Sequence[Mapping[str, Any]], expected_seeds: int) -> tuple[d
                 "discovery_success": int(bool(values[0]["selection_metadata"]["discovery_success"])),
                 "repeat_successes": sum(bool(row["success"]) for row in values),
                 "repeat_success_rate": float(np.mean([row["success"] for row in values])),
-                "stable_positive_2of3": int(sum(bool(row["success"]) for row in values) >= 2),
+                "stable_positive_2of3": int(
+                    sum(bool(row["success"]) for row in values) >= majority
+                ),
                 "mean_completion_steps": float(np.mean([row["completion_steps"] for row in values])),
             }
         )
@@ -99,6 +102,14 @@ def summarize(rows: Sequence[Mapping[str, Any]], expected_seeds: int) -> tuple[d
         role: {"candidate_states": len(values), "mean_repeat_success_rate": float(np.mean(values))}
         for role, values in sorted(role_values.items())
     }
+    discovery_positive = [row for row in candidate_rows if row["discovery_success"]]
+    discovery_negative = [row for row in candidate_rows if not row["discovery_success"]]
+    stable_rescue_states = [
+        row
+        for row in state_rows
+        if row["canonical_repeat_success_rate"] < majority / expected_seeds
+        and row["best_shortlist_repeat_success_rate"] >= majority / expected_seeds
+    ]
     payload = {
         "schema": "dsol_view_repeatability_summary_v1",
         "status": "PASS",
@@ -106,6 +117,8 @@ def summarize(rows: Sequence[Mapping[str, Any]], expected_seeds: int) -> tuple[d
         "episodes": len(rows),
         "states": len(state_rows),
         "candidates": len(candidate_rows),
+        "expected_noise_draws_per_candidate": expected_seeds,
+        "stable_positive_minimum_successes": majority,
         "policy_noise_seeds": sorted({int(row["policy_noise_seed"]) for row in rows}),
         "canonical_mean_repeat_success_rate": float(
             np.mean([row["canonical_repeat_success_rate"] for row in state_rows])
@@ -116,6 +129,30 @@ def summarize(rows: Sequence[Mapping[str, Any]], expected_seeds: int) -> tuple[d
         "best_shortlist_oracle_mean_repeat_success_rate": float(
             np.mean([row["best_shortlist_repeat_success_rate"] for row in state_rows])
         ),
+        "stable_rescue_state_count": len(stable_rescue_states),
+        "stable_rescue_state_fraction": len(stable_rescue_states) / len(state_rows),
+        "single_run_transition": {
+            "discovery_positive_candidates": len(discovery_positive),
+            "discovery_negative_candidates": len(discovery_negative),
+            "stable_positive_candidates": sum(
+                row["stable_positive_2of3"] for row in candidate_rows
+            ),
+            "discovery_positive_and_stable": sum(
+                row["stable_positive_2of3"] for row in discovery_positive
+            ),
+            "discovery_negative_but_stable": sum(
+                row["stable_positive_2of3"] for row in discovery_negative
+            ),
+            "discovery_positive_predictive_value": (
+                float(
+                    np.mean(
+                        [row["stable_positive_2of3"] for row in discovery_positive]
+                    )
+                )
+                if discovery_positive
+                else None
+            ),
+        },
         "role_summary": role_summary,
         "state_rows": state_rows,
     }

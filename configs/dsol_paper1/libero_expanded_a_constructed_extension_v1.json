@@ -1,0 +1,59 @@
+{
+  "schema": "dsol_libero_expanded_a_constructed_extension_v1",
+  "status": "DESIGN_FROZEN_IMPLEMENTATION_PENDING",
+  "purpose": "Extend the formal expanded-A gate without relaxing validation-frozen visibility or matched-control thresholds.",
+  "training_policy": {
+    "normal_training_data_unchanged": true,
+    "constructed_states_are_evaluation_only": true,
+    "all_camera_blackout_is_evaluation_only": true,
+    "blind_and_look_away_are_evaluation_only": true,
+    "extreme_views_are_evaluation_only": true
+  },
+  "pairing_policy": {
+    "same_physics_state_across_conditions": true,
+    "same_robot_state_across_conditions": true,
+    "same_task_and_language_across_conditions": true,
+    "only_camera_or_declared_occluder_varies": true,
+    "validation_and_test_source_episodes_disjoint": true,
+    "test_threshold_retuning_forbidden": true
+  },
+  "task_extensions": [
+    {
+      "task_id": "goal_cream_cheese_bowl",
+      "observed_failure": "strong_info_below_frozen_validation_threshold_in_30_of_30_test_states",
+      "construction": "Place or occlude the cream-cheese box so canonical has weak evidence while a side or elevated reveal pose exposes both object and target bowl.",
+      "matched_control": "Use a camera pose with matched translation and rotation magnitude that does not expose the cream-cheese box or bowl interior."
+    },
+    {
+      "task_id": "object_cream_cheese_basket",
+      "observed_failure": "strong_info_below_frozen_validation_threshold_in_30_of_30_test_states",
+      "construction": "Place the cream-cheese box behind the basket rim or a task-neutral occluder in canonical, then reveal it from a lateral pose.",
+      "matched_control": "Use the mirrored or azimuth-matched pose that preserves the occlusion."
+    },
+    {
+      "task_id": "goal_top_drawer_bowl",
+      "observed_failure": "strong_info_and_geometry_matched_control_do_not_coexist_reliably",
+      "construction": "Expose the top-drawer interior from an elevated oblique reveal pose while a pose at matched displacement observes the drawer exterior without the bowl/interior.",
+      "matched_control": "Generate reveal and control as an explicit equal-radius, equal-angle pair rather than selecting them independently from the global catalog."
+    },
+    {
+      "task_id": "libero10_book_caddy",
+      "observed_failure": "no_geometry_matched_low_information_control_in_30_of_30_test_states",
+      "construction": "Reveal the back caddy compartment from one side while an equal-radius, equal-angle counterpart preserves compartment occlusion.",
+      "matched_control": "Generate a task-specific paired camera arc with shared displacement magnitude and opposite azimuth."
+    }
+  ],
+  "pilot_population": {
+    "validation_source_episodes_per_task": 2,
+    "test_source_episodes_per_task": 3,
+    "stage_samples_per_episode": 10,
+    "manual_audit_groups_per_task": 5,
+    "minimum_new_tasks_to_unlock_formal_gate": 2
+  },
+  "acceptance": {
+    "reuse_selector_protocol": "configs/dsol_paper1/libero_expanded_a_selection_v1.json",
+    "manual_visual_audit_required": true,
+    "minimum_formal_task_count": 6,
+    "threshold_relaxation_forbidden": true
+  }
+}

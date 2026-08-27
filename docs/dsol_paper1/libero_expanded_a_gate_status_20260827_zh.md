@@ -68,6 +68,7 @@ Natural-4 pilot 使用完全相同的冻结阈值，只显式限制在四个自�
 - 正式扫描计划：`configs/dsol_paper1/libero_expanded_a_scan_plan_v1.json`
 - 正式筛选规则：`configs/dsol_paper1/libero_expanded_a_selection_v1.json`
 - Natural-4 pilot 规则：`configs/dsol_paper1/libero_expanded_a_natural4_pilot_selection_v1.json`
+- 正式任务构造计划：`configs/dsol_paper1/libero_expanded_a_constructed_extension_v1.json`
 - 正式筛选结果：`/share/longjunyu/alphabrain/experiments/dsol-libero-expanded-a-v1/selection/automated_selection_400_v1.json`
 - Natural-4 筛选结果：`/share/longjunyu/alphabrain/experiments/dsol-libero-expanded-a-v1/selection/natural4_pilot_selection_400_v1.json`
 - 人工审计：`/share/longjunyu/alphabrain/experiments/dsol-libero-expanded-a-v1/manual_audit_natural4_v1/manual_visual_audit_v1.json`

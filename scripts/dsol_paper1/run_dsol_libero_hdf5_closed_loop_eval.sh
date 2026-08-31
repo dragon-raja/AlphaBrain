@@ -15,6 +15,7 @@ EVAL_SEED=${EVAL_SEED:-20260818}
 VIDEO_EPISODES=${VIDEO_EPISODES:-8}
 MAX_EPISODES_PER_SHARD=${MAX_EPISODES_PER_SHARD:-}
 RUN_ANALYSIS=${RUN_ANALYSIS:-1}
+KEEPALIVE_MODE=${KEEPALIVE_MODE:-managed}
 ANALYZER=${ANALYZER:-$REPO_ROOT/scripts/dsol_paper1/summarize_dsol_libero_hdf5_closed_loop.py}
 POLICY_PYTHON=${POLICY_PYTHON:-/alphabrain/.venv/bin/python}
 SIM_PYTHON=${SIM_PYTHON:-/workspace/envs/fresh-libero/bin/python}
@@ -87,6 +88,9 @@ done
 [[ "$WAIT_STEPS" =~ ^[0-9]+$ ]] || { echo "WAIT_STEPS must be a nonnegative integer" >&2; exit 2; }
 [[ "$VIDEO_EPISODES" =~ ^[0-9]+$ ]] || { echo "VIDEO_EPISODES must be a nonnegative integer" >&2; exit 2; }
 [[ "$RUN_ANALYSIS" =~ ^[01]$ ]] || { echo "RUN_ANALYSIS must be 0 or 1" >&2; exit 2; }
+[[ "$KEEPALIVE_MODE" == managed || "$KEEPALIVE_MODE" == preserve ]] || {
+  echo "KEEPALIVE_MODE must be managed or preserve" >&2; exit 2;
+}
 
 mkdir -p "$OUTPUT_DIR/logs"
 checkpoint_sha256=$(sha256sum "$CHECKPOINT/model.safetensors" | awk '{print $1}')
@@ -116,7 +120,8 @@ jq -n \
   --argjson video_episodes_per_worker "$VIDEO_EPISODES" \
   --arg max_episodes_per_shard "$MAX_EPISODES_PER_SHARD" \
   --argjson run_analysis "$RUN_ANALYSIS" \
-  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,policy_backend:$policy_backend,openpi_config:(if $policy_backend == "openpi" then $openpi_config else null end),protocol:$protocol,protocol_sha256:$protocol_sha256,analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,eval_worker_count:$eval_worker_count,gpu_devices:($gpu_devices|split(",")|map(tonumber)),replan_steps:$replan_steps,wait_steps:$wait_steps,eval_seed:$eval_seed,video_episodes_per_worker:$video_episodes_per_worker,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1)}' \
+  --arg keepalive_mode "$KEEPALIVE_MODE" \
+  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,policy_backend:$policy_backend,openpi_config:(if $policy_backend == "openpi" then $openpi_config else null end),protocol:$protocol,protocol_sha256:$protocol_sha256,analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,eval_worker_count:$eval_worker_count,gpu_devices:($gpu_devices|split(",")|map(tonumber)),replan_steps:$replan_steps,wait_steps:$wait_steps,eval_seed:$eval_seed,video_episodes_per_worker:$video_episodes_per_worker,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1),keepalive_mode:$keepalive_mode}' \
   > "$OUTPUT_DIR/run_manifest.json"
 
 policy_pids=()
@@ -134,7 +139,7 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 for gpu in "${physical_gpus[@]}"; do
-  if tmux has-session -t "gpu-keepalive-${gpu}" 2>/dev/null; then
+  if [[ "$KEEPALIVE_MODE" == managed ]] && tmux has-session -t "gpu-keepalive-${gpu}" 2>/dev/null; then
     tmux kill-session -t "gpu-keepalive-${gpu}"
     stopped_keepalives+=("$gpu")
   fi

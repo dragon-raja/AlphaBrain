@@ -338,7 +338,7 @@ def page_passive(pdf, preview_dir):
     save_page(pdf, fig, 5, preview_dir)
 
 
-def page_formal_benchmarks(pdf, preview_dir):
+def page_formal_benchmarks(pdf, preview_dir, *, clarify_estimands=False):
     camera = load_json(CAMERA_FORMAL_METRICS)
     original = load_json(ORIGINAL_FORMAL_METRICS)
     fig, canvas = new_page(
@@ -385,6 +385,13 @@ def page_formal_benchmarks(pdf, preview_dir):
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(axis="y", color=LINE, linewidth=0.8)
     ax.set_axisbelow(True)
+
+    if clarify_estimands:
+        fig.text(
+            0.06, 0.365,
+            "柱图：episode 汇总后对训练 seed 平均；下方差值：40 个任务等权配对，因此不等于柱高直接相减。",
+            fontsize=9.3, color=MUTED,
+        )
 
     metric(fig, canvas, 0.06, 0.16, 0.26, 0.18, "+5.15pp", "Practical：Camera 增益", "95% CI [+0.99, +9.62]", TEAL)
     metric(fig, canvas, 0.37, 0.16, 0.26, 0.18, "−2.53pp", "Practical：Original 退化", "95% CI [−4.05, −1.15]", GOLD)

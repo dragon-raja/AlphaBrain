@@ -53,27 +53,29 @@ controlled strong Blind-Reveal construction with symmetric camera support.
 The completed first-stage M-A/M-B evidence, including Broad64, constructed
 M0/M1, Accel, three-seed Camera Full and Original Full, is summarized in
 [view_revalidation_stage1_final_20260824_zh.md](view_revalidation_stage1_final_20260824_zh.md).
-The current presentation-ready Chinese PDF is
-[view_revalidation_report_zh.pdf](view_revalidation_report_zh.pdf), updated
-2026-08-31. Its 16 pages retain the formal camera/original benchmarks and the
-early task decomposition, then integrate frozen-selector replication across
-42 sources, 84 states and five inference-noise seeds. Pages 12-15 distinguish
-measured pixel-proxy failures from unresolved task-region, camera-support and
-wrist-channel confounds. These new selector results use one training checkpoint,
-not five independent training runs. Accel's separate evaluation remains clearly
-separated from the constructed visibility cohort.
+The original presentation remains
+[view_revalidation_stage1_integrated_v5_20260826_zh.pdf](view_revalidation_stage1_integrated_v5_20260826_zh.pdf).
+It has not been overwritten or reordered. New work is presented separately in
+[view_value_new_experiments_zh.pdf](view_value_new_experiments_zh.pdf), a five-page
+supplement dated 2026-08-31. It explains what was added (18 disjoint source
+demonstrations, 36 states, 1,080 rollouts), compares initial/new/combined results,
+and separates new evaluation from offline failure analysis. This is an additive
+update, not a replacement for the original presentation.
+
+The alternative integrated rewrite
+[view_revalidation_report_zh.pdf](view_revalidation_report_zh.pdf) is retained as
+an editing record, not the default report. These new selector results use one
+training checkpoint and five inference-noise repeats, not five training runs.
 
 The detailed evidence record is
 [view_value_reverse_discovery_pilot_20260827_zh.md](view_value_reverse_discovery_pilot_20260827_zh.md).
 The reproducible offline audit and report builder are
 [`audit_dense_selector_common_failures.py`](../../scripts/dsol_paper1/audit_dense_selector_common_failures.py)
-and [`build_view_revalidation_report_pdf.py`](../../scripts/dsol_paper1/build_view_revalidation_report_pdf.py).
+and [`build_view_value_new_experiments_pdf.py`](../../scripts/dsol_paper1/build_view_value_new_experiments_pdf.py).
 No new policy training, rollout, scoring-rule modification, or paper-level
 instrument release is implied by this report update.
 
-The previous integrated PDFs, including
-[v5](view_revalidation_stage1_integrated_v5_20260826_zh.pdf) and
-[v2](view_revalidation_stage1_integrated_v2_20260825_zh.pdf), are dated historical records.
+The older [v2](view_revalidation_stage1_integrated_v2_20260825_zh.pdf) remains a dated historical record.
 The earlier 20-page integrated draft
 [view_revalidation_stage1_integrated_20260825_zh.pdf](view_revalidation_stage1_integrated_20260825_zh.pdf)
 is retained only as a dated layout record.

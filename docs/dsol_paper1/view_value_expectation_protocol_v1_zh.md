@@ -16,7 +16,7 @@
 ## 2. 此前“三个噪声”的准确含义
 
 此前 `20260861/62/63` 是三个完整 episode 的根 seed。每条 episode 在每次 replanning 时派生一个
-新 seed，重新采样一个 `50 x 7` 高斯初始 action tensor，经 10 步 flow 去噪后生成 action chunk，执行
+新 seed，重新采样一个与被评 checkpoint 一致的高斯初始 action tensor，经 10 步 flow 去噪后生成 action chunk，执行
 前 `K=5` 步，再次观察和采样。因此它们不是三个训练 seed，也不是仅在 episode 开头采三次噪声，
 而是三条各自包含多次随机 action generation 的闭环轨迹。
 
@@ -59,7 +59,7 @@ U(s,v,\pi)=p(s,v,\pi)-p(s,v_{canonical},\pi)
 
 1. HDF5/MuJoCo 物理状态精确恢复，所有视角 SHA-256 一致；
 2. environment seed 在同一状态内固定，不随 policy noise 改变；
-3. 每次 replanning 注入显式 `50 x 7` 标准高斯 tensor；
+3. 每次 replanning 注入显式 `10 x 7` 标准高斯 tensor；该形状来自本实验 Broad64 AlphaBrain checkpoint 的 `action_horizon=10`，不是 LeRobot base 配置的 50；
 4. 同一 state/repeat/replan 下所有候选使用完全相同 tensor；
 5. repeat 与 replan 之间独立；
 6. 每次记录 noise seed、noise SHA-256 和 action chunk SHA-256；
@@ -67,6 +67,13 @@ U(s,v,\pi)=p(s,v,\pi)-p(s,v_{canonical},\pi)
 
 单独设置 `torch.manual_seed()` 不足以 release，因为模型内部任何额外随机调用都可能改变真正用于 action
 generation 的 tensor。正式路径必须显式向 sampler 传入 noise。
+
+### 执行前修订 A1
+
+首次真实 checkpoint smoke 在任何正式 episode 运行前发现：所选 AlphaBrain Broad64 checkpoint 声明
+`action_horizon=10`，原文中的 `50 x 7` 来自 LeRobot Pi0.5 base 配置，并非该 checkpoint 的实际采样形状。
+因此显式噪声形状修订为 `10 x 7`。episode 预算、`K=5`、去噪步数、候选选择、统计门槛均未改变；
+原错误噪声银行不进入任何正式运行。
 
 ## 6. Calibration 密集候选实验
 

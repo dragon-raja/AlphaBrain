@@ -27,6 +27,8 @@ OPENPI_ROOT=${OPENPI_ROOT:-/projects/openpi}
 OPENPI_PYTHON=${OPENPI_PYTHON:-$OPENPI_ROOT/.venv/bin/python}
 OPENPI_DATA_HOME=${OPENPI_DATA_HOME:-/share/longjunyu/alphabrain/cache/openpi}
 OPENPI_CONFIG=${OPENPI_CONFIG:-pi05_libero}
+NOISE_BANK_MANIFEST=${NOISE_BANK_MANIFEST:-}
+REQUIRE_EXPLICIT_NOISE=${REQUIRE_EXPLICIT_NOISE:-0}
 
 for required in \
   "$CHECKPOINT/model.safetensors" \
@@ -88,6 +90,12 @@ done
 [[ "$WAIT_STEPS" =~ ^[0-9]+$ ]] || { echo "WAIT_STEPS must be a nonnegative integer" >&2; exit 2; }
 [[ "$VIDEO_EPISODES" =~ ^[0-9]+$ ]] || { echo "VIDEO_EPISODES must be a nonnegative integer" >&2; exit 2; }
 [[ "$RUN_ANALYSIS" =~ ^[01]$ ]] || { echo "RUN_ANALYSIS must be 0 or 1" >&2; exit 2; }
+[[ "$REQUIRE_EXPLICIT_NOISE" =~ ^[01]$ ]] || { echo "REQUIRE_EXPLICIT_NOISE must be 0 or 1" >&2; exit 2; }
+if [[ "$REQUIRE_EXPLICIT_NOISE" == 1 ]]; then
+  [[ -n "$NOISE_BANK_MANIFEST" && -f "$NOISE_BANK_MANIFEST" ]] || {
+    echo "formal evaluation requires NOISE_BANK_MANIFEST" >&2; exit 2;
+  }
+fi
 [[ "$KEEPALIVE_MODE" == managed || "$KEEPALIVE_MODE" == preserve ]] || {
   echo "KEEPALIVE_MODE must be managed or preserve" >&2; exit 2;
 }
@@ -95,6 +103,10 @@ done
 mkdir -p "$OUTPUT_DIR/logs"
 checkpoint_sha256=$(sha256sum "$CHECKPOINT/model.safetensors" | awk '{print $1}')
 protocol_sha256=$(sha256sum "$PROTOCOL" | awk '{print $1}')
+noise_bank_sha256=""
+if [[ -n "$NOISE_BANK_MANIFEST" ]]; then
+  noise_bank_sha256=$(sha256sum "$NOISE_BANK_MANIFEST" | awk '{print $1}')
+fi
 code_sha256=$(sha256sum \
   "$REPO_ROOT/scripts/cabi_vla/serve_alphabrain_pi05_websocket.py" \
   "$REPO_ROOT/scripts/cabi_vla/serve_openpi_deterministic.py" \
@@ -109,6 +121,9 @@ jq -n \
   --arg openpi_config "$OPENPI_CONFIG" \
   --arg protocol "$PROTOCOL" \
   --arg protocol_sha256 "$protocol_sha256" \
+  --arg noise_bank_manifest "$NOISE_BANK_MANIFEST" \
+  --arg noise_bank_manifest_sha256 "$noise_bank_sha256" \
+  --argjson require_explicit_noise "$REQUIRE_EXPLICIT_NOISE" \
   --arg analyzer "$ANALYZER" \
   --arg code_sha256 "$code_sha256" \
   --arg gpu_devices "$GPU_DEVICES" \
@@ -121,7 +136,7 @@ jq -n \
   --arg max_episodes_per_shard "$MAX_EPISODES_PER_SHARD" \
   --argjson run_analysis "$RUN_ANALYSIS" \
   --arg keepalive_mode "$KEEPALIVE_MODE" \
-  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,policy_backend:$policy_backend,openpi_config:(if $policy_backend == "openpi" then $openpi_config else null end),protocol:$protocol,protocol_sha256:$protocol_sha256,analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,eval_worker_count:$eval_worker_count,gpu_devices:($gpu_devices|split(",")|map(tonumber)),replan_steps:$replan_steps,wait_steps:$wait_steps,eval_seed:$eval_seed,video_episodes_per_worker:$video_episodes_per_worker,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1),keepalive_mode:$keepalive_mode}' \
+  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,policy_backend:$policy_backend,openpi_config:(if $policy_backend == "openpi" then $openpi_config else null end),protocol:$protocol,protocol_sha256:$protocol_sha256,noise_bank_manifest:(if $noise_bank_manifest == "" then null else $noise_bank_manifest end),noise_bank_manifest_sha256:(if $noise_bank_manifest_sha256 == "" then null else $noise_bank_manifest_sha256 end),require_explicit_noise:($require_explicit_noise == 1),analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,eval_worker_count:$eval_worker_count,gpu_devices:($gpu_devices|split(",")|map(tonumber)),replan_steps:$replan_steps,wait_steps:$wait_steps,eval_seed:$eval_seed,video_episodes_per_worker:$video_episodes_per_worker,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1),keepalive_mode:$keepalive_mode}' \
   > "$OUTPUT_DIR/run_manifest.json"
 
 policy_pids=()
@@ -148,6 +163,13 @@ done
 max_episode_args=()
 if [[ -n "$MAX_EPISODES_PER_SHARD" ]]; then
   max_episode_args=(--max-episodes "$MAX_EPISODES_PER_SHARD")
+fi
+noise_bank_args=()
+if [[ -n "$NOISE_BANK_MANIFEST" ]]; then
+  noise_bank_args=(--noise-bank-manifest "$NOISE_BANK_MANIFEST")
+fi
+if [[ "$REQUIRE_EXPLICIT_NOISE" == 1 ]]; then
+  noise_bank_args+=(--require-explicit-noise)
 fi
 
 for ((shard=0; shard<GPU_COUNT; shard++)); do
@@ -202,6 +224,7 @@ for ((shard=0; shard<EVAL_WORKER_COUNT; shard++)); do
       --replan-steps "$REPLAN_STEPS" --wait-steps "$WAIT_STEPS" --seed "$EVAL_SEED" \
       --num-shards "$EVAL_WORKER_COUNT" --shard-index "$shard" --render-gpu "$gpu" \
       --video-episodes "$VIDEO_EPISODES" \
+      "${noise_bank_args[@]}" \
       "${max_episode_args[@]}" \
       > "$OUTPUT_DIR/logs/eval-shard-${shard}-gpu-${gpu}.log" 2>&1 &
   eval_pids+=("$!")

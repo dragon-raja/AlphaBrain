@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import hashlib
 import json
 import os
 import subprocess
@@ -41,6 +42,8 @@ def masked_policy_observation(
     eval_seed: int,
     camera_calibration: Mapping[str, Any],
     sensor_control: str,
+    explicit_noise: np.ndarray | None = None,
+    noise_sha256: str | None = None,
 ) -> tuple[dict[str, Any], np.ndarray, np.ndarray]:
     from evaluate_pi05_libero_plus_views import prepare_policy_observation
 
@@ -64,6 +67,9 @@ def masked_policy_observation(
         example["observation/wrist_image"] = wrist
     elif sensor_control != "both":
         raise ValueError(f"unsupported sensor control: {sensor_control}")
+    if explicit_noise is not None:
+        example["_eval_noise"] = np.ascontiguousarray(explicit_noise, dtype=np.float32)
+        example["_eval_noise_sha256"] = str(noise_sha256)
     return example, agent, wrist
 
 
@@ -79,6 +85,18 @@ def deployed_camera_names(sensor_control: str) -> tuple[str, ...]:
     raise ValueError(f"unsupported sensor control: {sensor_control}")
 
 
+def goal_predicate_progress(environment: Any) -> dict[str, Any]:
+    """Evaluate LIBERO's declared goal predicates without changing success semantics."""
+    goal_states = list(environment.env.parsed_problem.get("goal_state", []))
+    values = [bool(environment.env._eval_predicate(state)) for state in goal_states]
+    return {
+        "goal_predicate_count": len(values),
+        "goal_predicate_satisfied": sum(values),
+        "goal_predicate_values": values,
+        "fraction": float(np.mean(values)) if values else float(environment.check_success()),
+    }
+
+
 def run_episode(
     spec: Mapping[str, Any],
     *,
@@ -92,6 +110,8 @@ def run_episode(
     save_video: bool,
     video_dir: Path,
     render_gpu: int,
+    noise_bank: Any | None,
+    require_explicit_noise: bool,
 ) -> tuple[dict[str, Any], Any]:
     import h5py
 
@@ -140,15 +160,22 @@ def run_episode(
     frames: list[np.ndarray] = []
     action_plan: collections.deque[np.ndarray] = collections.deque()
     inference_calls = 0
+    policy_call_records = []
     success = False
-    pair_seed = stable_seed(str(spec["pair_key"]), seed=seed)
+    environment_seed = int(
+        spec.get("environment_seed", stable_seed(str(spec["pair_key"]), seed=seed))
+    )
+    policy_repeat_id = spec.get("policy_repeat_id")
+    if require_explicit_noise and (noise_bank is None or policy_repeat_id is None):
+        raise ValueError("formal evaluation requires a noise bank and policy_repeat_id")
     sensor_control = str(spec["sensor_control"])
     try:
-        env.seed(pair_seed)
+        env.seed(environment_seed)
         env.reset()
         env.reset_from_xml_string(model_xml)
         observation = env.set_init_state(state)
         initial_task_success = bool(env.check_success())
+        initial_goal_progress = goal_predicate_progress(env)
         success = initial_task_success
         physics_sha256, physics_size = physics_state_sha256(env)
         catalog_path = Path(spec["catalog"]) if "catalog" in spec else None
@@ -183,7 +210,7 @@ def run_episode(
             observation,
             prompt=prompt,
             resize_size=resize_size,
-            eval_seed=pair_seed,
+            eval_seed=environment_seed,
             camera_calibration=camera_calibration,
             sensor_control=sensor_control,
         )
@@ -233,9 +260,16 @@ def run_episode(
         step = 0
         while not success and step < max_steps:
             if not action_plan:
-                call_seed = stable_seed(
-                    f"{spec['pair_key']}::policy_call::{inference_calls}", seed=seed
-                )
+                noise_record = None
+                if noise_bank is not None:
+                    noise_record = noise_bank.get(
+                        str(spec["pair_key"]), int(policy_repeat_id), inference_calls
+                    )
+                    call_seed = int(noise_record["noise_seed"] % (2**31 - 1))
+                else:
+                    call_seed = stable_seed(
+                        f"{spec['pair_key']}::policy_call::{inference_calls}", seed=seed
+                    )
                 example, agent, wrist = masked_policy_observation(
                     observation,
                     prompt=prompt,
@@ -243,10 +277,30 @@ def run_episode(
                     eval_seed=call_seed,
                     camera_calibration=camera_calibration,
                     sensor_control=sensor_control,
+                    explicit_noise=None if noise_record is None else noise_record["noise"],
+                    noise_sha256=None if noise_record is None else noise_record["noise_sha256"],
                 )
-                chunk = np.asarray(client.infer(example)["actions"], dtype=np.float32)
+                response = client.infer(example)
+                chunk = np.ascontiguousarray(response["actions"], dtype=np.float32)
                 if len(chunk) < replan_steps or chunk.shape[1] != 7:
                     raise ValueError(f"invalid action chunk shape: {chunk.shape}")
+                action_sha256 = hashlib.sha256(chunk.tobytes(order="C")).hexdigest()
+                if noise_record is not None:
+                    if not bool(response.get("explicit_flow_noise")):
+                        raise ValueError("policy server did not acknowledge explicit flow noise")
+                    if response.get("noise_sha256") != noise_record["noise_sha256"]:
+                        raise ValueError("policy server used a different explicit noise tensor")
+                    if response.get("action_chunk_sha256") != action_sha256:
+                        raise ValueError("policy server action chunk SHA-256 mismatch")
+                    policy_call_records.append(
+                        {
+                            "policy_repeat_id": int(policy_repeat_id),
+                            "replan_index": inference_calls,
+                            "noise_seed": int(noise_record["noise_seed"]),
+                            "noise_sha256": noise_record["noise_sha256"],
+                            "action_chunk_sha256": action_sha256,
+                        }
+                    )
                 action_plan.extend(chunk[:replan_steps])
                 inference_calls += 1
                 if save_video:
@@ -254,6 +308,7 @@ def run_episode(
             observation, _, done, _ = env.step(action_plan.popleft())
             success = bool(done)
             step += 1
+        final_goal_progress = goal_predicate_progress(env)
         if save_video:
             suffix = "success" if success else "failure"
             encode_av1_video(video_dir / f"{spec['episode_id']}--{suffix}.webm", frames)
@@ -267,7 +322,18 @@ def run_episode(
                 "wait_steps": wait_steps,
                 "replan_steps": replan_steps,
                 "inference_calls": inference_calls,
-                "policy_noise_seed": pair_seed,
+                "normalized_final_progress": final_goal_progress["fraction"],
+                "initial_goal_progress": initial_goal_progress,
+                "final_goal_progress": final_goal_progress,
+                "environment_seed": environment_seed,
+                "policy_noise_seed": environment_seed if noise_bank is None else None,
+                "policy_repeat_id": policy_repeat_id,
+                "explicit_flow_noise": noise_bank is not None,
+                "noise_bank_id": None if noise_bank is None else noise_bank.manifest["bank_id"],
+                "noise_bank_manifest_sha256": None if noise_bank is None else hashlib.sha256(
+                    noise_bank.manifest_path.read_bytes()
+                ).hexdigest(),
+                "policy_calls": policy_call_records,
                 "language": prompt,
                 "clean_language": clean_task_prompt(Path(bddl_name).stem),
                 "bddl_file": str(bddl),
@@ -309,6 +375,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--video-episodes", type=int, default=8)
     parser.add_argument("--render-gpu", type=int, default=0)
     parser.add_argument("--episode-index", type=int)
+    parser.add_argument("--noise-bank-manifest", type=Path)
+    parser.add_argument("--require-explicit-noise", action="store_true")
+    parser.add_argument("--skip-noise-bank-file-sha", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args()
 
 
@@ -338,11 +407,19 @@ def main() -> None:
         if output.exists() and line.strip()
     } if output.exists() else set()
     if args.episode_index is None:
+        if args.noise_bank_manifest is not None:
+            configure_imports()
+            from explicit_flow_noise import ExplicitFlowNoiseBank
+
+            ExplicitFlowNoiseBank(args.noise_bank_manifest, verify_file=True)
         for index, spec in enumerate(specs):
             if spec["episode_id"] in completed:
                 continue
+            child_args = [sys.executable, str(Path(__file__).resolve()), *sys.argv[1:]]
+            if args.noise_bank_manifest is not None and not args.skip_noise_bank_file_sha:
+                child_args.append("--skip-noise-bank-file-sha")
             subprocess.run(
-                [sys.executable, str(Path(__file__).resolve()), *sys.argv[1:], "--episode-index", str(index)],
+                [*child_args, "--episode-index", str(index)],
                 check=True,
             )
         return
@@ -354,8 +431,17 @@ def main() -> None:
 
     _configure_runtime(args.runtime.resolve(), Path(spec["hdf5"]).resolve().parents[1], args.config_root.resolve())
     from openpi_client import websocket_client_policy
+    from explicit_flow_noise import ExplicitFlowNoiseBank
 
     client = websocket_client_policy.WebsocketClientPolicy(args.host, args.port)
+    noise_bank = (
+        ExplicitFlowNoiseBank(
+            args.noise_bank_manifest,
+            verify_file=not args.skip_noise_bank_file_sha,
+        )
+        if args.noise_bank_manifest is not None
+        else None
+    )
     row, _environment = run_episode(
         spec,
         runtime=args.runtime.resolve(),
@@ -368,6 +454,8 @@ def main() -> None:
         save_video=args.episode_index < args.video_episodes,
         video_dir=args.output_dir / "videos_av1",
         render_gpu=args.render_gpu,
+        noise_bank=noise_bank,
+        require_explicit_noise=args.require_explicit_noise,
     )
     append_jsonl(output, row)
     print(json.dumps({"episode_id": row["episode_id"], "condition": row["condition"], "success": row["success"]}, sort_keys=True), flush=True)

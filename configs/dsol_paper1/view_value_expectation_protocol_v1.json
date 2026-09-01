@@ -2,6 +2,16 @@
   "schema": "dsol_view_value_expectation_protocol_v1",
   "status": "FROZEN_PREREGISTRATION_RUNNER_HOLD",
   "frozen_date": "2026-09-01",
+  "pre_execution_amendments": [
+    {
+      "amendment_id": "A1_ACTION_HORIZON_IDENTITY",
+      "reason": "The selected AlphaBrain broad64 checkpoint declares action_horizon=10; the original 50-step expectation came from the LeRobot Pi0.5 base configuration and is not this checkpoint's deployed sampler shape.",
+      "discovered_by": "explicit_noise_integration_smoke_before_any_formal_episode",
+      "formal_episode_count_before_amendment": 0,
+      "change": "expected explicit flow-noise tensor shape corrected from 50x7 to checkpoint-declared 10x7",
+      "budgets_or_gates_changed": false
+    }
+  ],
   "scope": {
     "paper_type": "controlled_system_analysis",
     "central_question": "how_vla_training_inference_and_camera_interfaces_shape_view_robustness_preference_and_use",
@@ -53,7 +63,8 @@
       "distribution": "iid_standard_normal",
       "sampling_unit": "one_explicit_action_noise_tensor_per_replanning_call",
       "tensor_shape_source": "checkpoint_action_horizon_x_action_dimension",
-      "expected_shape_for_current_pi05": [50, 7],
+      "expected_shape_for_selected_checkpoint": [10, 7],
+      "base_lerobot_pi05_shape_not_used_by_this_checkpoint": [50, 7],
       "replan_k": 5,
       "flow_denoising_steps": 10,
       "shared_exactly_across_views_within_state_repeat_and_replan_index": true,

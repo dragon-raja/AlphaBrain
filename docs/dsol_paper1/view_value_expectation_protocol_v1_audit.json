@@ -8,7 +8,7 @@
   "projected_primary_total_episodes": 28224,
   "protocol": "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/view_value_expectation_protocol_v1.json",
   "protocol_schema": "dsol_view_value_expectation_protocol_v1",
-  "protocol_sha256": "5bc5e4e0cd60756aef9ee18208336891f17ebfbdb62be95dfbb2a43fd3e14a39",
+  "protocol_sha256": "bcce527fe9f98e32af07ca9a48a487563abfc742f23ca7a8fe11a6d0bca003dc",
   "protocol_status": "FROZEN_PREREGISTRATION_RUNNER_HOLD",
   "schema": "dsol_view_value_expectation_protocol_audit_v1",
   "status": "PASS_STATIC_DESIGN_RUNNER_STILL_HOLD"

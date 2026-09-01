@@ -32,6 +32,7 @@ def audit(payload: dict[str, Any]) -> dict[str, Any]:
     flow = randomness["policy_flow_noise"]
     require(environment["must_not_be_derived_from_policy_noise_seed"], "environment and policy seeds must be separate")
     require(flow["distribution"] == "iid_standard_normal", "formal flow noise must match deployment distribution")
+    require(flow["expected_shape_for_selected_checkpoint"] == [10, 7], "explicit noise must match the selected checkpoint action horizon")
     require(flow["explicit_tensor_injection_required"], "seed-only policy noise is not releasable")
     require(flow["shared_exactly_across_views_within_state_repeat_and_replan_index"], "paired views must share noise")
     require(flow["independent_across_repeat_and_replan_index"], "noise repeats and replans must be independent")

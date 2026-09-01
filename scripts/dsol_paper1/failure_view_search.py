@@ -296,6 +296,13 @@ def summarize(root):
         roles = protocol["selected_candidates"][state]
         primary = next(c for c, r in roles.items() if "primary_frozen_top1" in r)
         base = views["canonical"]
+        oracle_candidate, oracle_view = max(
+            views.items(), key=lambda item: (item[1]["mean_success"], -item[1]["mean_steps"], item[0])
+        )
+        discovery_oracle_candidate, discovery_oracle_view = max(
+            discovery[state].items(),
+            key=lambda item: (item[1]["mean_success"], -item[1]["mean_steps"], item[0]),
+        )
         positives = [
             c for c, v in views.items() if c != "canonical" and v["mean_success"] >= 0.8 and v["advantage"] >= 0.4
         ]
@@ -313,6 +320,16 @@ def summarize(root):
                 "primary_candidate": primary,
                 "primary_confirmation_success": views[primary]["mean_success"],
                 "advantage": views[primary]["advantage"],
+                "posthoc_oracle8_candidate": oracle_candidate,
+                "posthoc_oracle8_success": oracle_view["mean_success"],
+                "discovery_oracle97_candidate": discovery_oracle_candidate,
+                "discovery_oracle97_success": discovery_oracle_view["mean_success"],
+                "primary_confirmation_rank": 1
+                + sum(
+                    view["mean_success"] > views[primary]["mean_success"]
+                    for candidate, view in views.items()
+                    if candidate != primary
+                ),
                 "discovery_positive_candidate_count": len(positive_discovery),
                 "confirmation_positive_candidates": positives,
                 "canonical_failure_persists": base["mean_success"] <= 0.4,
@@ -375,6 +392,17 @@ def summarize(root):
         "state_rows": state_rows,
         "canonical_success": float(np.mean([s["canonical_confirmation_success"] for s in state_rows])),
         "frozen_top1_success": float(np.mean([s["primary_confirmation_success"] for s in state_rows])),
+        "posthoc_oracle8_success": float(np.mean([s["posthoc_oracle8_success"] for s in state_rows])),
+        "discovery_oracle97_success": float(np.mean([s["discovery_oracle97_success"] for s in state_rows])),
+        "primary_state_outcomes": {
+            "improved": sum(s["advantage"] > 0 for s in state_rows),
+            "tied": sum(s["advantage"] == 0 for s in state_rows),
+            "harmed": sum(s["advantage"] < 0 for s in state_rows),
+        },
+        "states_posthoc_oracle8_strictly_beats_canonical": sum(
+            s["posthoc_oracle8_success"] > s["canonical_confirmation_success"] for s in state_rows
+        ),
+        "mean_primary_confirmation_rank": float(np.mean([s["primary_confirmation_rank"] for s in state_rows])),
         "states_with_exploratory_positive": sum(bool(s["confirmation_positive_candidates"]) for s in state_rows),
         "failure_screening_not_repeated_states": sum(not s["canonical_failure_persists"] for s in state_rows),
         "primary_paired_comparison": paired_source_summary(state_rows),

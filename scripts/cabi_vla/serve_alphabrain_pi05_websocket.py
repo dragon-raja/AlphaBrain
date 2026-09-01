@@ -102,7 +102,12 @@ class AlphaBrainPi05Policy:
         explicit_noise = observation.get("_eval_noise")
         noise_sha256 = None
         if explicit_noise is not None:
-            explicit_noise = np.ascontiguousarray(explicit_noise, dtype=np.float32)
+            explicit_noise = np.array(
+                explicit_noise,
+                dtype=np.float32,
+                order="C",
+                copy=True,
+            )
             expected_noise_shape = (self._horizon, 7)
             if explicit_noise.shape != expected_noise_shape or not np.all(np.isfinite(explicit_noise)):
                 raise ValueError(f"invalid explicit flow noise: {explicit_noise.shape}")

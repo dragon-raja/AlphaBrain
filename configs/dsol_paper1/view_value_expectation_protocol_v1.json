@@ -1,0 +1,265 @@
+{
+  "schema": "dsol_view_value_expectation_protocol_v1",
+  "status": "FROZEN_PREREGISTRATION_RUNNER_HOLD",
+  "frozen_date": "2026-09-01",
+  "scope": {
+    "paper_type": "controlled_system_analysis",
+    "central_question": "how_vla_training_inference_and_camera_interfaces_shape_view_robustness_preference_and_use",
+    "this_protocol_role": "estimate_noise_marginalized_closed_loop_view_utility_before_view_preference_or_use_claims",
+    "method_required": false,
+    "method_policy": "a_method_is_optional_and_may_only_follow_a_stable_system_level_design_law",
+    "embodiment": "E0_same_state_counterfactual_views",
+    "excluded_claims": [
+      "physical_active_camera_value",
+      "pan_tilt_acquisition_value",
+      "universal_best_camera_pose",
+      "single_rollout_view_value",
+      "posthoc_best_of_candidates_as_deployable_selector"
+    ]
+  },
+  "legacy_evidence_policy": {
+    "camera_full_multitask_multiseed": "retain_as_population_level_passive_view_generalization_evidence",
+    "m1_21_state_single_root_seed": "exploratory_only",
+    "single_noise_oracle_at_97": "candidate_space_pilot_only",
+    "three_noise_discovery_best": "screening_pilot_only",
+    "visibility_and_accel_selectors": "baselines_without_confirmed_view_value_claims",
+    "legacy_data_may_enter_primary_test": false
+  },
+  "estimands": {
+    "state_view_success_probability": "E_policy_flow_noise[full_task_success | fixed_physical_state, view, checkpoint]",
+    "state_view_progress": "E_policy_flow_noise[normalized_final_progress | fixed_physical_state, view, checkpoint]",
+    "paired_view_utility": "E_policy_flow_noise[outcome(view) - outcome(canonical)]",
+    "population_view_utility": "source_group_equal_mean_of_state_level_paired_view_utility",
+    "harm_probability": "P_policy_flow_noise[canonical_succeeds_and_selected_view_fails]",
+    "primary_outcome": "full_task_success",
+    "secondary_outcomes": [
+      "normalized_final_progress",
+      "completion_steps_conditional_on_success",
+      "harm_probability"
+    ]
+  },
+  "randomness_contract": {
+    "training_checkpoint_seeds": [41, 42, 43],
+    "environment_seed": {
+      "varies_across_physical_states": true,
+      "fixed_across_views_and_policy_noise_repeats_within_state": true,
+      "must_not_be_derived_from_policy_noise_seed": true
+    },
+    "physics_state": {
+      "exact_restore_required": true,
+      "sha256_must_match_across_all_views_and_repeats": true
+    },
+    "policy_flow_noise": {
+      "distribution": "iid_standard_normal",
+      "sampling_unit": "one_explicit_action_noise_tensor_per_replanning_call",
+      "tensor_shape_source": "checkpoint_action_horizon_x_action_dimension",
+      "expected_shape_for_current_pi05": [50, 7],
+      "replan_k": 5,
+      "flow_denoising_steps": 10,
+      "shared_exactly_across_views_within_state_repeat_and_replan_index": true,
+      "independent_across_repeat_and_replan_index": true,
+      "explicit_tensor_injection_required": true,
+      "seed_only_reconstruction_is_insufficient_for_release": true,
+      "per_call_required_log_fields": [
+        "policy_repeat_id",
+        "replan_index",
+        "noise_seed",
+        "noise_sha256",
+        "action_chunk_sha256"
+      ]
+    },
+    "noise_banks": {
+      "screen_all97": "independent_bank_A",
+      "screen_top24": "independent_bank_B",
+      "screen_top6": "independent_bank_C",
+      "calibration_confirmation": "independent_bank_D",
+      "heldout_primary": "independent_bank_E",
+      "heldout_precision_reserve": "independent_bank_F",
+      "bank_overlap_allowed": false,
+      "all_banks_materialized_before_policy_execution": true,
+      "all_bank_manifests_and_sha256_required": true
+    }
+  },
+  "population": {
+    "task_count_minimum": 8,
+    "calibration": {
+      "physical_state_count": 16,
+      "source_group_count_minimum": 16,
+      "states_per_task_minimum": 2,
+      "role": "dense_candidate_landscape_and_rule_freezing_only"
+    },
+    "heldout_test": {
+      "physical_state_count": 48,
+      "source_group_count_minimum": 24,
+      "states_per_task_minimum": 6,
+      "role": "primary_population_inference"
+    },
+    "source_group_disjoint_between_calibration_and_test": true,
+    "state_disjoint_between_calibration_and_test": true,
+    "task_stratification_required": true,
+    "multiple_frames_from_one_source_are_nested_not_independent": true
+  },
+  "candidate_space": {
+    "catalog": "configs/dsol_paper1/libero_view_catalog_v2_m1.json",
+    "candidate_count": 97,
+    "composition": {
+      "canonical": 1,
+      "broad_train_support": 64,
+      "broad_heldout": 32
+    },
+    "candidate_identity_frozen_before_execution": true,
+    "current_claim_scope": "simulator_E0_operational_bank_not_physical_pan_tilt_reachability",
+    "camera_intrinsics_extrinsics_and_render_settings_must_be_hashed": true
+  },
+  "calibration_design": {
+    "screen_all97": {
+      "candidate_count": 97,
+      "new_full_episode_noise_sequences_per_candidate": 4,
+      "inference_role": "screening_only_no_formal_effect_claim"
+    },
+    "screen_top24": {
+      "candidate_count_including_canonical": 24,
+      "new_full_episode_noise_sequences_per_candidate": 8,
+      "selection_inputs": [
+        "screen_all97_success",
+        "screen_all97_progress",
+        "camera_geometry_stratum"
+      ],
+      "inference_role": "screening_only_no_formal_effect_claim"
+    },
+    "screen_top6": {
+      "candidate_count_including_canonical": 6,
+      "new_full_episode_noise_sequences_per_candidate": 16,
+      "inference_role": "candidate_freezing_only"
+    },
+    "confirmation": {
+      "conditions": [
+        "canonical",
+        "frozen_state_specific_candidate"
+      ],
+      "fixed_full_episode_noise_sequences_per_condition": 64,
+      "candidate_must_be_frozen_before_bank_D_is_opened": true,
+      "primary_role": "estimate_calibration_state_view_expectation_not_generalization"
+    },
+    "tie_break_order": [
+      "higher_success_probability",
+      "higher_normalized_final_progress",
+      "lower_harm_probability",
+      "lower_completion_steps_conditional_on_success",
+      "lexicographic_candidate_id"
+    ],
+    "posthoc_candidate_replacement_after_confirmation": false
+  },
+  "heldout_selector_analysis": {
+    "checkpoint_seed_41_full_baselines": [
+      "canonical",
+      "deterministic_random_candidate",
+      "calibration_global_fixed_pose",
+      "visibility_increment_selector",
+      "entity_visibility_hmean_selector",
+      "accel_ensemble_selector"
+    ],
+    "checkpoint_seeds_42_43_confirmation": [
+      "canonical",
+      "best_noncanonical_rule_frozen_without_test_outcomes"
+    ],
+    "selector_inputs_may_not_include": [
+      "heldout_closed_loop_outcome",
+      "future_environment_state",
+      "oracle_candidate_rank",
+      "manual_test_state_routing"
+    ],
+    "primary_noise_sequences_per_condition": 32,
+    "reserve_noise_sequences_per_condition": 32,
+    "reserve_activation_rule": {
+      "activate_if_any": [
+        "source_cluster_bootstrap_95_ci_halfwidth_exceeds_5pp",
+        "absolute_population_estimate_shift_between_first16_and_first32_exceeds_5pp",
+        "harm_rate_wilson_95_ci_halfwidth_exceeds_5pp"
+      ],
+      "decision_must_be_machine_generated_before_bank_F_is_opened": true,
+      "if_reserve_still_fails_precision": "INCONCLUSIVE_NO_DIRECTIONAL_CLAIM"
+    },
+    "posthoc_best_of_test_candidates": "diagnostic_upper_bound_only"
+  },
+  "statistics": {
+    "independent_unit": "source_demonstration_group",
+    "nested_units": [
+      "physical_state",
+      "candidate_view",
+      "policy_noise_repeat",
+      "replan_call"
+    ],
+    "within_state_first": "average_over_policy_noise_then_compute_candidate_minus_canonical",
+    "within_source_second": "equal_mean_over_states",
+    "population_third": "equal_mean_over_source_groups_with_task_stratification",
+    "primary_interval": "paired_source_cluster_bootstrap_95",
+    "bootstrap_resamples": 20000,
+    "single_rate_interval": "wilson_95",
+    "minimum_relevant_population_gain_pp": 5.0,
+    "strong_state_view_success_rate": 0.8,
+    "strong_state_view_gain_pp": 20.0,
+    "maximum_tolerated_population_harm_increase_pp": 5.0,
+    "report_requirements": [
+      "each_checkpoint_seed",
+      "cross_checkpoint_mean",
+      "each_task",
+      "source_group_equal_population_mean",
+      "noise_convergence_at_4_8_16_32_and_64_when_available",
+      "absolute_effect_pp",
+      "confidence_interval",
+      "rescue_harm_tie_counts"
+    ],
+    "noise_repeats_are_not_independent_task_samples": true,
+    "candidate_level_p_values_after_screening_are_exploratory": true
+  },
+  "claim_gates": {
+    "stable_candidate_space_headroom": {
+      "claim_scope": "stable_headroom_exists_for_a_nontrivial_subset_of_calibration_states_not_universal_view_benefit",
+      "minimum_confirmed_strong_state_fraction": 0.25,
+      "minimum_confirmed_source_groups": 4,
+      "minimum_confirmed_tasks": 3,
+      "requires": [
+        "calibration_confirmation_uses_bank_D_only",
+        "each_counted_state_candidate_success_at_least_80_percent",
+        "each_counted_state_candidate_gain_at_least_20pp",
+        "at_least_25_percent_of_states_meet_both_thresholds",
+        "confirmed_states_span_at_least_4_source_groups_and_3_tasks"
+      ]
+    },
+    "selector_population_gain": {
+      "requires": [
+        "heldout_test_only",
+        "population_gain_at_least_5pp",
+        "paired_source_cluster_ci_excludes_0",
+        "population_harm_increase_no_more_than_5pp",
+        "direction_consistent_across_checkpoint_seeds"
+      ]
+    },
+    "view_use_method_release": {
+      "requires": [
+        "stable_candidate_space_headroom_pass",
+        "at_least_one_noncanonical_selector_or_provided_view_condition_has_reproducible_population_signal",
+        "system_analysis_identifies_a_specific_training_or_fusion_gap"
+      ],
+      "failure_action": "report_system_analysis_without_forcing_a_method"
+    }
+  },
+  "implementation_release_requirements": [
+    "runner_accepts_explicit_per_replan_noise_tensors",
+    "environment_and_policy_seeds_are_separate",
+    "noise_and_action_hashes_are_logged",
+    "paired_noise_audit_test_passes",
+    "noise_bank_manifest_audit_passes",
+    "calibration_and_test_source_disjoint_audit_passes",
+    "existing_keepalive_is_preserved",
+    "no_formal_episode_runs_before_a_new_execution_release_receipt"
+  ],
+  "final_status_vocabulary": [
+    "STABLE_VIEW_HEADROOM_CONFIRMED",
+    "VIEW_HEADROOM_NOT_CONFIRMED",
+    "SELECTOR_GAIN_CONFIRMED",
+    "SELECTOR_GAIN_NOT_CONFIRMED",
+    "INCONCLUSIVE_NO_DIRECTIONAL_CLAIM"
+  ]
+}

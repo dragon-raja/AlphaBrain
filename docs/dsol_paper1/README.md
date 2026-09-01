@@ -19,6 +19,10 @@ Preparation and smoke outputs live under `/workspace/ai2r/debug/dsol_paper1`. Fo
 
 The prefreeze configuration is [preregistration_prefreeze_v1.json](../../configs/dsol_paper1/preregistration_prefreeze_v1.json). Null thresholds and `NOT_MATERIALIZED` fields are intentional release blockers; builders and validators must fail closed rather than invent values.
 
+The noise-marginalized closed-loop protocol for stable view-value analysis is frozen in
+[view_value_expectation_protocol_v1_zh.md](view_value_expectation_protocol_v1_zh.md), with its machine-readable contract in
+[view_value_expectation_protocol_v1.json](../../configs/dsol_paper1/view_value_expectation_protocol_v1.json). It remains a runner HOLD until explicit per-replan noise injection, seed separation, manifests, and a new execution receipt pass.
+
 The legacy camera experiments require an upstream revalidation before they can
 support Paper 1 claims. The Chinese prefreeze amendment is
 [view_coverage_pairing_revalidation_v2_zh.md](view_coverage_pairing_revalidation_v2_zh.md),

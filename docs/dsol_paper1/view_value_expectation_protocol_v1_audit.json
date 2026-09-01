@@ -1,0 +1,15 @@
+{
+  "calibration_projected_episodes": 12864,
+  "formal_execution_authorized": false,
+  "heldout_max_with_reserve_projected_episodes": 30720,
+  "heldout_primary_projected_episodes": 15360,
+  "next_required_release": "explicit_noise_runner_and_manifest_audit_receipt",
+  "projected_max_total_episodes": 43584,
+  "projected_primary_total_episodes": 28224,
+  "protocol": "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/view_value_expectation_protocol_v1.json",
+  "protocol_schema": "dsol_view_value_expectation_protocol_v1",
+  "protocol_sha256": "5bc5e4e0cd60756aef9ee18208336891f17ebfbdb62be95dfbb2a43fd3e14a39",
+  "protocol_status": "FROZEN_PREREGISTRATION_RUNNER_HOLD",
+  "schema": "dsol_view_value_expectation_protocol_audit_v1",
+  "status": "PASS_STATIC_DESIGN_RUNNER_STILL_HOLD"
+}

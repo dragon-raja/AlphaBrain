@@ -3,7 +3,7 @@ set -euo pipefail
 
 REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 ROOT=${DSOL_VIEW_EXPECTATION_ROOT:-/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1}
-CHECKPOINT=${CHECKPOINT:-/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_broad64-quick-gate-v1_seed41_g8_gb32_steps2000/final_model}
+CHECKPOINT=${CHECKPOINT:-/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_m-b-formal-v1_seed41_g2_gb32_steps2000/final_model}
 POPULATION=$ROOT/population/population.json
 CATALOG=$REPO_ROOT/configs/dsol_paper1/libero_view_catalog_v2_m1.json
 SCAN_GLOB=$ROOT/visibility-scan/shard-*.jsonl

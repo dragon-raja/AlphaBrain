@@ -9,16 +9,22 @@ import argparse
 import csv
 import glob
 import json
+import sys
 import tempfile
 from collections import Counter, defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-import build_view_revalidation_brief_pdf as base
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_pdf import PdfPages
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+import build_view_revalidation_brief_pdf as base  # noqa: E402
 
 METHOD_LABELS = {
     "canonical": "规范视角",
@@ -501,7 +507,7 @@ def page_accel_decision(
 ) -> None:
     fig, _canvas = base.new_page(
         "Accel 关系与最终裁决",
-        "Accel 使用八个共享 flow-noise 对 97 个视角求 mean accel₃；它是一个冻结基线，不获得测试结果反馈。",
+        "Accel 使用八个共享 flow-noise 对 97 个视角求 mean accel_3；它是一个冻结基线，不获得测试结果反馈。",
         6,
     )
     groups = Counter(candidate_group(row["selected_candidate_id"]) for row in accel_rows)

@@ -8,7 +8,7 @@ PROTOCOL=$ROOT/protocols/calibration-stage-A.json
 OUTPUT=$ROOT/calibration/stage-A
 NOISE=$ROOT/noise-banks-h10/bank_A.manifest.json
 
-mkdir -p "$ROOT/logs"
+mkdir -p "$ROOT/logs" "$OUTPUT"
 exec > >(tee -a "$ROOT/logs/calibration-full.log") 2>&1
 
 count=$(find "$OUTPUT" -maxdepth 1 -name 'episodes-shard-*.jsonl' -type f \

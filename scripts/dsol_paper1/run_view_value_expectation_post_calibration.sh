@@ -143,24 +143,29 @@ run_heldout_seed() {
   actual=$(count_rows "$output" 'episodes-shard-*.jsonl')
   if [[ "$actual" == "$expected" ]]; then
     printf 'heldout_seed%s_bank%s_skip_complete=%s\n' "$seed" "$bank" "$actual"
-    return
+  else
+    checkpoint=$(checkpoint_for_seed "$seed")
+    CHECKPOINT="$checkpoint" \
+    OUTPUT_DIR="$output" \
+    PROTOCOL="$protocol" \
+    NOISE_BANK_MANIFEST="$NOISE_ROOT/bank_${bank}.manifest.json" \
+    REQUIRE_EXPLICIT_NOISE=1 \
+    GPU_COUNT="$GPU_COUNT" \
+    EVAL_WORKER_COUNT="$EVAL_WORKER_COUNT" \
+    DSOL_GPU_DEVICES="$GPU_DEVICES" \
+    BASE_PORT=22900 \
+    REPLAN_STEPS=5 \
+    WAIT_STEPS=0 \
+    VIDEO_EPISODES=0 \
+    RUN_ANALYSIS=0 \
+    KEEPALIVE_MODE=managed \
+      "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
   fi
-  checkpoint=$(checkpoint_for_seed "$seed")
-  CHECKPOINT="$checkpoint" \
-  OUTPUT_DIR="$output" \
-  PROTOCOL="$protocol" \
-  NOISE_BANK_MANIFEST="$NOISE_ROOT/bank_${bank}.manifest.json" \
-  REQUIRE_EXPLICIT_NOISE=1 \
-  GPU_COUNT="$GPU_COUNT" \
-  EVAL_WORKER_COUNT="$EVAL_WORKER_COUNT" \
-  DSOL_GPU_DEVICES="$GPU_DEVICES" \
-  BASE_PORT=22900 \
-  REPLAN_STEPS=5 \
-  WAIT_STEPS=0 \
-  VIDEO_EPISODES=0 \
-  RUN_ANALYSIS=0 \
-  KEEPALIVE_MODE=managed \
-    "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
+  PYTHONPATH="$REPO_ROOT" \
+    "$SIM_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/audit_view_value_expectation_heldout_run.py" \
+      --protocol "$protocol" --run-dir "$output" \
+      --noise-bank-manifest "$NOISE_ROOT/bank_${bank}.manifest.json" \
+      --require-complete --output "$output/heldout-run-audit.json"
 }
 
 run_primary_analysis() {

@@ -219,3 +219,21 @@ post/finalize于`2026-09-02T13:41:37Z`重新启动，render/rank因完整64条�
 首批41条独立审计通过：31个shard已有产出，episode均属于seed41冻结协议且shard归属正确，状态/方法/候选/repeat/
 checkpoint/environment seed逐字段相等；683次policy call的Bank E `noise_seed`和`noise_sha256`可从正式noise文件逐次重构。
 早期成功数只反映协议顺序中的首个状态/方法，不作效果解释；正式结论仍等待E41完整9216条及seed42/43确认。
+
+### E41 3072条里程碑与heldout转场门控加固（2026-09-02T16:10Z）
+
+E41越过3072条后，对3299条并发快照执行了可重复累计审计，receipt写入
+`heldout/primary-seed41/audits/partial-after-3072.json`，SHA256为
+`e01e869f63249ffad670494f15d21cd9769fecf70329cd8d106fac4822cbc7e4`。审计证明：3299个episode ID唯一、均为
+冻结seed41协议的正确shard子集，全部spec字段逐条一致；32个shard各97至111条，19个状态已触及，其中16个状态的
+六方法×32 repeats矩阵精确完整。117462次policy call全部从Bank E文件重新取数并复算`noise_seed`和
+`noise_sha256`，25874个共同`pair × repeat × replan`键没有分叉；每个已触及pair的physics SHA和environment seed
+唯一，camera安装/等待前后physics SHA精确相等。该快照只验证运行完整性，不读取或解释中途成功率。
+
+上述检查固化为`audit_view_value_expectation_heldout_run.py`：partial模式只接受冻结协议的唯一正确shard子集，complete
+模式进一步要求episode集合与协议精确相等、没有并发尾写且各shard人口精确。审计器同时绑定run manifest中的协议和
+噪声manifest SHA、核验显式噪声标志、逐调用重建Bank E/F张量，并输出带审计器自身SHA的receipt。post controller的
+`run_heldout_seed`已加fail-closed完整审计，未来重启或新启动的E/F阶段只有生成`heldout-run-audit.json`后才能转入
+下一checkpoint或统计分析。当前正在运行的Bash进程在启动时已加载旧函数，因此这一次现存进程的E41/E42/E43及可能的
+F41/F42/F43完成点均由接管任务显式运行同一complete审计，并保证在统计分析定稿前核清；不得误认为修改磁盘上的shell
+会热更新现存进程。

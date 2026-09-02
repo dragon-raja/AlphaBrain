@@ -63,7 +63,7 @@ def main() -> None:
     rows = load_results(args.inputs)
     if len(rows) != int(protocol["episode_count"]):
         raise ValueError(f"stage-D matrix incomplete: {len(rows)}/{protocol['episode_count']}")
-    validate_explicit_pairing(rows, "D")
+    validate_explicit_pairing(rows, "D", expected_protocol=protocol)
     summaries = candidate_summaries(rows)
     metadata = {}
     for row in rows:

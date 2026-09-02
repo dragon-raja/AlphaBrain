@@ -84,34 +84,91 @@ def load_results(patterns: Sequence[str]) -> list[dict[str, Any]]:
     return rows
 
 
-def validate_explicit_pairing(rows: Sequence[Mapping[str, Any]], expected_bank: str) -> None:
-    noise_hashes = defaultdict(set)
+def validate_explicit_pairing(
+    rows: Sequence[Mapping[str, Any]],
+    expected_bank: str,
+    expected_protocol: Mapping[str, Any] | None = None,
+) -> None:
+    noise_records = defaultdict(set)
     physics_hashes = defaultdict(set)
+    environment_seeds = defaultdict(set)
+    bank_manifest_hashes = set()
     episode_ids = set()
+    expected_specs = None
+    if expected_protocol is not None:
+        if expected_protocol.get("status") != "PASS" or expected_protocol.get("stage") != expected_bank:
+            raise ValueError("previous-stage protocol status or bank/stage is invalid")
+        expected_specs = {
+            str(spec["episode_id"]): spec for spec in expected_protocol["specs"]
+        }
+        if len(expected_specs) != len(expected_protocol["specs"]):
+            raise ValueError("duplicate episode ID in previous-stage protocol")
     for row in rows:
         if row["episode_id"] in episode_ids:
             raise ValueError("duplicate episode ID in prior results")
         episode_ids.add(row["episode_id"])
+        if expected_specs is not None:
+            spec = expected_specs.get(str(row["episode_id"]))
+            if spec is None:
+                raise ValueError("prior result contains an episode outside the previous-stage protocol")
+            for field in (
+                "pair_key",
+                "selected_candidate_id",
+                "policy_repeat_id",
+                "noise_bank_id",
+                "environment_seed",
+                "condition",
+                "construction_spec_sha256",
+                "source_group",
+                "task_id",
+            ):
+                if row.get(field) != spec.get(field):
+                    raise ValueError(f"prior result differs from protocol field: {field}")
         if row.get("status") != "complete" or not row.get("explicit_flow_noise"):
             raise ValueError("previous stage is incomplete or not explicit-noise")
         if row.get("noise_bank_id") != expected_bank:
             raise ValueError("previous stage used the wrong noise bank")
         if len(row.get("policy_calls", [])) != int(row["inference_calls"]):
             raise ValueError("per-replan policy-call ledger is incomplete")
+        call_indices = [int(call["replan_index"]) for call in row["policy_calls"]]
+        if call_indices != list(range(len(call_indices))):
+            raise ValueError("per-replan policy-call indices are not contiguous from zero")
         state_repeat = (row["pair_key"], int(row["policy_repeat_id"]))
+        initial_metrics = row["initial_metrics"]
+        if (
+            initial_metrics["physics_state_sha256"]
+            != initial_metrics["post_wait_physics_state_sha256_exact"]
+        ):
+            raise ValueError("physics state changed during camera installation or wait")
         physics_hashes[row["pair_key"]].add(
-            row["initial_metrics"]["physics_state_sha256"]
+            initial_metrics["physics_state_sha256"]
         )
+        environment_seeds[row["pair_key"]].add(int(row["environment_seed"]))
+        bank_manifest_hashes.add(str(row.get("noise_bank_manifest_sha256", "")))
         for call in row["policy_calls"]:
             key = (*state_repeat, int(call["replan_index"]))
-            noise_hashes[key].add(call["noise_sha256"])
-            for required in ("noise_seed", "action_chunk_sha256"):
+            if int(call["policy_repeat_id"]) != int(row["policy_repeat_id"]):
+                raise ValueError("policy-call repeat ID differs from episode repeat ID")
+            noise_records[key].add((int(call["noise_seed"]), call["noise_sha256"]))
+            for required in ("noise_seed", "noise_sha256", "action_chunk_sha256"):
                 if required not in call:
                     raise ValueError(f"missing policy-call field: {required}")
+            for digest_field in ("noise_sha256", "action_chunk_sha256"):
+                digest = str(call[digest_field])
+                if len(digest) != 64 or any(character not in "0123456789abcdef" for character in digest):
+                    raise ValueError(f"invalid policy-call SHA-256 field: {digest_field}")
+    if expected_specs is not None and episode_ids != set(expected_specs):
+        raise ValueError(
+            f"previous-stage episode set is incomplete: {len(episode_ids)}/{len(expected_specs)}"
+        )
     if any(len(values) != 1 for values in physics_hashes.values()):
         raise ValueError("physics state differs across paired views or repeats")
-    if any(len(values) != 1 for values in noise_hashes.values()):
+    if any(len(values) != 1 for values in environment_seeds.values()):
+        raise ValueError("environment seed differs across paired views or repeats")
+    if any(len(values) != 1 for values in noise_records.values()):
         raise ValueError("explicit policy noise differs across paired views")
+    if len(bank_manifest_hashes) != 1 or "" in bank_manifest_hashes:
+        raise ValueError("noise-bank manifest hash is missing or inconsistent")
 
 
 def candidate_summaries(rows: Sequence[Mapping[str, Any]]) -> dict[str, dict[str, dict[str, Any]]]:
@@ -250,7 +307,14 @@ def main() -> None:
     previous_rows = load_results(args.previous_results) if args.previous_results else None
     previous_stage = chr(ord(args.stage) - 1) if args.stage != "A" else None
     if previous_rows is not None:
-        validate_explicit_pairing(previous_rows, expected_bank=previous_stage)
+        if args.previous_protocol is None:
+            raise ValueError("previous-stage results require the previous-stage protocol")
+        previous_protocol = json.loads(args.previous_protocol.read_text())
+        validate_explicit_pairing(
+            previous_rows,
+            expected_bank=previous_stage,
+            expected_protocol=previous_protocol,
+        )
     selections = select_candidates(args.stage, states, scans, previous_rows)
     specs = build_specs(args.stage, states, scans, selections, args.catalog)
     payload = {

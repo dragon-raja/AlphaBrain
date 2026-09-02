@@ -97,3 +97,15 @@ view-value单元测试、release SHA复核和进程互斥复核。
   `e4e192477a2329f6b61f58f3ed094628074d9ca80dbde8387ae1bb1b3173ae62`，每次policy调用均记录
   `noise_seed`、`noise_sha256`和`action_chunk_sha256`。
 - 恢复时没有重跑或修改Stage A，没有重建/改写正式噪声库，也没有打开Bank C/D/E/F结果。
+
+### Stage B 512条里程碑与阶段间门控加固
+
+Stage B越过512条后，对当时532条ledger执行了深审计：episode ID唯一且属于冻结协议，32-way shard归属正确，
+同一pair的physics SHA和environment seed一致，camera安装/等待前后physics SHA精确一致；并直接从Bank B `.npy`
+逐调用重建13,621次Flow噪声，所有`noise_seed`和`noise_sha256`均与policy-call ledger一致。
+
+为避免阶段只凭“行数相等”进入下一步，`validate_explicit_pairing`随后加固为阶段间fail-closed门：要求前一阶段
+episode集合与其协议精确相等、关键spec字段逐条一致、replan索引连续、repeat ID一致、物理状态和环境seed配对一致、
+noise/action SHA字段有效且共同噪声不分叉。Stage C构造会重新读取这段代码，因此Stage B必须通过该门后才会被用于
+筛选；Stage D分析同样要求Stage D ledger与协议精确匹配。加固后15项相关测试通过，并从完整Stage A重新生成
+Stage B协议，结果仍与冻结文件逐字节一致（SHA256仍为`039f9f15...cb59`），证明没有改变候选选择定义。

@@ -279,3 +279,17 @@ physics SHA精确相等。审计快照超过6144是并发worker在只读审计�
 审计后进程侧复核为8个seed41 policy service、32个evaluator父进程和32个当前episode子进程；32份evaluator日志
 没有Traceback、CUDA OOM、连接失败或KeyError，post/finalize tmux会话均存活。本里程碑仍只证明冻结协议、结果集合、
 配对噪声与运行健康性，不对未完成矩阵的中途成功率作任何结论。
+
+### E41 7168条里程碑（2026-09-02T21:22Z）
+
+E41越过7168条后，使用同一已提交heldout审计器对7179条并发快照执行累计审计。receipt位于
+`heldout/primary-seed41/audits/partial-after-7168.json`，SHA256为
+`d8d570297175fe2c97f45b1633c507e390cd2ca00cbc1368395ad39e8ef7eb09`。7179个episode ID唯一，均属于冻结协议并位于
+`protocol_index % 32`规定的shard，全部spec字段与协议一致；32个shard各204至252条。42个状态已触及，其中34个
+状态的六方法×32 repeats矩阵精确完整。全部375308次policy call可由Bank E逐调用重建，77994个共同
+`pair × repeat × replan`键无噪声分叉，已触及pair的physics SHA与environment seed均唯一且camera安装/等待前后
+physics SHA精确相等。审计快照超过7168是并发worker在只读审计开始前继续完成episode所致，不是重复或越界写入。
+
+审计后进程侧复核为8个seed41 policy service、32个evaluator父进程和32个当前episode子进程；32份evaluator日志
+没有Traceback、CUDA OOM、连接失败或KeyError，post/finalize tmux会话均存活。本里程碑仍只证明冻结协议、结果集合、
+配对噪声与运行健康性，不对未完成矩阵的中途成功率作任何结论。

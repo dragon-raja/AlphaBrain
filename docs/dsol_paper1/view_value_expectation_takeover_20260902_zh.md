@@ -309,3 +309,17 @@ physics SHA精确相等。审计快照超过8192是并发worker在只读审计�
 核查仅为启动期原始TCP就绪探测在WebSocket HTTP握手前断开所产生的`EOFError`/`InvalidMessage`，随后持续正常接受
 `connection open`；policy日志没有CUDA OOM、连接失败或KeyError。这些握手探测日志不代表episode或推理失败。
 本里程碑仍只证明冻结协议、结果集合、配对噪声与运行健康性，不对未完成矩阵的中途成功率作任何结论。
+
+### E41完整审计与E42转场（2026-09-02T22:43Z）
+
+E41正式写满9216/9216后，以`--require-complete`模式独立审计并生成
+`heldout/primary-seed41/heldout-run-audit.json`，receipt SHA256为
+`a7d1845a933ad46f96e70011a3b07d3b5e94f6dcd7ec4ce925224feb13146f33`，状态为`PASS_COMPLETE`。
+结果episode集合与冻结seed41协议逐条精确相等且全部唯一，32个shard均精确为288条；六种方法各1536条，48个状态的
+六方法×32 repeats矩阵全部完整。全部431405次policy call均可由Bank E逐调用重建，89095个共同
+`pair × repeat × replan`键无噪声分叉，48个pair的physics SHA和environment seed均无违规。协议SHA、Bank E
+manifest SHA和noise文件SHA继续与冻结值一致，且不存在并发尾写。
+
+旧post controller随后打印`closed_loop_complete ... episodes=9216`并启动8个seed42 checkpoint policy service；
+检查时E42尚处模型加载阶段、结果为0/3072。由于当前存活Bash进程未热加载后来加入的自动audit函数，E42/E43完成后仍须
+由接管任务显式运行同一`--require-complete`审计，全部通过后才允许接受primary heldout统计分析。

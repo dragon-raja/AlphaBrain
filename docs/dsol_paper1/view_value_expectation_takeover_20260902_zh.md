@@ -188,3 +188,34 @@ Shell语法、实际SIM Python导入及10项相关测试通过，修复提交为
 8个shard各8条；64个artifact共699,261,506 bytes，全部重新计算SHA并与ledger匹配；每个artifact的输入数组shape
 正确，97个候选由1个canonical、64个broad-train和32个broad-heldout组成，且候选顺序跨64状态一致。随后rank阶段
 在8个GPU上加载seed41 checkpoint，每个状态使用冻结的8-member ensemble；render/rank均不读取heldout闭环结果。
+
+### Accel完成、heldout冻结与E41启动恢复（2026-09-02T13:44Z）
+
+Accel rank完成`64/64`。终审确认8个shard各8条、pair key与冻结64状态精确同集，ledger和每状态
+`ranking.json`完全一致；每状态97个候选及8个member score完整，ensemble seed可由
+`stable_seed("accel::{pair_key}::{member}", root_seed=20260921)`重构，mean/std、排序与top-2 margin均可精确复算，
+render artifact和physics SHA绑定一致。按shard顺序拼接的rank ledgers SHA256为
+`80d40a71f44fab6bec91ca935697f46f30c18844696cc20f5f2b240d32c436ac`。Top-1类型计数为canonical 13、
+broad-train 33、broad-heldout 18；这只是Accel排名描述，不能替代heldout闭环价值结论。
+
+随后冻结的三个Bank E协议从同一输入独立重建后逐字节一致：seed41为9216条、SHA256
+`f5327dcd2860ee67dc9e6ab557e3f1aacbac311bf5872cac13f85fad35b04636`；seed42为3072条、SHA256
+`f3d8ac66c814d4ca3c922295aa04ecdb0fbb96fd9a5f26b405fd4759e7d02e38`；seed43为3072条、SHA256
+`bf6f9af3f57de3ccdea42178f69080a039e348c546475b0a251f5ccf172af76c`。48个heldout状态在pair/source两层均与
+16个calibration状态不相交；seed41冻结六种规则，seed42/43仅比较canonical和校准集冻结最佳规则。
+最佳规则为`calibration_global_fixed_pose`，固定候选为`broad_train_053`；选择过程声明并审计为不读取heldout policy outcome。
+Bank E shape为`[48,32,104,10,7]`，manifest SHA256为
+`ab9da7b01c1bef26eb7689fc853f85d2a7adbbee3908810381bf900ae1111f8f`，noise文件SHA256为
+`7fa11794c606efdcae67e30ea489e86ba48c1f9ffe287e5c771e3233d9f8c378`，状态清单与48个heldout pair精确相等。
+
+第一次E41启动时，32个evaluator在写入任何episode前统一报`KeyError: 'catalog'`：heldout协议已在每条spec中冻结
+`catalog`，但evaluator只读取可选的协议顶层字段。正式E41 ledger仍为0，8个policy server和全部evaluator退出，
+GPU keepalive恢复，因此没有部分结果需要删除或合并。最小修复保留三个协议及其SHA不变：evaluator优先使用顶层
+catalog，缺失时读取per-spec catalog，两处都缺失则fail-closed。真实seed41协议预展开为32个shard各288条，
+20项相关测试通过，修复提交为`869f746`。另在heldout分析入口增加结果episode集合和关键身份字段必须与冻结协议逐条
+相等的fail-closed门，提交为`c1844b3`，不改变估计量或统计阈值。
+
+post/finalize于`2026-09-02T13:41:37Z`重新启动，render/rank因完整64条自动跳过，三个协议确定性重建后E41恢复。
+首批41条独立审计通过：31个shard已有产出，episode均属于seed41冻结协议且shard归属正确，状态/方法/候选/repeat/
+checkpoint/environment seed逐字段相等；683次policy call的Bank E `noise_seed`和`noise_sha256`可从正式noise文件逐次重构。
+早期成功数只反映协议顺序中的首个状态/方法，不作效果解释；正式结论仍等待E41完整9216条及seed42/43确认。

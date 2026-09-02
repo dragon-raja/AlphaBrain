@@ -158,3 +158,33 @@ Stage D随后在端口`22700-22707`启动8个策略服务和32个evaluator，run
 Bank D manifest并强制显式噪声。首批148条ledger抽查通过：均属于Stage D协议，32个shard均已有产出，
 1290次policy call的Bank D噪声可独立精确重建，18个关键spec字段、初态physics SHA和environment seed一致。
 Stage D是校准确认阶段，但仍只回答固定E0候选空间内的校准headroom；最终迁移证据必须等待source-disjoint heldout E/F。
+
+### Stage D 完成、校准结论与 post 恢复（2026-09-02T12:08Z）
+
+Stage D于`2026-09-02T12:01:52Z`完成，controller记录
+`dsol_hdf5_closed_loop_complete=.../calibration/stage-D episodes=2048`并自然退出。全部ledger的独立审计结果为：
+
+- 2048个episode ID唯一，与冻结Stage D协议精确同集；18个关键spec字段逐条一致；
+- 32个shard各64条，全部状态为`complete`；run manifest中的协议SHA与正式Stage D协议同为
+  `3d99c62b0aa252dd1e1b15b17b3b7bbbda3615176120d2a81e398c2722a97eec`；
+- 独立重建全部81,782次policy call的Bank D Flow噪声，`noise_seed`和`noise_sha256`全部匹配，
+  `pair × repeat × replan`共同噪声没有分叉；
+- 16个pair的physics SHA和environment seed一致，等待前后physics SHA精确相等。
+
+校准analysis确定性重算后，`analysis.json`和`state_results.csv`均与正式产物逐字节一致。正式状态为
+`VIEW_HEADROOM_NOT_CONFIRMED`：16个状态中没有状态同时满足“冻结候选成功率至少80%且相对canonical提升至少20pp”，
+因此strong state、strong source group和strong task计数均为0，不能声称候选空间对非平凡状态子集存在稳定强headroom。
+这不是“平均效果为零”：source-equal平均success gain为`+4.78515625pp`，source-cluster bootstrap 95%区间为
+`[2.63671875, 7.12890625]pp`；它表示平均小幅改善与预注册的强状态门是不同结论，二者不得混写。
+
+heldout selector gain是协议中的另一条独立主张，post controller按冻结设计无条件继续Accel及E/F，而不是看到负结果后
+临时加跑。第一次Accel render启动时，8个shard均在写入ledger前因render分支的`PYTHONPATH`漏掉
+`/projects/openpi/packages/openpi-client/src`而fail-closed，报`ModuleNotFoundError: openpi_client`；正式render ledger仍为0，
+没有部分结果需要删除或合并。最小修复仅补齐与rank/正式闭环runner相同的import路径，并新增controller回归测试；
+Shell语法、实际SIM Python导入及10项相关测试通过，修复提交为`00d4511`。旧post/finalize会话和Accel进程确认退出、
+8个GPU keepalive恢复后，重新创建同名post/finalize会话。
+
+恢复后8个render shard均正常运行并完成`64/64`。独立render审计确认：64个状态与冻结population精确同集，
+8个shard各8条；64个artifact共699,261,506 bytes，全部重新计算SHA并与ledger匹配；每个artifact的输入数组shape
+正确，97个候选由1个canonical、64个broad-train和32个broad-heldout组成，且候选顺序跨64状态一致。随后rank阶段
+在8个GPU上加载seed41 checkpoint，每个状态使用冻结的8-member ensemble；render/rank均不读取heldout闭环结果。

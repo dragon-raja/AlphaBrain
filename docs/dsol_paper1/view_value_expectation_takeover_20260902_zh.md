@@ -134,3 +134,27 @@ Stage C随后在端口`22600-22607`启动8个策略服务和32个evaluator，run
 Bank C manifest并要求显式噪声。首批144条ledger抽查通过：均属于Stage C协议，32个shard均已有产出，
 1683次policy call的Bank C噪声可独立精确重建，初态physics SHA与environment seed配对一致。这里的Stage B
 成功数和Stage C早期表现只参与预注册筛选/运行审计，不作为论文确认性结论；确认边界仍保留给Stage D和heldout E/F。
+
+### Stage C 完成与 Stage D 切换（2026-09-02T10:16Z）
+
+Stage C于`2026-09-02T10:16:23Z`达到`1536/1536`，controller记录
+`{"episodes": 1536, "stage": "C", "status": "PASS"}`后Stage C evaluator全部退出；正式目录没有error文件。
+全部ledger的独立审计结果如下：
+
+- 1536个episode ID唯一，并与冻结Stage C协议精确同集；18个关键spec字段逐条一致；
+- 32个shard各48条，全部状态为`complete`，run manifest锁定的协议SHA与正式Stage C协议一致；
+- 独立重建全部62,571次policy call的Bank C Flow噪声，`noise_seed`和`noise_sha256`全部匹配，
+  `pair × repeat × replan`共同噪声没有分叉；
+- 每个pair的physics SHA和environment seed一致，等待前后physics SHA精确相等。
+
+Stage C通过阶段间门后才生成Stage D协议。正式Stage D协议SHA256为
+`3d99c62b0aa252dd1e1b15b17b3b7bbbda3615176120d2a81e398c2722a97eec`；从冻结population、scan、
+Stage C协议和完整Stage C ledger独立重建后与正式文件逐字节一致。协议规模为
+`16 states × 2 candidates × 64 repeats = 2048 episodes`，episode ID唯一，
+`selection_uses_current_stage_outcomes=false`，`selection_previous_stage=C`，前序协议SHA与Stage C精确匹配。
+两个候选是canonical与按预注册排序从Stage C选出的一个noncanonical候选；Stage D本身不再参与候选筛选。
+
+Stage D随后在端口`22700-22707`启动8个策略服务和32个evaluator，run manifest锁定上述Stage D协议SHA、
+Bank D manifest并强制显式噪声。首批148条ledger抽查通过：均属于Stage D协议，32个shard均已有产出，
+1290次policy call的Bank D噪声可独立精确重建，18个关键spec字段、初态physics SHA和environment seed一致。
+Stage D是校准确认阶段，但仍只回答固定E0候选空间内的校准headroom；最终迁移证据必须等待source-disjoint heldout E/F。

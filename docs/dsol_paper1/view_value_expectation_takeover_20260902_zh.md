@@ -109,3 +109,28 @@ episode集合与其协议精确相等、关键spec字段逐条一致、replan索
 noise/action SHA字段有效且共同噪声不分叉。Stage C构造会重新读取这段代码，因此Stage B必须通过该门后才会被用于
 筛选；Stage D分析同样要求Stage D ledger与协议精确匹配。加固后15项相关测试通过，并从完整Stage A重新生成
 Stage B协议，结果仍与冻结文件逐字节一致（SHA256仍为`039f9f15...cb59`），证明没有改变候选选择定义。
+
+### Stage B 完成与 Stage C 切换（2026-09-02T08:54Z）
+
+Stage B于`2026-09-02T08:54:37Z`达到`3072/3072`，controller记录
+`{"episodes": 3072, "stage": "B", "status": "PASS"}`后32个Stage B evaluator全部退出；运行期间正式目录
+没有产生error文件。完成后对全部ledger执行了独立审计，而不是只依赖controller行数：
+
+- 3072个episode ID唯一，并与冻结Stage B协议精确同集；18个关键spec字段逐条相等；
+- 32个shard各96条，归属满足`protocol_index % 32 == shard_index`；
+- 全部记录状态为`complete`，均使用显式Bank B；run manifest中的协议SHA与正式协议文件SHA同为
+  `039f9f15fe89cd6bccc08e450555836865f0b875e1001395bdf5fb4af5d2cb59`；
+- 独立重建全部133,436次policy call的Flow噪声，`noise_seed`和`noise_sha256`全部匹配；同一
+  `pair × repeat × replan`键没有噪声分叉；
+- 每个pair的physics SHA和environment seed一致，等待前后physics SHA精确相等。
+
+Stage B ledger通过加固后的阶段间门后，controller才生成Stage C协议。正式Stage C协议SHA256为
+`b6a9e16f6e666eb906f3b4f055c793e0e04b352c6d80c6c5a78e447d19b6b7b0`；从冻结population、scan、
+Stage B协议及完整Stage B ledger独立重建后与正式文件逐字节一致。协议规模为
+`16 states × 6 candidates × 16 repeats = 1536 episodes`，episode ID唯一，
+`selection_uses_current_stage_outcomes=false`，`selection_previous_stage=B`，且记录的前序协议SHA与Stage B精确匹配。
+
+Stage C随后在端口`22600-22607`启动8个策略服务和32个evaluator，run manifest锁定上述Stage C协议SHA、
+Bank C manifest并要求显式噪声。首批144条ledger抽查通过：均属于Stage C协议，32个shard均已有产出，
+1683次policy call的Bank C噪声可独立精确重建，初态physics SHA与environment seed配对一致。这里的Stage B
+成功数和Stage C早期表现只参与预注册筛选/运行审计，不作为论文确认性结论；确认边界仍保留给Stage D和heldout E/F。

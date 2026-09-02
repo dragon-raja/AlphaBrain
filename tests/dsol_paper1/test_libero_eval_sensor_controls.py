@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import argparse
+import json
 import sys
 import types
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -9,6 +12,7 @@ import pytest
 from scripts.dsol_paper1.evaluate_dsol_libero_hdf5_views import (
     deployed_camera_names,
     masked_policy_observation,
+    selected_specs,
 )
 
 
@@ -41,3 +45,43 @@ def test_all_blackout_zeroes_both_policy_images(monkeypatch: pytest.MonkeyPatch)
     assert not wrist.any()
     assert not example["observation/image"].any()
     assert not example["observation/wrist_image"].any()
+
+
+def _selected_specs_args(protocol: Path) -> argparse.Namespace:
+    return argparse.Namespace(
+        protocol=protocol,
+        num_shards=1,
+        shard_index=0,
+        max_episodes=None,
+    )
+
+
+def test_selected_specs_accepts_per_spec_catalog(tmp_path: Path) -> None:
+    protocol = tmp_path / "protocol.json"
+    protocol.write_text(
+        json.dumps({"specs": [{"episode_id": "episode-1", "catalog": "/frozen/catalog.json"}]})
+    )
+
+    assert selected_specs(_selected_specs_args(protocol))[0]["catalog"] == "/frozen/catalog.json"
+
+
+def test_selected_specs_prefers_top_level_catalog(tmp_path: Path) -> None:
+    protocol = tmp_path / "protocol.json"
+    protocol.write_text(
+        json.dumps(
+            {
+                "catalog": "/top-level/catalog.json",
+                "specs": [{"episode_id": "episode-1", "catalog": "/per-spec/catalog.json"}],
+            }
+        )
+    )
+
+    assert selected_specs(_selected_specs_args(protocol))[0]["catalog"] == "/top-level/catalog.json"
+
+
+def test_selected_specs_requires_a_frozen_catalog(tmp_path: Path) -> None:
+    protocol = tmp_path / "protocol.json"
+    protocol.write_text(json.dumps({"specs": [{"episode_id": "episode-1"}]}))
+
+    with pytest.raises(ValueError, match="freeze a top-level or per-spec catalog"):
+        selected_specs(_selected_specs_args(protocol))

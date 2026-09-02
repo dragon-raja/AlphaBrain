@@ -387,7 +387,10 @@ def selected_specs(args: argparse.Namespace) -> list[dict[str, Any]]:
     for index, spec in enumerate(protocol["specs"]):
         if index % args.num_shards != args.shard_index:
             continue
-        specs.append({**spec, "catalog": protocol["catalog"]})
+        catalog = protocol.get("catalog") or spec.get("catalog")
+        if not catalog:
+            raise ValueError("protocol must freeze a top-level or per-spec catalog")
+        specs.append({**spec, "catalog": catalog})
     return specs[: args.max_episodes] if args.max_episodes is not None else specs
 
 

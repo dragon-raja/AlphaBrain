@@ -252,7 +252,7 @@ physics SHA精确相等。
 没有Traceback、CUDA OOM、连接失败或KeyError，post/finalize tmux会话均存活。与前一里程碑相同，这只证明运行和
 配对数据完整性，不对未完成矩阵的中途成功率作任何结论。
 
-### E41 5120条里程碑（2026-09-03T02:33Z）
+### E41 5120条里程碑（2026-09-02T18:33Z）
 
 E41越过5120条后，使用同一已提交heldout审计器对5143条并发快照执行累计审计。receipt位于
 `heldout/primary-seed41/audits/partial-after-5120.json`，SHA256为
@@ -261,6 +261,20 @@ E41越过5120条后，使用同一已提交heldout审计器对5143条并发快�
 状态的六方法×32 repeats矩阵精确完整。全部232061次policy call可由Bank E逐调用重建，51463个共同
 `pair × repeat × replan`键无噪声分叉，已触及pair的physics SHA与environment seed均唯一且camera安装/等待前后
 physics SHA精确相等。审计快照超过5120是并发worker在只读审计开始前继续完成episode所致，不是重复或越界写入。
+
+审计后进程侧复核为8个seed41 policy service、32个evaluator父进程和32个当前episode子进程；32份evaluator日志
+没有Traceback、CUDA OOM、连接失败或KeyError，post/finalize tmux会话均存活。本里程碑仍只证明冻结协议、结果集合、
+配对噪声与运行健康性，不对未完成矩阵的中途成功率作任何结论。
+
+### E41 6144条里程碑（2026-09-02T20:08Z）
+
+E41越过6144条后，使用同一已提交heldout审计器对6160条并发快照执行累计审计。receipt位于
+`heldout/primary-seed41/audits/partial-after-6144.json`，SHA256为
+`e327b7e855e7a0c3b32bf50152e19b1e5b6aee639de65243e432efebfcc1fcc6`。6160个episode ID唯一，均属于冻结协议并位于
+`protocol_index % 32`规定的shard，全部spec字段与协议一致；32个shard各184至199条。34个状态已触及，其中30个
+状态的六方法×32 repeats矩阵精确完整。全部313482次policy call可由Bank E逐调用重建，67429个共同
+`pair × repeat × replan`键无噪声分叉，已触及pair的physics SHA与environment seed均唯一且camera安装/等待前后
+physics SHA精确相等。审计快照超过6144是并发worker在只读审计开始前继续完成episode所致，不是重复或越界写入。
 
 审计后进程侧复核为8个seed41 policy service、32个evaluator父进程和32个当前episode子进程；32份evaluator日志
 没有Traceback、CUDA OOM、连接失败或KeyError，post/finalize tmux会话均存活。本里程碑仍只证明冻结协议、结果集合、

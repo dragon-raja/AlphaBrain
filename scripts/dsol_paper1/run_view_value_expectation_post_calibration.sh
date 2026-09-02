@@ -100,7 +100,7 @@ run_accel_stage() {
     gpu=$shard
     if [[ "$stage" == render ]]; then
       LIBERO_CONFIG_PATH="$SIM_CONFIG" \
-      PYTHONPATH="$REPO_ROOT:$REPO_ROOT/scripts/cabi_vla:$REPO_ROOT/scripts/dsol_paper1" \
+      PYTHONPATH="$REPO_ROOT:/projects/openpi/src:/projects/openpi/packages/openpi-client/src:$REPO_ROOT/scripts/cabi_vla:$REPO_ROOT/scripts/dsol_paper1" \
         "$SIM_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/run_view_value_expectation_accel_ensemble.py" \
           --stage render --population "$POPULATION" --scan-root "$SCAN_ROOT" \
           --output-root "$ACCEL_ROOT" --runtime "$RUNTIME" --config-root "$SIM_CONFIG" \

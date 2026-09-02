@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import pytest
+
 from scripts.dsol_paper1.analyze_view_value_expectation_heldout import (
     cross_checkpoint_gate,
     state_method_rows,
+    validate_protocol_membership,
 )
 
 
@@ -68,3 +71,44 @@ def test_cross_checkpoint_gate_requires_consistent_precise_gain() -> None:
     assert result["status"] == "SELECTOR_GAIN_CONFIRMED"
     assert result["direction_consistent_positive"] is True
     assert result["final_precision_halfwidth_at_most_5pp"] is True
+
+
+def _protocol_identity() -> tuple[dict, dict]:
+    spec = {
+        "episode_id": "episode-1",
+        "pair_key": "task::demo_1::frame-10",
+        "split": "heldout_test",
+        "task_id": "task",
+        "source_group": "task::demo_1",
+        "condition": "selector__canonical",
+        "selector_method": "canonical",
+        "selected_candidate_id": "canonical",
+        "policy_repeat_id": 0,
+        "noise_bank_id": "E",
+        "checkpoint_seed": 41,
+        "environment_seed": 123,
+        "construction_spec_sha256": "a" * 64,
+    }
+    protocol = {
+        "status": "PASS",
+        "bank_id": "E",
+        "episode_count": 1,
+        "specs": [spec],
+    }
+    return protocol, dict(spec)
+
+
+def test_protocol_membership_requires_exact_episode_set() -> None:
+    protocol, row = _protocol_identity()
+    validate_protocol_membership([row], protocol)
+
+    row["episode_id"] = "outside-protocol"
+    with pytest.raises(ValueError, match="episode set differs"):
+        validate_protocol_membership([row], protocol)
+
+
+def test_protocol_membership_rejects_identity_field_drift() -> None:
+    protocol, row = _protocol_identity()
+    row["checkpoint_seed"] = 42
+    with pytest.raises(ValueError, match="checkpoint_seed"):
+        validate_protocol_membership([row], protocol)

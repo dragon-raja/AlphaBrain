@@ -78,10 +78,51 @@ def task_source_equal_mean(rows: Sequence[Mapping[str, Any]], value_key: str) ->
     return float(np.mean(task_values))
 
 
+def validate_protocol_membership(
+    rows: Sequence[Mapping[str, Any]],
+    protocol: Mapping[str, Any],
+) -> None:
+    if protocol.get("status") != "PASS":
+        raise ValueError("held-out protocol did not PASS")
+    specs = protocol.get("specs")
+    if not isinstance(specs, list) or len(specs) != int(protocol["episode_count"]):
+        raise ValueError("held-out protocol episode budget is inconsistent")
+    expected = {str(spec["episode_id"]): spec for spec in specs}
+    if len(expected) != len(specs):
+        raise ValueError("held-out protocol contains duplicate episode IDs")
+    actual = {str(row["episode_id"]): row for row in rows}
+    if len(actual) != len(rows):
+        raise ValueError("held-out results contain duplicate episode IDs")
+    if set(actual) != set(expected):
+        raise ValueError(
+            f"held-out result episode set differs from protocol: {len(actual)}/{len(expected)}"
+        )
+    identity_fields = (
+        "pair_key",
+        "split",
+        "task_id",
+        "source_group",
+        "condition",
+        "selector_method",
+        "selected_candidate_id",
+        "policy_repeat_id",
+        "noise_bank_id",
+        "checkpoint_seed",
+        "environment_seed",
+        "construction_spec_sha256",
+    )
+    for episode_id, row in actual.items():
+        spec = expected[episode_id]
+        for field in identity_fields:
+            if row.get(field) != spec.get(field):
+                raise ValueError(f"held-out result differs from protocol field: {field}")
+
+
 def load_seed_rows(patterns: Sequence[str], protocol: Mapping[str, Any]) -> list[dict[str, Any]]:
     rows = load_results(patterns)
     if len(rows) != int(protocol["episode_count"]):
         raise ValueError(f"held-out matrix incomplete: {len(rows)}/{protocol['episode_count']}")
+    validate_protocol_membership(rows, protocol)
     validate_explicit_pairing(rows, str(protocol["bank_id"]))
     return rows
 

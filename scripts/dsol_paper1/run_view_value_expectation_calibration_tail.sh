@@ -17,8 +17,21 @@ GPU_DEVICES=${DSOL_GPU_DEVICES:-0,1,2,3,4,5,6,7}
 mkdir -p "$ROOT/logs" "$PROTOCOL_ROOT" "$CALIBRATION_ROOT"
 exec > >(tee -a "$ROOT/logs/calibration-tail.log") 2>&1
 
+# Keep one owner for the formal calibration output even if an old controller is
+# restarted after a handoff. The descriptor remains locked for this process and
+# every foreground child, and is released automatically on exit.
+exec 9>"$ROOT/logs/calibration-tail.lock"
+flock -n 9 || {
+  echo "another view-value calibration tail already owns $ROOT" >&2
+  exit 3
+}
+
 count_rows() {
   local directory=$1
+  if [[ ! -d "$directory" ]]; then
+    printf '0\n'
+    return
+  fi
   find "$directory" -maxdepth 1 -name 'episodes-shard-*.jsonl' -type f \
     -exec awk 'NF{n++} END{print n+0}' {} \; 2>/dev/null | \
     awk '{sum += $1} END {print sum + 0}'
@@ -31,6 +44,7 @@ run_stage() {
   local protocol=$PROTOCOL_ROOT/calibration-stage-$stage.json
   local output=$CALIBRATION_ROOT/stage-$stage
   local actual
+  mkdir -p "$output"
   actual=$(count_rows "$output")
   if [[ "$actual" == "$expected" ]]; then
     printf 'stage_%s_skip_complete episodes=%s\n' "$stage" "$actual"

@@ -1,5 +1,12 @@
 # Decision-Sufficient Observation Learning: Paper 1
 
+Repository cleanup is intentionally deferred until the active formal pipeline is frozen. The protected working set,
+artifact triage, and post-run release cleanup gates are recorded in
+[repository_hygiene_handoff_20260901_zh.md](repository_hygiene_handoff_20260901_zh.md).
+
+The live ownership boundary and restart checkpoint for the formal noise-marginalized view-value pipeline are recorded
+in [view_value_expectation_takeover_20260902_zh.md](view_value_expectation_takeover_20260902_zh.md).
+
 This branch isolates the Paper 1 preparation from prior FRESH, KYC, and active-view experiments.
 
 ## Scientific Slice
@@ -21,7 +28,9 @@ The prefreeze configuration is [preregistration_prefreeze_v1.json](../../configs
 
 The noise-marginalized closed-loop protocol for stable view-value analysis is frozen in
 [view_value_expectation_protocol_v1_zh.md](view_value_expectation_protocol_v1_zh.md), with its machine-readable contract in
-[view_value_expectation_protocol_v1.json](../../configs/dsol_paper1/view_value_expectation_protocol_v1.json). It remains a runner HOLD until explicit per-replan noise injection, seed separation, manifests, and a new execution receipt pass.
+[view_value_expectation_protocol_v1.json](../../configs/dsol_paper1/view_value_expectation_protocol_v1.json). The frozen
+document retains its historical runner-HOLD status, but formal execution was subsequently authorized by
+`receipts/execution-release-formal-seed41.json`; the current execution boundary is tracked in the takeover record above.
 
 The legacy camera experiments require an upstream revalidation before they can
 support Paper 1 claims. The Chinese prefreeze amendment is

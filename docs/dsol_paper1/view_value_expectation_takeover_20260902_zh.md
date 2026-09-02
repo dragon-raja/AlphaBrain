@@ -323,3 +323,17 @@ manifest SHA和noise文件SHA继续与冻结值一致，且不存在并发尾写
 旧post controller随后打印`closed_loop_complete ... episodes=9216`并启动8个seed42 checkpoint policy service；
 检查时E42尚处模型加载阶段、结果为0/3072。由于当前存活Bash进程未热加载后来加入的自动audit函数，E42/E43完成后仍须
 由接管任务显式运行同一`--require-complete`审计，全部通过后才允许接受primary heldout统计分析。
+
+### E42 1024条里程碑（2026-09-02T23:30Z）
+
+E42越过1024条后，同一heldout审计器对1038条并发快照审计通过。receipt位于
+`heldout/primary-seed42/audits/partial-after-1024.json`，SHA256为
+`1d8b809a922c70e7563966f5fa562c4a932a4a99883ad0adc71d7301572332df`。1038个episode ID唯一，均属于冻结seed42
+协议并位于正确shard，全部spec字段一致；32个shard各28至35条，18个状态已触及，其中14个状态的
+两方法×32 repeats矩阵精确完整。canonical与`calibration_global_fixed_pose`分别有526和512条。全部34996次
+policy call可由Bank E逐调用重建，19771个共同`pair × repeat × replan`键无噪声分叉，physics SHA和
+environment seed违规均为0。
+
+进程侧以可执行名过滤后复核为8个seed42 policy service、32个evaluator父进程和32个episode子进程；32份evaluator
+日志无Traceback、CUDA OOM、连接失败或KeyError，policy日志无硬错误且仅含与E41相同的原始TCP就绪探测握手噪声，
+post/finalize会话均存活。本里程碑不读取或解释中途成功率。

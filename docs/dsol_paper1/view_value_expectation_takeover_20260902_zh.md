@@ -293,3 +293,19 @@ physics SHA精确相等。审计快照超过7168是并发worker在只读审计�
 审计后进程侧复核为8个seed41 policy service、32个evaluator父进程和32个当前episode子进程；32份evaluator日志
 没有Traceback、CUDA OOM、连接失败或KeyError，post/finalize tmux会话均存活。本里程碑仍只证明冻结协议、结果集合、
 配对噪声与运行健康性，不对未完成矩阵的中途成功率作任何结论。
+
+### E41 8192条里程碑（2026-09-02T21:57Z）
+
+E41越过8192条后，使用同一已提交heldout审计器对8235条并发快照执行累计审计。receipt位于
+`heldout/primary-seed41/audits/partial-after-8192.json`，SHA256为
+`1c5bc0a0090132fd7222134b5223a76a6bb84d115823194532fcf23bed4b33fb`。8235个episode ID唯一，均属于冻结协议并位于
+`protocol_index % 32`规定的shard，全部spec字段与协议一致；32个shard各227至280条。47个状态已触及，其中37个
+状态的六方法×32 repeats矩阵精确完整。全部400837次policy call可由Bank E逐调用重建，83093个共同
+`pair × repeat × replan`键无噪声分叉，已触及pair的physics SHA与environment seed均唯一且camera安装/等待前后
+physics SHA精确相等。审计快照超过8192是并发worker在只读审计开始前继续完成episode所致，不是重复或越界写入。
+
+审计后进程侧复核为8个seed41 policy service、32个evaluator父进程和32个当前episode子进程，post/finalize tmux
+会话均存活。32份evaluator日志没有Traceback、CUDA OOM、连接失败或KeyError。8份policy日志中的Traceback经逐类
+核查仅为启动期原始TCP就绪探测在WebSocket HTTP握手前断开所产生的`EOFError`/`InvalidMessage`，随后持续正常接受
+`connection open`；policy日志没有CUDA OOM、连接失败或KeyError。这些握手探测日志不代表episode或推理失败。
+本里程碑仍只证明冻结协议、结果集合、配对噪声与运行健康性，不对未完成矩阵的中途成功率作任何结论。

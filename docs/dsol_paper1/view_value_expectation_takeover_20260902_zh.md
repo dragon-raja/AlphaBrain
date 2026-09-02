@@ -237,3 +237,17 @@ E41越过3072条后，对3299条并发快照执行了可重复累计审计，rec
 下一checkpoint或统计分析。当前正在运行的Bash进程在启动时已加载旧函数，因此这一次现存进程的E41/E42/E43及可能的
 F41/F42/F43完成点均由接管任务显式运行同一complete审计，并保证在统计分析定稿前核清；不得误认为修改磁盘上的shell
 会热更新现存进程。
+
+### E41 4096条里程碑（2026-09-02T17:18Z）
+
+E41越过4096条后，使用提交后的heldout审计器对4114条并发快照再次执行累计审计。receipt位于
+`heldout/primary-seed41/audits/partial-after-4096.json`，SHA256为
+`2bb1a599d55f11751e4737198986b3ee8921ea556978296446ff02a4418aa772`。4114个episode ID唯一，均属于冻结协议并位于
+`protocol_index % 32`规定的shard，全部spec字段与协议一致；32个shard各119至136条。23个状态已触及，其中19个
+状态的六方法×32 repeats矩阵精确完整。全部169901次policy call可由Bank E逐调用重建，37703个共同
+`pair × repeat × replan`键无噪声分叉，已触及pair的physics SHA与environment seed均唯一且camera安装/等待前后
+physics SHA精确相等。
+
+审计后进程侧复核为8个seed41 policy service、32个evaluator父进程和32个当前episode子进程；32份evaluator日志
+没有Traceback、CUDA OOM、连接失败或KeyError，post/finalize tmux会话均存活。与前一里程碑相同，这只证明运行和
+配对数据完整性，不对未完成矩阵的中途成功率作任何结论。

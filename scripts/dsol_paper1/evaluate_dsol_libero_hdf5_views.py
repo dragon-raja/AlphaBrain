@@ -10,6 +10,7 @@ import json
 import os
 import subprocess
 import sys
+from bisect import bisect_right
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -384,14 +385,107 @@ def parse_args() -> argparse.Namespace:
 def selected_specs(args: argparse.Namespace) -> list[dict[str, Any]]:
     protocol = json.loads(args.protocol.read_text())
     specs = []
-    for index, spec in enumerate(protocol["specs"]):
+    for index in range(protocol_spec_count(protocol)):
         if index % args.num_shards != args.shard_index:
             continue
+        specs.append(protocol_spec_at(protocol, index))
+    return specs[: args.max_episodes] if args.max_episodes is not None else specs
+
+
+def protocol_spec_count(protocol: Mapping[str, Any]) -> int:
+    if "specs" in protocol:
+        return len(protocol["specs"])
+    if protocol.get("schema") != "dsol_compact_view_matrix_protocol_v1":
+        raise ValueError("protocol must contain specs or use the compact view-matrix schema")
+    repeats = list(protocol.get("policy_repeat_ids", []))
+    blocks = list(protocol.get("state_blocks", []))
+    if not repeats or len(repeats) != len(set(repeats)):
+        raise ValueError("compact protocol repeat IDs must be nonempty and unique")
+    if not blocks:
+        raise ValueError("compact protocol must contain state blocks")
+    return sum(len(block.get("candidates", [])) * len(repeats) for block in blocks)
+
+
+def _compact_block_offsets(protocol: Mapping[str, Any]) -> list[int]:
+    repeats = list(protocol["policy_repeat_ids"])
+    offsets = [0]
+    for block in protocol["state_blocks"]:
+        candidates = list(block.get("candidates", []))
+        if not candidates:
+            raise ValueError("each compact protocol state block needs candidates")
+        offsets.append(offsets[-1] + len(candidates) * len(repeats))
+    return offsets
+
+
+def _expand_compact_spec(
+    protocol: Mapping[str, Any], block: Mapping[str, Any], candidate: Mapping[str, Any], repeat_id: int
+) -> dict[str, Any]:
+    state = dict(block["state"])
+    candidate_id = str(candidate["selected_candidate_id"])
+    pair_key = str(state["pair_key"])
+    identity = (
+        f"{protocol['episode_identity_prefix']}::{pair_key}::"
+        f"{candidate_id}::{repeat_id}"
+    )
+    catalog = protocol.get("catalog") or candidate.get("catalog")
+    if not catalog:
+        raise ValueError("protocol must freeze a top-level or per-spec catalog")
+    return {
+        **state,
+        "condition": candidate.get("condition", f"candidate__{candidate_id}"),
+        "diagnostic_role": protocol["diagnostic_role"],
+        "selected_candidate_id": candidate_id,
+        "pose": candidate.get("pose"),
+        "scene_construction": block.get("scene_construction"),
+        "sensor_control": protocol.get("sensor_control", "both"),
+        "catalog": catalog,
+        "policy_repeat_id": int(repeat_id),
+        "noise_bank_id": protocol["noise_bank_id"],
+        "candidate_features": candidate.get("candidate_features", {}),
+        "episode_id": hashlib.sha256(identity.encode()).hexdigest()[:24],
+    }
+
+
+def protocol_spec_at(protocol: Mapping[str, Any], index: int) -> dict[str, Any]:
+    total = protocol_spec_count(protocol)
+    if not 0 <= index < total:
+        raise IndexError(f"protocol spec index outside [0, {total}): {index}")
+    if "specs" in protocol:
+        spec = dict(protocol["specs"][index])
         catalog = protocol.get("catalog") or spec.get("catalog")
         if not catalog:
             raise ValueError("protocol must freeze a top-level or per-spec catalog")
-        specs.append({**spec, "catalog": catalog})
-    return specs[: args.max_episodes] if args.max_episodes is not None else specs
+        return {**spec, "catalog": catalog}
+    repeats = list(protocol["policy_repeat_ids"])
+    offsets = _compact_block_offsets(protocol)
+    block_index = bisect_right(offsets, index) - 1
+    within = index - offsets[block_index]
+    candidate_index, repeat_index = divmod(within, len(repeats))
+    block = protocol["state_blocks"][block_index]
+    candidate = block["candidates"][candidate_index]
+    return _expand_compact_spec(protocol, block, candidate, repeats[repeat_index])
+
+
+def selected_spec_count(args: argparse.Namespace, protocol: Mapping[str, Any]) -> int:
+    total = protocol_spec_count(protocol)
+    if args.shard_index >= total:
+        count = 0
+    else:
+        count = (total - 1 - args.shard_index) // args.num_shards + 1
+    if args.max_episodes is not None:
+        count = min(count, args.max_episodes)
+    return count
+
+
+def selected_spec_at(
+    args: argparse.Namespace, protocol: Mapping[str, Any], local_index: int
+) -> dict[str, Any]:
+    count = selected_spec_count(args, protocol)
+    if not 0 <= local_index < count:
+        raise IndexError(f"selected spec index outside [0, {count}): {local_index}")
+    return protocol_spec_at(
+        protocol, args.shard_index + local_index * args.num_shards
+    )
 
 
 def main() -> None:
@@ -402,7 +496,8 @@ def main() -> None:
         raise ValueError("wait-steps must be nonnegative")
     if args.num_shards <= 0 or not 0 <= args.shard_index < args.num_shards:
         raise ValueError("invalid shard configuration")
-    specs = selected_specs(args)
+    protocol = json.loads(args.protocol.read_text())
+    spec_count = selected_spec_count(args, protocol)
     output = args.output_dir / f"episodes-shard-{args.shard_index:02d}.jsonl"
     completed = {
         json.loads(line)["episode_id"]
@@ -415,7 +510,8 @@ def main() -> None:
             from explicit_flow_noise import ExplicitFlowNoiseBank
 
             ExplicitFlowNoiseBank(args.noise_bank_manifest, verify_file=True)
-        for index, spec in enumerate(specs):
+        for index in range(spec_count):
+            spec = selected_spec_at(args, protocol, index)
             if spec["episode_id"] in completed:
                 continue
             child_args = [sys.executable, str(Path(__file__).resolve()), *sys.argv[1:]]
@@ -426,7 +522,7 @@ def main() -> None:
                 check=True,
             )
         return
-    spec = specs[args.episode_index]
+    spec = selected_spec_at(args, protocol, args.episode_index)
     if spec["episode_id"] in completed:
         return
     configure_imports()

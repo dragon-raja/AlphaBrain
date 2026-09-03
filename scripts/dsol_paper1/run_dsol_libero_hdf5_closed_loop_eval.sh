@@ -235,19 +235,34 @@ for pid in "${eval_pids[@]}"; do wait "$pid" || failed=1; done
 [[ "$failed" == 0 ]] || { echo "one or more evaluation shards failed" >&2; exit 1; }
 actual=$(awk 'NF {n++} END {print n+0}' "$OUTPUT_DIR"/episodes-shard-*.jsonl)
 expected=$(PROTOCOL="$PROTOCOL" EVAL_WORKER_COUNT="$EVAL_WORKER_COUNT" MAX_EPISODES_PER_SHARD="$MAX_EPISODES_PER_SHARD" \
-  "$READY_PYTHON" - <<'PY'
-import json
+  PYTHONPATH="$REPO_ROOT" "$SIM_PYTHON" - <<'PY'
+import argparse
 import os
+from pathlib import Path
 
-with open(os.environ["PROTOCOL"], encoding="utf-8") as handle:
-    protocol = json.load(handle)
+from scripts.dsol_paper1.evaluate_dsol_libero_hdf5_views import (
+    protocol_spec_count,
+    selected_spec_count,
+)
+
 worker_count = int(os.environ["EVAL_WORKER_COUNT"])
 limit_text = os.environ["MAX_EPISODES_PER_SHARD"]
 limit = int(limit_text) if limit_text else None
-count = 0
-for shard in range(worker_count):
-    shard_count = sum(index % worker_count == shard for index in range(len(protocol["specs"])))
-    count += min(shard_count, limit) if limit is not None else shard_count
+protocol_path = Path(os.environ["PROTOCOL"])
+import json
+protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
+protocol_spec_count(protocol)
+count = sum(
+    selected_spec_count(
+        argparse.Namespace(
+            num_shards=worker_count,
+            shard_index=shard,
+            max_episodes=limit,
+        ),
+        protocol,
+    )
+    for shard in range(worker_count)
+)
 print(count)
 PY
 )

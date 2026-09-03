@@ -1,0 +1,200 @@
+{
+  "schema": "dsol_statewise_view_oracle_protocol_v2",
+  "status": "FROZEN_BEFORE_V2_POLICY_EXECUTION",
+  "frozen_date": "2026-09-03",
+  "scientific_question": "Does a nontrivial, state-conditioned external-view value gap exist after marginalizing Pi0.5 flow noise, can observable inputs predict it, and does a frozen selector generalize to source-disjoint states?",
+  "estimands": {
+    "view_value": "J_theta(s,v)=E_Xi[full_task_success(rollout_theta(s,v;Xi))]",
+    "statewise_oracle": "v_star(s)=argmax_v J_theta(s,v) over the frozen 97-view operational bank",
+    "confirmed_search_lower_bound": "J_theta(s,v_hat_P(s))-J_theta(s,canonical), where v_hat_P is selected by independent O then P banks and evaluated only on Q",
+    "global_fixed_regret": "J_theta(s,v_hat_P(s))-J_theta(s,v_global_dev)",
+    "selector_capture": "(J_theta(s,v_selector(s))-J_theta(s,canonical))/(J_theta(s,v_hat_P(s))-J_theta(s,canonical))"
+  },
+  "claim_scope": {
+    "included": [
+      "E0 same-physical-state counterfactual external views",
+      "fixed external camera during each closed-loop rollout",
+      "one frozen AlphaBrain Pi0.5 checkpoint as the primary dense map",
+      "source-disjoint generalization of a selector frozen before test outcomes are opened"
+    ],
+    "excluded": [
+      "the exact infinite-sample maximum over views",
+      "physical pan-tilt acquisition cost",
+      "camera motion during a rollout",
+      "body-camera action coupling",
+      "universal view optimality across checkpoint families or embodiments"
+    ]
+  },
+  "legacy_evidence": {
+    "root": "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1",
+    "policy": "outcomes_are_pilot_and_power_evidence_only_not_pooled_into_v2_primary_estimands",
+    "reusable_static_assets": [
+      "64 frozen HDF5 physical-state identities",
+      "64 complete 97-view visibility scans",
+      "64 complete 97-view policy-input render banks"
+    ],
+    "pilot_statewise_funnel_gain_pp": 4.78515625,
+    "pilot_posthoc_hierarchical_bootstrap_95_pp": [1.269531, 8.691406],
+    "interpretation": "motivates a better powered dense design; it is not a preregistered confirmatory result"
+  },
+  "population": {
+    "source_population": "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1/population/population.json",
+    "tasks": 8,
+    "states_per_task": 8,
+    "development_states_per_task": 6,
+    "test_states_per_task": 2,
+    "development_cv_folds": 6,
+    "test_selection": "two SHA256-ranked states per task drawn only from the prior heldout_test source pool",
+    "test_outcome_embargo": "no test dense/refinement outcome analysis and no test-dependent selector change before a selector-freeze receipt exists",
+    "split_root_seed": 2026090301
+  },
+  "candidate_space": {
+    "catalog": "configs/dsol_paper1/libero_view_catalog_v2_m1.json",
+    "candidate_count": 97,
+    "composition": {
+      "canonical": 1,
+      "broad_train_support": 64,
+      "broad_heldout": 32
+    },
+    "external_camera_is_fixed_within_rollout": true,
+    "wrist_camera_remains_deployed": true
+  },
+  "randomness": {
+    "distribution": "numpy_pcg64_iid_standard_normal_float32",
+    "full_noise_trajectory_key": [
+      "bank_id",
+      "state_pair_key",
+      "policy_repeat_id",
+      "replan_index"
+    ],
+    "shared_exactly_across_views_for_state_repeat_replan": true,
+    "flow_noise_shape": [10, 7],
+    "flow_denoising_steps": 10,
+    "replan_environment_steps": 5,
+    "max_replans": 104,
+    "banks": {
+      "S": {
+        "role": "smoke_only",
+        "repeats": 2,
+        "root_seed": 2026090302
+      },
+      "O": {
+        "role": "dense_discovery_all_97",
+        "repeats": 32,
+        "root_seed": 2026090311
+      },
+      "P": {
+        "role": "independent_top8_refinement",
+        "repeats": 32,
+        "root_seed": 2026090321
+      },
+      "Q": {
+        "role": "independent_frozen_candidate_confirmation",
+        "repeats": 64,
+        "root_seed": 2026090331
+      },
+      "R": {
+        "role": "pre_materialized_precision_reserve",
+        "repeats": 64,
+        "root_seed": 2026090341
+      }
+    }
+  },
+  "execution": {
+    "primary_checkpoint_seed": 41,
+    "primary_checkpoint": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_m-b-formal-v1_seed41_g2_gb32_steps2000/final_model",
+    "dense_discovery": {
+      "candidate_count": 97,
+      "noise_repeats": 32,
+      "wave_size_repeats": 4,
+      "development_episodes": 148992,
+      "test_episodes": 49664
+    },
+    "refinement": {
+      "conditions": "canonical plus top8 noncanonical views selected per state using O only",
+      "noise_repeats": 32,
+      "development_episodes": 13824,
+      "test_episodes": 4608
+    },
+    "confirmation": {
+      "development_conditions": "canonical plus one statewise candidate selected using P only",
+      "test_conditions": "canonical, statewise candidate, dev-frozen global and task-fixed baselines, and every dev-frozen learned selector candidate with duplicate views evaluated once",
+      "noise_repeats": 64,
+      "development_episode_minimum": 6144,
+      "test_episode_budget_depends_on_deduplicated_frozen_conditions": true
+    },
+    "ordering": [
+      "smoke_S",
+      "development_O_dense",
+      "development_P_refinement",
+      "development_Q_confirmation_and_grouped_CV",
+      "freeze_selector_and_all_hyperparameters",
+      "test_O_dense_without_human_analysis",
+      "build_test_P_from_O_and_run",
+      "build_test_Q_from_P_plus_prefrozen_selectors_and_run",
+      "open_test_analysis",
+      "optional_R_only_by_prefrozen_precision_rule",
+      "cross_checkpoint_Q_transfer"
+    ]
+  },
+  "selection": {
+    "O_to_P": "canonical plus top8 noncanonical by higher success, higher progress, lower harm, faster successful completion, lexicographic ID",
+    "P_to_Q": "top1 noncanonical by the same frozen order",
+    "candidate_replacement_after_Q": false,
+    "dense_empirical_max_from_O": "diagnostic_only_because_of_maximum_selection_bias",
+    "Q_statewise_candidate": "confirmatory_discovered_oracle_lower_bound_not_claimed_as_exact_oracle"
+  },
+  "learner_layer": {
+    "training_population": "development states only with source-grouped six-fold cross-validation",
+    "test_population": "16 source-disjoint states, two per task",
+    "minimum_baselines": [
+      "canonical",
+      "global_fixed_view_frozen_from_development",
+      "task_fixed_view_frozen_from_development",
+      "visibility_selector",
+      "Accel_selector"
+    ],
+    "candidate_learner_inputs": [
+      "task language",
+      "canonical external and wrist images",
+      "robot proprioception",
+      "candidate camera geometry",
+      "candidate rendered image only for the explicitly image-queryable selector variant"
+    ],
+    "prohibited_inputs": [
+      "test rollout outcome",
+      "test oracle rank",
+      "future simulator state",
+      "manual test-state routing"
+    ],
+    "deep_model_from_scratch": false,
+    "freeze_receipt_required_before_test_outcome_open": true
+  },
+  "statistics_and_gates": {
+    "independent_unit": "source demonstration group",
+    "primary_interval": "paired source-cluster bootstrap 95 percent with task stratification",
+    "bootstrap_resamples": 20000,
+    "oracle_existence": {
+      "statistical": "Q-test statewise candidate minus canonical CI excludes zero",
+      "practical": "Q-test source-equal point gain is at least 5 percentage points"
+    },
+    "state_dependence": {
+      "statistical": "Q-test statewise candidate minus dev-frozen global fixed view CI excludes zero",
+      "practical": "point difference is at least 3 percentage points",
+      "required_reporting": "candidate identity diversity and per-task/state regret distribution"
+    },
+    "learner_generalization": {
+      "statistical": "Q-test learned selector minus canonical CI excludes zero",
+      "practical": "gain is at least 3 percentage points, captures at least half of positive confirmed oracle headroom, and harm increase is no more than 5 percentage points"
+    },
+    "reserve_activation": "activate R only if a primary Q-test CI half-width exceeds 5 percentage points or first-half versus full-Q point estimate shifts by more than 5 percentage points"
+  },
+  "estimated_runtime": {
+    "measured_throughput_episodes_per_hour": 1000,
+    "preparation_and_smoke_hours": [2, 4],
+    "primary_seed_dense_and_confirmation_days": [9, 11],
+    "learner_freeze_and_test_days": [1, 2],
+    "cross_checkpoint_transfer_days": [1, 2],
+    "total_calendar_days": [10, 14]
+  }
+}

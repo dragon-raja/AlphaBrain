@@ -7,6 +7,11 @@ artifact triage, and post-run release cleanup gates are recorded in
 The live ownership boundary and restart checkpoint for the formal noise-marginalized view-value pipeline are recorded
 in [view_value_expectation_takeover_20260902_zh.md](view_value_expectation_takeover_20260902_zh.md).
 
+The successor dense state-conditioned oracle campaign is frozen in
+[statewise_view_oracle_v2_protocol_20260903_zh.md](statewise_view_oracle_v2_protocol_20260903_zh.md), and its live
+execution handoff is [statewise_view_oracle_v2_execution_status_20260903_zh.md](statewise_view_oracle_v2_execution_status_20260903_zh.md).
+It replaces the early-pruning A/B/C design for the new question; it does not rewrite or delete the completed v1 audit.
+
 This branch isolates the Paper 1 preparation from prior FRESH, KYC, and active-view experiments.
 
 ## Scientific Slice

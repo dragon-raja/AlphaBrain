@@ -407,3 +407,51 @@ E43最终文件稳定为3072/3072，32个shard各96条；监控结束前短暂�
 曾在其已经打开的源shell文件前部插入完整审计调用；它在耗时的三seed循环结束后从旧文件偏移继续读取移位后的内容，
 由此触发晚发解析错误。该操作性故障不影响已写结果；恢复必须使用当前已验证脚本幂等重启，跳过并重新完整审计E41/E42/E43，
 且在新进程结束前不再改写其源shell文件。
+
+### 幂等恢复、主分析与Bank F裁决（2026-09-03T04:40Z）
+
+使用当前已通过`bash -n`的post/finalize脚本重新启动后，controller按设计跳过已完成的64条Accel render、64条Accel
+rank和E41/E42/E43执行，但不是直接信任旧文件：它重新确定性构建三份held-out协议，并对三个seed各运行一次
+`--require-complete`审计。三份协议SHA、episode数量、完整状态矩阵、显式噪声重建和物理状态约束均与上文记录一致，
+随后写入`view_value_expectation_post_calibration_complete=2026-09-03T04:40:03Z`。这次恢复没有重跑episode，也没有改写
+冻结规则或读取测试结果重新选视角。
+
+primary分析输出为：
+
+- `heldout/analysis-primary/primary-analysis.json`：
+  `79d58466ec2deef22675391746f608a2b26872c1d542c2fd47505028859f4e3d`；
+- `heldout/analysis-primary/state-method-results.csv`：
+  `5431d552cfa71a2d4c0b1b94dd977a60810664e848dcc863b6054d9ad59acd3d`；
+- `heldout/analysis-primary/reserve-decision.json`：
+  `9b274eb392ce5d83a042500043e065716b0f107ea26321b4788f284ccd7dab98`。
+
+分析器另行写到临时目录重算后，以上三个文件逐字节相同。冻结规则是
+`calibration_global_fixed_pose`，对应`broad_train_053`。相对规范视角的结果为：seed 41增益`-0.13pp`、95% CI
+`[-2.73,+2.54]pp`、Harm `9.44%`；seed 42增益`-2.28pp`、CI `[-5.27,+0.52]pp`、Harm `11.78%`；
+seed 43增益`-3.06pp`、CI `[-5.66,-0.52]pp`、Harm `11.78%`。跨checkpoint平均增益为`-1.8229pp`，平均Harm为
+`11.0026%`，三个方向并非全正，正式门为`SELECTOR_GAIN_NOT_CONFIRMED`。
+
+机器门控给出`PRIMARY_PRECISION_SUFFICIENT`、`activate_bank_F=false`且`reasons=[]`。这里的“精度充分”表示32 repeats已经
+足以裁决预注册正向门没有通过，不表示效果为正；因此不应为了追求正结果打开Bank F。`heldout/`中只存在三份primary run
+和`analysis-primary`，没有Bank F结果目录或`analysis-final`，与冻结协议一致。
+
+### 最终报告、展示修复与结论边界
+
+finalize生成`final-report/`下的JSON、CSV、中文Markdown、六页PDF和六张逐页预览，并以`WANDB_MODE=offline`写入只含标量
+与本地表格的W&B离线receipt；未上传media或artifact。最终状态为`VIEW_HEADROOM_NOT_CONFIRMED`：校准D阶段16个状态中没有
+状态达到预注册强Headroom门，尽管来源等权平均候选收益为`+4.7852pp`；独立held-out又未确认冻结选择器的正收益。
+
+人工逐页检查时发现第2页引用的`visibility_diagnostics.png`为空坐标轴。根因是绘图代码仍过滤旧分区名`val/test`，而本协议
+的实际分区名为`calibration/heldout_test`；原始7424条候选记录、64个状态摘要及所有闭环结果均未受影响。现已修正分区绑定、
+加入回归测试并重建诊断图和最终报告，第2页能显示校准候选分布及校准/留出几何Headroom，六页均无空页、裁切或乱码。
+
+可写结论严格限定为：冻结97视角库中的固定物理状态E0反事实外部视角。它不是官方LIBERO-Plus全榜单成绩，不验证真实移动
+相机，也不证明物理主动视角获取有效。不得把`VIEW_HEADROOM_NOT_CONFIRMED`改写成“视角不重要”；它只表示本候选空间、
+状态总体和门槛下没有确认到预注册的稳定Headroom与可部署选择器增益。
+
+### 最终总审计
+
+新增`audit_view_value_expectation_completion.py`作为fail-closed总审计器。它不只检查完成标记，而是重新逐条核验A/B/C/D的
+12864个episode及其全部policy-call噪声，重新运行E41/E42/E43完整审计并要求与已存receipt逐字段一致，同时绑定冻结协议SHA、
+source/state-disjoint人口、Accel有序ledger、确定性分析SHA、Bank F门控、最终报告边界、六张预览、W&B离线receipt和clean Git
+commit。最终receipt写入正式根目录`completion-audit.json`；只有其状态为`PASS_COMPLETE`才视为本次接管闭环完成。

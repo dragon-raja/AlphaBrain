@@ -28,6 +28,55 @@ def quantiles(values: list[float]) -> dict[str, float]:
     }
 
 
+def diagnostic_plot_data(
+    flat_rows: list[dict], state_rows: list[dict]
+) -> tuple[dict[str, list[float]], list[str], list[float]]:
+    """Return plot inputs using the protocol's actual split identifiers."""
+    geometric_groups = sorted(
+        {
+            row["group"]
+            for row in flat_rows
+            if row["group"] not in {"canonical", "sensor_controls"}
+        }
+    )
+    calibration_values = {
+        group: [
+            row["delta_visibility"]
+            for row in flat_rows
+            if row["split"] == "calibration" and row["group"] == group
+        ]
+        for group in geometric_groups
+    }
+    labels = [
+        "calibration best",
+        "calibration worst",
+        "held-out best",
+        "held-out worst",
+    ]
+    headroom_values = [
+        float(
+            np.mean(
+                [
+                    row[f"{kind}_delta_visibility"]
+                    for row in state_rows
+                    if row["split"] == split
+                ]
+            )
+        )
+        for split, kind in (
+            ("calibration", "best"),
+            ("calibration", "worst"),
+            ("heldout_test", "best"),
+            ("heldout_test", "worst"),
+        )
+    ]
+    if not any(calibration_values.values()):
+        raise ValueError("no calibration geometric candidates for diagnostic plot")
+    if not np.all(np.isfinite(headroom_values)):
+        raise ValueError("missing calibration or held-out state rows for diagnostic plot")
+    return calibration_values, labels, headroom_values
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("ledgers", type=Path, nargs="+")
@@ -164,40 +213,18 @@ def main() -> None:
     try:
         import matplotlib.pyplot as plt
 
-        geometric_groups = sorted(
-            {
-                row["group"]
-                for row in flat_rows
-                if row["group"] not in {"canonical", "sensor_controls"}
-            }
-        )
+        calibration_values, labels, values = diagnostic_plot_data(flat_rows, state_rows)
         figure, axes = plt.subplots(1, 2, figsize=(13, 4.6), constrained_layout=True)
-        for group in geometric_groups:
-            values = [
-                row["delta_visibility"]
-                for row in flat_rows
-                if row["split"] == "val" and row["group"] == group
-            ]
-            if values:
-                axes[0].hist(values, bins=40, alpha=0.45, label=group)
+        for group, group_values in calibration_values.items():
+            if group_values:
+                axes[0].hist(group_values, bins=40, alpha=0.45, label=group)
         axes[0].axvline(0.0, color="#17212b", linewidth=1)
         axes[0].set(
-            title="Validation candidate visibility deltas",
+            title="Calibration candidate visibility deltas",
             xlabel="Delta visible-pixel fraction",
             ylabel="Candidate count",
         )
         axes[0].legend(fontsize=7)
-        labels = ["val best", "val worst", "test best", "test worst"]
-        values = [
-            np.mean(
-                [
-                    row[f"{kind}_delta_visibility"]
-                    for row in state_rows
-                    if row["split"] == split
-                ]
-            )
-            for split, kind in (("val", "best"), ("val", "worst"), ("test", "best"), ("test", "worst"))
-        ]
         axes[1].bar(labels, values, color=("#3f7fa8", "#c55463", "#3f7fa8", "#c55463"))
         axes[1].axhline(0.0, color="#17212b", linewidth=1)
         axes[1].set(title="Per-state geometric headroom", ylabel="Mean delta visibility")

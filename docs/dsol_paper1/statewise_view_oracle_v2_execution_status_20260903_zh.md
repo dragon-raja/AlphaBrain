@@ -78,4 +78,6 @@ tail -50 /share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/l
 
 ## 预计时间
 
-按上一轮长期平均约 1,000 episodes/hour，主 checkpoint 的 dense、P/Q 和确认约 9–11 天；selector、test 开封和分析约 1–2 天；seed-42/43 transfer 约 1–2 天。若运行稳定，预计在 2026-09-13 至 2026-09-17 之间闭环。短时吞吐会随任务成功/失败导致的 rollout 长度显著变化，不能用最初几百条线性外推。
+旧的 10–14 天估计基于未限制 CPU 线程时约 1,000 episodes/hour 的历史长期吞吐，已被本次运行优化取代。恢复后的正式多状态窗口完成约 900 个 episode，平均 116.18 环境步，观测约 190 环境步/秒；按 v1 完整任务分布约 200–240 步/episode 校正，当前全程规划吞吐约为 2,800–3,400 episodes/hour，而不是短状态基准中的 5,601 episodes/hour。
+
+不触发 R 时的最大设计规模约 247,808 个 primary episode；触发 R 时最多再增加约 8,192 个。以当前断点和长度校正吞吐估算，完整 O/P/Q、selector freeze、test 开封、seed-42/43 transfer 和最终分析约还需 **3–5 天**；若机器持续稳定，预计 2026-09-06 至 2026-09-08 UTC 闭环。第一整个 wave-00 完成后应以跨 48 状态的实测 wall time 再校准一次。

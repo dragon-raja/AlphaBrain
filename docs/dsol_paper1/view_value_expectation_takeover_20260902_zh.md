@@ -391,3 +391,19 @@ environment seed违规均为0。
 
 进程侧复核为8个seed43 policy service、32个evaluator父进程和32个episode子进程；32份evaluator日志无目标错误，
 policy日志无CUDA OOM、连接失败或KeyError，post/finalize会话均存活。本里程碑仍不读取或解释中途成功率。
+
+### E43完整审计与post分析前退出（2026-09-03T04:37Z）
+
+E43最终文件稳定为3072/3072，32个shard各96条；监控结束前短暂显示3069是最后3条并发尾写尚未被下一次轮询读取，
+不是缺失。以`--require-complete`模式独立审计后生成`heldout/primary-seed43/heldout-run-audit.json`，receipt SHA256为
+`53b9d6e2aa1217d7dd7677f501b079794a358c651d623f9d541c333bda03b9b2`，状态为`PASS_COMPLETE`。结果episode集合与
+冻结seed43协议逐条精确相等且全部唯一；canonical与`calibration_global_fixed_pose`各1536条，48个状态的
+两方法×32 repeats矩阵全部完整。全部143606次policy call均可由Bank E逐调用重建，79842个共同
+`pair × repeat × replan`键无噪声分叉，48个pair的physics SHA和environment seed均无违规，且不存在并发尾写。
+
+旧post进程在打印seed43 `closed_loop_complete ... episodes=3072`后、尚未调用primary analysis时退出，持久日志的明确
+错误为`unexpected EOF while looking for matching '"'`；finalize随后因找不到post完成标记而按设计fail-closed退出，
+未生成reserve decision或最终报告。磁盘上的当前post/finalize脚本及post启动前Git版本均通过`bash -n`。旧post运行期间
+曾在其已经打开的源shell文件前部插入完整审计调用；它在耗时的三seed循环结束后从旧文件偏移继续读取移位后的内容，
+由此触发晚发解析错误。该操作性故障不影响已写结果；恢复必须使用当前已验证脚本幂等重启，跳过并重新完整审计E41/E42/E43，
+且在新进程结束前不再改写其源shell文件。

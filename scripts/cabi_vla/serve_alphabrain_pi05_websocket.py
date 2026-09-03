@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import logging
+import os
 import time
 from collections.abc import Mapping
 from pathlib import Path
@@ -67,9 +68,14 @@ def to_alphabrain_example(observation: Mapping[str, Any]) -> tuple[dict[str, Any
 
 
 class AlphaBrainPi05Policy:
-    def __init__(self, checkpoint: Path, device: str) -> None:
+    def __init__(self, checkpoint: Path, device: str, cpu_threads: int) -> None:
         from AlphaBrain.model.framework.base_framework import BaseFramework
 
+        if cpu_threads <= 0:
+            raise ValueError("cpu_threads must be positive")
+        torch.set_num_threads(cpu_threads)
+        torch.set_num_interop_threads(1)
+        self._cpu_threads = cpu_threads
         self._checkpoint = checkpoint.resolve()
         self._model = BaseFramework.from_pretrained(
             str(self._checkpoint),
@@ -95,6 +101,8 @@ class AlphaBrainPi05Policy:
             "torch_version": str(torch.__version__),
             "cuda_version": None if torch.version.cuda is None else str(torch.version.cuda),
             "device": str(device),
+            "torch_cpu_threads": self._cpu_threads,
+            "torch_interop_threads": 1,
         }
 
     def infer(self, observation: Mapping[str, Any]) -> dict[str, Any]:
@@ -144,6 +152,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--device", default="cuda:0")
+    parser.add_argument(
+        "--cpu-threads",
+        type=int,
+        default=int(os.environ.get("ALPHABRAIN_POLICY_CPU_THREADS", "2")),
+    )
     return parser.parse_args()
 
 
@@ -151,7 +164,7 @@ def main() -> None:
     from openpi.serving import websocket_policy_server
 
     args = parse_args()
-    policy = AlphaBrainPi05Policy(args.checkpoint, args.device)
+    policy = AlphaBrainPi05Policy(args.checkpoint, args.device, args.cpu_threads)
     server = websocket_policy_server.WebsocketPolicyServer(
         policy=policy,
         host="0.0.0.0",

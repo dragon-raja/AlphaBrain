@@ -7,6 +7,9 @@ OUTPUT_DIR=${OUTPUT_DIR:?set OUTPUT_DIR to a new or resumable evaluation directo
 PROTOCOL=${PROTOCOL:-$REPO_ROOT/configs/dsol_paper1/libero_hdf5_closed_loop_quick_gate_v1.json}
 GPU_COUNT=${GPU_COUNT:-8}
 EVAL_WORKER_COUNT=${EVAL_WORKER_COUNT:-$GPU_COUNT}
+POLICY_SERVER_COPIES_PER_GPU=${POLICY_SERVER_COPIES_PER_GPU:-1}
+POLICY_CPU_THREADS=${POLICY_CPU_THREADS:-2}
+SIM_CPU_THREADS=${SIM_CPU_THREADS:-1}
 GPU_DEVICES=${DSOL_GPU_DEVICES:-}
 BASE_PORT=${BASE_PORT:-18600}
 REPLAN_STEPS=${REPLAN_STEPS:-5}
@@ -29,6 +32,9 @@ OPENPI_DATA_HOME=${OPENPI_DATA_HOME:-/share/longjunyu/alphabrain/cache/openpi}
 OPENPI_CONFIG=${OPENPI_CONFIG:-pi05_libero}
 NOISE_BANK_MANIFEST=${NOISE_BANK_MANIFEST:-}
 REQUIRE_EXPLICIT_NOISE=${REQUIRE_EXPLICIT_NOISE:-0}
+RUN_STARTED_AT_UTC=$(date -u +%FT%TZ)
+RUN_STARTED_EPOCH_NS=$(date +%s%N)
+RUN_ATTEMPT_ID=${RUN_STARTED_AT_UTC//[:]/-}--pid-$$
 
 for required in \
   "$CHECKPOINT/model.safetensors" \
@@ -66,6 +72,15 @@ esac
   echo "EVAL_WORKER_COUNT must be in [1,64]" >&2
   exit 2
 }
+[[ "$POLICY_SERVER_COPIES_PER_GPU" =~ ^[1-3]$ ]] || {
+  echo "POLICY_SERVER_COPIES_PER_GPU must be in [1,3]" >&2; exit 2;
+}
+[[ "$POLICY_CPU_THREADS" =~ ^[1-9][0-9]*$ ]] || {
+  echo "POLICY_CPU_THREADS must be positive" >&2; exit 2;
+}
+[[ "$SIM_CPU_THREADS" =~ ^[1-9][0-9]*$ ]] || {
+  echo "SIM_CPU_THREADS must be positive" >&2; exit 2;
+}
 if [[ -z "$GPU_DEVICES" ]]; then
   physical_gpus=()
   for ((gpu=0; gpu<GPU_COUNT; gpu++)); do physical_gpus+=("$gpu"); done
@@ -100,7 +115,7 @@ fi
   echo "KEEPALIVE_MODE must be managed or preserve" >&2; exit 2;
 }
 
-mkdir -p "$OUTPUT_DIR/logs"
+mkdir -p "$OUTPUT_DIR/logs" "$OUTPUT_DIR/run-manifests"
 checkpoint_sha256=$(sha256sum "$CHECKPOINT/model.safetensors" | awk '{print $1}')
 protocol_sha256=$(sha256sum "$PROTOCOL" | awk '{print $1}')
 noise_bank_sha256=""
@@ -114,7 +129,11 @@ code_sha256=$(sha256sum \
   "$ANALYZER" \
   "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh" \
   | sha256sum | awk '{print $1}')
+manifest_tmp=$(mktemp "$OUTPUT_DIR/run-manifest.XXXXXX.json")
 jq -n \
+  --arg run_attempt_id "$RUN_ATTEMPT_ID" \
+  --arg started_at_utc "$RUN_STARTED_AT_UTC" \
+  --argjson started_epoch_ns "$RUN_STARTED_EPOCH_NS" \
   --arg checkpoint "$CHECKPOINT" \
   --arg checkpoint_sha256 "$checkpoint_sha256" \
   --arg policy_backend "$POLICY_BACKEND" \
@@ -129,6 +148,10 @@ jq -n \
   --arg gpu_devices "$GPU_DEVICES" \
   --argjson gpu_count "$GPU_COUNT" \
   --argjson eval_worker_count "$EVAL_WORKER_COUNT" \
+  --argjson policy_server_copies_per_gpu "$POLICY_SERVER_COPIES_PER_GPU" \
+  --argjson policy_server_count "$((GPU_COUNT * POLICY_SERVER_COPIES_PER_GPU))" \
+  --argjson policy_cpu_threads "$POLICY_CPU_THREADS" \
+  --argjson sim_cpu_threads "$SIM_CPU_THREADS" \
   --argjson replan_steps "$REPLAN_STEPS" \
   --argjson wait_steps "$WAIT_STEPS" \
   --argjson eval_seed "$EVAL_SEED" \
@@ -136,8 +159,16 @@ jq -n \
   --arg max_episodes_per_shard "$MAX_EPISODES_PER_SHARD" \
   --argjson run_analysis "$RUN_ANALYSIS" \
   --arg keepalive_mode "$KEEPALIVE_MODE" \
-  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,policy_backend:$policy_backend,openpi_config:(if $policy_backend == "openpi" then $openpi_config else null end),protocol:$protocol,protocol_sha256:$protocol_sha256,noise_bank_manifest:(if $noise_bank_manifest == "" then null else $noise_bank_manifest end),noise_bank_manifest_sha256:(if $noise_bank_manifest_sha256 == "" then null else $noise_bank_manifest_sha256 end),require_explicit_noise:($require_explicit_noise == 1),analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,eval_worker_count:$eval_worker_count,gpu_devices:($gpu_devices|split(",")|map(tonumber)),replan_steps:$replan_steps,wait_steps:$wait_steps,eval_seed:$eval_seed,video_episodes_per_worker:$video_episodes_per_worker,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1),keepalive_mode:$keepalive_mode}' \
-  > "$OUTPUT_DIR/run_manifest.json"
+  '{schema:"dsol_libero_hdf5_closed_loop_run_v1",run_attempt_id:$run_attempt_id,started_at_utc:$started_at_utc,started_epoch_ns:$started_epoch_ns,checkpoint:$checkpoint,checkpoint_sha256:$checkpoint_sha256,policy_backend:$policy_backend,openpi_config:(if $policy_backend == "openpi" then $openpi_config else null end),protocol:$protocol,protocol_sha256:$protocol_sha256,noise_bank_manifest:(if $noise_bank_manifest == "" then null else $noise_bank_manifest end),noise_bank_manifest_sha256:(if $noise_bank_manifest_sha256 == "" then null else $noise_bank_manifest_sha256 end),require_explicit_noise:($require_explicit_noise == 1),analyzer:$analyzer,code_sha256:$code_sha256,gpu_count:$gpu_count,eval_worker_count:$eval_worker_count,policy_server_copies_per_gpu:$policy_server_copies_per_gpu,policy_server_count:$policy_server_count,policy_cpu_threads:$policy_cpu_threads,sim_cpu_threads:$sim_cpu_threads,gpu_devices:($gpu_devices|split(",")|map(tonumber)),replan_steps:$replan_steps,wait_steps:$wait_steps,eval_seed:$eval_seed,video_episodes_per_worker:$video_episodes_per_worker,max_episodes_per_shard:(if $max_episodes_per_shard == "" then null else ($max_episodes_per_shard | tonumber) end),run_analysis:($run_analysis == 1),keepalive_mode:$keepalive_mode}' \
+  > "$manifest_tmp"
+if [[ -f "$OUTPUT_DIR/run_manifest.json" ]]; then
+  prior_sha256=$(sha256sum "$OUTPUT_DIR/run_manifest.json" | awk '{print $1}')
+  cp -n "$OUTPUT_DIR/run_manifest.json" \
+    "$OUTPUT_DIR/run-manifests/prior-${prior_sha256}.json"
+fi
+mv "$manifest_tmp" "$OUTPUT_DIR/run_manifest.json"
+cp "$OUTPUT_DIR/run_manifest.json" \
+  "$OUTPUT_DIR/run-manifests/attempt-${RUN_ATTEMPT_ID}.json"
 
 policy_pids=()
 eval_pids=()
@@ -172,32 +203,50 @@ if [[ "$REQUIRE_EXPLICIT_NOISE" == 1 ]]; then
   noise_bank_args+=(--require-explicit-noise)
 fi
 
-for ((shard=0; shard<GPU_COUNT; shard++)); do
-  gpu=${physical_gpus[$shard]}
-  port=$((BASE_PORT + shard))
+server_gpus=()
+for gpu in "${physical_gpus[@]}"; do
+  for ((copy=0; copy<POLICY_SERVER_COPIES_PER_GPU; copy++)); do
+    server_gpus+=("$gpu")
+  done
+done
+policy_server_count=${#server_gpus[@]}
+for ((server_index=0; server_index<policy_server_count; server_index++)); do
+  gpu=${server_gpus[$server_index]}
+  port=$((BASE_PORT + server_index))
   if [[ "$POLICY_BACKEND" == alphabrain ]]; then
     CUDA_VISIBLE_DEVICES=$gpu \
+    OMP_NUM_THREADS="$POLICY_CPU_THREADS" \
+    MKL_NUM_THREADS="$POLICY_CPU_THREADS" \
+    OPENBLAS_NUM_THREADS="$POLICY_CPU_THREADS" \
+    NUMEXPR_NUM_THREADS="$POLICY_CPU_THREADS" \
+    TOKENIZERS_PARALLELISM=false \
     PRETRAINED_MODELS_DIR=/share/longjunyu/alphabrain/pretrained_models \
     ALPHABRAIN_DISABLE_AUTO_DOWNLOAD=1 \
     PYTHONPATH="$REPO_ROOT:/projects/openpi/src:/projects/openpi/packages/openpi-client/src" \
       "$POLICY_PYTHON" "$REPO_ROOT/scripts/cabi_vla/serve_alphabrain_pi05_websocket.py" \
         --checkpoint "$CHECKPOINT" --port "$port" --device cuda:0 \
-        > "$OUTPUT_DIR/logs/policy-shard-${shard}-gpu-${gpu}.log" 2>&1 &
+        --cpu-threads "$POLICY_CPU_THREADS" \
+        > "$OUTPUT_DIR/logs/policy-server-${server_index}-gpu-${gpu}.log" 2>&1 &
   else
     CUDA_VISIBLE_DEVICES=$gpu \
+    OMP_NUM_THREADS="$POLICY_CPU_THREADS" \
+    MKL_NUM_THREADS="$POLICY_CPU_THREADS" \
+    OPENBLAS_NUM_THREADS="$POLICY_CPU_THREADS" \
+    NUMEXPR_NUM_THREADS="$POLICY_CPU_THREADS" \
+    TOKENIZERS_PARALLELISM=false \
     OPENPI_DATA_HOME="$OPENPI_DATA_HOME" \
     PYTHONPATH="$REPO_ROOT/scripts/cabi_vla" \
       "$OPENPI_PYTHON" "$REPO_ROOT/scripts/cabi_vla/serve_openpi_deterministic.py" \
         --checkpoint "$CHECKPOINT" --config "$OPENPI_CONFIG" \
         --port "$port" --device cuda:0 \
-        > "$OUTPUT_DIR/logs/policy-shard-${shard}-gpu-${gpu}.log" 2>&1 &
+        > "$OUTPUT_DIR/logs/policy-server-${server_index}-gpu-${gpu}.log" 2>&1 &
   fi
   policy_pids+=("$!")
 done
 
-BASE_PORT="$BASE_PORT" GPU_COUNT="$GPU_COUNT" "$READY_PYTHON" - <<'PY'
+BASE_PORT="$BASE_PORT" POLICY_SERVER_COUNT="$policy_server_count" "$READY_PYTHON" - <<'PY'
 import os, socket, time
-base = int(os.environ["BASE_PORT"]); count = int(os.environ["GPU_COUNT"])
+base = int(os.environ["BASE_PORT"]); count = int(os.environ["POLICY_SERVER_COUNT"])
 pending = set(range(count)); deadline = time.monotonic() + 900
 while pending and time.monotonic() < deadline:
     for index in list(pending):
@@ -211,11 +260,16 @@ if pending: raise SystemExit(f"policy servers did not become ready: {sorted(pend
 PY
 
 for ((shard=0; shard<EVAL_WORKER_COUNT; shard++)); do
-  server_index=$((shard % GPU_COUNT))
-  gpu=${physical_gpus[$server_index]}
+  server_index=$((shard % policy_server_count))
+  gpu=${server_gpus[$server_index]}
   port=$((BASE_PORT + server_index))
   LIBERO_CONFIG_PATH="$SIM_CONFIG" \
   IMAGEIO_FFMPEG_EXE="$FFMPEG_EXE" \
+  OMP_NUM_THREADS="$SIM_CPU_THREADS" \
+  MKL_NUM_THREADS="$SIM_CPU_THREADS" \
+  OPENBLAS_NUM_THREADS="$SIM_CPU_THREADS" \
+  NUMEXPR_NUM_THREADS="$SIM_CPU_THREADS" \
+  TOKENIZERS_PARALLELISM=false \
   PYTHONPATH="$REPO_ROOT:/projects/openpi/packages/openpi-client/src:$REPO_ROOT/scripts/cabi_vla:$REPO_ROOT/scripts/dsol_paper1" \
     "$SIM_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py" \
       --protocol "$PROTOCOL" --output-dir "$OUTPUT_DIR" \
@@ -273,4 +327,19 @@ if [[ "$RUN_ANALYSIS" == 1 ]]; then
     --output-dir "$OUTPUT_DIR/analysis" \
     > "$OUTPUT_DIR/logs/analysis.log"
 fi
+RUN_FINISHED_AT_UTC=$(date -u +%FT%TZ)
+RUN_FINISHED_EPOCH_NS=$(date +%s%N)
+jq -n \
+  --arg run_attempt_id "$RUN_ATTEMPT_ID" \
+  --arg started_at_utc "$RUN_STARTED_AT_UTC" \
+  --arg finished_at_utc "$RUN_FINISHED_AT_UTC" \
+  --argjson started_epoch_ns "$RUN_STARTED_EPOCH_NS" \
+  --argjson finished_epoch_ns "$RUN_FINISHED_EPOCH_NS" \
+  --argjson episode_count "$actual" \
+  --argjson policy_server_count "$policy_server_count" \
+  --argjson eval_worker_count "$EVAL_WORKER_COUNT" \
+  --argjson policy_cpu_threads "$POLICY_CPU_THREADS" \
+  --argjson sim_cpu_threads "$SIM_CPU_THREADS" \
+  '{schema:"dsol_libero_hdf5_closed_loop_run_receipt_v1",status:"PASS_COMPLETE",run_attempt_id:$run_attempt_id,started_at_utc:$started_at_utc,finished_at_utc:$finished_at_utc,started_epoch_ns:$started_epoch_ns,finished_epoch_ns:$finished_epoch_ns,elapsed_seconds:(($finished_epoch_ns-$started_epoch_ns)/1000000000),episode_count:$episode_count,episodes_per_hour:(if ($finished_epoch_ns-$started_epoch_ns)>0 then ($episode_count*3600000000000/($finished_epoch_ns-$started_epoch_ns)) else null end),policy_server_count:$policy_server_count,eval_worker_count:$eval_worker_count,policy_cpu_threads:$policy_cpu_threads,sim_cpu_threads:$sim_cpu_threads}' \
+  > "$OUTPUT_DIR/run-manifests/receipt-${RUN_ATTEMPT_ID}.json"
 echo "dsol_hdf5_closed_loop_complete=$OUTPUT_DIR episodes=$actual"

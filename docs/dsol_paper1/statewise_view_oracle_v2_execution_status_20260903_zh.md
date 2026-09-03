@@ -1,6 +1,6 @@
 # 状态条件视角 Oracle v2：执行状态与接管点
 
-最后结构更新：2026-09-03 07:42 UTC
+最后结构更新：2026-09-03 08:34 UTC
 
 ## 当前状态
 
@@ -14,6 +14,28 @@ v2 已正式启动。执行根目录是：
 
 - `dsol-oracle-v2-dev-O`：连续执行 8 个 development O wave，并在每个 wave 后做 outcome-blind 完整性审计。
 - `dsol-oracle-v2-tail`：等待 8 个 O audit 全部通过，然后自动执行 development P/Q、selector 冻结、test O/P/Q、seed-42/43 transfer 和最终分析；如果精度规则命中，再执行 R。
+
+2026-09-03 的吞吐优化验证曾在完整 episode 边界暂停 wave-00；暂停时保留了 1,456 条完整结果。验证结束后，控制器按 episode ID 从该断点恢复，不重跑或改写已有结果。
+
+## 吞吐优化验证
+
+独立非主结果目录：
+
+`/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/throughput-benchmark-v1`
+
+基准冻结了 wave-00 第一个状态的完整 `97 views × 4 O-noise repeats = 388 episodes`，保持原始 episode identity、物理状态和 O bank 不变，并明确标记为 `excluded_from_scientific_estimands=true`。三组结果如下：
+
+| 推理服务 | 仿真 worker | CPU 线程 | 总耗时（含模型启动） | 吞吐 | 相对 8/32 |
+|---:|---:|---:|---:|---:|---:|
+| 8（每卡 1） | 32 | policy 2 / sim 1 | 274.08 s | 5,096.25 ep/h | 1.000× |
+| 16（每卡 2） | 64 | policy 2 / sim 1 | 252.21 s | 5,538.22 ep/h | 1.087× |
+| 16（每卡 2） | 32 | policy 2 / sim 1 | 249.38 s | 5,601.20 ep/h | 1.099× |
+
+三组 audit 均为 `PASS_COMPLETE`。选定的 16/32 结果与暂停前旧进程、8/32 基线逐 episode 比较：success、步数、goal progress、初始/等待后物理哈希，以及每个 replan 的 noise/action-chunk SHA-256 全部完全一致，388/388、0 mismatch。比较 receipt：
+
+`/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/throughput-benchmark-v1/comparison-candidate-8x2-32.json`
+
+64 个仿真 worker 没有额外净收益，因此正式控制器采用每卡 2 个 policy service、总计 32 个 sim worker、policy 2 CPU threads、sim 1 CPU thread。单卡模型常驻约 17.6 GB，未触及 32 GB 显存上限。该基准状态全部成功、平均仅 36.08 步，不能把 5,601 ep/h 直接外推到全任务；它主要用于拓扑 A/B 和精确等价性验证。
 
 ## 已冻结证据
 

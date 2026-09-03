@@ -24,6 +24,9 @@ def test_tail_uses_independent_banks_in_order() -> None:
     assert p < q < test_p < test_q
     assert "bank_P.manifest.json" in source
     assert "bank_Q.manifest.json" in source
+    assert 'POLICY_SERVER_COPIES_PER_GPU=${POLICY_SERVER_COPIES_PER_GPU:-2}' in source
+    assert 'POLICY_CPU_THREADS=${POLICY_CPU_THREADS:-2}' in source
+    assert 'SIM_CPU_THREADS=${SIM_CPU_THREADS:-1}' in source
 
 
 def test_tail_cross_checkpoint_transfer_reuses_frozen_Q_protocol() -> None:

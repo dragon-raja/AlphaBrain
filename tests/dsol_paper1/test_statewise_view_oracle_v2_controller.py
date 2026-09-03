@@ -21,4 +21,7 @@ def test_controller_runs_all_eight_four_repeat_waves_without_analysis() -> None:
     assert "RUN_ANALYSIS=0" in source
     assert "WAIT_STEPS=0" in source
     assert "REQUIRE_EXPLICIT_NOISE=1" in source
+    assert 'POLICY_SERVER_COPIES_PER_GPU=${POLICY_SERVER_COPIES_PER_GPU:-2}' in source
+    assert 'POLICY_CPU_THREADS=${POLICY_CPU_THREADS:-2}' in source
+    assert 'SIM_CPU_THREADS=${SIM_CPU_THREADS:-1}' in source
     assert "audit_statewise_view_oracle_v2_run.py" in source

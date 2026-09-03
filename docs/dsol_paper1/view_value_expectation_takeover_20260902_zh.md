@@ -337,3 +337,16 @@ environment seed违规均为0。
 进程侧以可执行名过滤后复核为8个seed42 policy service、32个evaluator父进程和32个episode子进程；32份evaluator
 日志无Traceback、CUDA OOM、连接失败或KeyError，policy日志无硬错误且仅含与E41相同的原始TCP就绪探测握手噪声，
 post/finalize会话均存活。本里程碑不读取或解释中途成功率。
+
+### E42 2048条里程碑（2026-09-03T00:51Z）
+
+E42越过2048条后，同一heldout审计器对2061条并发快照审计通过。receipt位于
+`heldout/primary-seed42/audits/partial-after-2048.json`，SHA256为
+`902549acf7602037777ec4bd0dd29896d16a9bf1ed9882dd5bf474b20da8be7b`。2061个episode ID唯一，均属于冻结seed42
+协议并位于正确shard，全部spec字段一致；32个shard各62至68条，34个状态已触及，其中31个状态的
+两方法×32 repeats矩阵精确完整。canonical与`calibration_global_fixed_pose`分别有1038和1023条。全部103803次
+policy call可由Bank E逐调用重建，58966个共同`pair × repeat × replan`键无噪声分叉，physics SHA和
+environment seed违规均为0。
+
+进程侧复核为8个seed42 policy service、32个evaluator父进程和32个episode子进程；32份evaluator日志无目标错误，
+policy日志无CUDA OOM、连接失败或KeyError，post/finalize会话均存活。本里程碑仍不读取或解释中途成功率。

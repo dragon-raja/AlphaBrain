@@ -1,0 +1,97 @@
+{
+  "schema": "dsol_statewise_view_selector_learner_v1",
+  "status": "FROZEN_BEFORE_DENSE_O_OUTCOME_ANALYSIS",
+  "frozen_date": "2026-09-03",
+  "population": "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/population/population-v2.json",
+  "training_scope": {
+    "role": "development_only",
+    "state_count": 48,
+    "source_grouped_cv_folds": 6,
+    "test_state_count": 16,
+    "test_outcome_access_before_freeze": false
+  },
+  "label": {
+    "primary": "O_bank_mean_full_task_success_over_32_flow_noise_trajectories",
+    "secondary_tie_only": "O_bank_mean_normalized_final_progress",
+    "no_Q_outcome_used_for_training_or_hyperparameter_selection": true
+  },
+  "frozen_visual_encoder": {
+    "architecture": "torchvision_resnet18_IMAGENET1K_V1_penultimate_pool",
+    "weights": "/root/.cache/torch/hub/checkpoints/resnet18-f37072fd.pth",
+    "weights_sha256": "f37072fd47e89c5e827621c5baffa7500819f7896bbacec160b1a16c560e07ec",
+    "weights_trainable": false,
+    "image_normalization": "torchvision_ResNet18_Weights_IMAGENET1K_V1",
+    "embedding_dimension": 512
+  },
+  "model_families": {
+    "geometry_context_ridge": {
+      "deployment_class": "candidate_image_not_required",
+      "inputs": [
+        "task_one_hot",
+        "candidate_catalog_group_one_hot",
+        "candidate_pose_and_camera_displacement",
+        "canonical_external_resnet18_embedding",
+        "wrist_resnet18_embedding",
+        "robot_proprioception",
+        "task_x_candidate_geometry_interactions",
+        "context_PCA_x_candidate_geometry_interactions"
+      ],
+      "prohibited": [
+        "candidate_rendered_image",
+        "simulator_segmentation_visibility",
+        "test_outcome"
+      ]
+    },
+    "image_queryable_ridge": {
+      "deployment_class": "candidate_image_query_or_virtual_render_required",
+      "inputs": [
+        "all_geometry_context_ridge_inputs",
+        "candidate_external_resnet18_embedding",
+        "candidate_minus_canonical_embedding",
+        "task_x_candidate_embedding_interactions"
+      ],
+      "prohibited": [
+        "simulator_segmentation_visibility",
+        "test_outcome"
+      ]
+    }
+  },
+  "feature_reduction": {
+    "context_embedding_pca_dimensions": 16,
+    "candidate_embedding_pca_dimensions": 32,
+    "fit_scope": "development training folds only during CV then all development for final fit",
+    "numeric_standardization": "training_fold_mean_and_standard_deviation_with_zero_variance_guard"
+  },
+  "estimator": {
+    "type": "closed_form_L2_ridge_with_unpenalized_intercept",
+    "alpha_grid": [0.1, 1.0, 10.0, 100.0, 1000.0],
+    "hyperparameter_metric": "source_equal_out_of_fold_success_of_predicted_top1_view",
+    "tie_breaks": [
+      "higher_out_of_fold_progress",
+      "lower_alpha_grid_index",
+      "lexicographic_model_family"
+    ],
+    "one_final_model_per_family": true,
+    "deep_model_training": false
+  },
+  "frozen_nonlearned_baselines": {
+    "global_fixed": "highest_development_source_equal_O_success_then_progress",
+    "task_fixed": "highest_within_task_development_source_equal_O_success_then_progress",
+    "visibility": "highest_candidate_visibility_score_from_prefrozen_scan",
+    "accel": "lowest_mean_accel_3_from_prefrozen_eight_member_ensemble",
+    "canonical": "canonical"
+  },
+  "test_selection": {
+    "selection_time": "after_final_development_fit_and_before_any_test_O_outcome_analysis",
+    "state_inputs_allowed": "frozen static asset bank only",
+    "receipt_status": "FROZEN_BEFORE_TEST_OUTCOMES_OPENED",
+    "all_method_state_selections_hashed": true,
+    "manual_candidate_override": false
+  },
+  "reporting": {
+    "report_each_model_family_even_if_not_selected_as_primary": true,
+    "report_cross_validated_development_performance": true,
+    "report_Q_test_performance_only_after_Q_integrity_audit": true,
+    "image_queryable_and_query_free_claims_must_not_be_merged": true
+  }
+}

@@ -350,3 +350,17 @@ environment seed违规均为0。
 
 进程侧复核为8个seed42 policy service、32个evaluator父进程和32个episode子进程；32份evaluator日志无目标错误，
 policy日志无CUDA OOM、连接失败或KeyError，post/finalize会话均存活。本里程碑仍不读取或解释中途成功率。
+
+### E42完整审计与E43转场（2026-09-03T01:38Z）
+
+E42正式写满3072/3072后，以`--require-complete`模式独立审计并生成
+`heldout/primary-seed42/heldout-run-audit.json`，receipt SHA256为
+`7f3bf39af49224eef51c3e6b1bf64171b51df844eef32a2e39dda3733453d8d6`，状态为`PASS_COMPLETE`。
+结果episode集合与冻结seed42协议逐条精确相等且全部唯一，32个shard均精确为96条；canonical与
+`calibration_global_fixed_pose`各1536条，48个状态的两方法×32 repeats矩阵全部完整。全部141387次policy call
+均可由Bank E逐调用重建，78739个共同`pair × repeat × replan`键无噪声分叉，48个pair的physics SHA和
+environment seed均无违规，且不存在并发尾写。
+
+旧post controller随后打印seed42 `closed_loop_complete ... episodes=3072`并启动8个seed43 checkpoint policy
+service；检查时E43尚处模型加载阶段、结果为0/3072。E43完成后继续由接管任务显式执行完整审计，在E41/E42/E43三份
+receipt全部通过并复核分析绑定之前，不接受primary heldout统计结果或reserve gate结论。

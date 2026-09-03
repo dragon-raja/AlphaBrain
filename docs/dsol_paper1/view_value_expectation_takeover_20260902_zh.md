@@ -364,3 +364,17 @@ environment seed均无违规，且不存在并发尾写。
 旧post controller随后打印seed42 `closed_loop_complete ... episodes=3072`并启动8个seed43 checkpoint policy
 service；检查时E43尚处模型加载阶段、结果为0/3072。E43完成后继续由接管任务显式执行完整审计，在E41/E42/E43三份
 receipt全部通过并复核分析绑定之前，不接受primary heldout统计结果或reserve gate结论。
+
+### E43 1024条里程碑（2026-09-03T02:26Z）
+
+E43越过1024条后，同一heldout审计器对1044条并发快照审计通过。receipt位于
+`heldout/primary-seed43/audits/partial-after-1024.json`，SHA256为
+`118c8cadcfc2fb656ea74a36b1261dcb82ff6c657fc4a5bc0b7cc87de7f3b4e4`。1044个episode ID唯一，均属于冻结seed43
+协议并位于正确shard，全部spec字段一致；32个shard各29至35条，18个状态已触及，其中14个状态的
+两方法×32 repeats矩阵精确完整。canonical与`calibration_global_fixed_pose`分别有531和513条。全部35515次
+policy call可由Bank E逐调用重建，20047个共同`pair × repeat × replan`键无噪声分叉，physics SHA和
+environment seed违规均为0。
+
+进程侧复核为8个seed43 policy service、32个evaluator父进程和32个episode子进程；32份evaluator日志无目标错误，
+policy日志无CUDA OOM、连接失败或KeyError且仅含原始TCP就绪探测握手噪声，post/finalize会话均存活。本里程碑不读取
+或解释中途成功率。

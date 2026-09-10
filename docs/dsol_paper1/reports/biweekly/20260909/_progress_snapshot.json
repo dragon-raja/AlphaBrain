@@ -1,0 +1,61 @@
+{
+  "observed_at_utc": "2026-09-09T12:26:48.346227+00:00",
+  "hosts": {
+    "fresh": {
+      "status": {
+        "model": "broad",
+        "model_budget": 12416,
+        "model_completed": 10240,
+        "pending": 2145,
+        "phase": "dense-init-1",
+        "pid": 3076348,
+        "scheduler": "dynamic-v1",
+        "utc": 1788956786.0952985
+      },
+      "first_wave": {
+        "episodes": 24832,
+        "release_sha256": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899",
+        "utc": 1788916978.1286583
+      },
+      "initial_gate": {
+        "episodes_per_host": 192,
+        "release_sha256": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899",
+        "status": "PASS_STANDARD_INITIAL_FULL_TRACE_AND_INPUT_ASSETS",
+        "utc": 1788873080.859009
+      },
+      "dynamic_gate": {
+        "execution_manifest_sha256": "eb0d9155b2c0905ea2f1d8a00d790aff8a2cb19d517135fee6f8e7602316b3a0",
+        "status": "PASS_DYNAMIC_REPEAT_CROSS_HOST_AND_STATIC",
+        "utc": 1788943656.220699
+      }
+    },
+    "gnu": {
+      "status": {
+        "model": "broad",
+        "model_budget": 12416,
+        "model_completed": 6752,
+        "pending": 5633,
+        "phase": "dense-init-1",
+        "pid": 679150,
+        "scheduler": "dynamic-v1",
+        "utc": 1788956787.17877
+      },
+      "first_wave": {
+        "episodes": 24832,
+        "release_sha256": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899",
+        "utc": 1788929107.52372
+      },
+      "initial_gate": {
+        "episodes_per_host": 192,
+        "release_sha256": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899",
+        "status": "PASS_STANDARD_INITIAL_FULL_TRACE_AND_INPUT_ASSETS",
+        "utc": 1788873073.9556873
+      },
+      "dynamic_gate": {
+        "execution_manifest_sha256": "eb0d9155b2c0905ea2f1d8a00d790aff8a2cb19d517135fee6f8e7602316b3a0",
+        "status": "PASS_DYNAMIC_REPEAT_CROSS_HOST_AND_STATIC",
+        "utc": 1788943611.7277658
+      }
+    }
+  }
+}

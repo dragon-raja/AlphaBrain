@@ -1,0 +1,182 @@
+{
+  "utc": "2026-09-08T12:26:52.382118+00:00",
+  "scope": "generated research-report artifacts only",
+  "current_pdf_sha256": "1ac63189dfb5389b13ce5708dbf7dc59417c68e70ec7f803b610155ea1ae35c2",
+  "moves": [
+    {
+      "from": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/vla_view_research_focus_20260907_zh.pdf",
+      "to": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/reports/current/vla_view_research_progress_zh.pdf"
+    },
+    {
+      "from": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/vla_view_research_focus_20260907_zh.md",
+      "to": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/reports/current/vla_view_research_progress_zh.md"
+    }
+  ],
+  "deduplicated": [
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/vla_view_landscape_and_metrics_20260908_zh.pdf",
+      "target": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/reports/current/vla_view_research_progress_zh.pdf",
+      "sha256": "1ac63189dfb5389b13ce5708dbf7dc59417c68e70ec7f803b610155ea1ae35c2"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T100350228473Z/previous-vla_view_landscape_and_metrics_20260908_zh.pdf",
+      "target": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T100128863469Z/vla_research_progress.pdf",
+      "sha256": "5c410728643f34d57dc263852fbf0dd58b7e2ebeac1801b7cfec3c35d0cf31bd"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T100350228473Z/previous-vla_view_research_focus_20260907_zh.pdf",
+      "target": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T100128863469Z/vla_research_progress.pdf",
+      "sha256": "5c410728643f34d57dc263852fbf0dd58b7e2ebeac1801b7cfec3c35d0cf31bd"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T110229427959Z/previous-vla_view_landscape_and_metrics_20260908_zh.pdf",
+      "target": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T100350228473Z/vla_research_progress.pdf",
+      "sha256": "c3b3fc7dfe703d6607bfc39ecd44727168384770527dd7da18ed8d50c491334e"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T110229427959Z/previous-vla_view_research_focus_20260907_zh.pdf",
+      "target": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T100350228473Z/vla_research_progress.pdf",
+      "sha256": "c3b3fc7dfe703d6607bfc39ecd44727168384770527dd7da18ed8d50c491334e"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121600054295Z/previous-vla_view_landscape_and_metrics_20260908_zh.pdf",
+      "target": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T110229427959Z/vla_research_progress.pdf",
+      "sha256": "953ddadbd83a80ccb521c1afa27f9154a0d667d8e894b01fc493785a5bf492a5"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121600054295Z/previous-vla_view_research_focus_20260907_zh.pdf",
+      "target": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T110229427959Z/vla_research_progress.pdf",
+      "sha256": "953ddadbd83a80ccb521c1afa27f9154a0d667d8e894b01fc493785a5bf492a5"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121742248186Z/previous-vla_view_landscape_and_metrics_20260908_zh.pdf",
+      "target": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121600054295Z/vla_research_progress.pdf",
+      "sha256": "271b8dde168ffa4d4574b171dfbb853db3ed7fd6bb6c5e0f6f712185f755fd36"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121742248186Z/previous-vla_view_research_focus_20260907_zh.pdf",
+      "target": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121600054295Z/vla_research_progress.pdf",
+      "sha256": "271b8dde168ffa4d4574b171dfbb853db3ed7fd6bb6c5e0f6f712185f755fd36"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121918030532Z/previous-vla_view_landscape_and_metrics_20260908_zh.pdf",
+      "target": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121742248186Z/vla_research_progress.pdf",
+      "sha256": "1897a9545ada5c2f950ab67fddb174f1d9cb74a8afb4a8ba794991f360877db1"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121918030532Z/previous-vla_view_research_focus_20260907_zh.pdf",
+      "target": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121742248186Z/vla_research_progress.pdf",
+      "sha256": "1897a9545ada5c2f950ab67fddb174f1d9cb74a8afb4a8ba794991f360877db1"
+    }
+  ],
+  "packed": [
+    {
+      "archive": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T100128863469Z/build-previews.tar.gz",
+      "members_sha256": {
+        "pdf-qa/contact.jpg": "12f623822bca58e303fdc93d1f00ea812e4de38eff37c4026c9af41732d93404",
+        "pdf-qa/page-01.png": "fbebca8271c5c1b848d2241207beab8b2830fc5338732d62bd2b089378eea232",
+        "pdf-qa/page-02.png": "151a9965237ec99a3c9361c6f661ea4e9bb1e80602e4ae9ce2ebe3192f654115",
+        "pdf-qa/page-03.png": "46c142eb7b960f8af60177f402f8cf1e7e1e058a2c4fba97a100b3a972358bae",
+        "pdf-qa/page-04.png": "7bb367a701a3a630ade1ce31bab30f238b9fdd930c1dc03398d42e790a1cea30",
+        "pdf-qa/page-05.png": "5617dcbae17a5504f44a17b987acd6833cc998a12c2dbafde529150785b88c07",
+        "pdf-qa/page-06.png": "a663db34e5618994d532d022920e531e0085d8e842bf23911efa6b7784f58f73",
+        "pdf-qa/page-07.png": "c4bbcff8b87b8896c21ee9db5ad767e871abc32db4b2339ec392ff04556d4e0a",
+        "pdf-qa/page-08.png": "45ab84bcb43fc313ee2c4587f128e8592e359d041bde682ae9dfed50219baf31",
+        "pdf-qa/page-09.png": "60f3d8877d4544ac7073a1eb64ae939eec6db2aaf7d940b89441355e8cb2baab",
+        "pdf-qa/page-10.png": "d0524418ca96a902df45738226cbdd821d921422912bd28612ff4775b71159f7",
+        "pdf-qa/page-11.png": "94abc76996fec6ea81dfb81e6c2757e170a7f94cd2337ba4d94bcba1983fa9c4",
+        "pdf-qa/page-12.png": "cf19ab6d0beb6bd7568788c931299ba42ebcc2fe6b4508f917ada628b0d2fb18",
+        "research-panels.pdf": "7349adf1b8fa935fdb2a81ccd32d39af0378b48df65f653a9f512300316f9804"
+      },
+      "archive_sha256": "cae47bbded928d446cb8e840361008b46addec6ff735663b306885c6aef1a1b3",
+      "restore_directory": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T100128863469Z"
+    },
+    {
+      "archive": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T100350228473Z/build-previews.tar.gz",
+      "members_sha256": {
+        "pdf-qa/contact.jpg": "98ecd3a08e798b14116afd1c6299d6b41f136587e02660c8e12b5d29de688cc1",
+        "pdf-qa/page-01.png": "28beb0dcd339f5bae0229d0a97e6fd55f8788ef1b960abea7261953dcb865d3b",
+        "pdf-qa/page-02.png": "151a9965237ec99a3c9361c6f661ea4e9bb1e80602e4ae9ce2ebe3192f654115",
+        "pdf-qa/page-03.png": "46c142eb7b960f8af60177f402f8cf1e7e1e058a2c4fba97a100b3a972358bae",
+        "pdf-qa/page-04.png": "7bb367a701a3a630ade1ce31bab30f238b9fdd930c1dc03398d42e790a1cea30",
+        "pdf-qa/page-05.png": "5617dcbae17a5504f44a17b987acd6833cc998a12c2dbafde529150785b88c07",
+        "pdf-qa/page-06.png": "a663db34e5618994d532d022920e531e0085d8e842bf23911efa6b7784f58f73",
+        "pdf-qa/page-07.png": "c4bbcff8b87b8896c21ee9db5ad767e871abc32db4b2339ec392ff04556d4e0a",
+        "pdf-qa/page-08.png": "6806c2bb090f68bc151aa0075417963c15cc7af1eb6bb58fe3626112501becb7",
+        "pdf-qa/page-09.png": "450adf02b3f685d58a6866d448a0639702cfacd5bdbf7c165cd274b8521e42c0",
+        "pdf-qa/page-10.png": "d0524418ca96a902df45738226cbdd821d921422912bd28612ff4775b71159f7",
+        "pdf-qa/page-11.png": "786de29394e4f4e6032e03c7253c39211d8f38bbb480da0ad2b65237d944fd07",
+        "pdf-qa/page-12.png": "cf19ab6d0beb6bd7568788c931299ba42ebcc2fe6b4508f917ada628b0d2fb18",
+        "research-panels.pdf": "ff8235e0115d3da1cb0ca003f01dcfbbb472c0cf672b5208327392d210382b7c"
+      },
+      "archive_sha256": "c00b2f106e1adbcbc667c45d2c0874577c17282f6810fdf8d518dc9c495ac22e",
+      "restore_directory": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T100350228473Z"
+    },
+    {
+      "archive": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T110229427959Z/build-previews.tar.gz",
+      "members_sha256": {
+        "pdf-qa/contact.jpg": "54f6bc9197acdd44c084c4be25286e77ae0a5990d0a0e0b169ab888eb12ff291",
+        "pdf-qa/page-01.png": "28beb0dcd339f5bae0229d0a97e6fd55f8788ef1b960abea7261953dcb865d3b",
+        "pdf-qa/page-02.png": "151a9965237ec99a3c9361c6f661ea4e9bb1e80602e4ae9ce2ebe3192f654115",
+        "pdf-qa/page-03.png": "46c142eb7b960f8af60177f402f8cf1e7e1e058a2c4fba97a100b3a972358bae",
+        "pdf-qa/page-04.png": "7bb367a701a3a630ade1ce31bab30f238b9fdd930c1dc03398d42e790a1cea30",
+        "pdf-qa/page-05.png": "5617dcbae17a5504f44a17b987acd6833cc998a12c2dbafde529150785b88c07",
+        "pdf-qa/page-06.png": "a663db34e5618994d532d022920e531e0085d8e842bf23911efa6b7784f58f73",
+        "pdf-qa/page-07.png": "8a07fd564e01fd6169f6ff4a554a8827cf5d65eeea19b36d69e07a725060c412",
+        "pdf-qa/page-08.png": "85168930df0c5bf689b604acf74a3ad1903a763b42f4e2f68bd23f012e45ef51",
+        "pdf-qa/page-09.png": "450adf02b3f685d58a6866d448a0639702cfacd5bdbf7c165cd274b8521e42c0",
+        "pdf-qa/page-10.png": "d05dd39224a612e22942beb8fd7d3d9ca9082eb7145cb622e6ef13bfe043c4db",
+        "pdf-qa/page-11.png": "786de29394e4f4e6032e03c7253c39211d8f38bbb480da0ad2b65237d944fd07",
+        "pdf-qa/page-12.png": "2f403d127c777b143c513e90a00dbd99873e38b601b03314839352086100363a",
+        "research-panels.pdf": "e507ec966f654b9427cbf735a20b3121dbc9ef2a8cc3c5e80cb81a645eb1019d"
+      },
+      "archive_sha256": "e5bfaecd492c25969f9846022f85bbe77d574b88e289dc95c6e4ec801bf9e187",
+      "restore_directory": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T110229427959Z"
+    },
+    {
+      "archive": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121600054295Z/build-previews.tar.gz",
+      "members_sha256": {
+        "pdf-qa/contact.jpg": "f9623a0181f53f7473148b67a5e035ade58efa27f36ce0e22c1d940531d2cb79",
+        "pdf-qa/page-01.png": "c3f9ed7f021052ac8d0be20998f275381d01c1c02c85fab7b48d5182133b8a8d",
+        "pdf-qa/page-02.png": "53a738d40d468daa097e359e4e99238029805d1e85db2a76fa854edfcde3b348",
+        "pdf-qa/page-03.png": "85b259bd36248375bfc004d8b6ab3bf1bec9a8c7c7e70e236cb01b57c3309e52",
+        "pdf-qa/page-04.png": "4aa5c451e41896d17b2f0404f4110f56efca731c7aa55ab3d64ec4b0eb430719",
+        "pdf-qa/page-05.png": "772f4a1bdf85ac1b5e7441d8506dac2d4b784d11c7147fd4e60da1b30d24760b",
+        "pdf-qa/page-06.png": "70354adf20ebaf50a949bad9cfbcd7a2d25a474126a7d722caa3fb8b9b7026ab",
+        "pdf-qa/page-07.png": "1fbc14862e76e1981e9b795a65b6432cb3407de6b210fd7379e8fd70a1403229",
+        "pdf-qa/page-08.png": "bf9b671e25ac55378de7baaa38178459694c1b3eca810e91a5cfc069d65e1146",
+        "pdf-qa/page-09.png": "c06ea9bed6389e19e53c544106016f2066a63a716029d7e4c147cb926021f226",
+        "pdf-qa/page-10.png": "1f023c3df83a8e2010456db04b07dba9e8ef5f4d34828a98544bd957a4cb448c",
+        "pdf-qa/page-11.png": "ffe2bfd6c339d70da364c388f81bbb3de50cc8951dbacbe4f889ecc8aa18f5f1",
+        "pdf-qa/page-12.png": "8eda6796dd4a11cabc11893dab17d93ff44934a3c68110a5424764176181807f",
+        "research-panels.pdf": "c237235377749a725a7ad423a1c388ba2ec004fea21670af074a2d913a54e490"
+      },
+      "archive_sha256": "27f4821f8ea5e155c178bf276dac9ac521b446bf7a15bf9e7a572c53aa225217",
+      "restore_directory": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121600054295Z"
+    },
+    {
+      "archive": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121742248186Z/build-previews.tar.gz",
+      "members_sha256": {
+        "pdf-qa/contact.jpg": "893ea0eebf271bf601164fdd5c1939c253fe487f73b787ce3af0b8b02efb3ff0",
+        "pdf-qa/page-01.png": "c3f9ed7f021052ac8d0be20998f275381d01c1c02c85fab7b48d5182133b8a8d",
+        "pdf-qa/page-02.png": "53a738d40d468daa097e359e4e99238029805d1e85db2a76fa854edfcde3b348",
+        "pdf-qa/page-03.png": "85b259bd36248375bfc004d8b6ab3bf1bec9a8c7c7e70e236cb01b57c3309e52",
+        "pdf-qa/page-04.png": "4aa5c451e41896d17b2f0404f4110f56efca731c7aa55ab3d64ec4b0eb430719",
+        "pdf-qa/page-05.png": "772f4a1bdf85ac1b5e7441d8506dac2d4b784d11c7147fd4e60da1b30d24760b",
+        "pdf-qa/page-06.png": "70354adf20ebaf50a949bad9cfbcd7a2d25a474126a7d722caa3fb8b9b7026ab",
+        "pdf-qa/page-07.png": "1fbc14862e76e1981e9b795a65b6432cb3407de6b210fd7379e8fd70a1403229",
+        "pdf-qa/page-08.png": "bf9b671e25ac55378de7baaa38178459694c1b3eca810e91a5cfc069d65e1146",
+        "pdf-qa/page-09.png": "16669ae8c599914ceb4f483dcfc60515441a6d4d10f3c3b075a7d3a8bd7982ef",
+        "pdf-qa/page-10.png": "1f023c3df83a8e2010456db04b07dba9e8ef5f4d34828a98544bd957a4cb448c",
+        "pdf-qa/page-11.png": "ffe2bfd6c339d70da364c388f81bbb3de50cc8951dbacbe4f889ecc8aa18f5f1",
+        "pdf-qa/page-12.png": "8eda6796dd4a11cabc11893dab17d93ff44934a3c68110a5424764176181807f",
+        "research-panels.pdf": "1e1618b8e8ef7405122bfd3ba10a01d11d087867427e26249348eb668a0e8aa3"
+      },
+      "archive_sha256": "9a8aea1e6c6084aac3923ed196c329ae6e2ef8c4f74242f6e41a548ac319e788",
+      "restore_directory": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260908T121742248186Z"
+    }
+  ],
+  "experiment_files_changed": 0,
+  "loose_bytes_removed": 160081064,
+  "status": "PASS_REPORT_ONLY_HOUSEKEEPING"
+}

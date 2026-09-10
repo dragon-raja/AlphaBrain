@@ -1,0 +1,110 @@
+{
+  "schema": "dsol_training_snapshot_for_report_v1",
+  "snapshot_started_at_utc": "2026-09-07T07:39:53Z",
+  "snapshot_finished_at_utc": "2026-09-07T07:39:53Z",
+  "status": "TRAINING_RUNNING_VALID_RECORDED_PREFIX",
+  "purpose_zh": "用于完整汇报PDF的真实只读截点；不启动/停止训练，不改release。",
+  "run_id": "dsol_canonical_unique_mb-matched-v1_seed41_g2_gb32_steps2000",
+  "run_directory": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_canonical_unique_mb-matched-v1_seed41_g2_gb32_steps2000",
+  "checkpoint_seed": 41,
+  "training_progress": {
+    "step": 1912,
+    "target_steps": 2000,
+    "fraction": 0.956,
+    "remaining_optimizer_steps": 88,
+    "examples_seen": 61184,
+    "target_examples": 64000,
+    "learning_rate_first_group": 0.000005215693324719266,
+    "latest_action_dit_loss": 0.19171106815338135,
+    "latest_flow_matching_loss": 0.19171106815338135,
+    "latest_fresh_full_loss": 0.19171106815338135,
+    "latest_model_time_microbatch_seconds": 0.2940428789006546,
+    "latest_data_time_microbatch_seconds": 0.00015198037726804614,
+    "model_time_note_zh": "model_time是每微批平均，不是完整优化步；本轮不根据单行估算全程时间。"
+  },
+  "process_status": {
+    "tmux_session": "dsol-canonical-mb-match-s41",
+    "tmux_exists": true,
+    "tmux_has_session_exit_code": 0,
+    "training_process_exists": true,
+    "launcher_process_exists": true,
+    "accelerate_pid": 968637,
+    "rank_process_pids": [
+      968656,
+      968657
+    ],
+    "launcher_shell_pid": 968546,
+    "timeout_pid": 968544,
+    "dataloader_worker_pids": [
+      969220,
+      969221,
+      969222,
+      969223,
+      969224,
+      969225,
+      969226,
+      969230
+    ],
+    "process_note_zh": "ps只读确认两训练rank及其DataLoader子进程；不能把8个DataLoader worker误认为8个训练rank。"
+  },
+  "artifact_status": {
+    "final_weights_path": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_canonical_unique_mb-matched-v1_seed41_g2_gb32_steps2000/final_model/model.safetensors",
+    "final_weights_exists": false,
+    "final_framework_config_path": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_canonical_unique_mb-matched-v1_seed41_g2_gb32_steps2000/final_model/framework_config.yaml",
+    "final_framework_config_exists": false,
+    "final_weight_sha256": null,
+    "complete_checkpoint_pair_certified": false
+  },
+  "metrics_audit": {
+    "scope": "all 1912 JSONL rows read at this snapshot; partial training prefix, not completed 2000-step run",
+    "row_count": 1912,
+    "first_step": 1,
+    "last_step": 1912,
+    "steps_exactly_continuous_1_to_record_count": true,
+    "examples_equal_32_times_step": true,
+    "every_present_loss_named_field_numeric_finite": true,
+    "every_row_has_numeric_finite_flow_matching_loss": true,
+    "every_learning_rate_numeric_finite": true,
+    "full_2000_steps_complete": false,
+    "comparison_to_broad": {
+      "broad_metrics_path": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_m-b-formal-v1_seed41_g2_gb32_steps2000/metrics.jsonl",
+      "broad_total_rows": 2000,
+      "compared_steps": [
+        1,
+        1912
+      ],
+      "comparison_mode": "exact equality of parsed recorded learning_rate and examples_seen at matching step index",
+      "learning_rate_mismatch_count": 0,
+      "examples_seen_mismatch_count": 0,
+      "learning_rate_mismatches": [],
+      "examples_seen_mismatches": [],
+      "recorded_lr_trajectory_matches_broad": true,
+      "recorded_exposure_trajectory_matches_broad": true,
+      "loss_equality_required": false,
+      "boundary_zh": "仅确认已记录训练前缀的LR/曝光相同；不宣称不同训练图导致的loss必须相等，也不替代最终config/manifest/权重身份审计。"
+    }
+  },
+  "scientific_status": {
+    "new_view_success_rate": null,
+    "new_active_success_rate": null,
+    "training_interaction_established": false,
+    "formal_active_evaluation_released": false,
+    "summary_zh": "截至07:39:53 UTC，匹配canonical训练1912/2000步（95.6%），61,184次样本曝光；已记录步数连续、loss有限、逐步LR与Broad锚一致。进程仍在，最终权重尚不存在；目前没有新的视角成功率或主动感知收益结论。"
+  },
+  "evidence_paths": [
+    "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_canonical_unique_mb-matched-v1_seed41_g2_gb32_steps2000/metrics.jsonl",
+    "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_canonical_unique_mb-matched-v1_seed41_g2_gb32_steps2000/launcher.log",
+    "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_m-b-formal-v1_seed41_g2_gb32_steps2000/metrics.jsonl",
+    "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/canonical_mb_match_training_release_v1.json",
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/training_match_execution_status_20260907_zh.md"
+  ],
+  "read_only_checks": [
+    "UTC date before/after same batch",
+    "tmux has-session",
+    "ps process tree entries",
+    "stat expected final weights and config paths",
+    "jq full metrics-prefix continuity/finite-loss/LR comparison",
+    "tail existing launcher log"
+  ],
+  "reporting_note_zh": "这是不可当作实时刷新的单次截点。若训练稍后结束，应追加独立完成验收，不把该快照改称已完成。"
+}

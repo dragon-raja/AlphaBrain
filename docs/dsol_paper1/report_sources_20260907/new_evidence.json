@@ -1,0 +1,856 @@
+{
+  "schema": "dsol_paper1_report_new_evidence_v1",
+  "report_date": "2026-09-07",
+  "assembled_by": "state_scope_review",
+  "scope_zh": "完整汇报中的新增 expectation-v1、statewise-v2、训练匹配修订与主动/runtime 边界证据；不生成 PDF，不改实验。",
+  "units": {
+    "success": "percent",
+    "gain": "percentage_points",
+    "ci": "percentage_points unless explicitly named otherwise",
+    "raw_probability": "0_to_1"
+  },
+  "provenance_note_zh": "归档结果、预注册规则、事后分析、当前进度及未来拟贡献分开。数值从实际 analysis/protocol/audit 读取；运行进度是带 UTC 截点的只读快照。没有重新运行评测或重算主检验。",
+  "evidence_paths": {
+    "v1_protocol": "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/view_value_expectation_protocol_v1.json",
+    "v1_protocol_note": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/view_value_expectation_protocol_v1_zh.md",
+    "v1_calibration": "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1/calibration/analysis/analysis.json",
+    "v1_heldout": "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1/heldout/analysis-primary/primary-analysis.json",
+    "v1_reserve": "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1/heldout/analysis-primary/reserve-decision.json",
+    "v1_final": "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1/final-report/final_decision.json",
+    "v1_takeover": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/view_value_expectation_takeover_20260902_zh.md",
+    "v1_calibration_code": "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/analyze_view_value_expectation_calibration.py",
+    "v2_protocol": "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/statewise_view_oracle_v2.json",
+    "v2_protocol_note": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/statewise_view_oracle_v2_protocol_20260903_zh.md",
+    "v2_preparation": "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/preparation/receipt.json",
+    "v2_population": "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/population/population-v2.json",
+    "v2_analysis": "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/analysis.json",
+    "v2_reserve": "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/reserve-decision.json",
+    "v2_metrics": "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/state-method-metrics.csv",
+    "v2_controller_log": "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/logs/v2-tail-controller.log",
+    "v2_analysis_code": "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/analyze_statewise_view_oracle_v2.py",
+    "v2_q_freeze": "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/protocols/Q-test-freeze.json",
+    "v2_q_protocol": "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/protocols/Q-test.json",
+    "v2_cv": "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/selector/development-cv-report.json",
+    "research_synthesis": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/paper_research_synthesis_20260905_zh.md",
+    "convergence_plan": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/paper_convergence_plan_20260907_zh.md",
+    "master_plan": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/paper_master_plan_v2_active_bridge_20260907_zh.md",
+    "scaffold_status": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/next_stage_scaffold_status_20260907_zh.md",
+    "runtime_contract": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/runtime_restore_contract_audit_20260907_zh.md",
+    "training_status": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/training_match_execution_status_20260907_zh.md",
+    "training_anchor_audit": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/training_match_anchor_audit_20260907_zh.md",
+    "training_old_pair": "/share/longjunyu/alphabrain/experiments/dsol-training-match-20260907-lW8boo/old_pair/audit.json",
+    "training_quick_pair": "/share/longjunyu/alphabrain/experiments/dsol-training-match-20260907-lW8boo/quick_pair/audit.json",
+    "training_release": "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/canonical_mb_match_training_release_v1.json",
+    "training_metrics": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_canonical_unique_mb-matched-v1_seed41_g2_gb32_steps2000/metrics.jsonl",
+    "engineering_smoke": "/share/longjunyu/alphabrain/experiments/dsol-view-acquisition-scaffold-20260907-fixed-pxff3O/report.json",
+    "active_draft": "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/view_acquisition_a1_draft_v1.json"
+  },
+  "claims": [
+    {
+      "id": "N01_v1_question_and_funnel",
+      "evidence_status": "completed_protocol_and_results",
+      "plain_summary_zh": "上一轮不是只找一个全局视角，而是先逐状态筛选；问题是筛得太早。",
+      "detail_zh": "v1 校准漏斗为每状态 97×4 → 24×8 → 6×16 → 冻结候选与 canonical 各64条独立 D 噪声。最初97候选只有4条二值闭环轨迹，可能早期误删真正较好候选。D能验证被筛出来者，不能排除被早筛漏掉者。后续 heldout 的冻结部署规则才是 calibration_global_fixed_pose。",
+      "metrics": {
+        "calibration_tasks": 8,
+        "calibration_sources": 16,
+        "heldout_tasks": 8,
+        "heldout_sources": 48,
+        "heldout_repeats": 32,
+        "flow_noise_shape": [
+          10,
+          7
+        ],
+        "flow_denoising_steps": 10,
+        "replan_steps": 5
+      },
+      "boundary_zh": "不能把 v1 的逐状态漏斗误说成全局固定搜索，也不能用漏斗强门未通过证明整个97域没有较小收益。",
+      "evidence_paths": [
+        "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/view_value_expectation_protocol_v1.json",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/view_value_expectation_protocol_v1_zh.md",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/statewise_view_oracle_v2_protocol_20260903_zh.md",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1/calibration/analysis/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1/heldout/analysis-primary/primary-analysis.json"
+      ]
+    },
+    {
+      "id": "N02_v1_calibration_result",
+      "evidence_status": "archived_primary_result",
+      "plain_summary_zh": "校准候选平均有小幅提升，但没有达到事先设定的强收益门槛。",
+      "metrics": {
+        "source_equal_gain_pp": 4.78515625,
+        "archived_source_cluster_ci95_pp": [
+          2.63671875,
+          7.12890625
+        ],
+        "positive_states": 12,
+        "tied_states": 4,
+        "negative_states": 0,
+        "strong_states": 0,
+        "total_states": 16,
+        "strong_state_success_threshold_percent": 80,
+        "strong_state_gain_threshold_pp": 20,
+        "required_strong_state_fraction": 0.25,
+        "required_source_groups": 4,
+        "required_tasks": 3
+      },
+      "decision": "VIEW_HEADROOM_NOT_CONFIRMED",
+      "ci_note_zh": "这里区间来自归档 calibration analysis，代码对来源均值直接重采样，非 task-stratified。后续 v2 协议文档另记事后层次区间 [+1.270,+8.691] pp；本次没有找到该区间对应独立归档计算文件，不能替换或混称原区间。图表主标原区间，必要时脚注另述事后值与来源。",
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1/calibration/analysis/analysis.json",
+        "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/analyze_view_value_expectation_calibration.py",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/statewise_view_oracle_v2_protocol_20260903_zh.md"
+      ]
+    },
+    {
+      "id": "N03_v1_heldout_result",
+      "evidence_status": "archived_primary_result",
+      "plain_summary_zh": "校准集挑出的固定规则没有在新来源上带来收益。",
+      "detail_zh": "冻结规则 calibration_global_fixed_pose 对应 broad_train_053；三个checkpoint只比较该预先冻结规则与canonical，其中seed41另有其他部署基线。",
+      "metrics": {
+        "cross_checkpoint_mean_gain_pp": -1.8229166666666667,
+        "cross_checkpoint_mean_harm_percent": 11.002604166666668,
+        "noise_repeats": 32,
+        "source_groups": 48,
+        "tasks": 8
+      },
+      "seed_results": [
+        {
+          "seed": 41,
+          "canonical_success_pct": 62.3046875,
+          "selected_success_pct": 62.17447916666667,
+          "gain_pp": -0.1302083333333332,
+          "ci95_pp": [
+            -2.7343749999999996,
+            2.5390625
+          ],
+          "harm_pct": 9.440104166666668
+        },
+        {
+          "seed": 42,
+          "canonical_success_pct": 62.56510416666667,
+          "selected_success_pct": 60.28645833333333,
+          "gain_pp": -2.2786458333333335,
+          "ci95_pp": [
+            -5.2734375,
+            0.5208333333333334
+          ],
+          "harm_pct": 11.783854166666666
+        },
+        {
+          "seed": 43,
+          "canonical_success_pct": 62.109375,
+          "selected_success_pct": 59.04947916666667,
+          "gain_pp": -3.059895833333333,
+          "ci95_pp": [
+            -5.6640625,
+            -0.5208333333333334
+          ],
+          "harm_pct": 11.783854166666666
+        }
+      ],
+      "decision": "SELECTOR_GAIN_NOT_CONFIRMED",
+      "reserve_F_activated": false,
+      "reserve_note_zh": "PRIMARY_PRECISION_SUFFICIENT 意为未触发预注册追加精度规则，不表示效果为正，更不能为了得到正结果打开 F。",
+      "completed_at_utc": "2026-09-03T04:40:03Z",
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1/heldout/analysis-primary/primary-analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1/heldout/analysis-primary/reserve-decision.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1/final-report/final_decision.json",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/view_value_expectation_takeover_20260902_zh.md"
+      ]
+    },
+    {
+      "id": "N04_v2_scale_and_integrity",
+      "evidence_status": "archived_audits_independently_summed",
+      "plain_summary_zh": "v2 已完整结束：24.28万条闭环评测，但最终独立确认来源只有16个。",
+      "metrics": {
+        "formal_episodes": 242816,
+        "formal_audits": 22,
+        "all_formal_audit_status": "PASS_COMPLETE",
+        "candidate_count": 97,
+        "total_source_states": 64,
+        "development_source_states": 48,
+        "test_source_states": 16,
+        "tasks": 8,
+        "test_sources_per_task": 2
+      },
+      "completed_at_utc": "2026-09-06T04:11:42Z",
+      "episode_breakdown": {
+        "development_O": 148992,
+        "test_O": 49664,
+        "development_P": 13824,
+        "test_P": 4608,
+        "development_Q": 6144,
+        "test_Q_seed41": 6528,
+        "transfer_Q_seed42": 6528,
+        "transfer_Q_seed43": 6528
+      },
+      "count_note_zh": "本次直接读取22份正式audit的episode_count求和；不包含S smoke及throughput工程运行。大量noise和候选rollout不等于同样多的独立场景。",
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/development/O/wave-00/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/development/O/wave-01/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/development/O/wave-02/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/development/O/wave-03/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/development/O/wave-04/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/development/O/wave-05/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/development/O/wave-06/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/development/O/wave-07/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/test/O/wave-00/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/test/O/wave-01/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/test/O/wave-02/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/test/O/wave-03/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/test/O/wave-04/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/test/O/wave-05/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/test/O/wave-06/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/test/O/wave-07/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/development/P/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/development/Q/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/test/P/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/test/Q-seed41/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/transfer/Q-seed42/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/transfer/Q-seed43/audit.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/preparation/receipt.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/logs/v2-tail-controller.log"
+      ]
+    },
+    {
+      "id": "N05_v2_design",
+      "evidence_status": "frozen_protocol_and_executed_artifacts",
+      "plain_summary_zh": "先把97个视角都评够，再用独立噪声复筛和确认，减少早筛与挑最大值的偏差。",
+      "design": {
+        "candidate_composition": {
+          "canonical": 1,
+          "train_support": 64,
+          "heldout_from_vla_training": 32
+        },
+        "O": {
+          "candidates_per_state": 97,
+          "repeats": 32
+        },
+        "P": {
+          "noncanonical_top_k": 8,
+          "canonical_reference": 1,
+          "repeats": 32
+        },
+        "Q": {
+          "frozen_statewise_noncanonical_top1": true,
+          "canonical": true,
+          "pre_frozen_deployment_rules": true,
+          "repeats": 64,
+          "duplicate_candidate_views_evaluated_once": true
+        },
+        "R": {
+          "prematerialized": true,
+          "repeats": 64,
+          "activated": false
+        },
+        "source_split": {
+          "tasks": 8,
+          "development_per_task": 6,
+          "test_per_task": 2,
+          "source_grouped_cv_folds": 6
+        },
+        "reuse": {
+          "v1_state_and_static_images": true,
+          "v1_rollout_outcomes_pooled": false
+        }
+      },
+      "boundary_zh": "O最大值只是诊断；Q估计的是有限预算搜索程序选中的候选，不是精确97域最优值。旧P→Q强制选noncanonical，未允许按P可靠选择keep。全64来源来自旧v1物理来源池；v2内dev/test隔离不等于从未接触过整个研究项目的全新来源。32 heldout poses是对VLA后训练未见，不是selector的未见位姿测试。",
+      "evidence_paths": [
+        "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/statewise_view_oracle_v2.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/preparation/receipt.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/population/population-v2.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/protocols/Q-test-freeze.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/protocols/Q-test.json",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/paper_research_synthesis_20260905_zh.md"
+      ]
+    },
+    {
+      "id": "N06_noise_alignment",
+      "evidence_status": "frozen_protocol_and_stage_audits",
+      "plain_summary_zh": "对齐的是每次重规划的初始噪声和去噪网格，不是强行让不同视角走相同动作。",
+      "design": {
+        "noise_distribution": "NumPy PCG64 IID standard_normal float32",
+        "noise_tensor_shape": [
+          10,
+          7
+        ],
+        "denoising_steps": 10,
+        "solver": "Euler",
+        "flow_time_grid_nominal": [
+          1,
+          0.9,
+          0.8,
+          0.7,
+          0.6,
+          0.5,
+          0.4,
+          0.3,
+          0.2,
+          0.1
+        ],
+        "flow_time_grid_note": "nominal values; actual float32 accumulation follows frozen sampler",
+        "replan_environment_steps": 5,
+        "max_replans": 104,
+        "key": [
+          "bank_id",
+          "state_pair_key",
+          "policy_repeat_id",
+          "replan_index"
+        ],
+        "banks": {
+          "O": {
+            "repeats": 32,
+            "root_seed": 2026090311
+          },
+          "P": {
+            "repeats": 32,
+            "root_seed": 2026090321
+          },
+          "Q": {
+            "repeats": 64,
+            "root_seed": 2026090331
+          },
+          "R": {
+            "repeats": 64,
+            "root_seed": 2026090341
+          }
+        }
+      },
+      "audit_checks_zh": [
+        "同state/repeat/replan下所有候选使用逐元素相同tensor",
+        "环境seed固定且与policy-repeat分开",
+        "逐次noise SHA与action SHA可审计",
+        "提前终止不消费后续noise，不使其他视角的键错位"
+      ],
+      "boundary_zh": "同noise不代表动作、velocity或成功时刻相同；不同视角导致后续状态和腕部图像分叉正是总闭环效应。噪声次数只是有限精度估计，不是穷尽高斯空间。",
+      "evidence_paths": [
+        "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/statewise_view_oracle_v2.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/preparation/receipt.json",
+        "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/analyze_statewise_view_oracle_v2.py"
+      ]
+    },
+    {
+      "id": "N07_v2_table_and_gates",
+      "evidence_status": "archived_primary_result",
+      "plain_summary_zh": "搜索候选比规范视角略好，但主模型的预注册强证据门没有通过。",
+      "metrics": {
+        "primary_seed": 41,
+        "search_gain_pp": 3.90625,
+        "search_ci95_pp": [
+          0,
+          7.8125
+        ],
+        "practical_threshold_pp": 5,
+        "required_ci_lower_strictly_positive": true,
+        "oracle_existence_gate_pass": false,
+        "search_minus_global_pp": 3.80859375,
+        "search_minus_global_ci95_pp": [
+          0.390625,
+          7.2265625
+        ],
+        "automatic_state_dependence_gate_pass": true,
+        "selected_candidate_unique_count": 14,
+        "test_states": 16
+      },
+      "interpretation_zh": "原自动state_dependence门只比较state-search与全局固定视角，它通过了；不能因此直接宣称已经证明任务内部应按状态选择。另两个checkpoint只迁移seed41冻结的候选和规则，不是各自做了97域独立搜索。",
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/analysis.json",
+        "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/analyze_statewise_view_oracle_v2.py",
+        "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/statewise_view_oracle_v2.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/protocols/Q-test-freeze.json"
+      ]
+    },
+    {
+      "id": "N08_task_vs_state",
+      "evidence_status": "definitions_plus_posthoc_supplement",
+      "plain_summary_zh": "每任务一个视角和每状态一个视角不是一回事；目前还没证明后者值得做。",
+      "definitions_zh": {
+        "canonical": "统一使用原始规范外部相机位姿。",
+        "global_fixed": "只在development选一个pose，所有任务/状态复用。",
+        "task_fixed": "只在development给每个已知任务选一个pose，同任务所有新来源状态复用；不是未知新任务泛化。",
+        "state_search": "对每个待评物理状态使用O/P闭环结果离线挑选非规范pose，再用独立Q确认；拥有昂贵的状态专属搜索，不是部署selector。",
+        "learned_selector": "冻结后只用协议允许的观察、语言、本体或候选几何/图像预测pose，不读取test rollout结果。"
+      },
+      "metrics": {
+        "primary_search_minus_task_fixed_pp": 2.5390625,
+        "posthoc_documented_ci95_pp": [
+          -0.68,
+          5.76
+        ],
+        "primary_state_gain_signs": {
+          "positive": 7,
+          "negative": 6,
+          "tied": 3
+        }
+      },
+      "ci_note_zh": "state−task点值可由归档analysis直接相减；区间[-0.68,5.76]来自后续研究文档，标为事后补充，非原final-analysis的预注册comparison。本次不把其四舍五入值扩写成未经核实的更高精度数。",
+      "deployment_boundary_zh": "当前中途HDF5 state只在起点换一次外部pose，之后固定；实际固定相机不具备rollout中不断换pose权限。当前实验是状态条件诊断，而非已部署动态主动感知。",
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/state-method-metrics.csv",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/paper_convergence_plan_20260907_zh.md",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/paper_master_plan_v2_active_bridge_20260907_zh.md",
+        "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/statewise_view_oracle_v2.json"
+      ]
+    },
+    {
+      "id": "N09_two_selectors",
+      "evidence_status": "archived_primary_result",
+      "plain_summary_zh": "这两个学习器没找到稳定好视角，不等于好视角本身不存在。",
+      "primary_seed_results": [
+        {
+          "method": "geometry_context_ridge",
+          "gain_pp": -0.9765625,
+          "ci95_pp": [
+            -1.953125,
+            0
+          ],
+          "harm_pct": 4.19921875,
+          "oracle_headroom_capture": -0.25,
+          "pass": false
+        },
+        {
+          "method": "image_queryable_ridge",
+          "gain_pp": 0.48828125,
+          "ci95_pp": [
+            -2.63671875,
+            3.61328125
+          ],
+          "harm_pct": 5.2734375,
+          "oracle_headroom_capture": 0.125,
+          "pass": false
+        }
+      ],
+      "gate": {
+        "gain_at_least_pp": 3,
+        "ci_lower_gt_zero": true,
+        "at_least_half_positive_oracle_headroom": true,
+        "harm_probability_at_most": 0.05
+      },
+      "boundary_zh": "geometry/context 与 image-queryable 是不同观察权限；后者使用候选图像，不能描述成只看起始图就预测未见视角。开发CV及其调参分数不能与Q独立结果直接相减。搜索门未过不是等效性/无收益证明，两个ridge失败也不排除其他表示、学习器或新任务条件。",
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/analysis.json",
+        "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/analyze_statewise_view_oracle_v2.py",
+        "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/statewise_view_oracle_v2.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/selector/development-cv-report.json",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/paper_research_synthesis_20260905_zh.md"
+      ]
+    },
+    {
+      "id": "N10_statistical_scope",
+      "evidence_status": "analysis_code_audit",
+      "plain_summary_zh": "精度主要受独立来源和任务覆盖限制，继续堆噪声不能替代新场景。",
+      "v2_ci": {
+        "unit": "source demonstration group",
+        "test_tasks_fixed": 8,
+        "source_states_per_task": 2,
+        "noise_aggregation": "先将每state的64条Q求均值",
+        "resampling": "每个固定任务内有放回重采样2个source-state；20,000次；最后8任务等权",
+        "resamples": 20000
+      },
+      "caveats_zh": [
+        "v2主CI没有重采样task本身、每state内的noise或training seed；它不完整覆盖新任务、有限noise及重新训练的不确定性。",
+        "P_bootstrap_gt_0是bootstrap重采样中正值比例，不是后验概率，也不是直接的p值。",
+        "Harm=P(canonical成功且所选方法失败)，Rescue反之，二者差等于配对净增益；这里不是安全事故率。",
+        "R依据主checkpoint的预冻结精度规则未启用；seed42的转移CI稍宽不构成事后新增R理由。",
+        "v1原calibration、v1heldout和v2使用的CI实现不同，不能在图例里统称同一个层次区间。"
+      ],
+      "evidence_paths": [
+        "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/analyze_statewise_view_oracle_v2.py",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/reserve-decision.json",
+        "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/analyze_view_value_expectation_calibration.py",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1/heldout/analysis-primary/primary-analysis.json",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/paper_research_synthesis_20260905_zh.md"
+      ]
+    },
+    {
+      "id": "N11_training_match_revision",
+      "evidence_status": "artifact_audit_and_training_in_progress",
+      "plain_summary_zh": "旧canonical与强Broad不够匹配，正在补一个真正同配方的canonical对照。",
+      "old_mismatch": {
+        "canonical": {
+          "updates": 2000,
+          "scheduler_steps": 3000,
+          "last_recorded_lr": 0.000016284082688567607,
+          "gpus": 8,
+          "data_container": "Broad32 quick"
+        },
+        "broad_MB": {
+          "updates": 2000,
+          "scheduler_steps": 2000,
+          "last_recorded_lr": 0.000005,
+          "gpus": 2,
+          "data_container": "Broad64"
+        }
+      },
+      "new_matched_design": {
+        "anchor": "Broad64 M-B seed41",
+        "initial_checkpoint": "same original pi05_libero_pytorch; no resume from canonical or Broad",
+        "data": "same Broad64 records, wrist, language, action labels",
+        "only_research_treatment": "external training image broad_a -> canonical",
+        "seed": 41,
+        "gpus": 2,
+        "per_device_batch": 1,
+        "gradient_accumulation": 16,
+        "global_examples_per_step": 32,
+        "updates": 2000,
+        "scheduler_steps": 2000,
+        "total_examples": 64000
+      },
+      "boundary_zh": "训练完成且实际config/manifest/权重/步数审计通过后才有匹配checkpoint对；训练本身不是训练×视角价值的评测结论。历史GPU型号/驱动与部分依赖来源不能完全回溯，不能声称逐位历史复现。旧recipe证据保留，不覆盖。",
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-training-match-20260907-lW8boo/old_pair/audit.json",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/training_match_anchor_audit_20260907_zh.md",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/training_match_execution_status_20260907_zh.md",
+        "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/canonical_mb_match_training_release_v1.json"
+      ]
+    },
+    {
+      "id": "N12_training_snapshot",
+      "evidence_status": "read_only_time_stamped_progress",
+      "plain_summary_zh": "匹配canonical补训正在推进，尚未得到新的视角成功率结果。",
+      "snapshot_at_utc": "2026-09-07T07:16:57Z",
+      "metrics": {
+        "step": 1627,
+        "target_steps": 2000,
+        "examples_seen": 52064,
+        "learning_rate_first_group": 0.000008771044941714795,
+        "tmux_session_present": true,
+        "session": "dsol-canonical-mb-match-s41"
+      },
+      "note_zh": "只读最后一行metrics与tmux存在性，未审计完整连续记录或最终保存。PDF制作前若进度更新，应单独更新时间戳，不把本截点当实时状态。",
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_canonical_unique_mb-matched-v1_seed41_g2_gb32_steps2000/metrics.jsonl",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/training_match_execution_status_20260907_zh.md"
+      ]
+    },
+    {
+      "id": "N13_runtime_active_boundary",
+      "evidence_status": "engineering_only_plus_contract_audit",
+      "plain_summary_zh": "相机移动底座能跑，不代表主动感知已经验证有效。",
+      "engineering": {
+        "status": "PASS_ENGINEERING_ONLY",
+        "passed_checks": 16,
+        "sources": 1,
+        "vla_calls": 0,
+        "selector_calls": 0,
+        "physical_camera_translation_m": 0.05,
+        "hold_move_control_steps": 20,
+        "hold_move_sim_seconds": 1,
+        "formal_release": false,
+        "scientific_success_rate": null
+      },
+      "runtime_boundary_zh": [
+        "旧HDF5评测是physics-state上的policy restart，不是原始示范runtime的无缝续跑。",
+        "新live fork还需controller/gripper ctrl与current_action、model/task state、env clocks/caches、action queue、RNG及下一noise键恢复，并用实际接触后缀哨兵证明。",
+        "no-acquisition必须在hold构造前返回；hold构造器本身会更新controller。",
+        "实际runtime是LIBERO-plus指定树；默认fresh-Python import不是正式运行provenance。",
+        "Plus wrapper noise必须显式为0：否则step/reset图像后处理与当前endpoint observe链不同。"
+      ],
+      "input_boundary_zh": "基策略实际 external RGB+wrist RGB+language，当前pi05未消费proprio；selector可用的8D本体与标定须显式声明。腕部随动作自然移动不等于已验证主动腕部策略。",
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-acquisition-scaffold-20260907-fixed-pxff3O/report.json",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/runtime_restore_contract_audit_20260907_zh.md",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/training_match_execution_status_20260907_zh.md",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/paper_master_plan_v2_active_bridge_20260907_zh.md"
+      ]
+    },
+    {
+      "id": "N14_active_plan_and_budget",
+      "evidence_status": "draft_not_executed",
+      "plain_summary_zh": "下一步要测的是移动后能否赚回成本，而不是继续报告免费换视角的最大值。",
+      "minimum_design_zh": "A1独立运动学外部相机：continue、匹配hold、4个等时移动，直接揭示正控制；合法endpoint输入，整任务horizon/观察包/推理预算一致；验证任务证据与基策略能力后再冻结开发来源。",
+      "draft_budget": {
+        "planned_base_clusters": 16,
+        "actual_resolved_sources_at_scaffold_snapshot": 0,
+        "task_branches": 2,
+        "evidence_blocks": 3,
+        "training_conditions": 2,
+        "actions_plus_direct_control": 7,
+        "noise_repeats": 8,
+        "development_episodes": 10752,
+        "physical_action_episodes": 9216,
+        "direct_control_episodes": 1536,
+        "confirmation_configured": false
+      },
+      "boundary_zh": "10,752是16基础来源的重复拓展，不是独立样本数；只是草案算术，未执行。静态候选价值不是主动动作价值的上界；静态不显著不否决主动。一次运动学外部获取不等于头部真实动力学、腕部动作耦合或多步POMDP策略；A2/W须随相应主张单独验证。",
+      "evidence_paths": [
+        "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/view_acquisition_a1_draft_v1.json",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/next_stage_scaffold_status_20260907_zh.md",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/paper_master_plan_v2_active_bridge_20260907_zh.md"
+      ]
+    },
+    {
+      "id": "N15_potential_contributions",
+      "evidence_status": "proposed_unproven",
+      "plain_summary_zh": "论文核心应是训练以后还需不需要取景，以及怎样提前判断，而不是再证明多视角有用。",
+      "central_question_zh": "多视角训练之后，还剩下哪些值得利用的观察差异？它们何时能转化为实际视角获取的闭环收益，并能否用合法输入事先预测？",
+      "proposed_contributions": [
+        {
+          "id": "C1",
+          "title_zh": "量化训练后的剩余价值",
+          "required_zh": "匹配训练处理下，分别比较各自固定基线、搜索程序、合法selector与主动获取的增量；现有只有强Broad静态一侧。"
+        },
+        {
+          "id": "C2",
+          "title_zh": "找出取景有效的条件",
+          "required_zh": "以预先定义的等价投影、证据揭示和匹配负控制区分训练支持、任务证据与其他传感器补偿；不能用可见像素或事后成败直接定义信息性。"
+        },
+        {
+          "id": "C3",
+          "title_zh": "确认可执行的使用规则",
+          "required_zh": "冻结何时保持、何时获取、获取什么的规则，在新来源/完整任务上验证成功—成本改善；现有两个ridge与工程smoke不满足。"
+        }
+      ],
+      "novelty_boundary_zh": "这些是待证实的科学交付，不是已完成的三项创新。价值定义、噪声配对、普通优势回归、多视角有用、主动感知有用本身均不是新增贡献；需结合近邻检索与独立验证，不能承诺CVPR接收。",
+      "evidence_paths": [
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/paper_master_plan_v2_active_bridge_20260907_zh.md",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/next_stage_scaffold_status_20260907_zh.md",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/training_match_execution_status_20260907_zh.md"
+      ]
+    }
+  ],
+  "tables": {
+    "v2_three_checkpoint_success": {
+      "title_zh": "v2最终Q成功率（%）",
+      "seed_columns": [
+        41,
+        42,
+        43
+      ],
+      "rows": [
+        {
+          "method": "canonical",
+          "label_zh": "规范视角",
+          "success_pct_by_seed": [
+            59.08203125,
+            55.859375,
+            58.30078125
+          ]
+        },
+        {
+          "method": "global_fixed",
+          "label_zh": "开发集冻结的全局固定视角",
+          "success_pct_by_seed": [
+            59.1796875,
+            58.0078125,
+            58.30078125
+          ]
+        },
+        {
+          "method": "task_fixed",
+          "label_zh": "开发集冻结的每任务固定视角",
+          "success_pct_by_seed": [
+            60.44921875,
+            57.51953125,
+            57.91015625
+          ]
+        },
+        {
+          "method": "statewise_P_top1",
+          "label_zh": "每状态 O/P 搜索的非规范候选",
+          "success_pct_by_seed": [
+            62.98828125,
+            60.83984375,
+            61.71875
+          ]
+        },
+        {
+          "method": "geometry_context_ridge",
+          "label_zh": "几何/上下文 ridge",
+          "success_pct_by_seed": [
+            58.10546875,
+            55.078125,
+            55.6640625
+          ]
+        },
+        {
+          "method": "image_queryable_ridge",
+          "label_zh": "允许候选图像的 ridge",
+          "success_pct_by_seed": [
+            59.5703125,
+            57.421875,
+            59.47265625
+          ]
+        },
+        {
+          "method": "visibility",
+          "label_zh": "可见性规则",
+          "success_pct_by_seed": [
+            56.73828125,
+            54.296875,
+            57.03125
+          ]
+        },
+        {
+          "method": "accel",
+          "label_zh": "Accel 规则",
+          "success_pct_by_seed": [
+            58.10546875,
+            59.5703125,
+            59.765625
+          ]
+        }
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/analysis.json"
+      ],
+      "caption_zh": "每模型：8个已知任务、16个source-state、每条件64条Q。seed42/43迁移seed41冻结候选，不能称三模型各自oracle。不是官方LIBERO-Plus初态benchmark成绩。"
+    },
+    "v2_state_search_gain": {
+      "rows": [
+        {
+          "seed": 41,
+          "gain_pp": 3.90625,
+          "ci95_pp": [
+            0,
+            7.8125
+          ]
+        },
+        {
+          "seed": 42,
+          "gain_pp": 4.98046875,
+          "ci95_pp": [
+            0,
+            10.05859375
+          ]
+        },
+        {
+          "seed": 43,
+          "gain_pp": 3.41796875,
+          "ci95_pp": [
+            0.390625,
+            6.34765625
+          ]
+        }
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/analysis.json"
+      ]
+    },
+    "v1_seed41_deployment_baselines": {
+      "rows": [
+        {
+          "method": "canonical",
+          "success_pct": 62.3046875,
+          "gain_pp": 0
+        },
+        {
+          "method": "calibration_global_fixed_pose",
+          "success_pct": 62.17447916666667,
+          "gain_pp": -0.1302083333333332
+        },
+        {
+          "method": "deterministic_random_candidate",
+          "success_pct": 57.48697916666667,
+          "gain_pp": -4.817708333333333
+        },
+        {
+          "method": "visibility_increment_selector",
+          "success_pct": 58.85416666666667,
+          "gain_pp": -3.450520833333333
+        },
+        {
+          "method": "entity_visibility_hmean_selector",
+          "success_pct": 58.984375,
+          "gain_pp": -3.3203125
+        },
+        {
+          "method": "accel_ensemble_selector",
+          "success_pct": 59.9609375,
+          "gain_pp": -2.34375
+        }
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-expectation-v1/heldout/analysis-primary/primary-analysis.json"
+      ]
+    }
+  },
+  "recommended_topics": [
+    {
+      "order": 1,
+      "title_zh": "从旧筛选到新问题：v1为何值得继续而非简单失败",
+      "claims": [
+        "N01_v1_question_and_funnel",
+        "N02_v1_calibration_result",
+        "N03_v1_heldout_result"
+      ],
+      "visual_zh": "漏斗小图+v1校准/留出两块结果；强门未过≠零收益。"
+    },
+    {
+      "order": 2,
+      "title_zh": "v2到底评了什么：来源、候选、噪声和O/P/Q",
+      "claims": [
+        "N04_v2_scale_and_integrity",
+        "N05_v2_design",
+        "N06_noise_alignment"
+      ],
+      "visual_zh": "O→P→Q与source split；24.28万episode和16 test sources并列强调。"
+    },
+    {
+      "order": 3,
+      "title_zh": "最终三checkpoint结果",
+      "claims": [
+        "N07_v2_table_and_gates"
+      ],
+      "table": "v2_three_checkpoint_success",
+      "visual_zh": "8×3紧凑表+state-search增益CI，不展示O最大值为主效果。"
+    },
+    {
+      "order": 4,
+      "title_zh": "任务固定、状态搜索与可部署选择的差别",
+      "claims": [
+        "N08_task_vs_state",
+        "N09_two_selectors"
+      ],
+      "visual_zh": "三个决策权限并排；task-fixed比较标事后；两ridge负结果与Oracle边界。"
+    },
+    {
+      "order": 5,
+      "title_zh": "我们知道多少：统计与范围边界",
+      "claims": [
+        "N10_statistical_scope"
+      ],
+      "visual_zh": "task/source/noise嵌套小图；原CI条件性与未证明事项。"
+    },
+    {
+      "order": 6,
+      "title_zh": "训练匹配修订及当前真实进度",
+      "claims": [
+        "N11_training_match_revision",
+        "N12_training_snapshot"
+      ],
+      "visual_zh": "旧不匹配→新同Broad锚对照；进度必须带UTC截点。"
+    },
+    {
+      "order": 7,
+      "title_zh": "静态诊断如何接到主动取景",
+      "claims": [
+        "N13_runtime_active_boundary",
+        "N14_active_plan_and_budget"
+      ],
+      "visual_zh": "已完成工程/未通过科学门两列；明确10752只是草案。"
+    },
+    {
+      "order": 8,
+      "title_zh": "论文怎样收敛：一条中心与三项待证实交付",
+      "claims": [
+        "N15_potential_contributions"
+      ],
+      "visual_zh": "现有证据→缺失的条件关系→独立可兑现规则；不将拟贡献标已完成。"
+    }
+  ],
+  "reporting_warnings_zh": [
+    "不得写v2证明canonical最优、无oracle或无主动价值。",
+    "不得把自动state_dependence PASS误读为已证明任务内状态选择。",
+    "不得把强制noncanonical搜索改写成含keep的最优Oracle。",
+    "不得把24.28万rollout当24.28万个独立样本。",
+    "不得把noise配对等价写成控制器/原策略历史完整恢复。",
+    "不得将当前匹配补训进度或工程PASS写成训练交互/主动净收益的新结果。",
+    "旧研究计划中的ACTIVE/HOLD或未启动文案有历史截点；当前训练状态应使用带时间的执行记录。"
+  ]
+}

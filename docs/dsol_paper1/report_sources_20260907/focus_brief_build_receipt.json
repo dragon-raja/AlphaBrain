@@ -1,0 +1,77 @@
+{
+  "pdf": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/vla_view_research_focus_20260907_zh.pdf",
+  "pdf_sha256": "a9c31a1a21e517b66c90600d44e30edc369a59df7b62ecf24ab6e52863f3cca9",
+  "pages": 10,
+  "bookmarks": 10,
+  "layout_issues": [
+    {
+      "page": 1,
+      "issues": []
+    },
+    {
+      "page": 2,
+      "issues": []
+    },
+    {
+      "page": 3,
+      "issues": []
+    },
+    {
+      "page": 4,
+      "issues": []
+    },
+    {
+      "page": 5,
+      "issues": []
+    },
+    {
+      "page": 6,
+      "issues": []
+    },
+    {
+      "page": 7,
+      "issues": []
+    },
+    {
+      "page": 8,
+      "issues": []
+    },
+    {
+      "page": 9,
+      "issues": []
+    },
+    {
+      "page": 10,
+      "issues": []
+    }
+  ],
+  "characters_per_page": [
+    302,
+    472,
+    459,
+    425,
+    495,
+    406,
+    479,
+    375,
+    389,
+    406
+  ],
+  "history_hashes": {
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh.pdf": "ccbf1185a56750ccacd5e864dbb6108c1ad4412d24b6fa603853a338a74790db",
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/view_value_new_experiments_zh.pdf": "9c10918c428575271bb5c725ea8c9d3260e06434472111a90e9bb5ac60129670",
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/vla_view_research_unified_20260907_zh.pdf": "25a0ab8f61f84a7774975aaee4c802ef343ac52489fedb16fdc909a86bf5bd5d"
+  },
+  "source_hashes": {
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/report_sources_20260907/legacy_evidence.json": "b074210503602cb89cf1b9a93f6381dedeb5e430d5592868a2c85f5a07dce9d3",
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/report_sources_20260907/new_evidence.json": "8d25ef3c3f33cc4fd677844e371db63542f5777167f54a3bea9e8beb24686a8f",
+    "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/state-method-metrics.csv": "48b261eb7839a1cd9d5b17a5cbadb1ddd67dce6a28f6bb51d71ec87ec226d9ea",
+    "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/build_view_research_focus_brief.py": "3fcf347c6232e710fcedab54b0a0d389ffe07a8c5bcb3fa9ec91a62e4ffa8888",
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/figures/m1_view_roles/blind.png": "a1dc0239465ea67b61872700ad9b1df0186c83dfc0fb8c0a3fce82988a249fcb",
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/figures/m1_view_roles/canonical.png": "fc53437ffaca2bbccf83704b9c3bca7a1d8fa4fbdb13b131bfd3d43b6a0021b4",
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/figures/m1_view_roles/matched_control.png": "64c244db55caa7ca1b79466c503a98022527162ec14d8b085d8de0d3d565b411",
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/figures/m1_view_roles/strong_info.png": "059f97f537174ef2721aab8642434caf97ad016a635ec08ced7b2226759fdc16"
+  },
+  "source_editing_note": "Figures are redrawn from archived numbers. Historical PDF files and image assets are unchanged. No experimental run was launched.",
+  "training_snapshot_note": "2026-09-07T07:50:02Z read-only: 2000 updates complete, final files present; no final weight-content hash or new eval in this report task."
+}

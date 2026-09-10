@@ -1,0 +1,139 @@
+# 完整 64 状态配对评测与 Oracle 对照：执行补充
+
+授权：2026-09-08，用户要求将规范视角训练模型补齐状态、加入 Oracle 比较并加速评测。本文扩展首批 8 状态诊断，不修改首批冻结协议、已完成结果或旧 Broad 实验。
+
+## 最新状态：测速完成，原调度恢复（06:02 UTC / 北京时间 14:02）
+
+三组固定性能测试已全部完成并通过各自的样本完整性、来源及显式噪声审计。每组均为相同的 192 次调用；576 次测速调用不进入正式矩阵。
+
+| 配置：8 卡 | 192 次端到端耗时 | 相对基线耗时减少 | 采样观察到的单卡最大显存 | 相对基线完整动作轨迹逐位相同 |
+| --- | ---: | ---: | ---: | ---: |
+| 每卡 2 份服务 / 32 仿真进程 | 361.30 秒 | — | 18.99 GiB | 参照组，不是重复性证明 |
+| 每卡 3 份服务 / 48 仿真进程 | 312.58 秒 | 13.49% | 28.11 GiB | 160 / 192 |
+| 每卡 3 份服务 / 64 仿真进程 | 321.94 秒 | 10.89% | 29.14 GiB | 159 / 192 |
+
+48 进程吞吐率为基线的 1.156 倍，64 进程为 1.122 倍；显存可以容纳三份服务，并非无法增加副本。显存数值为约每 2 秒采样的观察最大值，不是真正连续峰值。
+
+**本轮选择仍为原有 32 进程。** 两个加并发配置满足速度门槛，却未满足冻结的完整轨迹逐位一致门槛；没有看完结果后放宽该规则。06:00:15 UTC 原调度器恢复，06:00:21 UTC 已完成 wave-01 审计并启动 wave-02。当前正式已审计 6,208 / 198,656 次（首批 6,208 / 24,832）；不是全部实验已完成。新增 56 状态仍排队，首批结束后自动衔接，且直接复用这次选择，不重复测速。
+
+### 如何解释轨迹差异
+
+在 192 个对应样本中，两种高并发配置的初始物理哈希、初始图像统计量、共同重规划索引上的噪声 seed / 张量哈希及最终成功/失败结果都与基线一致。48 进程有 32 条动作路径不逐位一致，4 条结束步数不同；64 进程分别为 33 条、5 条。差异出现在酒瓶入架和杯入微波炉两个任务。
+
+另将本次 32 进程基准与已完成正式分段中的同 192 个物理状态／视角／噪声键对照：有 35 条路径不逐位一致、3 条结束步数不同，最终成功/失败仍全部一致。这两个运行虽然同为 32 进程，但协议打包、任务顺序与进程映射不同，并非完全重放执行调度。因此：
+
+- 不能把非逐位复现直接归因于增加并发，也不能把基线自比较的 `true` 当作确定性证据。
+- 显式 Flow 噪声按共同重规划索引对齐这一点通过；它不等于 GPU 数值、后续观测及整条物理轨迹都逐位确定。
+- 现有记录保存动作哈希而非完整动作值，没有每步观测／完整物理状态哈希，尚不能定位差异根因或量化动作偏差幅度。
+- 192 次成功标签一致不证明总体行为分布完全等价。当前保持冻结运行条件继续，不因此废弃既有数据，也不声称已完成严格数值复现验证。
+
+### 更新后的时间估计
+
+最近完整 wave-01 为 3,104 次 / 4,397.76 秒，即约 0.706 次／秒；与之前两个长分段的约 0.69 次／秒接近。以 06:02 UTC 为起点，未完成的 192,448 次正式调用约需 76–78 小时纯评测时间；计入状态难度变化、评分、加载、审计及报告，继续按 **75–90 小时，约北京时间 9 月 11 日下午至 9 月 12 日上午** 规划。没有把未被接受的 13.5% 提速计入预计完成时间。
+
+首批 8 状态还余 18,624 次，约 7.3 小时纯闭环；之后接新增 56 状态。这个首批结束时间不是全量结束时间。
+
+- [性能选择回执](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/full64-extension-v2/performance-choice.json)
+- [原调度器恢复回执](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/full64-extension-v2/early-speed-gate-v1/resumed.json)
+- [逐样本轨迹差异审计](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/full64-extension-v2/early-speed-gate-v1/equivalence-diagnostics-v1.json)
+- [资源采样](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/full64-extension-v2/early-speed-gate-v1/resource-samples.csv)
+
+新增报告、过程保护和差异审计相关测试共 17 项通过；完整扩展冻结哈希预检通过。PDF 已经过实际页面渲染及中文文字检查，8 页统一入口见后文。
+
+## 追加执行记录：提前测速及单一报告入口（05:33 UTC）
+
+用户要求现在确认能否提速，而不是等首批 8 状态全部完成之后才测试。因此，原先“首批完成后测速”的调度已由一个独立的早期性能门接替：
+
+1. 05:10 UTC 起，仅对原调度器 PID 1306200 发出 `SIGSTOP`，当前 wave-01 的 3,104 次闭环继续自然执行；没有暂停或重启任何 rollout 子进程。
+2. wave-01 正常结束、运行回执通过且 GPU 服务退出后，运行已在扩展 release 中冻结的三组 192 次等价性与性能测试，不改变测试样本和科学参数。
+3. 将实测结果写入扩展原有 `performance-choice.json`；原调度器在 `finally` 中恢复。另有绑定 PID、启动时间与命令的独立 watchdog，在早期控制器退出或超过时限时兜底恢复，防止原任务一直暂停。
+4. 扩展仍等待首批全量审计及原 GPU 锁释放，随后复用本次性能选择。较高并发只在通过既定等价性和至少 5% 提速门槛后用于新增 56 状态；不修改正在运行的首批冻结脚本。
+
+05:33 UTC 时仍在等待当前分段结束，尚无性能实测结论。原 `controller-status.json` 的 RUNNING 不表示调度器当前未暂停；应同时查看下面的早期性能门状态与恢复回执。下方 04:40 记录为历史时间点，不覆盖本追加记录。
+
+- [早期性能门状态](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/full64-extension-v2/early-speed-gate-v1/status.json)
+- [进入时的进程与冻结身份](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/full64-extension-v2/early-speed-gate-v1/entry.json)
+- [早期性能门脚本](/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/run_early_landscape_speed_gate_v1.py)
+- [统一 8 页图表 PDF](/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/vla_view_landscape_and_metrics_20260908_zh.pdf)
+
+空间分布、七规则、Oracle、噪声及难度分层现在共用上述 PDF；原先三页 / 六页文件仅为归档。完整 64 状态配对结果通过后会更新同一个 PDF 入口，不另发一份互相割裂的主报告。
+
+## 当前状态（04:40 UTC / 北京时间 12:40）
+
+- 首批 8 状态仍运行，完成并审计 3,104 / 24,832 次闭环，正在 wave-01；在途记录不计入已审计总数。
+- 56 状态扩展控制器已启动，状态为 `QUEUED_BEHIND_FIRST_EIGHT`，等待首批 GPU 锁释放及完整矩阵 PASS 后自动执行。新增 56 状态的 GPU rollout 尚未同时开始。
+- 扩展 tmux：`dsol-full64-extension-v2-20260908`；原任务：`dsol-matched-landscape-v1-20260908`。
+- 扩展协议、来源/图像/噪声身份、代码及评分配置已冻结，预检通过。新增测试与相关回归共 33 项、4 个 subtest 通过。
+
+## 1. 完整范围与复用
+
+| 项目 | 数量 |
+| --- | ---: |
+| 总任务 | 8 个已知任务 |
+| 总物理状态 | 64，每任务 8 个独立演示来源 |
+| 历史划分 | development 48；test 16，标签不改 |
+| 每状态外部候选 | 完整 97 个，包含规范视角 |
+| 每候选闭环重复 | 32，原显式 O bank |
+| 规范训练模型完整矩阵 | 198,656 次 |
+| 首批完成后原样复用 | 24,832 次 / 8 状态 |
+| 扩展新增 | 173,824 次 / 56 状态 |
+| Accel 扩展评分 | 56 × 97 × 8，原图像和原评分 seed |
+| 性能/等价性测试额外调用 | 3 × 192 = 576 次，不进入科研矩阵 |
+
+新增 56 状态就是原 64 状态减去首批 8 状态，不按成功率、指标或难度增删。按 5 组 development 来源、2 组 test 来源划分，每组每任务 1 状态；先让所有新增状态完成前 4 次噪声，再推进下一轮。共 56 个 3,104 次的分段，分别审计并保留原账本。
+
+不增加训练、不改变候选空间、不开展主动相机或 RoboCasa。两个模型都保留外部与腕部输入。重规划间隔 5、等待 0、Flow 去噪 10 步、评分噪声 8 个、闭环噪声 32 个均不变。
+
+## 2. 加速与安全边界
+
+当前已用 8 卡：16 份策略服务（每卡 2 份）、32 个模拟工作进程。GPU 利用率通常较高，不能假设增加并发线性提速。
+
+首批完成后，扩展先评分，再对同样的 192 个样本比较三个固定配置：
+
+1. 每卡 2 份策略服务、32 个模拟工作进程（当前基线）；
+2. 每卡 3 份策略服务、48 个模拟工作进程；
+3. 每卡 3 份策略服务、64 个模拟工作进程。
+
+测试组为首批 8 状态、3 个固定候选、8 次噪声；不进入科研矩阵。各配置均须通过显式噪声审计，并逐样本比较初始物理哈希、动作块哈希、噪声哈希、执行步数和最终结果。只有与基线完全等价、端到端时间至少缩短 5% 的配置才有资格被选中，再取其中最快者；否则沿用基线。不按成功率高低选择运行配置。
+
+较高并发尚未实测，不能宣称已获得提速。扩展不抢占原评测、不修改正在运行的冻结脚本，仅管理本流水线及原有 GPU keepalive。资源冲突、OOM、身份不一致或未完成分段会使流水线停止并保留输出，不自动重试或跳过失败样本。
+
+## 3. 时间估计
+
+实测两个非 smoke 分段：1,504 次约 36.1 分钟；1,552 次约 37.4 分钟，合计约 0.69 次/秒。
+
+按当前速度、未计尚未实测的提速，剩余全量工作中心估计约 79 小时。考虑状态执行时长差异、加载、审计及报表，按 **75–90 小时（约 3–4 天）** 规划。首批剩余约 8–10 小时，之后自动接新增状态。
+
+若并发测试实测得到约 20%–30% 的持续提速，整体剩余可能降至约 60–70 小时；这是条件估计，不是已验证承诺。北京时间 9 月 8 日中午起算，未提速窗口约为 9 月 11 日下午至 9 月 12 日早上。后续用性能测试及完整分段实测刷新，不按单个容易状态外推。
+
+## 4. Oracle 比较已补充
+
+上一版七规则图缺少收益参照，展示不完整，不是 Oracle 不需要。更新的三页材料第一张已加入七规则及以下两项。
+
+| Broad 模型 / 原 64 状态 | 成功率 | 相对规范视角 |
+| --- | ---: | ---: |
+| 规范视角 | 64.70% | — |
+| 逐状态经验 Oracle：O32 挑最大，再报告同批结果 | 75.88% | +11.18 pp |
+| 逐状态跨噪声搜索：O16 选、另 O16 测，再交换 | 65.67% | +0.98 pp |
+
+经验 Oracle 每个状态只选一个视角，不是每条噪声单独挑成功视角。它使用结果标签且复用同批测量，存在乐观选择偏差，不是总体真实期望成功率的无偏上界。
+
+O16 交叉搜索避免选择与评价用同一噪声，但只用 16 次测量估计 97 候选的优劣，不等于已知真实最佳视角。相对规范视角的描述性来源 bootstrap 95% 区间为 [−1.17, +3.32] pp，尚未确认稳定优势，也不能反推真实 Oracle 不存在。
+
+此次扩展为完整 O32 矩阵及同口径 Oracle/交叉搜索比较，不是重跑全部历史 P/Q 与训练 seed 扩展。原 P/Q 证据保留，不能与本次 O16 交叉搜索混称同一估计量。
+
+## 5. 材料、代码与承接
+
+- [更新的三页 PDF，含 Oracle](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/metric-oracle-comparison-v2/view_metric_with_oracle_v2.pdf)
+- [Broad 九项比较汇总](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/metric-oracle-comparison-v2/broad_summary.json)
+- [扩展 release](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/full64-extension-v2/release.json)
+- [扩展实时状态](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/full64-extension-v2/controller-status.json)
+- [原首批实时状态](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/controller-status.json)
+- [协议生成器](/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/build_full64_view_landscape_v2.py)
+- [排队、性能测试和评测控制器](/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/run_full64_view_landscape_v2.py)
+- [完整数据连接及后处理](/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/finalize_full64_view_landscape_v2.py)
+- [指标＋Oracle 分析与图表](/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/analyze_view_oracle_comparison_v2.py)
+
+最终目录为扩展根目录下 `canonical-report-full64` 和 `matched64-metrics-with-oracle`，当前尚未生成。后处理使用只读符号链接连接首批与扩展，保留各自协议、run manifest、评分身份、审计和账本，不重写来源。严格逐状态、候选、噪声对齐，最终 64 对 64 比较，保留任务/历史 split 分项及来源 bootstrap。
+
+当前代码和 release 已冻结哈希，运行期间不可直接修改依赖。失败后先查看具体分段，不要盲目重启整条流水线；已审计 PASS 分段可在显式复核后复用，部分输出不会自动清除或续跑。

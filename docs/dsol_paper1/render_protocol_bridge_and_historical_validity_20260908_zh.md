@@ -1,0 +1,93 @@
+# 渲染重复性问题：历史结论影响与配对复核
+
+日期：2026-09-08。用户已授权继续实施新旧渲染协议的配对验证。本文不修改历史数值，也不将历史结论一概撤销或重新认证。
+
+## 最新结果（2026-09-08 10:00 UTC）
+
+1,536 条闭环及全部静态候选打分已完成。原执行器在统计结果写出时遇到 `numpy.bool_` 无法 JSON 序列化，GPU 账本已完整；通过新增恢复脚本仅转换 JSON 标量并重新执行 CPU 分析，已恢复完成。原冻结统计脚本、源哈希、原始账本及不完整输出均保留。
+
+- AA0 在规范／Broad 两模型各 192 对、32／48 并发下，完整输入、动作、物理轨迹和成败全部一致。全 97 候选静态资产和指标重复也一致。
+- AA4 两次执行的轨迹不一致为规范 35/192、Broad 20/192；成败翻转分别 0/192、2/192。相同总体成功率不代表每条轨迹相同。
+- 换协议的成功率变化：规范 +2.08pp，95% 区间 [-1.56, 6.25]；Broad +2.60pp，[-3.13, 8.33]。训练模型差距变化 +0.52pp，[-5.73, 7.29]，未满足预设 ±5pp 等价审查容差。
+- AA0 的 48 并发相对 32 并发端到端加速约 1.15 倍（规范）、1.13 倍（Broad），通过候选门槛；未自动修改原评测的并发或渲染协议。
+- 更换协议后 Broad 最小 Accel 候选在 3/8 状态改变。后续不能混用旧评分与新闭环图像；这 3 视角闭环子集不能重建 97 视角 Oracle。
+
+因此，修复后的有限重复性验证通过；历史统计等价性仍待针对主要结论确认。不启动自动重训、全量重跑或新旧数据混合。
+
+汇报已合入[统一 VLA 研究进展第 11 页](/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/vla_view_research_focus_20260907_zh.pdf)。机器可读结果应使用 [analysis-recovered-v1.json](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/render-protocol-bridge-v1/analysis-recovered-v1.json) 与[恢复收据](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/render-protocol-bridge-v1/analysis-recovery-v1.json)，而不是保留作排错证据的不完整 `analysis.json`。以下执行计划及时间为事前记录。
+
+## 1. 对以前结果的判断
+
+**发现了评测中未显式控制的随机源，不等于发现训练数据损坏。** 当前 Canonical/Broad64 匹配训练通过 `read_record` 读取已经落盘的 canonical／broad_a／wrist 图像；训练中不重新调用 MuJoCo 渲染这些图像。Broad64 collection 的既有完整分片哈希和抽样标签审计通过，本轮已复核审计文件与实际 reader。此次不重复声称重新执行了那次完整数据审计。
+
+因此，目前没有因本问题而重新生成训练数据或重训的依据。生成数据时的渲染差异会固化为图像的一部分；这不自动构成标签错配，也不证明各训练条件在所有细微图像属性上完全相同。训练 seed／GPU 数值的普遍确定性同样不是本轮已证明的事。
+
+| 历史内容 | 本次问题的影响 | 当前允许的说法与处理 |
+| --- | --- | --- |
+| 多视角数据、动作监督、训练完成记录与 checkpoint | 不是由闭环图像抖动直接否定的 | 保留；不启动重训。严格匹配的训练配置审计仍然有效 |
+| 多视角后训练改善外部位姿扰动下的鲁棒性 | 平均差距可能成立，但“双方使用同一个渲染器”不保证误差相互抵消 | 保留为旧协议下的观测结果；检查差距是否随渲染协议变化，不能先保证方向或幅度不变 |
+| 配对／一致性没有额外收益 | 负结果也可能受评测方差和样本量影响 | 只能说当时未证实增益，不能说方法无效；本轮两模型桥接不直接认证全部配对／一致性训练臂 |
+| 特定状态的信息视角收益 | 单次成败会受图像变化影响，小幅差距尤其需复核 | 保留具体旧记录，暂不扩大为普遍信息视角规律 |
+| 在同一批缓存候选图上，Accel 排名随初噪变化 | 如果各噪声确实共用相同文件哈希，计算时没有重新渲染，不能将这类变化归给实时渲染抖动 | 这个条件下的初噪敏感性证据可保留；图像改变后的指标稳定性和实际闭环收益另查 |
+| Accel／可见性混合规则的小幅成功率收益 | 代理分数与闭环结果来自不同生成阶段，闭环有额外渲染随机性 | 需要同协议重渲染、重打分和闭环配对；不能混用旧分数与新协议成功率 |
+| 候选排序、经验 Oracle、跨噪声选择收益 | 除有限初噪样本与最大值选择偏差外，还受到额外渲染随机性影响 | 原统计量仍是旧账本的真实计算结果，但不能称其为“只改变 Flow 噪声且完全对齐的真实上限” |
+
+尤其不能从“像素仅相差 1”推出“统计结论必然不受影响”。已捕获杯子同键闭环一次成功、一次失败的实例。反过来，也不能从这个定向选取的排错样本，推出所有任务都有很高翻转率或所有总体效果都消失。
+
+旧闭环实际上还混入了渲染随机性。相同 Flow 键保证的是对应 replan 索引的初噪一致，不保证整个观测—动作序列一致。已有平均成功率可以作为旧执行条件下的观测估计；其方差、跨模型配对效率及小幅差异的可靠性需要重新审查。
+
+## 2. 已冻结并启动排程的复核
+
+复用此前按来源身份固定的 8 个已知任务来源状态，不根据本次渲染失败或成功率重新选状态。保留相同物理状态、相机位姿、视觉遮挡构造、语言、腕部输入、两个模型权重、Flow O bank、10 次去噪、每 5 步重规划及零 wrapper noise。
+
+| 因素 | 冻结范围 |
+| --- | --- |
+| 模型 | 同预算 Canonical 与 Broad64 M-B，seed41；不新增训练 |
+| 闭环候选 | canonical、broad_train_000、broad_heldout_000，沿用早先工程基准 |
+| 闭环噪声 | 每状态每候选 O bank repeat 0–7，共 192 个键／条件 |
+| 每模型的 4 次条件执行 | AA4-A/32 并发、AA4-B/32 并发、AA0-A/32 并发、AA0-B/48 并发 |
+| 总闭环预算 | 2 × 4 × 192 = 1,536 条，独立于旧科研账本 |
+| 静态候选 | 每状态全部 97 个视角，AA4／AA0 各重复两次；共 3,104 个候选快照 |
+| 指标 | 每个新快照重算任务实体分割可见性；两个模型各用同一 8 成员 Accel 初噪，累计 49,664 个候选—模型—噪声分数 |
+
+静态资产先完整生成 RGB，再单独生成分割可见性，避免为测指标而在 RGB 生成中间插入额外渲染。保留原场景构造，不改变遮挡或背景。新闭环记录中旧 candidate_features 明确移入“旧特征、未使用”字段，分析用相应新渲染协议的可见性。
+
+这轮只有 3 个视角的闭环，不用于重建 97 视角 Oracle，也不能单独给全部历史 LIBERO-Plus Camera 结果背书。97 视角范围用于静态输入及指标稳定性的审查。历史小基准、正式基准和当前构造场景需要保持范围区分。
+
+## 3. 如何判定，而不是看到结果后改口径
+
+1. 先比较 AA4-A/B 的同键成败翻转与完整轨迹差异，估计旧协议自身的重复波动；不将它预设为高并发故障。
+2. 比较 AA0 的 32／48 并发：全部键、完整调用序列、输入／动作／逐步物理签名和结果必须一致，不能只比较共同前缀或最终标签。至少 5% 同等记录开销下的时间改善才标为加速候选；不自动改写旧 performance-choice。
+3. 分别估计两种渲染下的 Broad−Canonical 差距，再计算两种差距之差。不能只看某个模型换渲染后的成功率变化。
+4. 同一来源内保留所有视角和噪声的配对结构；使用 8 个来源簇、10,000 次固定种子 bootstrap。新协议重复 B 用于重复性检查，不作为额外独立科研样本。
+5. 预先设置 ±5 个百分点的迁移审查容差：区间完全落入该范围，才提供此小子集上的有限等价支持。它不是论文贡献阈值；区间很宽或跨零不能解释为“没有影响”。
+6. 比较 97 视角的 Accel Top1、Top10 重合、排名相关、成员分数，以及可见性和图像重复性；分别报告同协议重复与跨协议变化。
+
+桥接完成后输出“可保留、需要限定表述、需要补算”的清单。没有自动全量重跑、自动训练或覆盖旧数据的分支。若区间不足以支撑迁移结论，应报告不确定，按最关键论文对照定向补验，而非无限扩充噪声／候选空间。
+
+## 4. 执行与安全边界
+
+2026-09-08 07:55:50 UTC，控制器确认 `DRAINING_CURRENT_WAVE`（wave-03）：只暂停 dispatcher 启动下一段，当前全部 rollout 子进程正常继续。此段完整收据通过后自动独占资源运行桥接。排空和桥接各有 2 小时上限；独立 watchdog 绑定 PID／启动时间／命令，先清理本次进程组，再恢复旧 dispatcher。
+
+截至 07:57:53，wave-03 完成 936 / 3,104 条。按目前进度及之前 192 条基准约 6 分钟的速度，预计等待约 45–60 分钟，桥接另需约 60–100 分钟；新逐步记录和全候选指标耗时尚未完整实测，故总体先按约 2–3 小时规划，不当作保证。
+
+代码单元检查 18 项通过，模拟器 Python 3.8 与调度 Python 3.12 编译检查通过。AA0 和 AA4 两个渲染入口均已对一个实际构造状态运行全部 97 个视角及分割可见性，物理状态与历史源哈希一致；这两个轻量工程检查分别保存在 `assets/engineering-smoke-aa0` 和 `assets/engineering-smoke-aa4`，不计入 1,536 条闭环或正式静态配对预算，不被正式分析器加载。
+
+入口：
+
+- [冻结协议](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/render-protocol-bridge-v1/release.json)
+- [当前状态](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/render-protocol-bridge-v1/status.json)
+- [排程日志](/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/render-protocol-bridge-v1/queue.log)
+- [执行器](/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/run_render_protocol_bridge_v1.py)
+- [独立渲染／闭环／打分入口](/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/run_render_bridge_worker_v1.py)
+- [统计分析代码](/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/analyze_render_protocol_bridge_v1.py)
+
+完成后分析器将在同一实验目录生成 `analysis.json` 和 `summary_zh.md`；目前排程阶段不将它们描述为已有结果。
+
+## 5. 证据来源
+
+- [实际冻结图像 reader](/workspace/projects/alphabrain-dsol-paper1/AlphaBrain/dataloader/paligemma_datasets.py:655)
+- [Broad64 分片／标签再审计回执](/share/longjunyu/alphabrain/experiments/dsol-training-match-20260907-lW8boo/collection_reaudit.json)
+- [匹配训练配置与数据审计](/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/training_match_anchor_audit_20260907_zh.md)
+- [原始根因与有限修复验收](/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/view_repeatability_root_cause_20260908_zh.md)
+- [历史五条结论的既有论证边界](/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/focus_brief_argument_review_20260907_zh.md)

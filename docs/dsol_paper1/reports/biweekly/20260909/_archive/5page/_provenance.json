@@ -1,0 +1,155 @@
+{
+  "period": [
+    "2026-08-27",
+    "2026-09-09"
+  ],
+  "report_date": "2026-09-09",
+  "sources": [
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/training_match_execution_status_20260907_zh.md",
+      "sha256": "273c1112fc156a43f91d5aa92ca1e3f30174a248879bcbe31a4e6d71d672043e"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/libero_expanded_a_constructed_gate_20260827_zh.md",
+      "sha256": "c225114330300724fdce8be6436e82a24a62da4b14ad7ea1cc15fd9908dd39eb"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/view_repeatability_root_cause_20260908_zh.md",
+      "sha256": "1f3ece1b85f34f5cb43c93d21216d415fc97e03209e2a35dfe001c8e1c6f4c32"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/render_protocol_bridge_and_historical_validity_20260908_zh.md",
+      "sha256": "edde6b3ae551034aa988179a8aa2f70e1c1b948c0bc6a3fe8b8f586a6d37adc7"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/standard_initial_aa0_execution_20260908_zh.md",
+      "sha256": "bfe3ea1a52ed38a351221793d8ec2d340ab25486aaf207098afbc4a1e92cedcf"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/checkpoint-audit/completed_run_receipt.json",
+      "sha256": "9fea581b63bae11507edb2f0f779cf4199bbbd64083ccbccd329a6f8291f2f87"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/metric-oracle-comparison-v2/broad_summary.json",
+      "sha256": "57f7114c6a348b2eabb886267209751bffc702518c1b7ff06957cedc56a85f2d"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/render-protocol-bridge-v1/analysis-recovered-v1.json",
+      "sha256": "f09dc524bd11622b7ef74df5764b671fadaf3b82434a870ecf7028b70c5e0ede"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/release.json",
+      "sha256": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899"
+    },
+    {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/assets/aa0-a/00/policy_inputs.npz",
+      "sha256": "db2140c89faecb50ad562066750ba92c6d156d9005e60011a34c5c25eab6a563"
+    }
+  ],
+  "progress_snapshot": {
+    "observed_at_utc": "2026-09-09T12:26:48.346227+00:00",
+    "hosts": {
+      "fresh": {
+        "status": {
+          "model": "broad",
+          "model_budget": 12416,
+          "model_completed": 10240,
+          "pending": 2145,
+          "phase": "dense-init-1",
+          "pid": 3076348,
+          "scheduler": "dynamic-v1",
+          "utc": 1788956786.0952985
+        },
+        "first_wave": {
+          "episodes": 24832,
+          "release_sha256": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899",
+          "utc": 1788916978.1286583
+        },
+        "initial_gate": {
+          "episodes_per_host": 192,
+          "release_sha256": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899",
+          "status": "PASS_STANDARD_INITIAL_FULL_TRACE_AND_INPUT_ASSETS",
+          "utc": 1788873080.859009
+        },
+        "dynamic_gate": {
+          "execution_manifest_sha256": "eb0d9155b2c0905ea2f1d8a00d790aff8a2cb19d517135fee6f8e7602316b3a0",
+          "status": "PASS_DYNAMIC_REPEAT_CROSS_HOST_AND_STATIC",
+          "utc": 1788943656.220699
+        }
+      },
+      "gnu": {
+        "status": {
+          "model": "broad",
+          "model_budget": 12416,
+          "model_completed": 6752,
+          "pending": 5633,
+          "phase": "dense-init-1",
+          "pid": 679150,
+          "scheduler": "dynamic-v1",
+          "utc": 1788956787.17877
+        },
+        "first_wave": {
+          "episodes": 24832,
+          "release_sha256": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899",
+          "utc": 1788929107.52372
+        },
+        "initial_gate": {
+          "episodes_per_host": 192,
+          "release_sha256": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899",
+          "status": "PASS_STANDARD_INITIAL_FULL_TRACE_AND_INPUT_ASSETS",
+          "utc": 1788873073.9556873
+        },
+        "dynamic_gate": {
+          "execution_manifest_sha256": "eb0d9155b2c0905ea2f1d8a00d790aff8a2cb19d517135fee6f8e7602316b3a0",
+          "status": "PASS_DYNAMIC_REPEAT_CROSS_HOST_AND_STATIC",
+          "utc": 1788943611.7277658
+        }
+      }
+    }
+  },
+  "historical_plot_values": {
+    "canonical": 64.697265625,
+    "min_accel": 61.376953125,
+    "accel_top10_max_visibility": 60.498046875,
+    "statewise_empirical_max_O32": 75.87890625
+  },
+  "pdf_layout": [
+    {
+      "page": 1,
+      "spare_height": 99.2952880859375,
+      "scale": 1.0
+    },
+    {
+      "page": 2,
+      "spare_height": 166.32000732421875,
+      "scale": 1.0
+    },
+    {
+      "page": 3,
+      "spare_height": 138.860107421875,
+      "scale": 1.0
+    },
+    {
+      "page": 4,
+      "spare_height": 109.4749755859375,
+      "scale": 1.0
+    },
+    {
+      "page": 5,
+      "spare_height": 50.70501708984375,
+      "scale": 1.0
+    }
+  ],
+  "docx_checks": [
+    "zip integrity",
+    "shared content blocks",
+    "explicit 5-page sections"
+  ],
+  "pdf_note": "Same-content typeset reading copy; not a LibreOffice conversion of the DOCX.",
+  "new_experiments_started": false,
+  "heldout_outcomes_read": false,
+  "outputs": {
+    "docx": "4f282d37141ddc2676fcf5bf15a4b8e4d965a4e72235bb7a450f7d12c6e25b9e",
+    "pdf": "e45d3e36907ff28ae436d6f1543e4334ed223fa86b7626795792305316ed0b4a"
+  }
+}

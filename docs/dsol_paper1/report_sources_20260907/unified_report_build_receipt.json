@@ -1,0 +1,262 @@
+{
+  "historical_inputs_sha256": {
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh.pdf": "ccbf1185a56750ccacd5e864dbb6108c1ad4412d24b6fa603853a338a74790db",
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/view_value_new_experiments_zh.pdf": "9c10918c428575271bb5c725ea8c9d3260e06434472111a90e9bb5ac60129670"
+  },
+  "manuscript_sha256": "04d37a22fc4f9176f547f1dc95ba2b512dcf823310dfb4f4286016e5ddb11ad0",
+  "builder_sha256": "75d06be34028df261fb009c828007e338ad9980ff6a4f8ecf91190098d675e51",
+  "pdf_sha256": "25a0ab8f61f84a7774975aaee4c802ef343ac52489fedb16fdc909a86bf5bd5d",
+  "pages": 40,
+  "markdown_sha256": "2a622d944e04229b96c6cb574aa9ae5d35ff5e13b074b01f5a6287905cb768ad",
+  "layout_issue_count": 0,
+  "qa_directory": "/tmp/dsol-unified-pdf-qa-pc2KLL",
+  "evidence_input_sha256": {
+    "docs/dsol_paper1/report_sources_20260907/legacy_evidence.json": "b074210503602cb89cf1b9a93f6381dedeb5e430d5592868a2c85f5a07dce9d3",
+    "docs/dsol_paper1/report_sources_20260907/legacy_slides.json": "7959f792a145e1fb2b8307b647d0e21d75b9f2bf380591439c11880125166338",
+    "docs/dsol_paper1/report_sources_20260907/new_evidence.json": "8d25ef3c3f33cc4fd677844e371db63542f5777167f54a3bea9e8beb24686a8f",
+    "docs/dsol_paper1/report_sources_20260907/related_work.json": "d0de7bf5e489db96f4281d3273c86a12bbabda2ff62873420166dc22b8a9925c",
+    "docs/dsol_paper1/report_sources_20260907/training_snapshot.json": "d13f3162e0dc80d1e5608e69693c6d2bf063733a96205bb18573b178b2ab8f05"
+  },
+  "outline": [
+    {
+      "page": 1,
+      "section": "01 · 研究全貌",
+      "title": "How to Use Camera Views in VLAs",
+      "status": "进行中"
+    },
+    {
+      "page": 2,
+      "section": "01 · 研究全貌",
+      "title": "先把目前最重要的五句话说清楚",
+      "status": "已完成"
+    },
+    {
+      "page": 3,
+      "section": "01 · 研究全貌",
+      "title": "一条研究链，但不是同一模型的连续涨分",
+      "status": "已完成"
+    },
+    {
+      "page": 4,
+      "section": "01 · 研究全貌",
+      "title": "我们实际测的相机、模型与成功率",
+      "status": "已完成"
+    },
+    {
+      "page": 5,
+      "section": "02 · 已有实验",
+      "title": "先把训练变量拆开：覆盖、重复、配对与一致性",
+      "status": "已完成"
+    },
+    {
+      "page": 6,
+      "section": "02 · 已有实验",
+      "title": "小型匹配对照：宽视角数据明显缓解视角退化",
+      "status": "历史探索"
+    },
+    {
+      "page": 7,
+      "section": "02 · 已有实验",
+      "title": "正式三seed：相机成绩提高，原始任务略有损失",
+      "status": "已完成"
+    },
+    {
+      "page": 8,
+      "section": "02 · 已有实验",
+      "title": "M0先验证：相机确实改变了可见内容",
+      "status": "历史探索"
+    },
+    {
+      "page": 9,
+      "section": "02 · 已有实验",
+      "title": "M1-v2：存在方向性信号，但不是普遍改善",
+      "status": "历史探索"
+    },
+    {
+      "page": 10,
+      "section": "02 · 已有实验",
+      "title": "另一组自然M1：训练位姿支持是重要替代解释",
+      "status": "历史探索"
+    },
+    {
+      "page": 11,
+      "section": "02 · 已有实验",
+      "title": "Accel：公式实现可复核，跨视角选择仍需验证",
+      "status": "历史探索"
+    },
+    {
+      "page": 12,
+      "section": "02 · 已有实验",
+      "title": "Gate A97：现有规则没有稳定提高闭环成功率",
+      "status": "已完成"
+    },
+    {
+      "page": 13,
+      "section": "02 · 已有实验",
+      "title": "换18条新轨迹后，可见性规则的弱收益没复现",
+      "status": "已完成"
+    },
+    {
+      "page": 14,
+      "section": "02 · 已有实验",
+      "title": "困难池搜索：先扫全候选，再冻结视角复验",
+      "status": "历史探索"
+    },
+    {
+      "page": 15,
+      "section": "02 · 已有实验",
+      "title": "困难池结果：冻结Top1几乎无增益，事后上限不能当算法",
+      "status": "历史探索"
+    },
+    {
+      "page": 16,
+      "section": "03 · 更严格的视角价值验证",
+      "title": "期望 v1：校准有收益，全局规则未迁移",
+      "status": "已完成"
+    },
+    {
+      "page": 17,
+      "section": "03 · 更严格的视角价值验证",
+      "title": "每任务固定、每状态搜索、学习器差在哪",
+      "status": "研究设计"
+    },
+    {
+      "page": 18,
+      "section": "03 · 更严格的视角价值验证",
+      "title": "v2：先完整看候选，再独立确认",
+      "status": "已完成"
+    },
+    {
+      "page": 19,
+      "section": "03 · 更严格的视角价值验证",
+      "title": "噪声与去噪时间到底对齐了什么",
+      "status": "已完成"
+    },
+    {
+      "page": 20,
+      "section": "03 · 更严格的视角价值验证",
+      "title": "v2 主结果：有小幅空间，强证据门未过",
+      "status": "已完成"
+    },
+    {
+      "page": 21,
+      "section": "03 · 更严格的视角价值验证",
+      "title": "三模型结果与两个学习器：完整看负结果",
+      "status": "已完成"
+    },
+    {
+      "page": 22,
+      "section": "03 · 更严格的视角价值验证",
+      "title": "这些结果没有证明“视角研究失败”",
+      "status": "已完成"
+    },
+    {
+      "page": 23,
+      "section": "04 · 正在补齐的关键对照",
+      "title": "为什么现在补训一个 canonical 对照",
+      "status": "进行中"
+    },
+    {
+      "page": 24,
+      "section": "05 · 论文中心与近邻",
+      "title": "把论文收敛成一个问题、三项待证交付",
+      "status": "待验证"
+    },
+    {
+      "page": 25,
+      "section": "05 · 论文中心与近邻",
+      "title": "近邻已经做了什么：训练与观察表达",
+      "status": "参考文献"
+    },
+    {
+      "page": 26,
+      "section": "05 · 论文中心与近邻",
+      "title": "近邻已经做了什么：实际主动取景",
+      "status": "参考文献"
+    },
+    {
+      "page": 27,
+      "section": "06 · 下一阶段的有界设计",
+      "title": "用同一个量连接训练、静态与主动",
+      "status": "研究设计"
+    },
+    {
+      "page": 28,
+      "section": "06 · 下一阶段的有界设计",
+      "title": "先补因果链，不把实验扩成全排列",
+      "status": "研究设计"
+    },
+    {
+      "page": 29,
+      "section": "06 · 下一阶段的有界设计",
+      "title": "“信息性”怎样定义才不靠事后讲故事",
+      "status": "待验证"
+    },
+    {
+      "page": 30,
+      "section": "06 · 下一阶段的有界设计",
+      "title": "A1：把免费换位变成可执行的观察动作",
+      "status": "待验证"
+    },
+    {
+      "page": 31,
+      "section": "06 · 下一阶段的有界设计",
+      "title": "怎样才算学会了“何时看、往哪看”",
+      "status": "研究设计"
+    },
+    {
+      "page": 32,
+      "section": "06 · 下一阶段的有界设计",
+      "title": "固定外部、主动头部、腕部：主张分层",
+      "status": "研究设计"
+    },
+    {
+      "page": 33,
+      "section": "06 · 下一阶段的有界设计",
+      "title": "现在能跑什么，下一步才允许跑什么",
+      "status": "进行中"
+    },
+    {
+      "page": 34,
+      "section": "07 · 收敛与汇报结论",
+      "title": "什么时候继续、收窄，或停止扩展",
+      "status": "研究设计"
+    },
+    {
+      "page": 35,
+      "section": "07 · 收敛与汇报结论",
+      "title": "本次汇报可以这样收尾",
+      "status": "进行中"
+    },
+    {
+      "page": 36,
+      "section": "附录 A · 统计与复现口径",
+      "title": "统计单位、选择偏差与预算的最后核对",
+      "status": "已完成"
+    },
+    {
+      "page": 37,
+      "section": "附录 A · 统计与复现口径",
+      "title": "保留的历史分支：KYC 不能概括为无效",
+      "status": "历史探索"
+    },
+    {
+      "page": 38,
+      "section": "附录 B · 近邻主来源",
+      "title": "参考文献 1 / 2：训练与输入利用",
+      "status": "参考文献"
+    },
+    {
+      "page": 39,
+      "section": "附录 B · 近邻主来源",
+      "title": "参考文献 2 / 2：主动视觉与操作",
+      "status": "参考文献"
+    },
+    {
+      "page": 40,
+      "section": "附录 C · 文件与证据入口",
+      "title": "统一报告与可追溯证据放在哪里",
+      "status": "已完成"
+    }
+  ]
+}

@@ -135,6 +135,13 @@ export PRETRAINED_MODELS_DIR=${PRETRAINED_MODELS_DIR:-/share/longjunyu/alphabrai
 export ALPHABRAIN_DISABLE_AUTO_DOWNLOAD=1
 export NO_ALBUMENTATIONS_UPDATE=1
 export OMP_NUM_THREADS=${OMP_NUM_THREADS:-8}
+export WANDB_MODE=${ALPHABRAIN_WANDB_MODE:-online}
+export WANDB_PROJECT=${ALPHABRAIN_WANDB_PROJECT:-alphabrain-camera-active-vision}
+export WANDB_INIT_TIMEOUT=${WANDB_INIT_TIMEOUT:-30}
+WANDB_NETRC_PATH=${WANDB_NETRC_PATH:-/workspace/ai2r/.secrets/wandb.netrc}
+if [[ -f "$WANDB_NETRC_PATH" ]]; then
+  export NETRC="$WANDB_NETRC_PATH"
+fi
 
 image_mask="[true,true,false]"
 if [[ "$WRIST_MODE" == off ]]; then

@@ -16,6 +16,8 @@ from contextlib import nullcontext
 import json
 import logging
 import os
+import socket
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Tuple
@@ -380,33 +382,161 @@ class VLATrainer(TrainerUtils):
         return self.accelerator.accumulate(self.model)
 
     def _init_wandb(self):
-        """initialize Weights & Biases"""
-        wandb_mode = getattr(self.config, 'wandb_mode', None) or getattr(getattr(self.config, 'environment', None), 'wandb_mode', None) or os.environ.get('WANDB_MODE', 'online')
+        """Initialize metric-only W&B tracking without blocking training."""
+        environment = getattr(self.config, "environment", None)
+        wandb_mode = (
+            os.environ.get("WANDB_MODE")
+            or getattr(self.config, "wandb_mode", None)
+            or getattr(environment, "wandb_mode", None)
+            or "online"
+        )
+        wandb_mode = str(wandb_mode).lower()
+        if wandb_mode not in {"online", "offline", "disabled"}:
+            logger.warning("Unknown WANDB_MODE=%s; using offline mode", wandb_mode)
+            wandb_mode = "offline"
         if wandb_mode == 'disabled':
             os.environ['WANDB_MODE'] = 'disabled'
             return
         if wandb is None:
-            raise RuntimeError("wandb is required unless WANDB_MODE=disabled")
+            logger.warning("wandb is unavailable; continuing with local metrics.jsonl")
+            return
         if self.accelerator.is_main_process:
-            # Support both nested (environment.wandb_project) and flat (wandb_project) config layouts
-            if hasattr(self.config, 'environment') and self.config.environment is not None:
-                wandb_project = self.config.environment.wandb_project
-                wandb_entity = self.config.environment.wandb_entity
-                wandb_base_url = getattr(self.config.environment, 'wandb_base_url', None)
-            else:
-                wandb_project = getattr(self.config, 'wandb_project', 'vla-engine')
-                wandb_entity = getattr(self.config, 'wandb_entity', '')
-                wandb_base_url = getattr(self.config, 'wandb_base_url', None)
-            # Set proxy/mirror base URL if configured
+            wandb_project = (
+                os.environ.get("WANDB_PROJECT")
+                or getattr(self.config, "wandb_project", None)
+                or getattr(environment, "wandb_project", None)
+                or "alphabrain-vla"
+            )
+            wandb_entity = (
+                os.environ.get("WANDB_ENTITY")
+                or getattr(self.config, "wandb_entity", None)
+                or getattr(environment, "wandb_entity", None)
+                or None
+            )
+            wandb_base_url = (
+                os.environ.get("WANDB_BASE_URL")
+                or getattr(self.config, "wandb_base_url", None)
+                or getattr(environment, "wandb_base_url", None)
+            )
             if wandb_base_url:
                 os.environ["WANDB_BASE_URL"] = wandb_base_url
-            wandb.init(
-                name=self.config.run_id,
-                dir=os.path.join(self.config.output_dir, "wandb"),
-                project=wandb_project,
-                entity=wandb_entity or None,
-                group="vla-train",
+
+            wandb_dir = os.path.join(self.config.output_dir, "wandb")
+            os.makedirs(wandb_dir, exist_ok=True)
+            safe_config = {
+                "run_id": str(self.config.run_id),
+                "seed": int(getattr(self.config, "seed", 0)),
+                "framework": str(getattr(self.config.framework, "name", "unknown")),
+                "dataset_mix": str(getattr(self.config, "dataset_mix", "unknown")),
+                "per_device_batch_size": int(
+                    getattr(self.config.datasets.vla_data, "per_device_batch_size", 0)
+                ),
+                "gradient_accumulation_steps": int(
+                    self.accelerator.gradient_accumulation_steps
+                ),
+                "max_train_steps": int(self.config.trainer.max_train_steps),
+                "process_count": int(self.accelerator.num_processes),
+                "visible_gpu_count": int(torch.cuda.device_count()),
+                "hostname": socket.gethostname(),
+                "git_commit": self._git_commit_for_tracking(),
+            }
+            init_kwargs = {
+                "name": str(self.config.run_id),
+                "dir": wandb_dir,
+                "project": str(wandb_project),
+                "entity": wandb_entity,
+                "group": "vla-train",
+                "config": safe_config,
+                "save_code": False,
+                "settings": wandb.Settings(
+                    console="off",
+                    disable_code=True,
+                    disable_git=True,
+                    init_timeout=float(os.environ.get("WANDB_INIT_TIMEOUT", "30")),
+                    x_disable_meta=True,
+                    x_disable_stats=True,
+                    x_save_requirements=False,
+                ),
+            }
+            try:
+                wandb.init(mode=wandb_mode, **init_kwargs)
+                logger.info("W&B tracking initialized in %s mode", wandb_mode)
+                if wandb.run is not None and wandb.run.url:
+                    logger.info("W&B run URL: %s", wandb.run.url)
+                elif wandb.run is not None:
+                    logger.info("W&B offline run directory: %s", wandb.run.dir)
+            except Exception as exc:
+                logger.warning(
+                    "W&B %s initialization failed (%s); retrying offline",
+                    wandb_mode,
+                    type(exc).__name__,
+                )
+                self._reset_wandb_after_failure()
+                try:
+                    os.environ["WANDB_MODE"] = "offline"
+                    wandb.init(mode="offline", **init_kwargs)
+                    logger.info("W&B tracking initialized in offline mode")
+                    if wandb.run is not None:
+                        logger.info("W&B offline run directory: %s", wandb.run.dir)
+                except Exception as offline_exc:
+                    logger.warning(
+                        "W&B offline initialization failed (%s); continuing with local metrics.jsonl",
+                        type(offline_exc).__name__,
+                    )
+                    self._reset_wandb_after_failure()
+
+    @staticmethod
+    def _git_commit_for_tracking() -> str:
+        repo_root = Path(__file__).resolve().parents[2]
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=repo_root,
+                capture_output=True,
+                check=False,
+                text=True,
+                timeout=2,
             )
+        except (OSError, subprocess.SubprocessError):
+            return "unknown"
+        commit = result.stdout.strip()
+        return commit if result.returncode == 0 and commit else "unknown"
+
+    @staticmethod
+    def _reset_wandb_after_failure() -> None:
+        if wandb is None:
+            return
+        try:
+            if wandb.run is not None:
+                wandb.finish(exit_code=1)
+        except Exception:
+            pass
+        try:
+            wandb.teardown()
+        except Exception:
+            pass
+
+    @staticmethod
+    def _finish_wandb() -> None:
+        if wandb is None or wandb.run is None:
+            return
+        try:
+            wandb.finish()
+        except Exception as exc:
+            logger.warning("W&B finish failed (%s); local run files were retained", type(exc).__name__)
+
+    @staticmethod
+    def _wandb_scalar_metrics(metrics: dict) -> dict:
+        """Keep W&B payloads metric-only; never pass media, artifacts, or files."""
+        scalar_metrics = {}
+        for key, value in metrics.items():
+            if isinstance(value, (bool, int, float)):
+                scalar_metrics[str(key)] = value
+            elif isinstance(value, np.generic):
+                scalar_metrics[str(key)] = value.item()
+            elif torch.is_tensor(value) and value.numel() == 1:
+                scalar_metrics[str(key)] = value.detach().item()
+        return scalar_metrics
 
     def _load_pretrained_dispatch(self, model, checkpoint_path, reload_modules=None):
         """
@@ -836,7 +966,17 @@ class VLATrainer(TrainerUtils):
 
                 # record to W&B
                 if wandb is not None and wandb.run is not None:
-                    wandb.log(metrics, step=self.completed_steps)
+                    try:
+                        wandb.log(
+                            self._wandb_scalar_metrics(metrics),
+                            step=self.completed_steps,
+                        )
+                    except Exception as exc:
+                        logger.warning(
+                            "W&B metric logging failed at step %s (%s); local metrics remain authoritative",
+                            self.completed_steps,
+                            type(exc).__name__,
+                        )
 
                 # record to local metrics.jsonl
                 metrics_file = os.path.join(self.config.output_dir, "metrics.jsonl")
@@ -1099,8 +1239,8 @@ class VLATrainer(TrainerUtils):
         """training end processing"""
         if bool(getattr(self.config.trainer, "skip_final_save", False)):
             logger.info("Training complete. Final model save skipped by trainer.skip_final_save")
-            if self.accelerator.is_main_process and wandb is not None:
-                wandb.finish()
+            if self.accelerator.is_main_process:
+                self._finish_wandb()
             self.accelerator.wait_for_everyone()
             return
 
@@ -1112,8 +1252,7 @@ class VLATrainer(TrainerUtils):
                 self._save_lora_checkpoint(os.path.join(final_path, "final"))
                 logger.info(f"LoRA training complete. Final model saved at {final_path}")
                 if self.accelerator.is_main_process:
-                    if wandb is not None:
-                        wandb.finish()
+                    self._finish_wandb()
                 self.accelerator.wait_for_everyone()
                 return
 
@@ -1192,8 +1331,7 @@ class VLATrainer(TrainerUtils):
 
         # close W&B
         if self.accelerator.is_main_process:
-            if wandb is not None:
-                wandb.finish()
+            self._finish_wandb()
 
         self.accelerator.wait_for_everyone()
 

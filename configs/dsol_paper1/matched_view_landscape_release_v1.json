@@ -1,0 +1,98 @@
+{
+  "schema": "dsol_matched_view_landscape_release_v1",
+  "status": "STATIC_DIAGNOSTIC_ONLY",
+  "date_utc": "2026-09-08",
+  "authorized_stages": [1, 2, 3],
+  "scope": "matched external-view training landscape and cached metric development diagnostics",
+  "training_release": false,
+  "active_camera_release": false,
+  "robocasa_release": false,
+  "root": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908",
+  "protocol_manifest": {
+    "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/protocols/protocol_manifest.json",
+    "sha256": "30d922bdfb915008f8c8a9449d79974cc064b9e815059bae839411c5a34a7f2b"
+  },
+  "checkpoint_receipt": {
+    "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/checkpoint-audit/completed_run_receipt.json",
+    "sha256": "9fea581b63bae11507edb2f0f779cf4199bbbd64083ccbccd329a6f8291f2f87"
+  },
+  "canonical_checkpoint": {
+    "path": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_canonical_unique_mb-matched-v1_seed41_g2_gb32_steps2000/final_model",
+    "weights_sha256": "7e510b752143bb6fd4987988dfab5e94f7db1de5f7e97579f892a58eed22cc68",
+    "weights_size_bytes": 17610456556,
+    "framework_config_sha256": "ab2bf0f607def9be8fd231da32a16f91d6b6605244bb5d84c01b4406c4f9723e"
+  },
+  "broad_reference_checkpoint": {
+    "path": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_m-b-formal-v1_seed41_g2_gb32_steps2000/final_model",
+    "weights_sha256": "123786f53c9823b878fb08fe61ef25fe4931d4bcae8134e0a64940b7a8ac3cad",
+    "new_rollouts_authorized_by_this_controller": false
+  },
+  "noise_bank": {
+    "path": "/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/noise-banks/bank_O.manifest.json",
+    "manifest_sha256": "791caaba04b81b1325dfcb9d119a07e20f1e134f10056e3633f8a5baaa513264",
+    "file_sha256": "2dcdbeb3f544fe4ee08b4d08ec2ca61dcdb05e0734a18c1f28000971ffbab9e6",
+    "bank_id": "O",
+    "reuse_scope": "historical development bank, not a new confirmatory test"
+  },
+  "catalog": {
+    "path": "/workspace/projects/alphabrain-dsol-paper1/configs/dsol_paper1/libero_view_catalog_v2_m1.json",
+    "sha256": "91417100328c8e9522d3493a366c79babee5233cd843210527ad8a28a95ef4b7"
+  },
+  "runner_code_sha256": "ffcff0ddf4cd4db1b3fb11692bfa4b3a7f5dd4b3adb1e91816d16bd9fde4f731",
+  "critical_files": {
+    "scripts/dsol_paper1/audit_statewise_view_oracle_v2_run.py": "723dd5f91256a5c20adbd865e8425a894b83c4de269dbf8432fbbe7b52333647",
+    "scripts/dsol_paper1/explicit_flow_noise.py": "c93b13b65c4aa063aa36d5f30d1b5d6accb88b0aa66e376a2b20857ca38db097",
+    "scripts/dsol_paper1/run_matched_view_landscape_v1.sh": "9754482788fb8725c3046a9c84878f3f90c73582913d94192fcf33a0ace9c5e4",
+    "AlphaBrain/model/framework/PaliGemmaPi.py": "76d2b7c0a031bd986d17f06ced6e7595c8dd47ab0245e6fac621f05037fc447f",
+    "AlphaBrain/model/framework/base_framework.py": "9cb6272614429e0b23d1e18e4d2b98b592ff9a04781590f682ed93109f4a3924",
+    "AlphaBrain/model/modules/action_model/pi0_flow_matching_head/pi0_action_head.py": "f4a6961db1850bad3e1d0a2352c63a6c9e8ece8feec530e59fe902f5e280fb72",
+    "AlphaBrain/model/modules/action_model/pi0_flow_matching_head/openpi_inference.py": "210d288f610b0a0faffde671313d99b11b72dad891c779080a0911929114e595",
+    "AlphaBrain/model/modules/action_model/pi0_flow_matching_head/pi0_transforms.py": "e8236ac202a4a01a4d212c1012ea8682d33e4029b124eda4c5a63f3065657662",
+    "AlphaBrain/model/modules/action_model/pi0_flow_matching_head/openpi_pi0.py": "196883d3f60fceafdbc12c09e08de3ae61e11e1ab4ee3a1608f5f9478e2ca609"
+  },
+  "prerequisite": {
+    "canonical_accel_completion": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/canonical-accel/completion.json",
+    "required_status": "PASS_COMPLETE",
+    "expected_state_candidate_ensemble_counts": [8, 97, 8],
+    "applies_to_run_only_not_check_only": true
+  },
+  "execution": {
+    "gpu_devices": [0, 1, 2, 3, 4, 5, 6, 7],
+    "gpu_count": 8,
+    "eval_worker_count": 32,
+    "policy_server_copies_per_gpu": 2,
+    "policy_cpu_threads": 2,
+    "sim_cpu_threads": 1,
+    "base_port": 26200,
+    "replan_steps": 5,
+    "wait_steps": 0,
+    "flow_denoising_steps": 10,
+    "eval_seed": 20260818,
+    "video_episodes_per_worker": 0,
+    "run_analysis": false,
+    "require_explicit_noise": true,
+    "keepalive_mode": "managed",
+    "max_wall_seconds": 129600,
+    "termination_grace_seconds": 120,
+    "automatic_retry": false,
+    "resume_policy": "only PASS_COMPLETE segments with unchanged release, protocol, checkpoint/config, bank, code, run-manifest and ledger hashes; partial segments stop for explicit review"
+  },
+  "episode_budget": {
+    "state_count": 8,
+    "known_task_count": 8,
+    "candidate_count": 97,
+    "repeat_count": 32,
+    "canonical_unique_total": 24832,
+    "smoke": 48,
+    "smoke_reused_inside_total": true,
+    "route": ["smoke", "wave-00-remainder-a", "wave-00-remainder-b", "wave-01", "wave-02", "wave-03", "wave-04", "wave-05", "wave-06", "wave-07"],
+    "never_run_full_wave_00_in_addition": true
+  },
+  "limitations": [
+    "Canonical treatment retains wrist images and task language; external training pose is the manipulated factor.",
+    "Eight development source states from eight known tasks; this is not unseen-task or cross-seed evidence.",
+    "This controller produces static restart rollouts only; camera is installed before continuation and then fixed.",
+    "Historical Broad rollouts are reused only after their own provenance audit, not silently relabeled as new confirmation.",
+    "Cached candidate-image metric scoring is an offline diagnostic, not a mobile camera deployment method."
+  ]
+}

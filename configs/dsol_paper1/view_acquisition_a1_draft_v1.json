@@ -1,0 +1,395 @@
+{
+  "schema_version": "view-acquisition-a1/v1",
+  "protocol_id": "dsol_view_acquisition_a1_draft_v1",
+  "status": "DRAFT",
+  "scope": "A1_KINEMATIC_EXTERNAL",
+  "launch_enabled": false,
+  "release": {
+    "approved_by": null,
+    "frozen_at_utc": null
+  },
+  "gates": {
+    "input_contract": null,
+    "training_match": null,
+    "restore_roundtrip": null,
+    "no_acquisition_equivalence": null,
+    "camera_pose_sync": null,
+    "hold_drift": null,
+    "query_permissions": null,
+    "noise_independence": null,
+    "failure_denominator": null,
+    "evidence_controls": null
+  },
+  "input_contract": {
+    "id": "dsol_external_wrist_language_v1",
+    "policy_inputs": [
+      "external_rgb",
+      "wrist_rgb",
+      "language"
+    ],
+    "selector_inputs": [
+      "external_rgb",
+      "wrist_rgb",
+      "language",
+      "robot_state",
+      "camera_geometry"
+    ],
+    "candidate_images": "forbidden",
+    "along_path_images": false,
+    "image_readout": "after_arrival_only",
+    "query_unit": "observation_bundle",
+    "bundle_image_keys": ["external_rgb", "wrist_rgb"],
+    "rules_share_input_permissions": true,
+    "base_policy_history": "current_frame",
+    "extra_selector_state_declared": true
+  },
+  "treatments": [
+    {
+      "id": "narrow",
+      "coverage": "narrow",
+      "checkpoint_path": null,
+      "checkpoint_sha256": null,
+      "training_manifest_sha256": null,
+      "input_contract_id": "dsol_external_wrist_language_v1",
+      "initial_checkpoint_sha256": null,
+      "training_sources_sha256": null,
+      "action_labels_sha256": null,
+      "unique_states": null,
+      "image_exposures": null,
+      "optimizer_updates": null,
+      "noise_bank_ids": [
+        "O",
+        "P",
+        "Q"
+      ],
+      "optimizer_contract": {
+        "name": null,
+        "schedule": null,
+        "peak_learning_rate": null,
+        "end_learning_rate": null,
+        "weight_decay": null,
+        "schedule_steps": null,
+        "warmup_steps": null
+      }
+    },
+    {
+      "id": "broad",
+      "coverage": "broad",
+      "checkpoint_path": null,
+      "checkpoint_sha256": null,
+      "training_manifest_sha256": null,
+      "input_contract_id": "dsol_external_wrist_language_v1",
+      "initial_checkpoint_sha256": null,
+      "training_sources_sha256": null,
+      "action_labels_sha256": null,
+      "unique_states": null,
+      "image_exposures": null,
+      "optimizer_updates": null,
+      "noise_bank_ids": [
+        "O",
+        "P",
+        "Q"
+      ],
+      "optimizer_contract": {
+        "name": null,
+        "schedule": null,
+        "peak_learning_rate": null,
+        "end_learning_rate": null,
+        "weight_decay": null,
+        "schedule_steps": null,
+        "warmup_steps": null
+      }
+    }
+  ],
+  "noise": {
+    "shared_across_treatments": true,
+    "acquisition_consumes_base_policy_noise": false,
+    "key_fields": [
+      "source_id",
+      "bank_id",
+      "repeat",
+      "base_policy_call"
+    ],
+    "independent_streams": [
+      "base_policy",
+      "camera",
+      "selector"
+    ],
+    "banks": [
+      {
+        "id": "O",
+        "role": "discovery",
+        "seed": null,
+        "sha256": null,
+        "repeats": 8
+      },
+      {
+        "id": "P",
+        "role": "refinement",
+        "seed": null,
+        "sha256": null,
+        "repeats": 8
+      },
+      {
+        "id": "Q",
+        "role": "confirmation",
+        "seed": null,
+        "sha256": null,
+        "repeats": 16
+      }
+    ]
+  },
+  "sources": [],
+  "source_manifest_sha256": null,
+  "planning_counts": {
+    "development": {
+      "base_clusters": 16,
+      "sources": 16,
+      "branches_per_source": 2
+    },
+    "calibration": {
+      "base_clusters": 0,
+      "sources": 0,
+      "branches_per_source": 2
+    },
+    "confirmation": {
+      "base_clusters": 0,
+      "sources": 0,
+      "branches_per_source": 2
+    }
+  },
+  "environment": {
+    "control_frequency_hz": null,
+    "total_steps": null,
+    "trigger_step": null,
+    "acquisition_consumes_horizon": true,
+    "hold_controller": "maintain_targets",
+    "max_hold_position_error_m": null,
+    "max_hold_rotation_error_rad": null
+  },
+  "acquisition": {
+    "camera_mode": "kinematic_external",
+    "same_duration_required": true,
+    "speed_limits": {
+      "linear_m_s": null,
+      "angular_rad_s": null,
+      "linear_acceleration_m_s2": null,
+      "angular_acceleration_rad_s2": null
+    },
+    "workspace_bounds": {
+      "min_xyz": null,
+      "max_xyz": null
+    },
+    "actions": [
+      {
+        "id": "continue",
+        "kind": "continue",
+        "duration_steps": 0
+      },
+      {
+        "id": "hold",
+        "kind": "hold",
+        "duration_steps": null
+      },
+      {
+        "id": "move_1",
+        "kind": "move",
+        "duration_steps": null,
+        "path_interpolation": "quintic_xyz_slerp",
+        "target_pose": {
+          "position_xyz": null,
+          "quaternion_wxyz": null
+        }
+      },
+      {
+        "id": "move_2",
+        "kind": "move",
+        "duration_steps": null,
+        "path_interpolation": "quintic_xyz_slerp",
+        "target_pose": {
+          "position_xyz": null,
+          "quaternion_wxyz": null
+        }
+      },
+      {
+        "id": "move_3",
+        "kind": "move",
+        "duration_steps": null,
+        "path_interpolation": "quintic_xyz_slerp",
+        "target_pose": {
+          "position_xyz": null,
+          "quaternion_wxyz": null
+        }
+      },
+      {
+        "id": "move_4",
+        "kind": "move",
+        "duration_steps": null,
+        "path_interpolation": "quintic_xyz_slerp",
+        "target_pose": {
+          "position_xyz": null,
+          "quaternion_wxyz": null
+        }
+      }
+    ]
+  },
+  "evidence_blocks": [
+    "equivalent_projection",
+    "reveal",
+    "matched_negative"
+  ],
+  "evidence_blocks_frozen_before_outcomes": true,
+  "diagnostic_control_ids": [
+    "direct_reveal"
+  ],
+  "rule_ids": [
+    "continue_policy",
+    "fixed_query",
+    "random_query",
+    "geometry_query",
+    "predicted_query"
+  ],
+  "evaluation_groups": [
+    {
+      "id": "a1_development_action_bank",
+      "split": "development",
+      "kind": "actions",
+      "bank_id": "O",
+      "member_ids": [
+        "continue",
+        "hold",
+        "move_1",
+        "move_2",
+        "move_3",
+        "move_4"
+      ]
+    },
+    {
+      "id": "a1_development_positive_control",
+      "split": "development",
+      "kind": "controls",
+      "bank_id": "O",
+      "member_ids": [
+        "direct_reveal"
+      ]
+    }
+  ],
+  "primary_contrasts": [
+    {
+      "id": "adaptive_vs_fixed",
+      "left_rule": "predicted_query",
+      "right_rule": "fixed_query",
+      "estimand": "net_value_difference",
+      "minimum_effect": null
+    },
+    {
+      "id": "training_by_acquisition",
+      "left_rule": "predicted_query",
+      "right_rule": "continue_policy",
+      "estimand": "training_interaction",
+      "minimum_effect": null
+    }
+  ],
+  "analysis": {
+    "cluster_unit": "cluster_id",
+    "interval_method": null,
+    "multiplicity": null,
+    "fit_and_evaluate_same_samples": false,
+    "grouped_development_validation": true,
+    "cost_weights": null
+  },
+  "budget": {
+    "max_episodes": 10752,
+    "planning_failures_in_denominator": true
+  },
+  "draft_notes": [
+    "This is a three-evidence-block development arithmetic plan: 9216 action episodes plus 1536 privileged direct-reveal controls, not a launch release.",
+    "Sixteen base clusters remain sixteen independent sources; branch, evidence, treatment and noise repetition do not increase independent layout count.",
+    "No checkpoint pair is certified matched. Legacy canonical/Broad checkpoints may both have 2000 updates but different learning-rate schedules; audit effective schedules before release.",
+    "A1 first uses current-frame policy input and after-arrival images only. No claim about A2 joint-memory use or wrist-coupled actions is covered.",
+    "Calibration and new-source confirmation require a separately frozen manifest, independent noise bank, rule receipt and revised budget."
+  ],
+  "unresolved": [
+    "/acquisition/actions/1/duration_steps",
+    "/acquisition/actions/2/duration_steps",
+    "/acquisition/actions/2/target_pose/position_xyz",
+    "/acquisition/actions/2/target_pose/quaternion_wxyz",
+    "/acquisition/actions/3/duration_steps",
+    "/acquisition/actions/3/target_pose/position_xyz",
+    "/acquisition/actions/3/target_pose/quaternion_wxyz",
+    "/acquisition/actions/4/duration_steps",
+    "/acquisition/actions/4/target_pose/position_xyz",
+    "/acquisition/actions/4/target_pose/quaternion_wxyz",
+    "/acquisition/actions/5/duration_steps",
+    "/acquisition/actions/5/target_pose/position_xyz",
+    "/acquisition/actions/5/target_pose/quaternion_wxyz",
+    "/acquisition/speed_limits/angular_acceleration_rad_s2",
+    "/acquisition/speed_limits/angular_rad_s",
+    "/acquisition/speed_limits/linear_acceleration_m_s2",
+    "/acquisition/speed_limits/linear_m_s",
+    "/acquisition/workspace_bounds/max_xyz",
+    "/acquisition/workspace_bounds/min_xyz",
+    "/analysis/cost_weights",
+    "/analysis/interval_method",
+    "/analysis/multiplicity",
+    "/environment/control_frequency_hz",
+    "/environment/max_hold_position_error_m",
+    "/environment/max_hold_rotation_error_rad",
+    "/environment/total_steps",
+    "/environment/trigger_step",
+    "/gates/camera_pose_sync",
+    "/gates/evidence_controls",
+    "/gates/failure_denominator",
+    "/gates/hold_drift",
+    "/gates/input_contract",
+    "/gates/no_acquisition_equivalence",
+    "/gates/noise_independence",
+    "/gates/query_permissions",
+    "/gates/restore_roundtrip",
+    "/gates/training_match",
+    "/noise/banks/0/seed",
+    "/noise/banks/0/sha256",
+    "/noise/banks/1/seed",
+    "/noise/banks/1/sha256",
+    "/noise/banks/2/seed",
+    "/noise/banks/2/sha256",
+    "/primary_contrasts/0/minimum_effect",
+    "/primary_contrasts/1/minimum_effect",
+    "/release/approved_by",
+    "/release/frozen_at_utc",
+    "/source_manifest_sha256",
+    "/sources",
+    "/treatments/0/action_labels_sha256",
+    "/treatments/0/checkpoint_path",
+    "/treatments/0/checkpoint_sha256",
+    "/treatments/0/image_exposures",
+    "/treatments/0/initial_checkpoint_sha256",
+    "/treatments/0/optimizer_contract/end_learning_rate",
+    "/treatments/0/optimizer_contract/name",
+    "/treatments/0/optimizer_contract/peak_learning_rate",
+    "/treatments/0/optimizer_contract/schedule",
+    "/treatments/0/optimizer_contract/schedule_steps",
+    "/treatments/0/optimizer_contract/warmup_steps",
+    "/treatments/0/optimizer_contract/weight_decay",
+    "/treatments/0/optimizer_updates",
+    "/treatments/0/training_manifest_sha256",
+    "/treatments/0/training_sources_sha256",
+    "/treatments/0/unique_states",
+    "/treatments/1/action_labels_sha256",
+    "/treatments/1/checkpoint_path",
+    "/treatments/1/checkpoint_sha256",
+    "/treatments/1/image_exposures",
+    "/treatments/1/initial_checkpoint_sha256",
+    "/treatments/1/optimizer_contract/end_learning_rate",
+    "/treatments/1/optimizer_contract/name",
+    "/treatments/1/optimizer_contract/peak_learning_rate",
+    "/treatments/1/optimizer_contract/schedule",
+    "/treatments/1/optimizer_contract/schedule_steps",
+    "/treatments/1/optimizer_contract/warmup_steps",
+    "/treatments/1/optimizer_contract/weight_decay",
+    "/treatments/1/optimizer_updates",
+    "/treatments/1/training_manifest_sha256",
+    "/treatments/1/training_sources_sha256",
+    "/treatments/1/unique_states"
+  ]
+}

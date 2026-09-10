@@ -12,8 +12,10 @@
 | 当前汇报材料 | [研究进展 PDF](reports/current/vla_view_research_progress_zh.pdf) · [图表说明](reports/current/vla_view_research_progress_zh.md) |
 | 双周汇报交付 | [2026-09-09 双周报源文件](reports/biweekly/20260909/build_report.py) |
 | 代码用途与入口 | [脚本导航](../../scripts/dsol_paper1/README.md) |
+| 共享服务与相机工具 | [VLA 共享模块](../../scripts/vla_shared/README.md) |
 | 训练匹配与证据边界 | [训练匹配审计](training_match_anchor_audit_20260907_zh.md) |
 | 过去的计划、结果、版本 | [历史项目索引](HISTORY.md) |
+| 不属于当前论文的旁支文档 | [历史研究档案](../archive/research/README.md) |
 | 已退休的操作脚本与路径映射 | [操作归档](../../archive/paper1/README.md) |
 
 历史文档中的“当前”“运行中”和预计用时只代表文档当时的截点。最新实际进度读取运行目录的状态和完成收据；已有 PDF 不因代码整理自动成为新矩阵结果。
@@ -62,5 +64,6 @@ python tools/paper1/test.py
 - 新生成的报告 PDF、DOCX、预览图和字体副本留在本地/共享盘，由限定目录的忽略规则管理；原文件不删除，已跟踪历史证据不取消跟踪。
 - 报告源文件仍在 Git，但 PDF 重建还依赖外部图表与数据，不声称仅凭克隆仓库即可完整重建。
 - 冻结协议、权重、原始结果和判废记录保持原路径及来源链，不在本轮清理。
-- 其他研究目录不属于当前默认流程；其中被共享模块引用的代码仍保留，不按目录名整批删除。
+- 95 份旁支文档已转入 `docs/archive/research/`；论文引用的两份 KYC 证据和原图/历史配置保留原位。
+- 当前共享服务、观测和相机实现位于 `scripts/vla_shared/`。旧 CABI 四个同名文件仅作兼容入口；绑定旧冻结 release 的驱动只在哈希核验后使用其中的原副本。
 - 21 个混放测试已统一到 `tests/dsol_paper1`；12 个已核对的一次性操作脚本转为历史文本归档。其余脚本不能据此视为已完成模块化重构。

@@ -23,7 +23,7 @@ ray 三种方法。
 KYC 对 Pi0.5 的价值，下一步应转到带相机参数、非固定视觉环境的
 LIBERO-Plus，并先修复 external-camera-only 基线。
 
-![视觉对齐筛选汇总](assets/kyc_visual_alignment_v1/screen_summary.png)
+![视觉对齐筛选汇总](../../../cabi_vla/assets/kyc_visual_alignment_v1/screen_summary.png)
 
 ## 实验到底比较了什么
 
@@ -90,7 +90,7 @@ KYC 相对 RGB 在全部支持位姿上同样为 `+5.71 pp`，95% CI
 
 ## 相机位姿影响
 
-![相机位姿闭环响应](assets/kyc_visual_alignment_v1/camera_pose_response.png)
+![相机位姿闭环响应](../../../cabi_vla/assets/kyc_visual_alignment_v1/camera_pose_response.png)
 
 图中彩色实线是闭环任务成功率，黑色虚线是“两个任务物体完整可见且中心仍在
 画面内”的比例。需要区分两个可见性概念：

@@ -313,7 +313,7 @@ def scan(args: argparse.Namespace) -> dict[str, Any]:
 
     script_root = Path(__file__).resolve().parent
     sys.path.insert(0, str(script_root))
-    sys.path.insert(0, str(script_root.parent / "cabi_vla"))
+    sys.path.insert(0, str(script_root.parent / "vla_shared"))
     from audit_libero_hdf5_restore import _configure_runtime, _decode, _rewrite_model_paths
 
     runtime = args.runtime.resolve()

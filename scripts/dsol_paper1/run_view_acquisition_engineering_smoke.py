@@ -21,7 +21,7 @@ from typing import Any
 
 def configure_imports() -> None:
     scripts = Path(__file__).resolve().parents[1]
-    for path in (scripts / "dsol_paper1", scripts / "cabi_vla"):
+    for path in (scripts / "dsol_paper1", scripts / "vla_shared"):
         if str(path) not in sys.path:
             sys.path.insert(0, str(path))
 

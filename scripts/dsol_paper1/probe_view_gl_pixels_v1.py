@@ -9,7 +9,7 @@ import sys
 import numpy as np
 
 HERE=Path(__file__).resolve().parent
-sys.path.insert(0,str(HERE)); sys.path.insert(0,str(HERE.parent/'cabi_vla'))
+sys.path.insert(0,str(HERE)); sys.path.insert(0,str(HERE.parent/'vla_shared'))
 
 
 def main():

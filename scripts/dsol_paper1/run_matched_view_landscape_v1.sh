@@ -68,9 +68,11 @@ def write_json(path, payload, exclusive=False):
 
 
 def runner_code_hash():
+    from scripts.dsol_paper1.shared_runtime_paths import shared_code_paths
     paths = [REPO / "scripts/cabi_vla/serve_alphabrain_pi05_websocket.py",
              REPO / "scripts/cabi_vla/serve_openpi_deterministic.py",
              REPO / "scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py", ANALYZER, RUNNER]
+    paths.extend(shared_code_paths(REPO))
     return hashlib.sha256(subprocess.check_output(["sha256sum", *map(str, paths)])).hexdigest()
 
 

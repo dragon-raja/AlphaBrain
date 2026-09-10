@@ -16,12 +16,13 @@ import time
 import tempfile
 import shutil
 import numpy as np
+from shared_runtime_paths import shared_scripts
 
 ROOT=Path('/share/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908')
 REPO=ROOT/'repo'
 RUNTIME=Path('/share/longjunyu/alphabrain/datasets/libero-plus/runtime/LIBERO-plus')
 SOURCE=Path('/workspace/projects/alphabrain-dsol-paper1')
-sys.path.insert(0,str(REPO/'scripts/cabi_vla'))
+sys.path.insert(0,str(shared_scripts(REPO)))
 from render_bridge_common_v1 import read,sha,array_identity,render_protocol
 from evaluate_dsol_libero_hdf5_views import protocol_spec_at,protocol_spec_count
 LOCK=threading.RLock(); ACTIVE=[]; STOP=threading.Event()
@@ -45,7 +46,7 @@ def env(sim=False,gpu=None):
     e=os.environ.copy()
     e.update(OMP_NUM_THREADS='1' if sim else '2',OPENBLAS_NUM_THREADS='1' if sim else '2',MKL_NUM_THREADS='1' if sim else '2',
              TOKENIZERS_PARALLELISM='false',PRETRAINED_MODELS_DIR='/share/longjunyu/alphabrain/pretrained_models',ALPHABRAIN_DISABLE_AUTO_DOWNLOAD='1',
-             PYTHONPATH=':'.join(map(str,([ROOT/'runtime/policy/lib/python3.12/site-packages'] if not sim else [])+[REPO,REPO/'scripts/cabi_vla',ROOT/'runtime/openpi-src',ROOT/'runtime/openpi-client-src'])),
+             PYTHONPATH=':'.join(map(str,([ROOT/'runtime/policy/lib/python3.12/site-packages'] if not sim else [])+[REPO,shared_scripts(REPO),ROOT/'runtime/openpi-src',ROOT/'runtime/openpi-client-src'])),
              IMAGEIO_FFMPEG_EXE='/usr/bin/ffmpeg')
     if gpu is None:e.pop('CUDA_VISIBLE_DEVICES',None)
     else:e['CUDA_VISIBLE_DEVICES']=str(gpu)
@@ -193,7 +194,7 @@ def matrix(host,r,phase,indices):
             for j in range(16):
                 port=r['base_port']+j
                 with socket.socket() as s:require(s.connect_ex(('127.0.0.1',port))!=0,'Unowned occupied port')
-                servers.append(spawn([python(),REPO/'scripts/cabi_vla/serve_alphabrain_pi05_websocket.py','--checkpoint',r['models'][model]['path'],'--port',port,'--device','cuda:0','--cpu-threads',2],
+                servers.append(spawn([python(),shared_scripts(REPO)/'serve_alphabrain_pi05_websocket.py','--checkpoint',r['models'][model]['path'],'--port',port,'--device','cuda:0','--cpu-threads',2],
                     ROOT/'hosts'/host/'logs'/f'{phase}-{model}-server-{j}.log',env(gpu=j//2)))
             start=time.time()
             while True:

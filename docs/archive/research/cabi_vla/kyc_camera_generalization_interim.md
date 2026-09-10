@@ -3,7 +3,7 @@
 Status: official ACT positive control complete; Pi0.5 Stage B1 complete; Stage
 B2 and the scene-cue by wrist factorial are running.
 
-![Official ACT and Pi0.5 Stage B1 results](assets/kyc_camera_generalization_v2/official_and_b1_scaling.png)
+![Official ACT and Pi0.5 Stage B1 results](../../../cabi_vla/assets/kyc_camera_generalization_v2/official_and_b1_scaling.png)
 
 ## Questions
 

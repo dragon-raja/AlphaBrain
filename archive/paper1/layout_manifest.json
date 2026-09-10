@@ -320,5 +320,792 @@
     "private_verification_receipt": "/share/longjunyu/alphabrain/archives/paper1-report-revisions-20260910/completed.json",
     "restore": "Extract archive to a separate directory, not over the active workspace. Members retain repository-relative paths.",
     "scope": "Three retired biweekly report revisions plus stale page-3/4/5 previews. No experiments, weights, infrastructure or keepalive files."
+  },
+  "shared_extraction": {
+    "baseline_commit": "37090c0d0f720b3767e8bb8fe51dd7e33cd4d7f2",
+    "baseline_tag": "archive/paper1-before-shared-extraction-20260910",
+    "modules": {
+      "serve_alphabrain_pi05_websocket": {
+        "source_sha256": "2a85fc64e0e440115b038ac6b10a59ef80b14a03fbb8eabe27d89a950dc2c928",
+        "nonimport_ast_sha256": "537fd0f6cd0028f41a1f21dc32f5e2092ac51890d9dbe3997c0c01898a85afee"
+      },
+      "evaluate_pi05_libero_plus_views": {
+        "source_sha256": "04156175aadcc7abd4c430132a7ab02b084d2ed65567e56d2e8cfff99fa37093",
+        "nonimport_ast_sha256": "ca664dc66c75351cf504749c9eacd2c38f89a69b229cd0cc42adf5015bdd5ece"
+      },
+      "libero_camera_pose": {
+        "source_sha256": "a749d3e86031e3ba47ebe987f272b3aef9d8514bf22a96584a23660436b8c5f0",
+        "nonimport_ast_sha256": "d2ed6deb45d0727df7bb986b2c9ea2efd3b9c45b8892c39d37916de642d45a44"
+      },
+      "build_libero_plus_view_protocol": {
+        "source_sha256": "736c25de1dc2d70719f674d7ee7d4c4e7aeac2542c88606bf1d3b32e3cbd7892",
+        "nonimport_ast_sha256": "26e8af1d7241f296b94af89f5d61f10c0a3636ccdceeaf190e238151d370134a"
+      }
+    },
+    "reviewed_followup_source_paths": [
+      "scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py",
+      "scripts/dsol_paper1/generate_libero_hdf5_view_pairs.py",
+      "scripts/dsol_paper1/scan_libero_hdf5_views.py",
+      "scripts/dsol_paper1/run_constructed_accel_bank.py",
+      "scripts/dsol_paper1/run_view_acquisition_engineering_smoke.py",
+      "scripts/dsol_paper1/run_view_value_expectation_accel_ensemble.py",
+      "scripts/dsol_paper1/probe_view_gl_pixels_v1.py",
+      "scripts/dsol_paper1/dualhost_aa0_v1.py",
+      "scripts/dsol_paper1/dynamic_initial_scheduler_v1.py",
+      "scripts/dsol_paper1/run_render_bridge_worker_v1.py",
+      "scripts/dsol_paper1/shared_runtime_paths.py",
+      "scripts/cabi_vla/serve_alphabrain_pi05_websocket.py",
+      "scripts/cabi_vla/serve_alphabrain_pi05_websocket_test.py",
+      "scripts/vla_shared/serve_alphabrain_pi05_websocket.py",
+      "scripts/cabi_vla/evaluate_pi05_libero_plus_views.py",
+      "scripts/cabi_vla/evaluate_pi05_libero_plus_views_test.py",
+      "scripts/vla_shared/evaluate_pi05_libero_plus_views.py",
+      "scripts/cabi_vla/libero_camera_pose.py",
+      "scripts/cabi_vla/libero_camera_pose_test.py",
+      "scripts/vla_shared/libero_camera_pose.py",
+      "scripts/cabi_vla/build_libero_plus_view_protocol.py",
+      "scripts/cabi_vla/build_libero_plus_view_protocol_test.py",
+      "scripts/vla_shared/build_libero_plus_view_protocol.py",
+      "scripts/vla_shared/__init__.py",
+      "scripts/vla_shared/README.md",
+      "scripts/dsol_paper1/README.md",
+      "scripts/ccv_vla/run_collect_coupled.sh",
+      "scripts/fresh_vla/README.md",
+      "scripts/fresh_vla/run_libero_baseline_repair_train.sh",
+      "scripts/fresh_vla/run_libero_baseline_repair_v2_pipeline.sh",
+      "scripts/fresh_vla/run_recovery_segment_oracle_pilot.sh",
+      "scripts/policy_response_vla/run_collect_endpoint_responses.sh",
+      "scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh",
+      "scripts/dsol_paper1/run_full64_view_landscape_v2.py",
+      "scripts/dsol_paper1/run_matched_view_landscape_v1.sh"
+    ],
+    "legacy_compatibility": "Four old module paths alias the canonical shared module; CLI execution delegates via runpy.",
+    "frozen_release_policy": "Existing repo snapshots are unchanged; fallback requires a matching service SHA in their release.json.",
+    "scope": "Module extraction and import/entrypoint paths only; no model, noise, image convention, action clipping or scientific protocol changes.",
+    "validation": {
+      "tests_passed": 444,
+      "subtests_passed": 179,
+      "shared_baseline_tests": 32,
+      "nonimport_ast_modules_identical": 4,
+      "old_new_policy_fixture_cases": 6,
+      "simulator_python38_imports": "PASS",
+      "old_and_new_service_cli_help": "PASS",
+      "document_relocation_hashes": "95 PASS",
+      "newly_broken_markdown_file_links": 0,
+      "frozen_source_files_checked": 1013,
+      "frozen_source_mismatches": 0,
+      "frozen_scheduler_unchanged": true,
+      "cited_kyc_documents_unchanged": true,
+      "new_live_gpu_trajectory_gate": "Not run on refactored checkout; running release unchanged. Mandatory before a new scientific release."
+    },
+    "reviewed_source_sha256": {
+      "scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py": "0fb71779cf1655eab94273ea0996ac04bb77f64b639ce07c4d95ebca1cc7d561",
+      "scripts/dsol_paper1/generate_libero_hdf5_view_pairs.py": "db241a842c12ce793b54f376d544124b46e4c66372be249854aa9a5fec5b3260",
+      "scripts/dsol_paper1/scan_libero_hdf5_views.py": "830b7264bf2e30fef1f35b2c5d88882e4652397aea6f74bfd61067791d6090e1",
+      "scripts/dsol_paper1/run_constructed_accel_bank.py": "9200b493fe0725b50e1cd0fd4d1d391b4d930861e72074742bf78111eda45fa0",
+      "scripts/dsol_paper1/run_view_acquisition_engineering_smoke.py": "825d071f18411d08c22692faa5eb4554ed5aae8dfb7c962995f0987e66273f38",
+      "scripts/dsol_paper1/run_view_value_expectation_accel_ensemble.py": "460bd279e7b90bd000d89a1c3e1642dad7a4adca79d220c93f0e306ca48447cf",
+      "scripts/dsol_paper1/probe_view_gl_pixels_v1.py": "db5437e161984cdbe20ca002e87392f52edf3f079904fad60a40b5ca08bf7463",
+      "scripts/dsol_paper1/dualhost_aa0_v1.py": "45463c44c0284320cb7fd133290d6af274754a2c965b63d3cc5525dca453112d",
+      "scripts/dsol_paper1/dynamic_initial_scheduler_v1.py": "a04d5f34ebd5611c787cc513a18c61c034ad4233d26f9f9be6a7d3dd93fb6e16",
+      "scripts/dsol_paper1/run_render_bridge_worker_v1.py": "13bad6fb89c92575b9248754a1d6659cd428b687ffe097103d199869ffcfc5bf",
+      "scripts/dsol_paper1/shared_runtime_paths.py": "bc7efd25643619f1cd42da884b92ac3c7bb0f226cc57056ec1e7f820c69a0bab",
+      "scripts/cabi_vla/serve_alphabrain_pi05_websocket.py": "c420295fa21e08c107c752669a50d186a55f0118dd3c8e79c89b59f5c79eecbe",
+      "scripts/cabi_vla/serve_alphabrain_pi05_websocket_test.py": null,
+      "scripts/vla_shared/serve_alphabrain_pi05_websocket.py": "2a85fc64e0e440115b038ac6b10a59ef80b14a03fbb8eabe27d89a950dc2c928",
+      "scripts/cabi_vla/evaluate_pi05_libero_plus_views.py": "df897dc2cf503fa51b84522060f8a5cafaf23a9df50cdcf340d5643b02338231",
+      "scripts/cabi_vla/evaluate_pi05_libero_plus_views_test.py": null,
+      "scripts/vla_shared/evaluate_pi05_libero_plus_views.py": "8eba4399d16102f5a0a2492cbfa53ed1eaaa43b8d66c8470541149a89ee2b29b",
+      "scripts/cabi_vla/libero_camera_pose.py": "d276ed5a231d81dc489d0c500cc10f9403170b12669f364958f710e26e248e8f",
+      "scripts/cabi_vla/libero_camera_pose_test.py": null,
+      "scripts/vla_shared/libero_camera_pose.py": "a749d3e86031e3ba47ebe987f272b3aef9d8514bf22a96584a23660436b8c5f0",
+      "scripts/cabi_vla/build_libero_plus_view_protocol.py": "cf5cc771ab3db309453b1946d4097cfe5db96b65cfac582eff330e35c5353620",
+      "scripts/cabi_vla/build_libero_plus_view_protocol_test.py": null,
+      "scripts/vla_shared/build_libero_plus_view_protocol.py": "736c25de1dc2d70719f674d7ee7d4c4e7aeac2542c88606bf1d3b32e3cbd7892",
+      "scripts/vla_shared/__init__.py": "b3ed5562357daa6853d152185de1455761afac1bba3ed50f0aabb96977218bbe",
+      "scripts/vla_shared/README.md": "033323e76c824fe6c8e557bea04fc63e1c8d174e68349dad47607e180882b8e7",
+      "scripts/dsol_paper1/README.md": "015050336f132941255335e75067bc1ea370fc5378290ff9e7655cdffcea2149",
+      "scripts/ccv_vla/run_collect_coupled.sh": "e994be5c2b1d4203f91ea636ca39ac61c3d73ee85c3eea34907ef4bbeca8224e",
+      "scripts/fresh_vla/README.md": "82b0a2e36dad8ef83ec71d4c2b2e3b9c9efb0493ef60b6d1fc124a6a2d0125c0",
+      "scripts/fresh_vla/run_libero_baseline_repair_train.sh": "9f81af24f0711287ff086f2388fce8e9b3fc814da6aa33a8754cd1a270689884",
+      "scripts/fresh_vla/run_libero_baseline_repair_v2_pipeline.sh": "11935cc07959da5e5386813208c5cd483f2fa97a314379c72abdd7f93bdeb760",
+      "scripts/fresh_vla/run_recovery_segment_oracle_pilot.sh": "ff77b66ca21203e29e007b4f506c53f360c4b660a0b5c79ae10092cd958c893e",
+      "scripts/policy_response_vla/run_collect_endpoint_responses.sh": "b05514719d9a0d7768cf44f7c2c230c3ef38915f7e16588ef4757616823a72ba",
+      "scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh": "ff3414a8e77837dff3621751e4c76633256894738854b02bd0f26ddd26b93082",
+      "scripts/dsol_paper1/run_full64_view_landscape_v2.py": "4ef926d62629a0dae5730657cf1bca9b6eb34839a8f490d69542aa05f5c56cb4",
+      "scripts/dsol_paper1/run_matched_view_landscape_v1.sh": "17b1759e886685980256b171c5d95906217888918e72c50ed4be26086d168581"
+    }
+  },
+  "documentation_archive": {
+    "date_utc": "2026-09-10",
+    "records": [
+      {
+        "old": "docs/acd_vla/gate0_decision.json",
+        "new": "docs/archive/research/acd_vla/gate0_decision.json",
+        "before_sha256": "2cf683a4f0722cf4303598c67fd74eb56f910d024244424ffa1676c97d9781ce",
+        "after_sha256": "2cf683a4f0722cf4303598c67fd74eb56f910d024244424ffa1676c97d9781ce",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/acd_vla/gate0_preregistration.md",
+        "new": "docs/archive/research/acd_vla/gate0_preregistration.md",
+        "before_sha256": "d7865fdd1f611e3d1f768426c6b0fb26f54e4bd05c9cfe80784c9d28e9ddc7e8",
+        "after_sha256": "d7865fdd1f611e3d1f768426c6b0fb26f54e4bd05c9cfe80784c9d28e9ddc7e8",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/acd_vla/gate0_results.md",
+        "new": "docs/archive/research/acd_vla/gate0_results.md",
+        "before_sha256": "8a98a5924d16efa6246811bf81ea3d9a5b6abaa2647c9ccf88f7f8278d469f82",
+        "after_sha256": "8a98a5924d16efa6246811bf81ea3d9a5b6abaa2647c9ccf88f7f8278d469f82",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/acd_vla/method_thesis.md",
+        "new": "docs/archive/research/acd_vla/method_thesis.md",
+        "before_sha256": "72232c57d96072d625841f600f049d1eef97b1c5890d1b99a161c85b8ce72961",
+        "after_sha256": "72232c57d96072d625841f600f049d1eef97b1c5890d1b99a161c85b8ce72961",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/basin_vla/gate0_decision.json",
+        "new": "docs/archive/research/basin_vla/gate0_decision.json",
+        "before_sha256": "f7791ca4607fd3309d706f6dfa1800766a2fba059efc8d65a763b208e5d388a7",
+        "after_sha256": "f7791ca4607fd3309d706f6dfa1800766a2fba059efc8d65a763b208e5d388a7",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/basin_vla/gate0_policy_relativity_preregistration.md",
+        "new": "docs/archive/research/basin_vla/gate0_policy_relativity_preregistration.md",
+        "before_sha256": "01b6152d687c6f0e91b7bfa3a69747412e6a8a989d66803256561d2c5c2e60cc",
+        "after_sha256": "01b6152d687c6f0e91b7bfa3a69747412e6a8a989d66803256561d2c5c2e60cc",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/basin_vla/gate0_results.md",
+        "new": "docs/archive/research/basin_vla/gate0_results.md",
+        "before_sha256": "19adb44b8fdf7153d722b980f8ddd6a5e945f1fab0796fd878651342e43c285d",
+        "after_sha256": "19adb44b8fdf7153d722b980f8ddd6a5e945f1fab0796fd878651342e43c285d",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/basin_vla/method_thesis.md",
+        "new": "docs/archive/research/basin_vla/method_thesis.md",
+        "before_sha256": "cf5313766b850df33332aebc053b067705f63185baf53c33b041a9909ed7d39a",
+        "after_sha256": "cf5313766b850df33332aebc053b067705f63185baf53c33b041a9909ed7d39a",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/branch_vla/gate0_decision.json",
+        "new": "docs/archive/research/branch_vla/gate0_decision.json",
+        "before_sha256": "5785ff593b278b919e35a64c6b348a92e77aa80b30d03ca72be19e9188c7c500",
+        "after_sha256": "5785ff593b278b919e35a64c6b348a92e77aa80b30d03ca72be19e9188c7c500",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/branch_vla/gate0_preregistration.md",
+        "new": "docs/archive/research/branch_vla/gate0_preregistration.md",
+        "before_sha256": "b261b03af8a0ce457415faa6591fbec06c1721855e502241cf01e69278fabc41",
+        "after_sha256": "b261b03af8a0ce457415faa6591fbec06c1721855e502241cf01e69278fabc41",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/branch_vla/gate0_results.md",
+        "new": "docs/archive/research/branch_vla/gate0_results.md",
+        "before_sha256": "88c2ea86752f720f590b6bdfa7946576321744c4cfdeae52b574eb930424a44b",
+        "after_sha256": "88c2ea86752f720f590b6bdfa7946576321744c4cfdeae52b574eb930424a44b",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/branch_vla/method_thesis.md",
+        "new": "docs/archive/research/branch_vla/method_thesis.md",
+        "before_sha256": "1e4bc75aaebc8ce5f0d9afd8f52ffc3369a16218690a49365d9ad472eae41b72",
+        "after_sha256": "1e4bc75aaebc8ce5f0d9afd8f52ffc3369a16218690a49365d9ad472eae41b72",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/cafc_h20_seed41_v15_result.md",
+        "new": "docs/archive/research/cabi_vla/cafc_h20_seed41_v15_result.md",
+        "before_sha256": "e380a99306d7d03893dc0f30c796288a41f05cedd830ac16c6b187113c9ddd5e",
+        "after_sha256": "e380a99306d7d03893dc0f30c796288a41f05cedd830ac16c6b187113c9ddd5e",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/cafc_seed41_v14_result.md",
+        "new": "docs/archive/research/cabi_vla/cafc_seed41_v14_result.md",
+        "before_sha256": "f43b206593f975c9803542e0c9e8004a93a2685b48ff787bb9f18e3406069a3f",
+        "after_sha256": "f43b206593f975c9803542e0c9e8004a93a2685b48ff787bb9f18e3406069a3f",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/camera_viewpoint_sensitivity_study.md",
+        "new": "docs/archive/research/cabi_vla/camera_viewpoint_sensitivity_study.md",
+        "before_sha256": "237f2befbfd1e34e14ced3053cf00d1507c11079993840cee113059f651caab5",
+        "after_sha256": "e6573235ac25cc056711119709171d6e0e872f2d92ff8f1f674e5afbd0161c63",
+        "links_adjusted": true
+      },
+      {
+        "old": "docs/cabi_vla/experimental_status.md",
+        "new": "docs/archive/research/cabi_vla/experimental_status.md",
+        "before_sha256": "386fcc6b454709fb14fb7c0868a733be0015fc0c9f70b48180f6ce1f6cfed205",
+        "after_sha256": "386fcc6b454709fb14fb7c0868a733be0015fc0c9f70b48180f6ce1f6cfed205",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/factor_null_dropout_control.md",
+        "new": "docs/archive/research/cabi_vla/factor_null_dropout_control.md",
+        "before_sha256": "8a3acf565fa0f6ee572f6bd828add57f1d95de8eaee6532d9383650df4c722c3",
+        "after_sha256": "8a3acf565fa0f6ee572f6bd828add57f1d95de8eaee6532d9383650df4c722c3",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/kyc_camera_conditioning_preregistration.md",
+        "new": "docs/archive/research/cabi_vla/kyc_camera_conditioning_preregistration.md",
+        "before_sha256": "1fa3093f484e59a889fa7fade1205d8524cfdc28da99ecfd12eece20a4490b34",
+        "after_sha256": "1fa3093f484e59a889fa7fade1205d8524cfdc28da99ecfd12eece20a4490b34",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/kyc_camera_conditioning_validation.md",
+        "new": "docs/archive/research/cabi_vla/kyc_camera_conditioning_validation.md",
+        "before_sha256": "5bb5f2def039f7c305a7a48ffb14f6da77ee016f3bb97720d24ba0f775b2edb7",
+        "after_sha256": "a87d188f2eb8a13ccadc7b57949af8706bdccf235b36dec8c0eaea52e944f699",
+        "links_adjusted": true
+      },
+      {
+        "old": "docs/cabi_vla/kyc_camera_generalization_interim.md",
+        "new": "docs/archive/research/cabi_vla/kyc_camera_generalization_interim.md",
+        "before_sha256": "0f228eb606116ed9314366cf1bb2f5049b2974d7edce78030de6de72cf231576",
+        "after_sha256": "9c843cf0c7a23d3414adf8940539a9858991eb9f16fd9448aa23a7fa70f8e2c0",
+        "links_adjusted": true
+      },
+      {
+        "old": "docs/cabi_vla/kyc_camera_generalization_status.md",
+        "new": "docs/archive/research/cabi_vla/kyc_camera_generalization_status.md",
+        "before_sha256": "2cb1feca6d08b86ee9bbdbcd596074fee467290f1701fc668d634991d854bbb3",
+        "after_sha256": "2cb1feca6d08b86ee9bbdbcd596074fee467290f1701fc668d634991d854bbb3",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/kyc_dual_camera_validation_protocol_zh.md",
+        "new": "docs/archive/research/cabi_vla/kyc_dual_camera_validation_protocol_zh.md",
+        "before_sha256": "9be88ab30fd3e5758f37943361e541bfc645841ede1ebf726c6f6e3d7570a378",
+        "after_sha256": "9be88ab30fd3e5758f37943361e541bfc645841ede1ebf726c6f6e3d7570a378",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/kyc_dual_camera_validation_result_zh.md",
+        "new": "docs/archive/research/cabi_vla/kyc_dual_camera_validation_result_zh.md",
+        "before_sha256": "66602b6f1a12378b073b87d1d2aff108b8186231402dc22c9f9d1d932a94cb03",
+        "after_sha256": "3dba815b30a275d233893ebea7caef2750b2f63a7543d669bef57238ed962f7d",
+        "links_adjusted": true
+      },
+      {
+        "old": "docs/cabi_vla/kyc_pi05_alignment_libero_plus_plan_zh.md",
+        "new": "docs/archive/research/cabi_vla/kyc_pi05_alignment_libero_plus_plan_zh.md",
+        "before_sha256": "32512bee9e80a574a6c7ef2262a76a1a8b0adf4404db109288b6e19849372acf",
+        "after_sha256": "32512bee9e80a574a6c7ef2262a76a1a8b0adf4404db109288b6e19849372acf",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/kyc_pi05_visual_alignment_execution_status.md",
+        "new": "docs/archive/research/cabi_vla/kyc_pi05_visual_alignment_execution_status.md",
+        "before_sha256": "a1937de0e07e511048ede9c21adb350b90f1b7a92fa00fd1515913166efd00a5",
+        "after_sha256": "a1937de0e07e511048ede9c21adb350b90f1b7a92fa00fd1515913166efd00a5",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/kyc_pi05_visual_alignment_result_zh.md",
+        "new": "docs/archive/research/cabi_vla/kyc_pi05_visual_alignment_result_zh.md",
+        "before_sha256": "d26d79e3e54f51f88130da6d801b4dd8f1080a207a0278c2bd94ca72db23c8d7",
+        "after_sha256": "2b970120867f41ce7fec66ff5ee3bd6a34cc8b093fd53fb93747da296da298ea",
+        "links_adjusted": true
+      },
+      {
+        "old": "docs/cabi_vla/libero_bind_coverage_correction.md",
+        "new": "docs/archive/research/cabi_vla/libero_bind_coverage_correction.md",
+        "before_sha256": "360c905679a1710fabe91ef0582c8bf9d6fcd8f44f13a1e485d16b27328cb644",
+        "after_sha256": "360c905679a1710fabe91ef0582c8bf9d6fcd8f44f13a1e485d16b27328cb644",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/libero_bind_v0_data_quality.md",
+        "new": "docs/archive/research/cabi_vla/libero_bind_v0_data_quality.md",
+        "before_sha256": "2a74e3b6634390553a460407bfff4d56e18c7e210af4717714ad993144cbbfae",
+        "after_sha256": "2a74e3b6634390553a460407bfff4d56e18c7e210af4717714ad993144cbbfae",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/novelty_and_migration_audit.md",
+        "new": "docs/archive/research/cabi_vla/novelty_and_migration_audit.md",
+        "before_sha256": "de96e4a7a766637245f3f3fe5fc3803ad5af039723e76007e203b52110fe6922",
+        "after_sha256": "de96e4a7a766637245f3f3fe5fc3803ad5af039723e76007e203b52110fe6922",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/preregistration.md",
+        "new": "docs/archive/research/cabi_vla/preregistration.md",
+        "before_sha256": "941bdd2026f79bba7e2126be46766a92e0e55f40304e965a3ff270d38293d248",
+        "after_sha256": "941bdd2026f79bba7e2126be46766a92e0e55f40304e965a3ff270d38293d248",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/preregistration_amendment_action_bridge.md",
+        "new": "docs/archive/research/cabi_vla/preregistration_amendment_action_bridge.md",
+        "before_sha256": "c285e481ce0b10742545d880670bcdd125c976fd3ef796b055d4a1bc57a99fff",
+        "after_sha256": "c285e481ce0b10742545d880670bcdd125c976fd3ef796b055d4a1bc57a99fff",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/preregistration_amendment_decision_closure.md",
+        "new": "docs/archive/research/cabi_vla/preregistration_amendment_decision_closure.md",
+        "before_sha256": "5b4f4bca11d83c9ac8bea96e032152272435e659fd3692ca5d2cd9e28b216d16",
+        "after_sha256": "5b4f4bca11d83c9ac8bea96e032152272435e659fd3692ca5d2cd9e28b216d16",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/preregistration_amendment_identifiability.md",
+        "new": "docs/archive/research/cabi_vla/preregistration_amendment_identifiability.md",
+        "before_sha256": "9a55de2b13631610f53f1b7cfafa2347cce4d37fbc3e1345864d99914b93b65d",
+        "after_sha256": "9a55de2b13631610f53f1b7cfafa2347cce4d37fbc3e1345864d99914b93b65d",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/preregistration_counterfactual_action_field_completion.md",
+        "new": "docs/archive/research/cabi_vla/preregistration_counterfactual_action_field_completion.md",
+        "before_sha256": "4718e131abf34f69f732f7eaf1c862e8850f36f631926ccfb19429afa5c42e97",
+        "after_sha256": "4718e131abf34f69f732f7eaf1c862e8850f36f631926ccfb19429afa5c42e97",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/preregistration_h20_cafc_amendment.md",
+        "new": "docs/archive/research/cabi_vla/preregistration_h20_cafc_amendment.md",
+        "before_sha256": "d02c43f84e14ad2913e482942728f172acaabbe530dd1963926cb9be5d72a6e2",
+        "after_sha256": "d02c43f84e14ad2913e482942728f172acaabbe530dd1963926cb9be5d72a6e2",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cabi_vla/theory_sketch.md",
+        "new": "docs/archive/research/cabi_vla/theory_sketch.md",
+        "before_sha256": "2e2ea09f114021d70fea024a20cc7ce4894c34b126426b2d68081079c4267e05",
+        "after_sha256": "2e2ea09f114021d70fea024a20cc7ce4894c34b126426b2d68081079c4267e05",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/ccv_vla/gate0_preregistration.md",
+        "new": "docs/archive/research/ccv_vla/gate0_preregistration.md",
+        "before_sha256": "060512b914d01a3a4092ccf3f7e955396733f2befbf83db79d16ec82c70b3bd0",
+        "after_sha256": "060512b914d01a3a4092ccf3f7e955396733f2befbf83db79d16ec82c70b3bd0",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/ccv_vla/gate0a_analysis_protocol.md",
+        "new": "docs/archive/research/ccv_vla/gate0a_analysis_protocol.md",
+        "before_sha256": "2225207802474d3227a048deb6591788e7a068b53dd468021e53f62ee6a98604",
+        "after_sha256": "2225207802474d3227a048deb6591788e7a068b53dd468021e53f62ee6a98604",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/ccv_vla/gate0a_decision.json",
+        "new": "docs/archive/research/ccv_vla/gate0a_decision.json",
+        "before_sha256": "a856a77ef22bb413381204fd3daa40036b2deaaa588fa291a5cc4eff2c4a2d90",
+        "after_sha256": "a856a77ef22bb413381204fd3daa40036b2deaaa588fa291a5cc4eff2c4a2d90",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/ccv_vla/gate0a_results.md",
+        "new": "docs/archive/research/ccv_vla/gate0a_results.md",
+        "before_sha256": "63221a7a29b42c30287e2331460e1444b20ec41e9d6e8fa23efb6c761345ad82",
+        "after_sha256": "63221a7a29b42c30287e2331460e1444b20ec41e9d6e8fa23efb6c761345ad82",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/ccv_vla/gate0b_preregistration.md",
+        "new": "docs/archive/research/ccv_vla/gate0b_preregistration.md",
+        "before_sha256": "d682fb705ec08e6abe4cf61d2260cc8a35d58234b676a5f00e5d163e2efb4221",
+        "after_sha256": "d682fb705ec08e6abe4cf61d2260cc8a35d58234b676a5f00e5d163e2efb4221",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/ccv_vla/method_thesis.md",
+        "new": "docs/archive/research/ccv_vla/method_thesis.md",
+        "before_sha256": "ef0b070e4bcec9efe0aa6109b11ae3c52c6de56ca398b348ed7ec007c4d13f02",
+        "after_sha256": "ef0b070e4bcec9efe0aa6109b11ae3c52c6de56ca398b348ed7ec007c4d13f02",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/ccv_vla/postmortem_and_next_direction.md",
+        "new": "docs/archive/research/ccv_vla/postmortem_and_next_direction.md",
+        "before_sha256": "ad898340f84b4120c4789dc4b66df7f34c4b49f1412bd95b3612155b50b022b6",
+        "after_sha256": "ad898340f84b4120c4789dc4b66df7f34c4b49f1412bd95b3612155b50b022b6",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/ccv_vla/related_work_audit.md",
+        "new": "docs/archive/research/ccv_vla/related_work_audit.md",
+        "before_sha256": "5b89fd15c6d55bcdd12df81f57840937cf39a650519896c632c732ae00726b43",
+        "after_sha256": "5b89fd15c6d55bcdd12df81f57840937cf39a650519896c632c732ae00726b43",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/continuation_distill/gate0_decision.json",
+        "new": "docs/archive/research/continuation_distill/gate0_decision.json",
+        "before_sha256": "4494a810a2a04710d3daa4a89a7b5ae89275857ff3baff3d5b2391b25ab49c5b",
+        "after_sha256": "4494a810a2a04710d3daa4a89a7b5ae89275857ff3baff3d5b2391b25ab49c5b",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/continuation_distill/gate0_preregistration.md",
+        "new": "docs/archive/research/continuation_distill/gate0_preregistration.md",
+        "before_sha256": "e9dbc590fed6cc71a7b38721425dcd6aff08729a91d99bcf7e80ce1d702168a9",
+        "after_sha256": "e9dbc590fed6cc71a7b38721425dcd6aff08729a91d99bcf7e80ce1d702168a9",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/continuation_distill/gate0_results.md",
+        "new": "docs/archive/research/continuation_distill/gate0_results.md",
+        "before_sha256": "01b7e503d18ad6b522a596a1fd7043952123a817b7be7e934184f4d2584d4b6e",
+        "after_sha256": "01b7e503d18ad6b522a596a1fd7043952123a817b7be7e934184f4d2584d4b6e",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cora_vla/asset_audit.md",
+        "new": "docs/archive/research/cora_vla/asset_audit.md",
+        "before_sha256": "57e1aab74542e1d5151e57fa18752128ae9617296f8777f6902e75aefce9e365",
+        "after_sha256": "57e1aab74542e1d5151e57fa18752128ae9617296f8777f6902e75aefce9e365",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cora_vla/gate1_candidate_support.md",
+        "new": "docs/archive/research/cora_vla/gate1_candidate_support.md",
+        "before_sha256": "3c6e7b7fee5695b53e8c235060445d19961abcda2b8b564fa6737fe10d5a6573",
+        "after_sha256": "3c6e7b7fee5695b53e8c235060445d19961abcda2b8b564fa6737fe10d5a6573",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cora_vla/gate1_label_audit.md",
+        "new": "docs/archive/research/cora_vla/gate1_label_audit.md",
+        "before_sha256": "c107aa9b763879a22b633127354f2d2695972be128d8513df5d7a321c39e61ba",
+        "after_sha256": "c107aa9b763879a22b633127354f2d2695972be128d8513df5d7a321c39e61ba",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cora_vla/gate1_preregistration.md",
+        "new": "docs/archive/research/cora_vla/gate1_preregistration.md",
+        "before_sha256": "417d089674204fe2fca5f9e7a17eba5df39996f920c0e538e192997a3a980456",
+        "after_sha256": "417d089674204fe2fca5f9e7a17eba5df39996f920c0e538e192997a3a980456",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cora_vla/gate1_scientific_interpretation.md",
+        "new": "docs/archive/research/cora_vla/gate1_scientific_interpretation.md",
+        "before_sha256": "d9ff4a1456736e69ed0a45d9b7ecc2afdec9d1cdca81589ca37e0287d355aeb1",
+        "after_sha256": "d9ff4a1456736e69ed0a45d9b7ecc2afdec9d1cdca81589ca37e0287d355aeb1",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cora_vla/onpolicy_candidate_support.md",
+        "new": "docs/archive/research/cora_vla/onpolicy_candidate_support.md",
+        "before_sha256": "18f5fceba7c422fb19563e87756d1b1fd0660f588d97f4c6f53d8ad2f8a9df2a",
+        "after_sha256": "18f5fceba7c422fb19563e87756d1b1fd0660f588d97f4c6f53d8ad2f8a9df2a",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cora_vla/onpolicy_support_preregistration.md",
+        "new": "docs/archive/research/cora_vla/onpolicy_support_preregistration.md",
+        "before_sha256": "6307b7dff1af30fa5f036d23ad3c4087c1bf6926f5ae4d68a46e04d5d0696c9d",
+        "after_sha256": "6307b7dff1af30fa5f036d23ad3c4087c1bf6926f5ae4d68a46e04d5d0696c9d",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cora_vla/related_work_audit.md",
+        "new": "docs/archive/research/cora_vla/related_work_audit.md",
+        "before_sha256": "586be4b37e42c1f361a08c5a95330bc617fa7342ae8d5e9e3b781a97fc638e80",
+        "after_sha256": "586be4b37e42c1f361a08c5a95330bc617fa7342ae8d5e9e3b781a97fc638e80",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cora_vla/sequential_oracle_decision.json",
+        "new": "docs/archive/research/cora_vla/sequential_oracle_decision.json",
+        "before_sha256": "3bd9654b2d7b27e3103e5ce6f415f17451160b11fb15581f6f4c5cd5d46c652a",
+        "after_sha256": "3bd9654b2d7b27e3103e5ce6f415f17451160b11fb15581f6f4c5cd5d46c652a",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cora_vla/sequential_oracle_gate.md",
+        "new": "docs/archive/research/cora_vla/sequential_oracle_gate.md",
+        "before_sha256": "272b18cc5de78ecff9cc6bb324fb98ec9c3d443119fb393330f60aeb62056674",
+        "after_sha256": "272b18cc5de78ecff9cc6bb324fb98ec9c3d443119fb393330f60aeb62056674",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/cora_vla/sequential_oracle_preregistration.md",
+        "new": "docs/archive/research/cora_vla/sequential_oracle_preregistration.md",
+        "before_sha256": "15a12acf517c07e56ca1a86a7b9563372f07d0ca39dd162ba1ce0d071e2f7b42",
+        "after_sha256": "15a12acf517c07e56ca1a86a7b9563372f07d0ca39dd162ba1ce0d071e2f7b42",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/baseline_validity_repair_preregistration.md",
+        "new": "docs/archive/research/embodied_research_reset/baseline_validity_repair_preregistration.md",
+        "before_sha256": "63a26f2af25d7399ded07688e87558be4ce0d6e065f73640f9af7fab5dc8b36b",
+        "after_sha256": "63a26f2af25d7399ded07688e87558be4ce0d6e065f73640f9af7fab5dc8b36b",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/baseline_validity_repair_v2_amendment.md",
+        "new": "docs/archive/research/embodied_research_reset/baseline_validity_repair_v2_amendment.md",
+        "before_sha256": "ca55601290a70394acf29e73e73356921a39dcaef00b118f5d96e8e8493820b0",
+        "after_sha256": "ca55601290a70394acf29e73e73356921a39dcaef00b118f5d96e8e8493820b0",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/candidate_matrix.md",
+        "new": "docs/archive/research/embodied_research_reset/candidate_matrix.md",
+        "before_sha256": "c962b0b454d0db585ec2574cf3f577e67e8212c03c3b463e7c04fccd01932f86",
+        "after_sha256": "c962b0b454d0db585ec2574cf3f577e67e8212c03c3b463e7c04fccd01932f86",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/competence_release_boundary_reassessment.md",
+        "new": "docs/archive/research/embodied_research_reset/competence_release_boundary_reassessment.md",
+        "before_sha256": "e2d8711b9f6fd86b02bc6106af0f2c8e8129b195105bd5ddc8d598216e16b54a",
+        "after_sha256": "e2d8711b9f6fd86b02bc6106af0f2c8e8129b195105bd5ddc8d598216e16b54a",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/evidence_and_failures.md",
+        "new": "docs/archive/research/embodied_research_reset/evidence_and_failures.md",
+        "before_sha256": "a8f703cf5fedbf7d871279e0f1fdff160a98810639ba34768bd5d004f615840f",
+        "after_sha256": "a8f703cf5fedbf7d871279e0f1fdff160a98810639ba34768bd5d004f615840f",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/minimal_falsification_experiments.md",
+        "new": "docs/archive/research/embodied_research_reset/minimal_falsification_experiments.md",
+        "before_sha256": "6136159c82b27a095c1fd7d856a8952d0a0b82e3a3b574feab14088af3e14133",
+        "after_sha256": "6136159c82b27a095c1fd7d856a8952d0a0b82e3a3b574feab14088af3e14133",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/physical_process_gate0_decision.json",
+        "new": "docs/archive/research/embodied_research_reset/physical_process_gate0_decision.json",
+        "before_sha256": "2c2df133d00ebb8beb234a83146cdefc963fb427ed466d889c90575a3e0f6a01",
+        "after_sha256": "2c2df133d00ebb8beb234a83146cdefc963fb427ed466d889c90575a3e0f6a01",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/physical_process_gate0_results.md",
+        "new": "docs/archive/research/embodied_research_reset/physical_process_gate0_results.md",
+        "before_sha256": "75d3d652065e033dea5c64598f66260c2c6544cd661c63bdcab606ce617578c4",
+        "after_sha256": "75d3d652065e033dea5c64598f66260c2c6544cd661c63bdcab606ce617578c4",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/problem_first_reassessment.md",
+        "new": "docs/archive/research/embodied_research_reset/problem_first_reassessment.md",
+        "before_sha256": "12b63bc38aa908c69020e24d0e4386d700122a5448c47a27713df20672bd4262",
+        "after_sha256": "12b63bc38aa908c69020e24d0e4386d700122a5448c47a27713df20672bd4262",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/recent_work_map.md",
+        "new": "docs/archive/research/embodied_research_reset/recent_work_map.md",
+        "before_sha256": "d85b82b5b3af69595f885a5eb89c8d6c9d68e0b372b84074b352878f61d175bb",
+        "after_sha256": "d85b82b5b3af69595f885a5eb89c8d6c9d68e0b372b84074b352878f61d175bb",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/recovery_segment_preregistration.md",
+        "new": "docs/archive/research/embodied_research_reset/recovery_segment_preregistration.md",
+        "before_sha256": "89d262f0af5ebfdd3066ae31ce6a2b452d3568ca85bd1af581edad6e971562d1",
+        "after_sha256": "89d262f0af5ebfdd3066ae31ce6a2b452d3568ca85bd1af581edad6e971562d1",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/recovery_support_diagnosis_results.md",
+        "new": "docs/archive/research/embodied_research_reset/recovery_support_diagnosis_results.md",
+        "before_sha256": "4b43e4d81664e0df9a394c430419b3b2a5730823e14cb4635e08c54ed6e43e7f",
+        "after_sha256": "4b43e4d81664e0df9a394c430419b3b2a5730823e14cb4635e08c54ed6e43e7f",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/recovery_support_v2_preregistration.md",
+        "new": "docs/archive/research/embodied_research_reset/recovery_support_v2_preregistration.md",
+        "before_sha256": "4a56f28543a544002b0bcf6f28efa6b6d3f517077768829da7484082f627664f",
+        "after_sha256": "4a56f28543a544002b0bcf6f28efa6b6d3f517077768829da7484082f627664f",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/recovery_support_v2_results.md",
+        "new": "docs/archive/research/embodied_research_reset/recovery_support_v2_results.md",
+        "before_sha256": "bcf5c524f9979cdcb0a4f3b3badfed971536fcfa7a47a528fbbcffc841b92bfb",
+        "after_sha256": "bcf5c524f9979cdcb0a4f3b3badfed971536fcfa7a47a528fbbcffc841b92bfb",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/root_problem_method_review.md",
+        "new": "docs/archive/research/embodied_research_reset/root_problem_method_review.md",
+        "before_sha256": "076e3e3012cb824eba2bca5f2b1da81d43653b2c04dc54d724fc0b594426f181",
+        "after_sha256": "076e3e3012cb824eba2bca5f2b1da81d43653b2c04dc54d724fc0b594426f181",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/selected_problem_proposal.md",
+        "new": "docs/archive/research/embodied_research_reset/selected_problem_proposal.md",
+        "before_sha256": "13e031d266e4de55fea7c9c946069618f2e7e06e26fe86c1b7e94acc46e0ca8e",
+        "after_sha256": "13e031d266e4de55fea7c9c946069618f2e7e06e26fe86c1b7e94acc46e0ca8e",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/embodied_research_reset/support_expansion_preregistration.md",
+        "new": "docs/archive/research/embodied_research_reset/support_expansion_preregistration.md",
+        "before_sha256": "eab22b1e76981105e416bf6c698886f5afd64823239287ee350f1c68adfd1c9f",
+        "after_sha256": "eab22b1e76981105e416bf6c698886f5afd64823239287ee350f1c68adfd1c9f",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/fresh_vla_counterfactual_schema.md",
+        "new": "docs/archive/research/fresh_vla/fresh_vla_counterfactual_schema.md",
+        "before_sha256": "55e7c44367be52f9b2099fb5248e2a2d5bc1e14849fe2829110f2c4ce2aec8bc",
+        "after_sha256": "55e7c44367be52f9b2099fb5248e2a2d5bc1e14849fe2829110f2c4ce2aec8bc",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/fresh_vla_counterfactual_validation.md",
+        "new": "docs/archive/research/fresh_vla/fresh_vla_counterfactual_validation.md",
+        "before_sha256": "2f95f6eeaeb8613ea1fdd8c40bc259f008626a2fa7fea14f20d58d828b3faaf2",
+        "after_sha256": "2f95f6eeaeb8613ea1fdd8c40bc259f008626a2fa7fea14f20d58d828b3faaf2",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/fresh_vla_final_decision.md",
+        "new": "docs/archive/research/fresh_vla/fresh_vla_final_decision.md",
+        "before_sha256": "d9ce7f6285518853e20e42aa58d17032e0883e6a8fdbdce526aa2dd8dc01b6a7",
+        "after_sha256": "d9ce7f6285518853e20e42aa58d17032e0883e6a8fdbdce526aa2dd8dc01b6a7",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/fresh_vla_final_gate_status.md",
+        "new": "docs/archive/research/fresh_vla/fresh_vla_final_gate_status.md",
+        "before_sha256": "5d7f90816ccb59c956f4a7fed79901efc6cacb7f32697dcab497b615687a76f6",
+        "after_sha256": "5d7f90816ccb59c956f4a7fed79901efc6cacb7f32697dcab497b615687a76f6",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/fresh_vla_initial_validation.md",
+        "new": "docs/archive/research/fresh_vla/fresh_vla_initial_validation.md",
+        "before_sha256": "c1998ffb124ec980a9b7bf31024865daed867d49a520c9703eb0406f1f944d73",
+        "after_sha256": "c1998ffb124ec980a9b7bf31024865daed867d49a520c9703eb0406f1f944d73",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/fresh_vla_libero_training_results.md",
+        "new": "docs/archive/research/fresh_vla/fresh_vla_libero_training_results.md",
+        "before_sha256": "75becc7e11196ac8fa71211198d87bb15d53c5fc1d1a6c94f9fe67ecac55b549",
+        "after_sha256": "75becc7e11196ac8fa71211198d87bb15d53c5fc1d1a6c94f9fe67ecac55b549",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/fresh_vla_oracle_commit_audit.md",
+        "new": "docs/archive/research/fresh_vla/fresh_vla_oracle_commit_audit.md",
+        "before_sha256": "616f0d1544c9b20307f321ab45667d8bade7bf3a707d6be4556be1f9eb9767e2",
+        "after_sha256": "616f0d1544c9b20307f321ab45667d8bade7bf3a707d6be4556be1f9eb9767e2",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/fresh_vla_oracle_commit_final_gate.md",
+        "new": "docs/archive/research/fresh_vla/fresh_vla_oracle_commit_final_gate.md",
+        "before_sha256": "a1ab1a31f75c2c6ee0649def6e3166819a6a9b752c785555c8331a203ecd0c84",
+        "after_sha256": "a1ab1a31f75c2c6ee0649def6e3166819a6a9b752c785555c8331a203ecd0c84",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/policy_response_vla/gate_minus1_decision.json",
+        "new": "docs/archive/research/policy_response_vla/gate_minus1_decision.json",
+        "before_sha256": "09ca01a3a795467561aacb8a08190fc85bc079bd5ba81824bf044c2742c8a248",
+        "after_sha256": "09ca01a3a795467561aacb8a08190fc85bc079bd5ba81824bf044c2742c8a248",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/policy_response_vla/gate_minus1_preregistration.md",
+        "new": "docs/archive/research/policy_response_vla/gate_minus1_preregistration.md",
+        "before_sha256": "db706bc5dd837a8a89f64d416ffd411d5af7834a61c9ad169da959939c3c7867",
+        "after_sha256": "db706bc5dd837a8a89f64d416ffd411d5af7834a61c9ad169da959939c3c7867",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/policy_response_vla/gate_minus1_results.md",
+        "new": "docs/archive/research/policy_response_vla/gate_minus1_results.md",
+        "before_sha256": "7eb0ffda471047d5eef985f255da0e11f43f61ee140cd33ca652ad724f6ed4fd",
+        "after_sha256": "7eb0ffda471047d5eef985f255da0e11f43f61ee140cd33ca652ad724f6ed4fd",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/policy_response_vla/method_and_related_work.md",
+        "new": "docs/archive/research/policy_response_vla/method_and_related_work.md",
+        "before_sha256": "283a26c069dc3c9129cd5eec8906cb05a6fa66e9f63c2ffe866655e9acf721a2",
+        "after_sha256": "283a26c069dc3c9129cd5eec8906cb05a6fa66e9f63c2ffe866655e9acf721a2",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/research_proposals/rebridge_vla_formal_research_proposal_v1.md",
+        "new": "docs/archive/research/research_proposals/rebridge_vla_formal_research_proposal_v1.md",
+        "before_sha256": "26ce65001099624b2a646d74ff657836471edd662b01cd303dc336679d7dd3ac",
+        "after_sha256": "26ce65001099624b2a646d74ff657836471edd662b01cd303dc336679d7dd3ac",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/research_proposals/rebridge_vla_proposal_v0.md",
+        "new": "docs/archive/research/research_proposals/rebridge_vla_proposal_v0.md",
+        "before_sha256": "36249f2179a0682c2fd740ace5b5bae7b56016c8afcf4785347caceccaad5dae",
+        "after_sha256": "36249f2179a0682c2fd740ace5b5bae7b56016c8afcf4785347caceccaad5dae",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/research_proposals/rebridge_vla_research_brief_zh.md",
+        "new": "docs/archive/research/research_proposals/rebridge_vla_research_brief_zh.md",
+        "before_sha256": "5cf8e6d7ac11cb891b737ef4c8b81beb99e05cbcea75306ffa5eb3f66b48ab88",
+        "after_sha256": "5cf8e6d7ac11cb891b737ef4c8b81beb99e05cbcea75306ffa5eb3f66b48ab88",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/verify_vla/field_map_2026.md",
+        "new": "docs/archive/research/verify_vla/field_map_2026.md",
+        "before_sha256": "780091b3af6ecd3a822a847fbba2157fd18c4a4a4569a2cd27f3a1fdbd079de5",
+        "after_sha256": "780091b3af6ecd3a822a847fbba2157fd18c4a4a4569a2cd27f3a1fdbd079de5",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/verify_vla/gate0_decision.json",
+        "new": "docs/archive/research/verify_vla/gate0_decision.json",
+        "before_sha256": "fbbb4bc2bf285121fd0203bf174ad29ef7a488c590a1806de73130c9b98cf26a",
+        "after_sha256": "fbbb4bc2bf285121fd0203bf174ad29ef7a488c590a1806de73130c9b98cf26a",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/verify_vla/gate0_preregistration.md",
+        "new": "docs/archive/research/verify_vla/gate0_preregistration.md",
+        "before_sha256": "bdd4c7b7fd224c4172d4f6a6d8e4926ad282ba6a61c8c8a7fe7028a130b31964",
+        "after_sha256": "bdd4c7b7fd224c4172d4f6a6d8e4926ad282ba6a61c8c8a7fe7028a130b31964",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/verify_vla/gate0_results.md",
+        "new": "docs/archive/research/verify_vla/gate0_results.md",
+        "before_sha256": "74704d14ce7be8eb210e86ce21950e0dfc5f597ab107093f39fa93a29dfc72e6",
+        "after_sha256": "74704d14ce7be8eb210e86ce21950e0dfc5f597ab107093f39fa93a29dfc72e6",
+        "links_adjusted": false
+      },
+      {
+        "old": "docs/verify_vla/method_thesis.md",
+        "new": "docs/archive/research/verify_vla/method_thesis.md",
+        "before_sha256": "0242bab173c87e7d0f326a1e6ee561345b30aada17bec91aa470e63428aa257d",
+        "after_sha256": "0242bab173c87e7d0f326a1e6ee561345b30aada17bec91aa470e63428aa257d",
+        "links_adjusted": false
+      }
+    ],
+    "scope": "95 historical documents; relative Markdown link changes only. Two directly cited KYC documents and original assets/configs retained.",
+    "current_evidence_documents_unchanged": true
   }
 }

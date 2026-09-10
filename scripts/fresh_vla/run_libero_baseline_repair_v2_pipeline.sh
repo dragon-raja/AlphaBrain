@@ -9,7 +9,7 @@ RUN_ROOT=${FRESH_BASELINE_REPAIR_ROOT:-/share/longjunyu/fresh-vla/runs/baseline-
 EVAL_ROOT="$RUN_ROOT/eval_views"
 STEPS=10353
 TAG=val_gate_v2
-AMENDMENT=docs/embodied_research_reset/baseline_validity_repair_v2_amendment.md
+AMENDMENT=docs/archive/research/embodied_research_reset/baseline_validity_repair_v2_amendment.md
 SEED42_SESSION=${FRESH_V2_SEED42_SESSION:-fresh-baseline-repair-v2-s42}
 DRY_RUN=${FRESH_V2_DRY_RUN:-0}
 

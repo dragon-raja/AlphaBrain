@@ -6,9 +6,10 @@ import hashlib
 from pathlib import Path
 import sys
 import numpy as np
+from shared_runtime_paths import shared_scripts
 from render_bridge_common_v1 import ROOT,RUNTIME,REPO,read,sha,write_new,array_identity,render_protocol
 
-sys.path.insert(0,str(REPO/'scripts/cabi_vla'))
+sys.path.insert(0,str(shared_scripts(REPO)))
 
 def configure(state,out):
     from audit_libero_hdf5_restore import _configure_runtime

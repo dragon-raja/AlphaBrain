@@ -7,8 +7,8 @@ import numpy as np
 
 
 SCRIPT_ROOT = Path(__file__).resolve().parents[2] / "scripts" / "dsol_paper1"
-CABI_ROOT = Path(__file__).resolve().parents[2] / "scripts" / "cabi_vla"
-sys.path[:0] = [str(SCRIPT_ROOT), str(CABI_ROOT)]
+SHARED_ROOT = Path(__file__).resolve().parents[2] / "scripts" / "vla_shared"
+sys.path[:0] = [str(SCRIPT_ROOT), str(SHARED_ROOT)]
 
 from libero_constructed_view import (  # noqa: E402
     CONSTRUCTION_SCHEMA,

@@ -18,3 +18,7 @@
 ## 报告产物的实际目录归档
 
 三套旧双周报修订及第 3–5 页过期预览已从工作目录移入共享盘压缩归档。归档成员、哈希和恢复方式也记录在同一份 `layout_manifest.json` 的 `report_artifact_cleanup` 字段；[历史报告索引](../../docs/dsol_paper1/reports/archive/README.md)提供直接入口。当前报告、必要图片、权重和实验结果未移除。
+
+## 共享模块与旁支文档迁移
+
+后续四个服务/观测/相机模块移到 `scripts/vla_shared/`，旧模块保留薄兼容入口；95 份旁支文档移入 `docs/archive/research/`。同一清单中的 `shared_extraction` 与 `documentation_archive` 字段记录迁移边界、实现 AST 指纹、路径与内容哈希。恢复迁移前完整树使用标签 `archive/paper1-before-shared-extraction-20260910`，不要覆盖运行中的冻结目录。

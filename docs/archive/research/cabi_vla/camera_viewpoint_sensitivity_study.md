@@ -30,19 +30,19 @@ MAE 为 0，扰动后的最小 MAE 为 9.78，全部 wrist-view MAE 为 0。
 
 ## 粗扫结果
 
-![相机敏感性曲线](assets/camera_viewpoint_study_v1/camera_sensitivity_curves.png)
+![相机敏感性曲线](../../../cabi_vla/assets/camera_viewpoint_study_v1/camera_sensitivity_curves.png)
 
 state 0 上 canonical baseline 为 4/4。所有非基线位姿均低于 baseline；最佳的
 两个非基线候选是 `radius=0.925x` 与 `1.075x`，均为 2/4。方位角变化尤其
 敏感：`±30°` 为 0/4，`±15°` 为 1/4。
 
-![逐任务成功矩阵](assets/camera_viewpoint_study_v1/edge_success_matrix.png)
+![逐任务成功矩阵](../../../cabi_vla/assets/camera_viewpoint_study_v1/edge_success_matrix.png)
 
 响应显著依赖对象与任务。`white-left` 可容忍 `az=-15°`、`elev=+12°` 和较远
 视角；`yellow_white-right` 在较近视角和较低 elevation 下明显更快；红杯任务
 对方位角最敏感。
 
-![初始 agent-view](assets/camera_viewpoint_study_v1/initial_agent_views.png)
+![初始 agent-view](../../../cabi_vla/assets/camera_viewpoint_study_v1/initial_agent_views.png)
 
 ## 多状态确认
 
@@ -68,7 +68,7 @@ states 1-4 共 48 个 episode：
 baseline。选择标准要求成功率不下降且成功步数至少减少 20%。随后只在未参与
 搜索的 states 5-9 上评测。
 
-![held-out 规则结果](assets/camera_viewpoint_study_v1/camera_rule_comparison.png)
+![held-out 规则结果](../../../cabi_vla/assets/camera_viewpoint_study_v1/camera_rule_comparison.png)
 
 | Policy | Success | Progress | Transport | Capped steps |
 |---|---:|---:|---:|---:|
@@ -102,7 +102,7 @@ agent-view 是平均成功率最优且最稳健的固定视角。当前证据不
 - 原始 sweep：`/share/longjunyu/cabi-vla/camera-viewpoint-study-v1/bridge_h20_s41_state0_observed_k3_coarse_v3`
 - 多状态确认：`/share/longjunyu/cabi-vla/camera-viewpoint-study-v1/bridge_h20_s41_states1to4_observed_k3_confirm_v1`
 - held-out rule：`/share/longjunyu/cabi-vla/camera-viewpoint-study-v1/bridge_h20_s41_states5to9_camera_rule_holdout_v1`
-- 位姿网格：[camera_pose_grid_v1.json](configs/camera_pose_grid_v1.json)
-- 冻结规则：[task_conditioned_camera_rule_v1.json](configs/task_conditioned_camera_rule_v1.json)
-- 机器可读摘要：[camera_viewpoint_study_v1_summary.json](camera_viewpoint_study_v1_summary.json)
+- 位姿网格：[camera_pose_grid_v1.json](../../../cabi_vla/configs/camera_pose_grid_v1.json)
+- 冻结规则：[task_conditioned_camera_rule_v1.json](../../../cabi_vla/configs/task_conditioned_camera_rule_v1.json)
+- 机器可读摘要：[camera_viewpoint_study_v1_summary.json](../../../cabi_vla/camera_viewpoint_study_v1_summary.json)
 - 视频全部为经 `libdav1d` 验证的 AV1/WebM，共 31 个。

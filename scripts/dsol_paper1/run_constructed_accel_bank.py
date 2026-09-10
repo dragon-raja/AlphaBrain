@@ -293,7 +293,7 @@ def load_rendered_bundle(
 
 def _configure_import_paths() -> None:
     scripts = Path(__file__).resolve().parents[1]
-    for path in (scripts / "dsol_paper1", scripts / "cabi_vla"):
+    for path in (scripts / "dsol_paper1", scripts / "vla_shared"):
         value = str(path)
         if value not in sys.path:
             sys.path.insert(0, value)

@@ -25,7 +25,7 @@ STAGE_DWELL_STEPS=${FRESH_SEGMENT_STAGE_DWELL_STEPS:-2}
 SPLIT=${FRESH_SEGMENT_SPLIT:-val}
 SERVER_START_TIMEOUT=${FRESH_POLICY_SERVER_TIMEOUT:-600}
 ALLOW_DIRTY=${FRESH_ALLOW_DIRTY:-0}
-PREREGISTRATION="$REPO_ROOT/docs/embodied_research_reset/recovery_segment_preregistration.md"
+PREREGISTRATION="$REPO_ROOT/docs/archive/research/embodied_research_reset/recovery_segment_preregistration.md"
 EXPECTED_PREREGISTRATION_SHA256=81986ee652f6d1466a31b98fa56eeda8b474f6fe42d8a25dd9f497cb48c5937e
 
 SEED=${1:-41}

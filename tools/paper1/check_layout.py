@@ -36,6 +36,10 @@ def dependencies():
     for p in files:
         by_stem[p.stem].add(p)
         by_name[p.name].add(p)
+    def resolve(paths, caller):
+        local = {p for p in paths if p.parent == caller.parent}
+        shared = {p for p in paths if p.parent == ROOT / 'scripts/vla_shared'}
+        return local or shared or set(paths)
     graph = {}
     for p in files:
         text = p.read_text()
@@ -49,10 +53,11 @@ def dependencies():
                 elif isinstance(node, ast.ImportFrom):
                     modules = [node.module or "", *[a.name for a in node.names]]
                 for module in modules:
-                    targets.update(by_stem.get(module.rsplit(".", 1)[-1], ()))
+                    targets.update(resolve(by_stem.get(module.rsplit(".", 1)[-1], ()), p))
         for name, paths in by_name.items():
             if name in text:
-                targets.update(paths)
+                explicit = {q for q in paths if str(q.relative_to(ROOT)) in text}
+                targets.update(explicit or resolve(paths, p))
         graph[p] = targets - {p}
     return graph
 
@@ -129,7 +134,13 @@ def check(verify_preserved_source=False):
              "AlphaBrain", "scripts", "configs", "schemas"], cwd=ROOT, text=True,
         ).splitlines()
         allowed = {m["old"] for m in manifest["moves"]} | {"scripts/dsol_paper1/README.md"}
+        allowed.update(manifest.get('shared_extraction', {}).get('reviewed_followup_source_paths', []))
         errors.extend(f"Scientific source/config changed: {p}" for p in changed if p not in allowed)
+        for name, expected in manifest.get('shared_extraction', {}).get('reviewed_source_sha256', {}).items():
+            path = ROOT / name
+            actual = sha(path) if path.is_file() else None
+            if actual != expected:
+                errors.append(f"Reviewed extraction source changed: {name}")
         original = subprocess.check_output(
             ["git", "show", f"{manifest['baseline_commit']}:docs/dsol_paper1/README.md"], cwd=ROOT,
         )

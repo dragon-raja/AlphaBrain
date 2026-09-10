@@ -30,7 +30,7 @@ RUN_ID="baseline_repair_full_h_ddp8_seed${SEED}_steps${STEPS}_${RUN_TAG}"
 OUTPUT_DIR="$OUTPUT_ROOT/$RUN_ID"
 MODE=fresh_closed_loop_full_h
 CHECKPOINT="$PRETRAINED_MODELS_DIR/pi05_base"
-PREREG=docs/embodied_research_reset/baseline_validity_repair_preregistration.md
+PREREG=docs/archive/research/embodied_research_reset/baseline_validity_repair_preregistration.md
 
 for required in \
   "$CONFIG" \

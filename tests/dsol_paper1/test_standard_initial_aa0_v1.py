@@ -8,7 +8,7 @@ import numpy as np
 
 SCRIPTS=Path(__file__).resolve().parents[2]/'scripts/dsol_paper1'
 sys.path.insert(0,str(SCRIPTS))
-sys.path.insert(0,str(SCRIPTS.parent/'cabi_vla'))
+sys.path.insert(0,str(SCRIPTS.parent/'vla_shared'))
 import standard_initialization_v1 as init
 from evaluate_dsol_libero_hdf5_views import protocol_spec_at, protocol_spec_count
 

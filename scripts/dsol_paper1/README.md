@@ -8,6 +8,7 @@
 | 标准初态整任务 | `standard_initial_aa0_v1.py`、`standard_initialization_v1.py` |
 | 双机运行与闭环 | `dualhost_aa0_v1.py`、`evaluate_dsol_libero_hdf5_views.py` |
 | 噪声与渲染一致性 | `explicit_flow_noise.py`、`render_bridge_common_v1.py`、`trace_view_repeatability_v1.py` |
+| 共享服务、观测、相机 | [`scripts/vla_shared`](../vla_shared/README.md)；`shared_runtime_paths.py` 处理历史冻结副本兼容 |
 | 训练匹配核验 | `audit_dsol_training_match.py`、`finalize_canonical_match_v1.py` |
 | 指标和空间分析 | `analyze_view_metric_rules_v1.py`、`analyze_matched_view_metric_rules_v1.py`、`compare_matched_view_landscapes_v1.py` |
 | 汇报 | `build_unified_research_progress_v1.py`；双周报使用 `docs/dsol_paper1/reports/biweekly/20260909/build_report.py` |
@@ -28,7 +29,7 @@ python tools/paper1/test.py
 
 ## 为什么保留旧模块
 
-当前代码仍复用历史阶段中的数据恢复、观测处理、可见性、Accel 和统计函数。名称含 `constructed`、`expectation` 或 `bridge` 不等于无用。`scripts/cabi_vla` 中的服务和相机工具也仍是依赖。
+当前代码仍复用历史阶段中的数据恢复、可见性、Accel 和统计函数。名称含 `constructed`、`expectation` 或 `bridge` 不等于无用。共享服务、观测和相机实现已迁到 `scripts/vla_shared`；CABI 同名文件只保留兼容转发，不再维护第二份实现。
 
 没有移走有调用关系的公共模块；12 个独立的一次性操作脚本已转入 [历史操作归档](../../archive/paper1/README.md)。旧实验的正式入口与分析器保留供证据复现，不属于本轮默认运行流程。
 

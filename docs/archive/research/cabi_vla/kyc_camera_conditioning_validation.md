@@ -68,7 +68,7 @@ Base 与 PM-Fixed 的数据和训练暴露不完全匹配，只作背景解释�
 这避免把桌面/物体遮挡误报为“目标出了相机”。目标物体的 4,680 个观测中，
 4,152 个有投影且可见，255 个有投影但完全不可见，273 个真正无传感器内投影。
 
-![目标物体视野相图](assets/kyc_camera_study_v1/target_visibility_phase_map.png)
+![目标物体视野相图](../../../cabi_vla/assets/kyc_camera_study_v1/target_visibility_phase_map.png)
 
 图中每条色带取十个 test snapshot 的最坏情况；白线是 canonical，浅绿背景是
 训练支持域。黑色才表示真正出传感器，灰色表示仍在传感器几何范围内但被完全
@@ -82,7 +82,7 @@ Base 与 PM-Fixed 的数据和训练暴露不完全匹配，只作背景解释�
 
 任务成功同时需要 source 和 target，因此任务整体边界比只看 target 更严格：
 
-![任务整体视野相图](assets/kyc_camera_study_v1/task_visibility_phase_map.png)
+![任务整体视野相图](../../../cabi_vla/assets/kyc_camera_study_v1/task_visibility_phase_map.png)
 
 `fully_supported` 只表示 rollout 开始时的 settled observation 同时满足：
 两物体中心在框内、各至少 64 visible pixels 和 4 visible patches、几何裁切均
@@ -97,7 +97,7 @@ Base 与 PM-Fixed 的数据和训练暴露不完全匹配，只作背景解释�
 - elevation：`[-15°,15°]`，步长 `3°`；
 - radius：`[0.85x,1.15x]`，步长 `0.025x`。
 
-![Seed-41 密集闭环成功曲线](assets/kyc_camera_study_v1/dense_seed41_success_curves.png)
+![Seed-41 密集闭环成功曲线](../../../cabi_vla/assets/kyc_camera_study_v1/dense_seed41_success_curves.png)
 
 在 122 个初始观测 fully-supported episode 中：
 
@@ -118,7 +118,7 @@ action-supervised task，共 520 个 episode；`K=3`、320 步、相同 flow/env
 seed、相同物理状态和相同 FOV join。九个产物均为 520 行且精确覆盖同一个笛卡尔
 网格，总计 4,680 个闭环 episode、无重复键。
 
-![跨 seed 固定闭环 Gate](assets/kyc_camera_study_v1/fixed_gate_cross_seed.png)
+![跨 seed 固定闭环 Gate](../../../cabi_vla/assets/kyc_camera_study_v1/fixed_gate_cross_seed.png)
 
 ### 主比较
 

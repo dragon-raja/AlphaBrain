@@ -28,7 +28,7 @@
 证明所有相机几何方法无效，也不是对 KYC 原论文真实性的否定；它说明该机制在
 本轮 Pi0.5、双相机、视觉低秩适配和多视角训练条件下没有形成独特的闭环收益。
 
-![双相机 KYC 主结果](assets/kyc_dual_camera_validation_v1/dual_camera_screen.png)
+![双相机 KYC 主结果](../../../cabi_vla/assets/kyc_dual_camera_validation_v1/dual_camera_screen.png)
 
 ## 实验设计
 
@@ -108,7 +108,7 @@ Control 明确优于 RGB，说明新增几何分支的容量或正则化本身�
 
 ## 视野边界
 
-![双相机诊断与视野边界](assets/kyc_dual_camera_validation_v1/dual_camera_diagnostics.png)
+![双相机诊断与视野边界](../../../cabi_vla/assets/kyc_dual_camera_validation_v1/dual_camera_diagnostics.png)
 
 - 7 个位姿的 episode 初始时刻，两个任务物体都至少部分可见，比例均为 100%；
 - “完整可见”随位姿变化很大：默认、俯仰 ±25° 和近距离 0.90 为 0%，
@@ -122,7 +122,7 @@ Control 明确优于 RGB，说明新增几何分支的容量或正则化本身�
 已输出两路相机逐帧观测。每帧左侧为第三人称相机，右侧为动态腕部相机；腕部画面
 随机器人运动，未被错误复用成固定图像。
 
-![Control 与 Dual-KYC 成对轨迹](assets/kyc_dual_camera_validation_v1/paired_control_dual_contact_sheet.jpg)
+![Control 与 Dual-KYC 成对轨迹](../../../cabi_vla/assets/kyc_dual_camera_validation_v1/paired_control_dual_contact_sheet.jpg)
 
 视频全部使用 AV1/WebM，而不是旧 MP4：
 
@@ -193,7 +193,7 @@ Background 32、Language 48、Light 25、Layout 43、Robot Init 47、Noise 47。
 `4976dc30028e805ff8094b55501d532c48fec182`。隔离 Python overlay、非交互配置和
 真实 MuJoCo 冒烟均通过；下面是目标任务 reset 后的第三人称与动态腕部相机观测。
 
-![LIBERO-Plus 真实运行时双相机冒烟](assets/kyc_dual_camera_validation_v1/libero_plus_runtime_smoke.png)
+![LIBERO-Plus 真实运行时双相机冒烟](../../../cabi_vla/assets/kyc_dual_camera_validation_v1/libero_plus_runtime_smoke.png)
 
 这一步证明 **数据和仿真运行链路可用**，不代表已经有 Pi0.5 的官方 Plus 闭环
 结果。目前机器上只有 Pi0.5 base 与本实验的 LIBERO-Bind checkpoint；后者不能

@@ -9,6 +9,7 @@ import signal
 import socket
 import sys
 import time
+from shared_runtime_paths import shared_scripts
 
 ROOT=Path('/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908')
 sys.path.insert(0,str(ROOT/'repo/scripts/dsol_paper1'))
@@ -51,7 +52,7 @@ def matrix(host,r,phase,indices):
             for j in range(16):
                 port=r['base_port']+j
                 with socket.socket() as s:core.require(s.connect_ex(('127.0.0.1',port))!=0,'Port occupied')
-                servers.append(core.spawn([core.python(),core.REPO/'scripts/cabi_vla/serve_alphabrain_pi05_websocket.py',
+                servers.append(core.spawn([core.python(),shared_scripts(core.REPO)/'serve_alphabrain_pi05_websocket.py',
                     '--checkpoint',r['models'][model]['path'],'--port',port,'--device','cuda:0','--cpu-threads',2],
                     EXT/host/'logs'/f'{phase}-{model}-server-{j}.log',core.env(gpu=j//2)))
             started=time.time()

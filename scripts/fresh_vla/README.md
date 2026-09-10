@@ -67,4 +67,4 @@ The real LIBERO pilot confirms that outcome-dependent common-prefix structure
 exists, including a no-gripper-transition blocked-push branch. It does not by
 itself establish a trained-policy advantage. The first strict method gate still
 did not pass, so the lambda sweep and learned horizon remain disabled. See
-`docs/fresh_vla_counterfactual_validation.md` for the complete result.
+`docs/archive/research/fresh_vla/fresh_vla_counterfactual_validation.md` for the complete result.

@@ -9,7 +9,7 @@ CCV_ROOT=${POLICY_RESPONSE_CCV_ROOT:-/share/longjunyu/fresh-vla/ccv-vla/gate0-co
 EPISODE_ROOT=${POLICY_RESPONSE_EPISODE_ROOT:-/share/longjunyu/fresh-vla/libero-full-episode-v2-128}
 OUTPUT_ROOT=${POLICY_RESPONSE_OUTPUT_ROOT:-/share/longjunyu/fresh-vla/policy-response-vla/gate-minus1-v1}
 CHECKPOINT=${POLICY_RESPONSE_CHECKPOINT:-/share/longjunyu/fresh-vla/runs/baseline-repair-v1/baseline_repair_full_h_ddp8_seed41_steps13804_formal-v2/checkpoints/steps_10353}
-PREREGISTRATION=$REPO_ROOT/docs/policy_response_vla/gate_minus1_preregistration.md
+PREREGISTRATION=$REPO_ROOT/docs/archive/research/policy_response_vla/gate_minus1_preregistration.md
 GPU_ID=${1:?usage: run_collect_endpoint_responses.sh GPU_ID [MAX_STATES] [STATE_OFFSET]}
 MAX_STATES=${2:-}
 STATE_OFFSET=${3:-0}
@@ -55,4 +55,3 @@ CUDA_VISIBLE_DEVICES="$GPU_ID" "$SIM_PYTHON" scripts/policy_response_vla/collect
   --policy-socket "$SOCKET" --ccv-root "$CCV_ROOT" --episode-root "$EPISODE_ROOT" \
   --output-root "$OUTPUT_ROOT" --preregistration "$PREREGISTRATION" \
   --state-offset "$STATE_OFFSET" --resume "${extra[@]}"
-

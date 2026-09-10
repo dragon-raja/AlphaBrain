@@ -122,12 +122,20 @@ noise_bank_sha256=""
 if [[ -n "$NOISE_BANK_MANIFEST" ]]; then
   noise_bank_sha256=$(sha256sum "$NOISE_BANK_MANIFEST" | awk '{print $1}')
 fi
+shared_code_files=()
+if [[ -d "$REPO_ROOT/scripts/vla_shared" ]]; then
+  for shared_name in __init__.py build_libero_plus_view_protocol.py evaluate_pi05_libero_plus_views.py libero_camera_pose.py serve_alphabrain_pi05_websocket.py; do
+    shared_code_files+=("$REPO_ROOT/scripts/vla_shared/$shared_name")
+  done
+  shared_code_files+=("$REPO_ROOT/scripts/dsol_paper1/shared_runtime_paths.py")
+fi
 code_sha256=$(sha256sum \
   "$REPO_ROOT/scripts/cabi_vla/serve_alphabrain_pi05_websocket.py" \
   "$REPO_ROOT/scripts/cabi_vla/serve_openpi_deterministic.py" \
   "$REPO_ROOT/scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py" \
   "$ANALYZER" \
   "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh" \
+  "${shared_code_files[@]}" \
   | sha256sum | awk '{print $1}')
 manifest_tmp=$(mktemp "$OUTPUT_DIR/run-manifest.XXXXXX.json")
 jq -n \

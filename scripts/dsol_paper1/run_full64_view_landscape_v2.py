@@ -52,6 +52,7 @@ def verify_identity(item):
 
 
 def preflight():
+    from shared_runtime_paths import shared_code_paths
     release=read_json(ROOT/'release.json')
     require(release['status']=='FROZEN_USER_AUTHORIZED_EXTENSION' and release['root']==str(ROOT),'Wrong release')
     require((release['total_state_count'],release['new_state_count'],release['reused_state_count'])==(64,56,8),'Wrong state budget')
@@ -63,6 +64,7 @@ def preflight():
     old=release['old_release_content']
     runner_files=[REPO/'scripts/cabi_vla/serve_alphabrain_pi05_websocket.py',REPO/'scripts/cabi_vla/serve_openpi_deterministic.py',
         REPO/'scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py',REPO/'scripts/dsol_paper1/summarize_dsol_libero_hdf5_closed_loop.py',RUNNER]
+    runner_files.extend(shared_code_paths(REPO))
     combined=hashlib.sha256(subprocess.check_output(['sha256sum',*map(str,runner_files)])).hexdigest()
     require(combined==old['runner_code_sha256'],'Frozen runner/server/evaluator changed')
     for key in ('catalog','checkpoint_receipt'): verify_identity(old[key])

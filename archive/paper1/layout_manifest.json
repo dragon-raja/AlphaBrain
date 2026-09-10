@@ -225,5 +225,100 @@
       "No scientific algorithm, noise, candidate catalog, checkpoint, result ledger or frozen release changed.",
       "Runtime navigation is conservative static analysis, not full dynamic reachability or semantic duplication audit."
     ]
+  },
+  "report_artifact_cleanup": {
+    "date_utc": "2026-09-10",
+    "status": "PASS_ARCHIVED_AND_REMOVED_FROM_WORKING_DIRECTORY",
+    "source_commit": "39d93c5bdd49a441380f69661c814f58f21bf176",
+    "archive": "/share/longjunyu/alphabrain/archives/paper1-report-revisions-20260910/revisions-and-stale-previews.tar.gz",
+    "archive_sha256": "fef59809ccdf4e3a0ff3c125e0336190b2e3b8f8904d1a307007c4b4e988a897",
+    "source_bytes": 87120067,
+    "archive_bytes": 86973094,
+    "members": [
+      {
+        "path": "docs/dsol_paper1/reports/biweekly/20260909/_archive/3page-before-language-edit/build_report.py",
+        "sha256": "19c7d6392dce2e8a8f10e6d87b1e350884d30ee86f587bc8db8bab107c2fb673",
+        "bytes": 21851,
+        "kind": "tracked_source"
+      },
+      {
+        "path": "docs/dsol_paper1/reports/biweekly/20260909/_archive/3page-before-language-edit/科研进展双周报_20260827-20260909.pdf",
+        "sha256": "8bce641b4460c2e5afc460ad44a6ccdc22f15d81aebf97796ec7d62dc3b52526",
+        "bytes": 28219579,
+        "kind": "generated_binary"
+      },
+      {
+        "path": "docs/dsol_paper1/reports/biweekly/20260909/_archive/3page-before-language-edit/科研进展双周报_20260827-20260909.docx",
+        "sha256": "04ebaf7ec6710eb5c19b0aff624e1d64fd898d3a3c04873f62cfbedec2db5b1c",
+        "bytes": 358087,
+        "kind": "generated_binary"
+      },
+      {
+        "path": "docs/dsol_paper1/reports/biweekly/20260909/_archive/3page-before-visual-rewrite/build_report.py",
+        "sha256": "d162b7d223051b6619e327beb6ab11798152e8d940eaa6a8ccbe11095a576c9a",
+        "bytes": 21460,
+        "kind": "tracked_source"
+      },
+      {
+        "path": "docs/dsol_paper1/reports/biweekly/20260909/_archive/3page-before-visual-rewrite/科研进展双周报_20260827-20260909.pdf",
+        "sha256": "402ae392cbd5da1d7d1c9ede3767384c0f78172f90555953cd9914b9611abab9",
+        "bytes": 28623736,
+        "kind": "generated_binary"
+      },
+      {
+        "path": "docs/dsol_paper1/reports/biweekly/20260909/_archive/3page-before-visual-rewrite/科研进展双周报_20260827-20260909.docx",
+        "sha256": "3e113c3c5383f80278e84145a0a200ef90589c75cee6ed3b21ad845546a11c77",
+        "bytes": 357169,
+        "kind": "generated_binary"
+      },
+      {
+        "path": "docs/dsol_paper1/reports/biweekly/20260909/_archive/5page/build_report.py",
+        "sha256": "ac1e9df684d75c94deeb882798ff4c2d8f39308900c196bfb6aa5ab0ff2ffe43",
+        "bytes": 24765,
+        "kind": "tracked_source"
+      },
+      {
+        "path": "docs/dsol_paper1/reports/biweekly/20260909/_archive/5page/科研进展双周报_20260827-20260909.pdf",
+        "sha256": "e45d3e36907ff28ae436d6f1543e4334ed223fa86b7626795792305316ed0b4a",
+        "bytes": 28459551,
+        "kind": "generated_binary"
+      },
+      {
+        "path": "docs/dsol_paper1/reports/biweekly/20260909/_archive/5page/科研进展双周报_20260827-20260909.docx",
+        "sha256": "4f282d37141ddc2676fcf5bf15a4b8e4d965a4e72235bb7a450f7d12c6e25b9e",
+        "bytes": 438063,
+        "kind": "generated_binary"
+      },
+      {
+        "path": "docs/dsol_paper1/reports/biweekly/20260909/_archive/5page/_provenance.json",
+        "sha256": "640f09b8d4539a1bab0e39eb1a85910be02036a837e6a45d28dde89f29352b71",
+        "bytes": 5625,
+        "kind": "tracked_source"
+      },
+      {
+        "path": "docs/dsol_paper1/reports/biweekly/20260909/_assets/page-3.png",
+        "sha256": "6c11137f5238f63e5dfd2ff4276db746c7e56697d4dfab32e0a8b840ea4376db",
+        "bytes": 159797,
+        "kind": "generated_binary"
+      },
+      {
+        "path": "docs/dsol_paper1/reports/biweekly/20260909/_assets/page-4.png",
+        "sha256": "553d79671ced0d73efed2879c856a662e599c337a87f4694fbdac5179c223947",
+        "bytes": 259559,
+        "kind": "generated_binary"
+      },
+      {
+        "path": "docs/dsol_paper1/reports/biweekly/20260909/_assets/page-5.png",
+        "sha256": "a927ac3f4accf0198ba3e8ce23444caf5937870eb44501639ac16875e2975207",
+        "bytes": 170825,
+        "kind": "generated_binary"
+      }
+    ],
+    "current_report_pages": 2,
+    "current_report_preserved": true,
+    "current_assets_and_frozen_protocol_preserved": true,
+    "private_verification_receipt": "/share/longjunyu/alphabrain/archives/paper1-report-revisions-20260910/completed.json",
+    "restore": "Extract archive to a separate directory, not over the active workspace. Members retain repository-relative paths.",
+    "scope": "Three retired biweekly report revisions plus stale page-3/4/5 previews. No experiments, weights, infrastructure or keepalive files."
   }
 }

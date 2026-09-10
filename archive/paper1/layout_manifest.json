@@ -1,0 +1,229 @@
+{
+  "schema": "paper1_layout_preservation_v1",
+  "baseline_commit": "7d9e76c6415179ac5e44f01e700a9ebf82059a13",
+  "baseline_tag": "archive/paper1-before-layout-20260910",
+  "baseline_tests": {
+    "passed": 390,
+    "subtests_passed": 177
+  },
+  "moves": [
+    {
+      "old": "scripts/dsol_paper1/accel_checkpoint_smoke_test.py",
+      "new": "tests/dsol_paper1/accel_checkpoint_smoke_test.py",
+      "sha256": "f23bc2f02f1a6888093424ee0a29f4f75009d01647155cbb701b180ba6b744c2",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/accel_cli_test.py",
+      "new": "tests/dsol_paper1/accel_cli_test.py",
+      "sha256": "da70fab74997edb26465f135b831e9f994ad3e5d94af28275db27757882bbf76",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/accel_core_test.py",
+      "new": "tests/dsol_paper1/accel_core_test.py",
+      "sha256": "e06a56f7b27414c4117e0908eb58441fda86d491bb2105e4eaceb019c51de280",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/accel_gate_a97_test.py",
+      "new": "tests/dsol_paper1/accel_gate_a97_test.py",
+      "sha256": "1ff39ddad7d0523a0e73a60fadc28710d65e2124fe55feb335b4bef12ae9d8a9",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/accel_inference_test.py",
+      "new": "tests/dsol_paper1/accel_inference_test.py",
+      "sha256": "c7a362fca293e5d6f208af7e6532242afb693618dcf91d94bf6c57415710d0a6",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/analyze_m_b_multiseed_test.py",
+      "new": "tests/dsol_paper1/analyze_m_b_multiseed_test.py",
+      "sha256": "82bc467e7255876e11bdf253b83b4837b6fb0546207add28ca2102b332ff5307",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/audit_view_value_expectation_heldout_run_test.py",
+      "new": "tests/dsol_paper1/audit_view_value_expectation_heldout_run_test.py",
+      "sha256": "f6931eba4e9d2fb5607c0b88db4e2ab3d4377f39c00015ed2e74ceda98826788",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/audit_view_value_expectation_protocol_test.py",
+      "new": "tests/dsol_paper1/audit_view_value_expectation_protocol_test.py",
+      "sha256": "661b590f193969c3f879abf260e8eabe3e1e8b6c9591704cc90ddbc8d7441512",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/build_constructed_m1_protocol_test.py",
+      "new": "tests/dsol_paper1/build_constructed_m1_protocol_test.py",
+      "sha256": "f7ed96c5416bc7ab1845e07333eabe2cc1df3313c7d1139e164585a19b3ebc90",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/build_constructed_view_oracle_protocol_test.py",
+      "new": "tests/dsol_paper1/build_constructed_view_oracle_protocol_test.py",
+      "sha256": "94af49ee7cf16412dda7ff3dde7f68f3ff5efaedb433ede8b6642b54313407be",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/build_matched_view_landscape_protocol_v1_test.py",
+      "new": "tests/dsol_paper1/build_matched_view_landscape_protocol_v1_test.py",
+      "sha256": "2315422225e7d6cebcb501c7d1720135ba3edb09c9d046a5fe68be8718379141",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/build_view_landscape_report_v1_test.py",
+      "new": "tests/dsol_paper1/build_view_landscape_report_v1_test.py",
+      "sha256": "459a39bf07e1ae94401fe83260755fb84170b9b0a678375aec23b42a15c462b3",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/explicit_flow_noise_test.py",
+      "new": "tests/dsol_paper1/explicit_flow_noise_test.py",
+      "sha256": "5e02d70c8539900d44c2e6e7116651b77b768d900c19186d49272493e70a7942",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/finalize_constructed_m0_manual_audit_test.py",
+      "new": "tests/dsol_paper1/finalize_constructed_m0_manual_audit_test.py",
+      "sha256": "f7af715c1186d1b7db1eb24447fa221547de26c1a7a023894452531e8c007cc0",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/join_constructed_accel_m1_test.py",
+      "new": "tests/dsol_paper1/join_constructed_accel_m1_test.py",
+      "sha256": "006c357a60cdb582199968520828b63190143be3db3f54be3357a07c3bd021c7",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/libero_visibility_test.py",
+      "new": "tests/dsol_paper1/libero_visibility_test.py",
+      "sha256": "fdf3f2fa00ade260239a35bd8ff4a1507c523875ac970a366f1b0c9e515c7bd6",
+      "mode": "0o600"
+    },
+    {
+      "old": "scripts/dsol_paper1/render_constructed_m0_audit_montages_test.py",
+      "new": "tests/dsol_paper1/render_constructed_m0_audit_montages_test.py",
+      "sha256": "a522c281522c5c0482fabc337b0a0d38e96cf87866c04025ad52e9802829ce53",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_constructed_accel_bank_test.py",
+      "new": "tests/dsol_paper1/run_constructed_accel_bank_test.py",
+      "sha256": "86868ba32ab877e2088e0c37b2f9fa32a759192eebd528d4aec7d016f1a3b1b7",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/select_constructed_m0_candidates_test.py",
+      "new": "tests/dsol_paper1/select_constructed_m0_candidates_test.py",
+      "sha256": "195725f25aa4345cf5e2020cbaf249fe6456d7c447bf5183fd736063473fe59b",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/view_repeatability_test.py",
+      "new": "tests/dsol_paper1/view_repeatability_test.py",
+      "sha256": "a3f8f45a924237f111b28789f3bf311daae058676fefe0f57df2546bcf9e17d1",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/view_value_discovery_test.py",
+      "new": "tests/dsol_paper1/view_value_discovery_test.py",
+      "sha256": "8cab7604ee35d6302e340192e47420ca7857d2edfe491fd4a2942862012bad56",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/amend_standard_initial_refresh_r2.py",
+      "new": "archive/paper1/operations/amend_standard_initial_refresh_r2.py.txt",
+      "sha256": "e7cd96312ea5d4d36ce7387f68c34021b403973fcc8cfb41bde4cb6d39ae1d58",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/retire_old_aa4_for_dualhost_v1.py",
+      "new": "archive/paper1/operations/retire_old_aa4_for_dualhost_v1.py.txt",
+      "sha256": "9d16f26d6499a483b69d80f6cd8dd75a1c0b228af8da21f711f81e1cf75e413f",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/retry_dynamic_transition_v1.py",
+      "new": "archive/paper1/operations/retry_dynamic_transition_v1.py.txt",
+      "sha256": "0f1e737775aee82f71c7077221bbaa4a7ba465847b0efbd609c27c9b0e63d150",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/stop_superseded_snapshot_matrix.py",
+      "new": "archive/paper1/operations/stop_superseded_snapshot_matrix.py.txt",
+      "sha256": "5fae295c9dac68af22e7145a11d92c21d138bf64593e7727d718e9e515f64286",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/switch_retired_aa4_to_aa0_now.py",
+      "new": "archive/paper1/operations/switch_retired_aa4_to_aa0_now.py.txt",
+      "sha256": "ba0f563fc5b76c5542a337d23c247edb74235765a39af5ebc304cf8523b9c294",
+      "mode": "0o644"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_accel_models_after_m1.sh",
+      "new": "archive/paper1/operations/run_accel_models_after_m1.sh.txt",
+      "sha256": "51236242adf5139e5b51a23de8c754d0d55bd41f01176af1e8a37e07ee5d0f30",
+      "mode": "0o755"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_accel_smoke_after_m0.sh",
+      "new": "archive/paper1/operations/run_accel_smoke_after_m0.sh.txt",
+      "sha256": "b8b2e71146a63c16c5bf6b3fde183bea38ada74bc23153101daaaa6038f93a4b",
+      "mode": "0o755"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_broad64_parallel_pairing_after_retention.sh",
+      "new": "archive/paper1/operations/run_broad64_parallel_pairing_after_retention.sh.txt",
+      "sha256": "dfde636264c3838267851a6795fc790df36147c51e52dc5c8edf2130865af681",
+      "mode": "0o755"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_constructed_m0_audit_render_after_selection.sh",
+      "new": "archive/paper1/operations/run_constructed_m0_audit_render_after_selection.sh.txt",
+      "sha256": "948e1c2122f16760c74aa4ade5833b10834e9fb83aca2c3ef82bfd5ab344795f",
+      "mode": "0o755"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_constructed_m0_scan_after_retention.sh",
+      "new": "archive/paper1/operations/run_constructed_m0_scan_after_retention.sh.txt",
+      "sha256": "58ab896481a48911add1c19fe0af33233214c3bb2ec087f5de694764ec76d3f1",
+      "mode": "0o755"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_constructed_m0_selection_after_scan.sh",
+      "new": "archive/paper1/operations/run_constructed_m0_selection_after_scan.sh.txt",
+      "sha256": "fae0ce7cea5fd6618f15590f1c448b6d4d24ca4493071761c99ffcdd1f6ffa70",
+      "mode": "0o755"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_constructed_m1_matrix_after_training.sh",
+      "new": "archive/paper1/operations/run_constructed_m1_matrix_after_training.sh.txt",
+      "sha256": "4fcc190e7257600bd42877c1df14dacd41498345eae7e59e4a8274766c244c57",
+      "mode": "0o755"
+    }
+  ],
+  "acceptance": {
+    "date_utc": "2026-09-10",
+    "baseline_tests_passed": 390,
+    "after_tests_passed": 394,
+    "subtests_passed": 177,
+    "retained_scientific_source_unchanged": true,
+    "relocated_file_bytes_unchanged": true,
+    "frozen_files_checked": 1013,
+    "frozen_file_mismatches": 0,
+    "frozen_release_sha256": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899",
+    "frozen_scheduler_matches": true,
+    "script_count_before": 216,
+    "script_count_after": 183,
+    "notes": [
+      "Four new layout/maintenance tests; original 390 tests preserved.",
+      "Report products retained on disk and in prior backup; only scoped ignore rules added.",
+      "No scientific algorithm, noise, candidate catalog, checkpoint, result ledger or frozen release changed.",
+      "Runtime navigation is conservative static analysis, not full dynamic reachability or semantic duplication audit."
+    ]
+  }
+}

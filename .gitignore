@@ -136,6 +136,16 @@ dmypy.json
 # Ruff
 .ruff_cache/
 
+# Paper 1 report products: sources stay in Git; local renderings stay on disk.
+# This does not untrack any previously committed evidence or ignore result JSON.
+/docs/dsol_paper1/reports/**/*.pdf
+/docs/dsol_paper1/reports/**/*.docx
+/docs/dsol_paper1/reports/**/_assets/*.png
+/docs/dsol_paper1/reports/**/_assets/*.otf
+/docs/dsol_paper1/vla_view_landscape_and_metrics_20260908_zh.pdf
+/docs/dsol_paper1/vla_view_research_focus_20260907_zh.pdf
+/docs/dsol_paper1/vla_view_research_unified_20260907_zh.pdf
+
 # Auth Tokens / Hidden Files
 .hf_token
 .wandb_api_key

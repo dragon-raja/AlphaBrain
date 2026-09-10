@@ -1,3 +1,5 @@
+> 本研究分支的入口：[Paper 1：VLA 视角利用研究](docs/dsol_paper1/README.md)。以下为 AlphaBrain 框架说明；其他历史研究目录不代表当前论文范围。
+
 <div align="center">
 
 # AlphaBrain

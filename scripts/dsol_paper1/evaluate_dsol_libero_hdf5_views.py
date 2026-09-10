@@ -138,14 +138,24 @@ def run_episode(
         stable_seed,
     )
 
-    with h5py.File(hdf5_path, "r") as handle:
-        data = handle["data"]
-        demo = data[str(spec["demo_name"])]
-        state = np.asarray(demo["states"][int(spec.get("source_state_index", 0))])
-        model_xml, rewrites = _rewrite_model_paths(_decode(demo.attrs["model_file"]), runtime)
-        bddl_name = Path(_decode(data.attrs["bddl_file_name"])).name
-        problem_info = json.loads(_decode(data.attrs["problem_info"]))
-        prompt = str(problem_info["language_instruction"])
+    standard_initial = spec.get("initialization", {}).get("kind") == "official_libero_initial_state_v1"
+    if standard_initial:
+        from standard_initialization_v1 import load_initial, initialize, verify_policy_input
+        if wait_steps != 0 or spec.get("scene_construction") is not None:
+            raise ValueError("Standard initial protocol settles before camera installation; no scene injection")
+        state = load_initial(spec)
+        model_xml, rewrites = None, {}
+        bddl_name = Path(spec["bddl_file"]).name
+        prompt = str(spec["prompt"])
+    else:
+        with h5py.File(hdf5_path, "r") as handle:
+            data = handle["data"]
+            demo = data[str(spec["demo_name"])]
+            state = np.asarray(demo["states"][int(spec.get("source_state_index", 0))])
+            model_xml, rewrites = _rewrite_model_paths(_decode(demo.attrs["model_file"]), runtime)
+            bddl_name = Path(_decode(data.attrs["bddl_file_name"])).name
+            problem_info = json.loads(_decode(data.attrs["problem_info"]))
+            prompt = str(problem_info["language_instruction"])
     scene_construction = spec.get("scene_construction")
     if scene_construction is not None:
         model_xml = inject_static_visual_occluder(model_xml, scene_construction)
@@ -171,10 +181,14 @@ def run_episode(
         raise ValueError("formal evaluation requires a noise bank and policy_repeat_id")
     sensor_control = str(spec["sensor_control"])
     try:
-        env.seed(environment_seed)
-        env.reset()
-        env.reset_from_xml_string(model_xml)
-        observation = env.set_init_state(state)
+        initialization_receipt = None
+        if standard_initial:
+            observation, initialization_receipt = initialize(env, spec, state)
+        else:
+            env.seed(environment_seed)
+            env.reset()
+            env.reset_from_xml_string(model_xml)
+            observation = env.set_init_state(state)
         initial_task_success = bool(env.check_success())
         initial_goal_progress = goal_predicate_progress(env)
         success = initial_task_success
@@ -199,6 +213,11 @@ def run_episode(
                 )
             else:
                 camera_metadata = install_camera_pose(env, reference, pose)
+            env.env._update_observables(force=True)
+            observation = env.env._get_observations()
+        elif standard_initial:
+            # The last no-op step may return a cached camera observation.
+            # Pose-changing branches already refresh; canonical must do so too.
             env.env._update_observables(force=True)
             observation = env.env._get_observations()
         for _ in range(wait_steps):
@@ -281,6 +300,8 @@ def run_episode(
                     explicit_noise=None if noise_record is None else noise_record["noise"],
                     noise_sha256=None if noise_record is None else noise_record["noise_sha256"],
                 )
+                if standard_initial and inference_calls == 0:
+                    initialization_receipt["matched_metric_asset_sha256"] = verify_policy_input(spec, example)
                 response = client.infer(example)
                 chunk = np.ascontiguousarray(response["actions"], dtype=np.float32)
                 if len(chunk) < replan_steps or chunk.shape[1] != 7:
@@ -309,6 +330,11 @@ def run_episode(
             observation, _, done, _ = env.step(action_plan.popleft())
             success = bool(done)
             step += 1
+        if standard_initial:
+            final_calibration = agentview_camera_calibration(env)
+            for key in ("camera_intrinsics", "camera_to_world_opencv"):
+                if key in camera_calibration and not np.array_equal(camera_calibration[key], final_calibration[key]):
+                    raise ValueError("External camera moved during rollout: " + key)
         final_goal_progress = goal_predicate_progress(env)
         if save_video:
             suffix = "success" if success else "failure"
@@ -342,6 +368,7 @@ def run_episode(
                 "camera_metadata": camera_metadata,
                 "scene_construction": scene_construction,
                 "initial_metrics": initial_metrics,
+                "initialization_receipt": initialization_receipt,
             },
             env,
         )

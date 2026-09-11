@@ -1,0 +1,20 @@
+{
+  "status": "PASS_RUNTIME_MIGRATION_GATE",
+  "scientific_ledger": false,
+  "source_commit": "5c85f7e2c786e64e21549fcc8e3466f756093e39",
+  "diagnostic_directory": "/share/longjunyu/alphabrain/validations/repository-runtime-20260911-v3",
+  "episodes": 192,
+  "exact_paired_cases": 96,
+  "per_request_pairs": 4451,
+  "actual_denoising_time_pairs": 44510,
+  "elapsed_execution_seconds": 894.8883517412469,
+  "plan_sha256": "e26889afb31f14264e55cc79fe0f6888d5bdae94979c7c8e77ad229f1ac99118",
+  "release_sha256": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899",
+  "unchanged_pdf_sha256": "dbd9c2b6906fee9a120734291dda9dc4b56a16a9194e1852074fb796bfdb95a7",
+  "cpu_tests": {"full": 588, "subtests": 182, "portable": 66},
+  "scope": "Existing 48 gate indices x 2 models x old/new source. Eight tasks, one gate initial per task, three views and two noise tapes; not full-matrix or cross-hardware certification.",
+  "prior_attempts": {
+    "v1": "Failed before current rollout: Python 3.8 eager protocol dataclass import. Preserved.",
+    "v2": "Stopped by agent after mixed current/frozen camera helper origins were found. Not accepted. Preserved."
+  }
+}

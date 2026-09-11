@@ -13,6 +13,7 @@
 | 双周汇报交付 | [2026-09-09 双周报源文件](../../reports/paper1/historical/biweekly_20260909.py) |
 | 代码用途与入口 | [脚本导航](../../scripts/dsol_paper1/README.md) |
 | 开发规则与模块边界 | [CONTRIBUTING](../../CONTRIBUTING.md) · [可复用研究包](../../AlphaBrain/research/dsol/README.md) |
+| 仓库迁移后的真实闭环验收 | [运行一致性记录](audits/repository_runtime_equivalence_20260911_zh.md) |
 | ACD / basin / branch 等旁支 | [代码归档与恢复映射](../../archive/research/README.md) |
 | 共享服务与相机工具 | [VLA 共享模块](../../scripts/vla_shared/README.md) |
 | 训练匹配与证据边界 | [训练匹配审计](audits/training_match_anchor_audit_20260907_zh.md) |
@@ -49,6 +50,8 @@
 ```
 
 当前工作仓库 `/workspace/projects/alphabrain-dsol-paper1` 用于后续开发；整理它不会热更新上面的冻结副本。不要在本仓库直接重跑建库、迁移或调度命令来“检查状态”。
+
+2026-09-11 运行迁移验收：修复 Python 3.8 提前导入及共享工具源码绑定问题后，192 次独立诊断闭环、96 对新旧轨迹全部精确一致并匹配历史验收结果。它们不计入上面的 198,656 条科学结果，PDF 保持不变。覆盖范围及完整来源见 [验收记录](audits/repository_runtime_equivalence_20260911_zh.md)。
 
 ## 开发检查
 

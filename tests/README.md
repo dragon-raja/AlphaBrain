@@ -21,4 +21,6 @@ python tools/repository/test.py --profile full
 
 `full` 额外覆盖模型组件、数据加载、全部 Paper 1 与共享运行工具。只读私有数据的 golden 测试在缺少其固定数据时跳过。它仍不启动 VLA 训练或正式 rollout，也不能替代实际仿真轨迹、不同硬件和真机验收。
 
+已获授权的 GPU 迁移对照使用 `tools/paper1/verify_runtime.py`，必须显式提供源码、冻结实验和全新诊断输出目录，并传入 `--execute`。它不属于默认测试或 CI；协议、通过条件及结果入口见 [闭环一致性验收记录](../docs/dsol_paper1/audits/repository_runtime_equivalence_20260911_zh.md)。
+
 归档目录不参与默认测试。活动兼容工具对应的测试留在 `tests/cabi_vla`；其他旁支的原测试随源码归档，恢复原 checkout 后使用。

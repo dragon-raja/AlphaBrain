@@ -241,9 +241,9 @@ E的三块由操纵的任务/观察条件在看success前定义，不从高收�
 
 | 已有入口 | 可复用 | 缺口 |
 |---|---|---|
-| [evaluate_dsol_libero_hdf5_views.py](../../../scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py) | 恢复、闭环、显式噪声、日志 | 目前外部pose只安装一次；新增独立主动runner或显式新模式，保留旧runner行为 |
+| [evaluate_dsol_libero_hdf5_views.py](../../../scripts/dsol_paper1/runtime/evaluate_dsol_libero_hdf5_views.py) | 恢复、闭环、显式噪声、日志 | 目前外部pose只安装一次；新增独立主动runner或显式新模式，保留旧runner行为 |
 | [libero_camera_pose.py](../../../scripts/cabi_vla/libero_camera_pose.py) | 相机设置/观测刷新原语 | 当前直接写pos/quat，是瞬移；需时间化路径、约束和逐次标定 |
-| [libero_constructed_view.py](../../../scripts/dsol_paper1/libero_constructed_view.py) | task-centric候选和静态视觉遮挡 | world-body假设不适用于腕部/头部关节；无运动代价 |
+| [libero_constructed_view.py](../../../scripts/dsol_paper1/runtime/libero_constructed_view.py) | task-centric候选和静态视觉遮挡 | world-body假设不适用于腕部/头部关节；无运动代价 |
 | [libero_snapshot_collector.py](../../../archive/research/code/scripts/fresh_vla/libero_snapshot_collector.py) | 控制器/runtime状态捕获思路 | 含特定旧任务字段；需提取通用部分并重新验证 |
 | [collect_probe_gate.py](../../../scripts/verify_vla/collect_probe_gate.py) | 机械臂probe、对象/EEF漂移与可解性记录骨架 | 旧抓附研究，不是视角实验；不得导入其结果作为本篇新证据 |
 | [libero_wrist_camera.py](../../../scripts/cabi_vla/libero_wrist_camera.py) | EEF与hand-eye外参映射 | 无IK、可达peek、轨迹规划或成本模型 |

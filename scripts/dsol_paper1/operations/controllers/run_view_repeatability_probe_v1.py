@@ -19,9 +19,9 @@ import subprocess
 import sys
 import time
 
-import scripts.dsol_paper1.run_full64_view_landscape_v2 as control
-from scripts.dsol_paper1.build_matched_view_landscape_protocol_v1 import write_new_json, source_identity
-from scripts.dsol_paper1.evaluate_dsol_libero_hdf5_views import protocol_spec_at, protocol_spec_count
+import scripts.dsol_paper1.operations.controllers.run_full64_view_landscape_v2 as control
+from scripts.dsol_paper1.protocols.build_matched_view_landscape_protocol_v1 import write_new_json, source_identity
+from scripts.dsol_paper1.runtime.evaluate_dsol_libero_hdf5_views import protocol_spec_at, protocol_spec_count
 
 ROOT = control.ROOT / 'repeatability-root-cause-v1'
 
@@ -49,7 +49,7 @@ def main():
     write_new_json(ROOT/'probe-entry.json', {'status': 'FROZEN_ENGINEERING_DIAGNOSTIC',
         'created_at_utc': control.stamp(), 'sources': [source_identity(path) for _, path in selected],
         'source_selection': 'Two earliest observed divergent requests by task, plus a fixed nondivergent task. Debugging only, not a research effect estimate.',
-        'trace_script': source_identity(control.REPO/'scripts/dsol_paper1/trace_view_repeatability_v1.py'),
+        'trace_script': source_identity(control.REPO/'scripts/dsol_paper1/diagnostics/trace_view_repeatability_v1.py'),
         'driver': source_identity(Path(__file__)), 'model_changed': False, 'formal_samples_added': 0})
     control.resources_available(29600, 2)
     servers, streams, stopped = [], [], []
@@ -99,7 +99,7 @@ def main():
                     TOKENIZERS_PARALLELISM='false', IMAGEIO_FFMPEG_EXE='/usr/bin/ffmpeg',
                     PYTHONPATH=str(control.REPO)+':/projects/openpi/packages/openpi-client/src:'+str(control.REPO/'scripts/cabi_vla'))
                 command = ['/workspace/envs/fresh-libero/bin/python',
-                    str(control.REPO/'scripts/dsol_paper1/trace_view_repeatability_v1.py'), '--spec', str(spec_path),
+                    str(control.REPO/'scripts/dsol_paper1/diagnostics/trace_view_repeatability_v1.py'), '--spec', str(spec_path),
                     '--output', str(output), '--bank', release['old_release_content']['noise_bank']['path'],
                     '--render-gpu', str(gpu)]
                 if replay:

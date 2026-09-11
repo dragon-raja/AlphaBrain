@@ -101,7 +101,7 @@ run_accel_stage() {
     if [[ "$stage" == render ]]; then
       LIBERO_CONFIG_PATH="$SIM_CONFIG" \
       PYTHONPATH="$REPO_ROOT:/projects/openpi/src:/projects/openpi/packages/openpi-client/src:$REPO_ROOT/scripts/cabi_vla:$REPO_ROOT/scripts/dsol_paper1" \
-        "$SIM_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/run_view_value_expectation_accel_ensemble.py" \
+        "$SIM_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/runtime/run_view_value_expectation_accel_ensemble.py" \
           --stage render --population "$POPULATION" --scan-root "$SCAN_ROOT" \
           --output-root "$ACCEL_ROOT" --runtime "$RUNTIME" --config-root "$SIM_CONFIG" \
           --catalog "$CATALOG" --render-gpu "$gpu" --num-shards 8 --shard-index "$shard" \
@@ -111,7 +111,7 @@ run_accel_stage() {
       PRETRAINED_MODELS_DIR=/share/longjunyu/alphabrain/pretrained_models \
       ALPHABRAIN_DISABLE_AUTO_DOWNLOAD=1 \
       PYTHONPATH="$REPO_ROOT:/projects/openpi/src:/projects/openpi/packages/openpi-client/src" \
-        "$POLICY_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/run_view_value_expectation_accel_ensemble.py" \
+        "$POLICY_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/runtime/run_view_value_expectation_accel_ensemble.py" \
           --stage rank --population "$POPULATION" --scan-root "$SCAN_ROOT" \
           --output-root "$ACCEL_ROOT" --checkpoint "$checkpoint" --catalog "$CATALOG" \
           --device cuda:0 --ensemble-size 8 --batch-size 16 \
@@ -159,7 +159,7 @@ run_heldout_seed() {
     VIDEO_EPISODES=0 \
     RUN_ANALYSIS=0 \
     KEEPALIVE_MODE=managed \
-      "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
+      "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh"
   fi
   PYTHONPATH="$REPO_ROOT" \
     "$SIM_PYTHON" "$REPO_ROOT/scripts/dsol_paper1/diagnostics/audit_view_value_expectation_heldout_run.py" \

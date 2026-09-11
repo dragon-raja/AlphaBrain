@@ -4,7 +4,7 @@ set -euo pipefail
 REPO_ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
 OUTPUT_ROOT=${DSOL_GATE_A97_OUTPUT_ROOT:-/share/longjunyu/alphabrain/experiments/dsol-accel-gate-a97-v1}
 PROTOCOL_ROOT=${DSOL_GATE_A97_PROTOCOL_ROOT:-$OUTPUT_ROOT/protocols}
-EVALUATOR=$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh
+EVALUATOR=$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh
 ANALYZER=$REPO_ROOT/scripts/dsol_paper1/analysis/summarize_accel_gate_a97.py
 TRAIN_ROOT=/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs
 

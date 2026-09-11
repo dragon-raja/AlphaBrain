@@ -19,10 +19,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-try:
-    from scripts.dsol_paper1.explicit_flow_noise import ExplicitFlowNoiseBank, sha256_file
-except ModuleNotFoundError:
-    from scripts.dsol_paper1.explicit_flow_noise import ExplicitFlowNoiseBank, sha256_file
+from AlphaBrain.research.dsol.data.flow_noise import ExplicitFlowNoiseBank, sha256_file
 
 
 PROTOCOL_SCHEMA = "dsol_view_value_expectation_heldout_protocol_v1"

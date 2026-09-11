@@ -56,12 +56,12 @@ PY
     DSOL_GPU_DEVICES="$GPU_DEVICES" BASE_PORT="$port" \
     REPLAN_STEPS=5 WAIT_STEPS=0 VIDEO_EPISODES=0 RUN_ANALYSIS=0 \
     KEEPALIVE_MODE=managed \
-      "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
+      "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh"
   else
     echo "matrix_skip_complete label=$label episodes=$actual"
   fi
   /alphabrain/.venv/bin/python \
-    "$REPO_ROOT/scripts/dsol_paper1/audit_statewise_view_oracle_v2_run.py" \
+    "$REPO_ROOT/scripts/dsol_paper1/diagnostics/audit_statewise_view_oracle_v2_run.py" \
     --protocol "$protocol" --noise-bank-manifest "$bank" \
     --run-manifest "$output/run_manifest.json" \
     --episode-ledgers "$output/episodes-shard-*.jsonl" \

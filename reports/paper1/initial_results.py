@@ -630,7 +630,7 @@ def build():
             f"- 各任务三维空间图：{out}/task-space",
             f"- 全部候选数值：{out}/candidate-values.csv",
             f"- 留出方法成绩：{out}/heldout-methods.csv",
-            f"- 统计脚本：{REPO}/scripts/dsol_paper1/analyze_standard_initial_results_v1.py",
+            f"- 统计脚本：{REPO}/scripts/dsol_paper1/analysis/analyze_standard_initial_results_v1.py",
             f"- 报告脚本：{Path(__file__).resolve()}",
             "本次只使用已完成矩阵；没有扩充初态、任务、遮挡条件，没有开启新评测或修改冻结 release。",
         ]
@@ -648,8 +648,8 @@ def build():
         "analysis_provenance_sha256": sha(source / "provenance.json"),
         "inputs": {
             str(Path(__file__)): sha(__file__),
-            str(REPO / "scripts/dsol_paper1/build_view_research_focus_brief.py"): sha(
-                REPO / "scripts/dsol_paper1/build_view_research_focus_brief.py"
+            str(REPO / "scripts/dsol_paper1/reporting/build_view_research_focus_brief.py"): sha(
+                REPO / "scripts/dsol_paper1/reporting/build_view_research_focus_brief.py"
             ),
             str(DOCS / "report_sources_20260907/legacy_evidence.json"): sha(
                 DOCS / "report_sources_20260907/legacy_evidence.json"

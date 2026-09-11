@@ -22,7 +22,7 @@
 | 测试 | `tests` | 依赖作者个人 GPU 或隐式启动正式任务 |
 | 退出主线的研究 | `archive/research` | 被新主线 import |
 
-使用现有 `AlphaBrain` 包，不为了追求目录形式整体迁移成新的 `src/` 包。已验证闭环运行链和活动控制器的 37 个旧入口／依赖暂时保持原路径、原字节，不作为新文件组织的示范。其余历史脚本已按职责迁移，见 `scripts/dsol_paper1/README.md`。历史源码哈希对应冻结 checkout，不能给迁移后的实现冒用旧哈希。
+使用现有 `AlphaBrain` 包，不为了追求目录形式整体迁移成新的 `src/` 包。Paper 1 脚本全部按职责进入子目录，根目录禁止新增 Python／Shell 和批量兼容壳。纯指标和噪声实现进入研究包，仿真环境适配在 `scripts/dsol_paper1/runtime/`。测试同样按职责分层，共享样例在 helpers，不能从另一测试模块 import。历史源码哈希对应冻结 checkout，不能给迁移后的实现冒用旧哈希。
 
 ## 2. 新功能的最小流程
 

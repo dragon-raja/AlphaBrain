@@ -2,6 +2,8 @@
 
 默认是 CPU-only、无仿真、无模型下载。不要通过遍历导入全部脚本来发现测试。
 
+Paper 1 测试按数据、指标、选择器、统计、协议、执行、诊断、报告和架构分层，见 [模块导航](dsol_paper1/README.md)。根目录只保留共享配置与路径工具；新测试不能恢复平铺，也不能导入其他测试文件获取样例。
+
 ```bash
 python tools/repository/check.py
 python tools/paper1/check_architecture.py

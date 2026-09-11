@@ -31,7 +31,7 @@ def main():
     args=parser.parse_args(); out=args.root/'render-fix-window-v1'/args.label; out.mkdir()
     spec=json.loads((args.root/(args.task+'-spec.json')).read_text())
     runtime=Path('/share/longjunyu/alphabrain/datasets/libero-plus/runtime/LIBERO-plus')
-    from scripts.dsol_paper1.audit_libero_hdf5_restore import _configure_runtime, _decode, _rewrite_model_paths
+    from scripts.dsol_paper1.runtime.audit_libero_hdf5_restore import _configure_runtime, _decode, _rewrite_model_paths
     _configure_runtime(runtime,Path(spec['hdf5']).parent.parent,out/'libero-config')
     from libero.libero.envs import OffScreenRenderEnv
     from libero_camera_pose import capture_camera_reference,install_camera_pose

@@ -13,7 +13,7 @@ import hashlib
 import json
 from pathlib import Path
 import numpy as np
-import scripts.dsol_paper1.run_full64_view_landscape_v2 as control
+import scripts.dsol_paper1.operations.controllers.run_full64_view_landscape_v2 as control
 from scripts.dsol_paper1.analysis.analyze_view_repeatability_traces_v1 import compare, difference
 
 ROOT = control.ROOT/'repeatability-root-cause-v1/render-fix-window-v1'

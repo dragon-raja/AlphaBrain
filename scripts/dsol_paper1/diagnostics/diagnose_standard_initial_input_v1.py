@@ -11,18 +11,18 @@ for _layout_path in (_layout_root, _layout_root / 'scripts/dsol_paper1', _layout
 from pathlib import Path
 import tempfile
 import numpy as np
-import scripts.dsol_paper1.standard_initial_aa0_v1 as control
-from scripts.dsol_paper1.standard_initialization_v1 import initialize, load_initial
-from scripts.dsol_paper1.audit_libero_hdf5_restore import _configure_runtime
+import scripts.dsol_paper1.operations.controllers.standard_initial_aa0_v1 as control
+from scripts.dsol_paper1.runtime.standard_initialization_v1 import initialize, load_initial
+from scripts.dsol_paper1.runtime.audit_libero_hdf5_restore import _configure_runtime
 def main():
     r=control.read(control.ROOT/'release.json')
     config=Path(tempfile.mkdtemp(prefix='dsol-initial-diagnosis-'))
     _configure_runtime(control.core.RUNTIME,Path(r['states'][0]['hdf5']).parent.parent,config)
     from libero.libero.envs import OffScreenRenderEnv
     from libero_camera_pose import capture_camera_reference,install_camera_pose
-    from scripts.dsol_paper1.scan_libero_hdf5_views import _restore_reference
+    from scripts.dsol_paper1.runtime.scan_libero_hdf5_views import _restore_reference
     from evaluate_pi05_libero_plus_views import agentview_camera_calibration
-    from scripts.dsol_paper1.evaluate_dsol_libero_hdf5_views import masked_policy_observation
+    from scripts.dsol_paper1.runtime.evaluate_dsol_libero_hdf5_views import masked_policy_observation
     for ci in [0,1,65]:
         spec=control.core.protocol_spec_at(r['protocol'],ci*32)
         with control.core.render_protocol(0):

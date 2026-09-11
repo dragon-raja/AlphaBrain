@@ -11,13 +11,13 @@ for _layout_path in (_layout_root, _layout_root / 'scripts/dsol_paper1', _layout
 from pathlib import Path
 import shutil
 import time
-from scripts.dsol_paper1.dynamic_initial_scheduler_v1 import ROOT, EXT, FROZEN_ENTRY, core
+from scripts.dsol_paper1.operations.controllers.dynamic_initial_scheduler_v1 import ROOT, EXT, FROZEN_ENTRY, core
 def main():
     r=core.release()
     core.require(not EXT.exists(),'Extension already prepared')
     EXT.mkdir(parents=True)
     for name, source in {
-        'dynamic_initial_scheduler_v1.py': _layout_root / 'scripts/dsol_paper1/dynamic_initial_scheduler_v1.py',
+        'dynamic_initial_scheduler_v1.py': _layout_root / 'scripts/dsol_paper1/operations/controllers/dynamic_initial_scheduler_v1.py',
         'transition_initial_dynamic_v1.py': Path(__file__).parent / 'transition_initial_dynamic_v1.py',
     }.items():
         shutil.copy2(source,EXT/name)

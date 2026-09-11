@@ -64,7 +64,7 @@ run_stage() {
   VIDEO_EPISODES=0 \
   RUN_ANALYSIS=0 \
   KEEPALIVE_MODE=managed \
-    "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
+    "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh"
 }
 
 stage_a_count=$(count_rows "$CALIBRATION_ROOT/stage-A")

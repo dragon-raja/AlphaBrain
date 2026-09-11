@@ -18,14 +18,9 @@ import json
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-try:
-    from scripts.dsol_paper1.audit_statewise_view_oracle_v2_run import atomic_json
-    from scripts.dsol_paper1.evaluate_dsol_libero_hdf5_views import protocol_spec_at, protocol_spec_count
-    from scripts.dsol_paper1.explicit_flow_noise import sha256_file
-except ImportError:  # Direct script execution.
-    from scripts.dsol_paper1.audit_statewise_view_oracle_v2_run import atomic_json
-    from scripts.dsol_paper1.evaluate_dsol_libero_hdf5_views import protocol_spec_at, protocol_spec_count
-    from scripts.dsol_paper1.explicit_flow_noise import sha256_file
+from scripts.dsol_paper1.diagnostics.audit_statewise_view_oracle_v2_run import atomic_json
+from scripts.dsol_paper1.runtime.evaluate_dsol_libero_hdf5_views import protocol_spec_at, protocol_spec_count
+from AlphaBrain.research.dsol.data.flow_noise import sha256_file
 
 
 def load_rows(patterns: Sequence[str], expected_ids: set[str]) -> dict[str, dict[str, Any]]:

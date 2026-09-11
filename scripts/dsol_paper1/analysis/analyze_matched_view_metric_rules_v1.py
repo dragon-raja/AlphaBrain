@@ -21,14 +21,9 @@ from pathlib import Path
 
 import numpy as np
 
-try:
-    from scripts.dsol_paper1.analyze_view_metric_rules_v1 import RULES, analyze, source_bootstrap
-    from scripts.dsol_paper1.compare_matched_view_landscapes_v1 import GEOMETRY_FIELDS, REPO, SELECTION_SHA256, catalog_bank, load_report, match_reports, read_json, require, sha256
-    from scripts.dsol_paper1.build_view_landscape_report_v1 import finite_json, write_csv, write_json
-except ImportError:
-    from scripts.dsol_paper1.analyze_view_metric_rules_v1 import RULES, analyze, source_bootstrap
-    from scripts.dsol_paper1.compare_matched_view_landscapes_v1 import GEOMETRY_FIELDS, REPO, SELECTION_SHA256, catalog_bank, load_report, match_reports, read_json, require, sha256
-    from scripts.dsol_paper1.build_view_landscape_report_v1 import finite_json, write_csv, write_json
+from scripts.dsol_paper1.analysis.analyze_view_metric_rules_v1 import RULES, analyze, source_bootstrap
+from scripts.dsol_paper1.analysis.compare_matched_view_landscapes_v1 import GEOMETRY_FIELDS, REPO, SELECTION_SHA256, catalog_bank, load_report, match_reports, read_json, require, sha256
+from reports.paper1.historical.build_view_landscape_report_v1 import finite_json, write_csv, write_json
 
 
 def require_new_output(path: Path) -> None:
@@ -108,9 +103,9 @@ def run(args: argparse.Namespace) -> dict:
             digest = sha256(path)
             require(digest == state['static_assets'][field + '_sha256'], 'Selected asset content changed')
             asset_hashes[str(path)] = digest
-    code_files = [Path(__file__), REPO / 'scripts/dsol_paper1/analyze_view_metric_rules_v1.py',
-                  REPO / 'scripts/dsol_paper1/compare_matched_view_landscapes_v1.py',
-                  REPO / 'scripts/dsol_paper1/build_view_landscape_report_v1.py']
+    code_files = [Path(__file__), REPO / 'scripts/dsol_paper1/analysis/analyze_view_metric_rules_v1.py',
+                  REPO / 'scripts/dsol_paper1/analysis/compare_matched_view_landscapes_v1.py',
+                  REPO / 'reports/paper1/historical/build_view_landscape_report_v1.py']
     manifest = {'schema': 'dsol_matched_view_metric_rule_manifest_v1', 'status': 'FROZEN_BEFORE_MATCHED_RULE_AGGREGATION',
         'created_at_utc': datetime.now(timezone.utc).isoformat(), 'rule_order': list(RULES),
         'selection': {'path': str(args.selection_manifest.resolve()), 'sha256': SELECTION_SHA256},

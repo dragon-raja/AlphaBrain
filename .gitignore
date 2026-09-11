@@ -270,6 +270,11 @@ tests/model/*
 !tests/model/test_cabi_binding.py
 !tests/dsol_paper1/
 !tests/dsol_paper1/*.py
+!tests/dsol_paper1/data/
+!tests/dsol_paper1/**/*.py
+!tests/dsol_paper1/README.md
+!archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/data/
+!archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/data/*.py
 !tests/vla_shared/
 !tests/vla_shared/*.py
 !tests/dataloader/
@@ -369,3 +374,5 @@ results/
 # Human result narratives are not the globally ignored raw-results cache.
 !/docs/dsol_paper1/results/
 !/docs/dsol_paper1/results/*.md
+!/archive/repository/20260911/runtime-modules/before/docs/dsol_paper1/results/
+!/archive/repository/20260911/runtime-modules/before/docs/dsol_paper1/results/*.md

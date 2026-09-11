@@ -4,7 +4,7 @@ set -euo pipefail
 REPO_ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
 ROOT=${DSOL_VIEW_REPEATABILITY_ROOT:-/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-repeatability-v1}
 CHECKPOINT=${DSOL_VIEW_REPEATABILITY_CHECKPOINT:-/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_broad64-quick-gate-v1_seed41_g8_gb32_steps2000/final_model}
-EVALUATOR=$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh
+EVALUATOR=$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh
 SUMMARIZER=$REPO_ROOT/scripts/dsol_paper1/analysis/summarize_view_repeatability.py
 SEEDS=(${DSOL_VIEW_REPEATABILITY_SEEDS:-20260831 20260832 20260833})
 

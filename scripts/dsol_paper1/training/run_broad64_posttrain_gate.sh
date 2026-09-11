@@ -18,21 +18,21 @@ GPU_COUNT=8 \
 BASE_PORT=18700 \
 MAX_EPISODES_PER_SHARD=1 \
 RUN_ANALYSIS=0 \
-  bash "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
+  bash "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh"
 
 POLICY_BACKEND=openpi \
 CHECKPOINT="$OFFICIAL_CHECKPOINT" \
 OUTPUT_DIR="$EXPERIMENT_ROOT/closed_loop/dsol_official_exact-state-v1" \
 GPU_COUNT=8 \
 BASE_PORT=18720 \
-  bash "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
+  bash "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh"
 
 POLICY_BACKEND=alphabrain \
 CHECKPOINT="$TRAIN_RUN/final_model" \
 OUTPUT_DIR="$EXPERIMENT_ROOT/closed_loop/dsol_broad_unpaired_practical_broad64-quick-gate-v1_seed41_g8_gb32_steps2000" \
 GPU_COUNT=8 \
 BASE_PORT=18740 \
-  bash "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
+  bash "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh"
 
 CHECKPOINT="$TRAIN_RUN/final_model" \
 OUTPUT_DIR="$VIEW_GAP_ROOT/pi05-libero-broad64-quick-gate-v1" \

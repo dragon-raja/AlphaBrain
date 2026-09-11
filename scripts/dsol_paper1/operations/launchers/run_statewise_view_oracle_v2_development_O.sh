@@ -84,12 +84,12 @@ PY
     VIDEO_EPISODES=0 \
     RUN_ANALYSIS=0 \
     KEEPALIVE_MODE=managed \
-      "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
+      "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh"
   else
     echo "development_O_wave_skip_complete wave=$wave episodes=$actual"
   fi
   /alphabrain/.venv/bin/python \
-    "$REPO_ROOT/scripts/dsol_paper1/audit_statewise_view_oracle_v2_run.py" \
+    "$REPO_ROOT/scripts/dsol_paper1/diagnostics/audit_statewise_view_oracle_v2_run.py" \
     --protocol "$protocol" \
     --noise-bank-manifest "$NOISE_MANIFEST" \
     --run-manifest "$output/run_manifest.json" \

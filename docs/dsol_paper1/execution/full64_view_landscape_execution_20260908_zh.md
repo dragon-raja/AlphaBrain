@@ -129,10 +129,10 @@ O16 交叉搜索避免选择与评价用同一噪声，但只用 16 次测量估
 - [扩展 release](../../../../../../share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/full64-extension-v2/release.json)
 - [扩展实时状态](../../../../../../share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/full64-extension-v2/controller-status.json)
 - [原首批实时状态](../../../../../../share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/controller-status.json)
-- [协议生成器](../../../scripts/dsol_paper1/build_full64_view_landscape_v2.py)
-- [排队、性能测试和评测控制器](../../../scripts/dsol_paper1/run_full64_view_landscape_v2.py)
-- [完整数据连接及后处理](../../../scripts/dsol_paper1/finalize_full64_view_landscape_v2.py)
-- [指标＋Oracle 分析与图表](../../../scripts/dsol_paper1/analyze_view_oracle_comparison_v2.py)
+- [协议生成器](../../../scripts/dsol_paper1/protocols/build_full64_view_landscape_v2.py)
+- [排队、性能测试和评测控制器](../../../scripts/dsol_paper1/operations/controllers/run_full64_view_landscape_v2.py)
+- [完整数据连接及后处理](../../../scripts/dsol_paper1/operations/controllers/finalize_full64_view_landscape_v2.py)
+- [指标＋Oracle 分析与图表](../../../scripts/dsol_paper1/analysis/analyze_view_oracle_comparison_v2.py)
 
 最终目录为扩展根目录下 `canonical-report-full64` 和 `matched64-metrics-with-oracle`，当前尚未生成。后处理使用只读符号链接连接首批与扩展，保留各自协议、run manifest、评分身份、审计和账本，不重写来源。严格逐状态、候选、噪声对齐，最终 64 对 64 比较，保留任务/历史 split 分项及来源 bootstrap。
 

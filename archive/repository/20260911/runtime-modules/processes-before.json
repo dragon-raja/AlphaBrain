@@ -1,0 +1,27 @@
+[
+  {
+    "pid": 1957622,
+    "args": [
+      "/alphabrain/.venv/bin/python",
+      "scripts/dsol_paper1/run_full64_view_landscape_v2.py",
+      ""
+    ],
+    "state": "T",
+    "start_ticks": "585637053",
+    "cwd": "/workspace/projects/alphabrain-dsol-paper1",
+    "children": []
+  },
+  {
+    "pid": 2346512,
+    "args": [
+      "/alphabrain/.venv/bin/python",
+      "scripts/dsol_paper1/build_consolidated_view_analysis_v1.py",
+      "--watch-full64",
+      ""
+    ],
+    "state": "S",
+    "start_ticks": "585943242",
+    "cwd": "/workspace/projects/alphabrain-dsol-paper1",
+    "children": []
+  }
+]

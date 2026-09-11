@@ -62,7 +62,7 @@ def main() -> None:
             for line in ledger.read_text().splitlines()
             if line.strip() and json.loads(line).get("status") == "PASS"
         }
-    scanner = (Path(__file__).resolve().parents[4] / 'scripts/dsol_paper1/scan_libero_hdf5_views.py')
+    scanner = (Path(__file__).resolve().parents[4] / 'scripts/dsol_paper1/runtime/scan_libero_hdf5_views.py')
     for ordinal, row in enumerate(selected, start=1):
         scan_id = str(row["scan_id"])
         if scan_id in completed:

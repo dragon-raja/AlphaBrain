@@ -171,7 +171,7 @@ def main(argv: Iterable[str] | None = None) -> None:
             f"target is {args.target_total}"
         )
 
-    scanner = (Path(__file__).resolve().parents[4] / 'scripts/dsol_paper1/scan_libero_hdf5_views.py')
+    scanner = (Path(__file__).resolve().parents[4] / 'scripts/dsol_paper1/runtime/scan_libero_hdf5_views.py')
     records = []
     for ordinal, selected in enumerate(chosen, start=1):
         scan_id = str(selected["scan_id"])

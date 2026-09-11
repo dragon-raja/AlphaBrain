@@ -6,7 +6,7 @@ PROTOCOL=${DSOL_CONSTRUCTED_M1_PROTOCOL:-/share/longjunyu/alphabrain/experiments
 TRAIN_ROOT=${DSOL_PAIR_OUTPUT_ROOT:-/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs}
 OUTPUT_ROOT=${DSOL_CONSTRUCTED_M1_OUTPUT_ROOT:-/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m1-v2}
 PRACTICAL=$TRAIN_ROOT/dsol_broad_unpaired_practical_broad64-quick-gate-v1_seed41_g8_gb32_steps2000/final_model
-EVALUATOR=$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh
+EVALUATOR=$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh
 ANALYZER=$REPO_ROOT/scripts/dsol_paper1/analysis/summarize_dsol_libero_m1_visibility.py
 DEVICES=${DSOL_M1_EARLY_DEVICES:-6,7}
 

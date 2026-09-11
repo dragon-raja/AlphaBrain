@@ -15,9 +15,9 @@ from pathlib import Path
 import sys
 
 def main():
-    import scripts.dsol_paper1.trace_view_repeatability_v1 as trace
+    import scripts.dsol_paper1.diagnostics.trace_view_repeatability_v1 as trace
     # Configure the runtime before importing its robosuite bindings.
-    from scripts.dsol_paper1.audit_libero_hdf5_restore import _configure_runtime
+    from scripts.dsol_paper1.runtime.audit_libero_hdf5_restore import _configure_runtime
     spec_path = Path(sys.argv[sys.argv.index('--spec') + 1])
     output = Path(sys.argv[sys.argv.index('--output') + 1])
     spec = json.loads(spec_path.read_text())

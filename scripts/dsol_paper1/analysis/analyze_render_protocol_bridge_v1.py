@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 import numpy as np
 from scipy.stats import spearmanr
-from scripts.dsol_paper1.render_bridge_common_v1 import ROOT, read, sha, write_new, cell_key, verify_release
+from scripts.dsol_paper1.runtime.render_bridge_common_v1 import ROOT, read, sha, write_new, cell_key, verify_release
 
 def interval(values,seed=20260908,draws=10000):
     values=np.asarray(values,dtype=float)

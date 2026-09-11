@@ -171,7 +171,7 @@ with its runtime inventory and source-data blocker recorded in
 The formal state source is acquired with
 [`download_libero_hdf5.py`](../../scripts/dsol_paper1/training/download_libero_hdf5.py)
 and checked with
-[`audit_libero_hdf5_restore.py`](../../scripts/dsol_paper1/audit_libero_hdf5_restore.py).
+[`audit_libero_hdf5_restore.py`](../../scripts/dsol_paper1/runtime/audit_libero_hdf5_restore.py).
 The nested Narrow-8/Broad-32/Broad-64 candidate catalog is generated from
 [`libero_view_catalog_v2_rules.json`](../../configs/dsol_paper1/libero_view_catalog_v2_rules.json)
 by

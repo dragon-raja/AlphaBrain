@@ -4,8 +4,11 @@ import ast
 import hashlib
 import json
 from pathlib import Path
+import sys
 
 ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 REGISTRY = ROOT / "tools/paper1/architecture_registry.json"
 
 
@@ -37,7 +40,8 @@ def check(root=ROOT):
     if migration.exists():
         record = json.loads(migration.read_text())
         for row in record["changes"]:
-            if not (root / row["new"]).is_file():
+            from tools.repository.evidence import current_path
+            if not current_path(root / row["new"]).is_file():
                 errors.append("Missing migrated source: " + row["new"])
             if row["old"] != row["new"] and (root / row["old"]).exists():
                 errors.append("Moved implementation reappeared in flat directory: " + row["old"])
@@ -45,9 +49,15 @@ def check(root=ROOT):
                    if Path(row["path"]).parent == Path("scripts/dsol_paper1")}
         errors.extend("New flat entry is not allowed: " + name for name in sorted(actual - allowed))
     for name in registry["thin_entrypoints"]:
-        p = root / name
+        p = current_path(root / name)
         if len(p.read_text().splitlines()) > 40:
             errors.append("Compatibility entry grew implementation: " + name)
+    runtime = root / "archive/repository/20260911/runtime-modules/manifest.json"
+    if runtime.exists():
+        errors.extend("Flat runtime entry must not return: " + name for name in sorted(actual))
+        for row in json.loads(runtime.read_text())["records"]:
+            if not (root / row["new"]).is_file():
+                errors.append("Missing classified runtime/consumer: " + row["new"])
     manifest = json.loads((root / "archive/research/code/manifest.json").read_text())
     exceptions = {"scripts/fresh_vla/" + n for n in ["__init__.py", "video_io.py", "pi05_policy_server.py", "README.md"]}
     for row in manifest["records"]:

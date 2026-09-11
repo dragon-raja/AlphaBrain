@@ -18,8 +18,8 @@ import subprocess
 import sys
 import threading
 import time
-from scripts.dsol_paper1.render_bridge_common_v1 import ROOT, REPO, read, sha, write_new, verify_release
-import scripts.dsol_paper1.run_full64_view_landscape_v2 as control
+from scripts.dsol_paper1.runtime.render_bridge_common_v1 import ROOT, REPO, read, sha, write_new, verify_release
+import scripts.dsol_paper1.operations.controllers.run_full64_view_landscape_v2 as control
 
 ACTIVE=[]; LOCK=threading.RLock(); STOP=threading.Event()
 
@@ -85,7 +85,7 @@ def run_assets(release):
     jobs=[(cell,i) for cell in release['asset_cells'] for i in range(8)]
     def render(job):
         cell,i=job
-        p=start(['/workspace/envs/fresh-libero/bin/python',REPO/'scripts/dsol_paper1/run_render_bridge_worker_v1.py',
+        p=start(['/workspace/envs/fresh-libero/bin/python',REPO/'scripts/dsol_paper1/operations/controllers/run_render_bridge_worker_v1.py',
             'render','--index',i,'--gpu',i,'--offsamples',0 if cell.startswith('aa0') else 4,'--cell',cell],
             ROOT/'logs'/f'asset-{cell}-{i}.log',environment(sim=True))
         finish(p,600)
@@ -95,7 +95,7 @@ def run_assets(release):
     status('SCORING_CANDIDATES')
     def score(job):
         model,index,gpu=job
-        p=start(['/alphabrain/.venv/bin/python',REPO/'scripts/dsol_paper1/run_render_bridge_worker_v1.py',
+        p=start(['/alphabrain/.venv/bin/python',REPO/'scripts/dsol_paper1/operations/controllers/run_render_bridge_worker_v1.py',
             'score','--index',index,'--model',model,'--shards',4],ROOT/'logs'/f'score-{model}-{index}.log',environment(gpu))
         finish(p,1800)
     batch(score,[(model,index,index+4*j) for j,model in enumerate(('canonical','broad')) for index in range(4)],8)
@@ -122,7 +122,7 @@ def run_cell(release,cell):
         def worker(worker_index):
             server_index=worker_index%len(servers); gpu=server_index//cell['copies']
             for index in range(worker_index,len(release['specs']),cell['workers']):
-                p=start(['/workspace/envs/fresh-libero/bin/python',REPO/'scripts/dsol_paper1/run_render_bridge_worker_v1.py',
+                p=start(['/workspace/envs/fresh-libero/bin/python',REPO/'scripts/dsol_paper1/operations/controllers/run_render_bridge_worker_v1.py',
                     'episode','--index',index,'--gpu',gpu,'--port',release['base_port']+server_index,
                     '--offsamples',cell['offsamples'],'--cell',cell['name']],output/'logs'/f'episode-{index:04d}.log',environment(sim=True))
                 finish(p,600)

@@ -44,9 +44,9 @@ mkdir -p "$OUTPUT_ROOT/logs"
 plan_sha256=$(sha256sum "$PLAN" | awk '{print $1}')
 catalog_sha256=$(sha256sum "$CATALOG" | awk '{print $1}')
 code_sha256=$(sha256sum \
-  "$REPO_ROOT/scripts/dsol_paper1/libero_visibility.py" \
-  "$REPO_ROOT/scripts/dsol_paper1/libero_constructed_view.py" \
-  "$REPO_ROOT/scripts/dsol_paper1/scan_libero_hdf5_views.py" \
+  "$REPO_ROOT/AlphaBrain/research/dsol/metrics/visibility.py" \
+  "$REPO_ROOT/scripts/dsol_paper1/runtime/libero_constructed_view.py" \
+  "$REPO_ROOT/scripts/dsol_paper1/runtime/scan_libero_hdf5_views.py" \
   "$REPO_ROOT/scripts/dsol_paper1/operations/controllers/run_libero_visibility_scan_plan.py" \
   "$REPO_ROOT/scripts/dsol_paper1/analysis/summarize_libero_visibility_scan.py" \
   "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_libero_visibility_scan_matrix.sh" \

@@ -26,7 +26,7 @@ REPO = Path(__file__).resolve().parents[4]
 CHECKPOINT = Path(
     "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_broad64-quick-gate-v1_seed41_g8_gb32_steps2000/final_model"
 )
-LAUNCHER = REPO / "scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
+LAUNCHER = REPO / "scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh"
 
 
 class ScalarTracker:
@@ -196,7 +196,7 @@ def main():
                     Path(__file__),
                     Path(study.__file__),
                     LAUNCHER,
-                    REPO / "scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py",
+                    REPO / "scripts/dsol_paper1/runtime/evaluate_dsol_libero_hdf5_views.py",
                     REPO / "scripts/cabi_vla/serve_alphabrain_pi05_websocket.py",
                 ]
             },

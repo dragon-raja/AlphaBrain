@@ -7,7 +7,7 @@ PROTOCOL=${DSOL_CONSTRUCTED_ALL8_DENSE_PROTOCOL:-$ROOT/dense-discovery-protocol.
 CHECKPOINT=${DSOL_CONSTRUCTED_ALL8_CHECKPOINT:-/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_broad64-quick-gate-v1_seed41_g8_gb32_steps2000/final_model}
 RUN_ROOT=${DSOL_CONSTRUCTED_ALL8_DENSE_RUN_ROOT:-$ROOT/dense-discovery-run-w32}
 EVAL_WORKER_COUNT=${DSOL_CONSTRUCTED_ALL8_EVAL_WORKERS:-32}
-EVALUATOR=$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh
+EVALUATOR=$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh
 ANALYZER=$REPO_ROOT/scripts/dsol_paper1/analysis/analyze_view_value_discovery.py
 
 mkdir -p "$ROOT/logs"

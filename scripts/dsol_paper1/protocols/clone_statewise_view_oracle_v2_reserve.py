@@ -17,12 +17,8 @@ import copy
 import json
 from pathlib import Path
 
-try:
-    from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2 import freeze_json
-    from scripts.dsol_paper1.explicit_flow_noise import sha256_file
-except ImportError:  # Direct script execution.
-    from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2 import freeze_json
-    from scripts.dsol_paper1.explicit_flow_noise import sha256_file
+from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2 import freeze_json
+from AlphaBrain.research.dsol.data.flow_noise import sha256_file
 
 
 def clone(protocol_path: Path) -> dict[str, object]:

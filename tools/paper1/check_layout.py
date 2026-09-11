@@ -12,8 +12,11 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 SCRIPTS = ROOT / "scripts/dsol_paper1"
 MANIFEST = ROOT / "archive/paper1/layout_manifest.json"
 RUNTIME_ROOTS = (
@@ -63,7 +66,8 @@ def dependencies():
 
 
 def runtime_closure(graph):
-    todo = [SCRIPTS / n for n in RUNTIME_ROOTS]
+    from tools.repository.evidence import current_path
+    todo = [current_path(SCRIPTS / n) for n in RUNTIME_ROOTS]
     seen = set()
     while todo:
         path = todo.pop()
@@ -112,7 +116,8 @@ def check(verify_preserved_source=False):
     manifest = json.loads(MANIFEST.read_text())
     errors = []
     for move in manifest["moves"]:
-        old, new = ROOT / move["old"], ROOT / move["new"]
+        from tools.repository.evidence import current_path
+        old, new = ROOT / move["old"], current_path(ROOT / move["new"])
         if old.exists():
             errors.append(f"Retired path reappeared: {move['old']}")
         if not new.is_file():

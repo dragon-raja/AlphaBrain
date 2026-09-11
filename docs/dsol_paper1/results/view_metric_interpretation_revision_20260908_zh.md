@@ -93,6 +93,6 @@
 - [固定规则逐状态结果](../../../../../../share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/metric-rules-v1/state_rule_metrics.csv)
 - [固定分析规则与输入身份](../../../../../../share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/metric-rules-v1/manifest.json)
 - [可见性增量的配对比较](../../../../../../share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/metric-rules-v1/pairwise_rule_contrasts.json)
-- [指标分析程序](../../../scripts/dsol_paper1/analyze_view_metric_rules_v1.py)
-- [三页图生成程序](../../../scripts/dsol_paper1/build_view_metric_comparison_brief_v1.py)
+- [指标分析程序](../../../scripts/dsol_paper1/analysis/analyze_view_metric_rules_v1.py)
+- [三页图生成程序](../../../reports/paper1/historical/build_view_metric_comparison_brief_v1.py)
 - [两模型同状态规则比较程序](../../../scripts/dsol_paper1/analysis/analyze_matched_view_metric_rules_v1.py)

@@ -43,7 +43,7 @@ for seed in "${seeds[@]}"; do
     fi
     echo "closed_loop_matrix_start=$run_id"
     CHECKPOINT="$checkpoint" OUTPUT_DIR="$output_dir" GPU_COUNT="$GPU_COUNT" \
-      "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
+      "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh"
     jq -e '.status == "PASS"' "$output_dir/analysis/metrics.json" >/dev/null
     echo "closed_loop_matrix_complete=$run_id"
   done

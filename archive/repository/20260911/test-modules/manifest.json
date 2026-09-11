@@ -1,0 +1,1090 @@
+{
+  "baseline_commit": "bcd7a15d6b1e571f04850a09ca1c512beb3f6489",
+  "recovery": "git show <baseline_commit>:<old>; restore in a separate checkout",
+  "scope": "Test relocation, uniform test_ names and explicit repository-root imports; no experiment changes",
+  "records": [
+    {
+      "old": "tests/dsol_paper1/test_view_acquisition_executor.py",
+      "new": "tests/dsol_paper1/acquisition/test_view_acquisition_executor.py",
+      "before_sha256": "c111d604b28e01243858760faff9a2c8ced19a72a0d42200828209dd6c1a149b",
+      "after_sha256": "c111d604b28e01243858760faff9a2c8ced19a72a0d42200828209dd6c1a149b",
+      "test_bodies": {
+        "0:test_entry_is_noop_and_step_pins_existing_actuator_targets": "4bf9d2f26f20413fafbdb90ff3ccd0e886c196a9fdf3b8cd92161d0a51146bfa",
+        "1:test_exception_restores_existing_instance_overrides": "4efb6cdc1309734be2160531c598379f4f92f932513370b3bbabfc79a81df5e8",
+        "2:test_reject_duplicate_gripper_actuator_mapping": "13551ccf4a517e8f5241a310116709877b36d61c4eec8a4004b04bf6cdd0297b",
+        "3:test_move_advances_time_and_exposes_only_endpoint": "650d28857f838b445b781a7ba7ec52aa247b6cbfbc630219d4456d308ee2bdd0",
+        "4:test_continue_is_exact_noop": "6502bc70be602efdb61beb2b7f7e6c0962349525ecaa89ea650474b819e34011",
+        "5:test_hold_consumes_same_steps": "027dc09c46dc3a89e3912253e71e147f2056fe38b647331c117ea0efd6831372",
+        "6:test_continue_cannot_bypass_terminated_ledger": "8ed024800bd1293d813800fe4b9aa754ad564a44a659ced3be57d6bfa3f0a8c1",
+        "7:test_real_backend_calibration_is_json_compatible": "a9fd104147d01a7b59c74e367d019a1c4b580f98cb83c0e16626be0b664037e1",
+        "8:test_endpoint_adapter_refuses_wrapper_image_noise": "84ba5ec23e1da73fca1e35d3aaa48ca7e26da0696f31e9dc0fb43dc71c314a09",
+        "9:test_insufficient_step_budget_stops_before_extra_mutation": "44e460125eb68221d7f80a24f2cf3f0ae828d33df7be3db4f89733498cd26452",
+        "10:test_no_query_budget_does_not_leak_observation": "40be6b993f82050a589f944439dff0cf7095c15e6455813b47255cf2e9faa62f",
+        "11:test_failed_attempt_is_not_converted_to_hold": "f24ebb2f3821595cdd195ed2f7eedea788d2fda1a24cb083edad6012b659a319",
+        "12:test_environment_termination_has_no_extra_query": "b1f8247255164b16982014e4c4733f3835b34baa538b1e84c596df200f9bc4a0",
+        "13:test_clock_must_advance": "37b5384954c87074e8688df3fe8162e8c09b8b4e050bf5b10f4c4c35a702ea8d",
+        "14:test_start_mismatch_prevents_mutation": "522d1cbfb79b1de0b580085304fe907a57da5aefb74af1f25a5487b5526506e6"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_view_acquisition_inputs.py",
+      "new": "tests/dsol_paper1/acquisition/test_view_acquisition_inputs.py",
+      "before_sha256": "95d2a6d825d976e977d388a96c99618d818105c5fe8ef56e55734ddc909e4b16",
+      "after_sha256": "ac4ffde0943aaf958f516e3f47ba80cde7ed30145803d4b55043b3d16c579769",
+      "test_bodies": {
+        "0:test_permission_difference_and_exact_keys": "6d05e264d0779b595ecd0d022b64bf24e23ce4250907cd20eb97dadd091ae8dc",
+        "1:test_supported_contract_matches_current_draft": "ad00c65087c87d87e29a765a512ea4b0081c71fbc5e3c5537d5a2cdcaf5af7ed",
+        "2:test_polluted_observation_fields_never_forwarded_or_inspected": "62083de174dcc70ce758c50afffc82176601aff28bd4a1018783bdde5bfc2739",
+        "3:test_missing_either_camera_rejects_whole_bundle": "febd1593e27cf4c4dac724fe144e9c46a80d6ca0bf992dd113feda4752a326fe",
+        "4:test_bad_image_shape_or_dtype_rejected_without_conversion": "f4bd50794543cc7a5b63deeb0770f3c1cbfb7d56d8d132f7a37d4355442ae605",
+        "5:test_raw_images_are_not_flipped_resized_or_encoded": "32984369515cc15633f8c91eb272db62f5214659af74cbae833792ad75255a67",
+        "6:test_source_and_consumer_arrays_are_isolated_and_immutable": "82e9e312b17915095793d7b73cb29c20fd1be1109d9c418b91106ccb80a6a0d2",
+        "7:test_explicit_state_and_geometry_are_required_no_raw_fallback": "5a7d99d24344a406fb52ab6bf83f209194b9fd87c96124df55501c56010f8f42",
+        "8:test_bad_states_rejected": "9a5ca914aa66b7516563475b1c02305af1b3e8951ac9427077a12bdb61983be8",
+        "9:test_geometry_unknown_fields_and_invalid_matrices_rejected": "8166cdc511d359f75ed4d34dbbc48244cd68915a1faf9936e48623feb3e43fb1",
+        "10:test_unknown_or_expanded_contract_rejected": "8d06e937752625ede5ce3bff627830a5806c87cfd8e9ab1a7b2ec66a25bee698",
+        "11:test_invalid_language_is_not_coerced": "febf3327c2c01529d74adfd45a22c2c37e0e03d403c00cb1641aa245dd50187d",
+        "12:test_receipt_has_shapes_hashes_and_one_bundle_but_no_input_values": "6ebb887dd82be58702b91abb6ae2aac1f55ac0aaa540284cbb3a11ed2522e5c2",
+        "13:test_hash_changes_only_with_explicitly_consumed_content": "01526c21cd616af7a0a65e1e7d5285f8b9431e8b074c327a71eb0ef00fc0ece8"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_view_acquisition_motion.py",
+      "new": "tests/dsol_paper1/acquisition/test_view_acquisition_motion.py",
+      "before_sha256": "e69961d146405b9ef4c8cae68a1269ca4bb0bb2755bf9e9d462739b6d36c9256",
+      "after_sha256": "af72e29525be0f7627ddb6d3a21471d1bc40c3b113cc5c454583e62176d1b880",
+      "test_bodies": {
+        "0:test_endpoints_normalized_and_shared_quintic_progress": "3f9a20a24300ce38266c3b4c4d49e99ccdd3fa040a0100f60b2bd9dd0d8471f5",
+        "1:test_quaternion_sign_and_180_degree_tie_are_deterministic": "4b91b6346139aae98108c856f8e1e4ac63f8c5031813e82d2f917917ae84c619",
+        "2:test_shortest_arc_crossing_180_has_no_component_sign_jump": "6ec5809411d81dfd2348d2140ca23039c159f04d0794f4011deab661f2c7c3c4",
+        "3:test_equivalent_quaternions_have_no_rotation": "fdb5a8e0ae580525339c0f9eec8dc788d410351b13e450b060b04e956fed6761",
+        "4:test_continuous_speed_and_acceleration_limits_even_with_only_two_samples": "3238ace986f8bc910cc1887369f1d3b371da430b03c21ee71bb92d5745f30dc9",
+        "5:test_angular_speed_and_acceleration_limits": "1fd12862285e0484c2c2d5c6991a9f9f1a31d3e0989f3557a95f133373987635",
+        "6:test_bad_pose_and_non_unit_quaternion_rejected": "fbb4e615bdfdbb926f48c6528f2775f6e4b259679fec6d977dd358f7153ad9ae",
+        "7:test_input_sequences_are_copied": "5e9f49d2f68e3787348bf36a16a82338000d6979c5df1565f03e5c66b022719d",
+        "8:test_schedule_requires_finite_integer_steps": "9aa491dcd8c261edaf58c4db9d788791cf8939fac7ecf6a20e24b875c568748b",
+        "9:test_aabb_bounds_reject_outside_and_accept_boundary_segment": "aadbd639634c84c8c3a7e722f1f151514a95b5eed733edf4912c2a83a8ec5f31",
+        "10:test_bad_limits_and_aabb_rejected": "5435025694c68ee18c2a9295bff9e784c69fea230679d2297876ab17b426cf23",
+        "11:test_no_acquisition_is_zero_steps_but_hold_consumes_time": "54878d969d8c0924776bb078c0628d5736b5584ac8c5c7d78ba4e57705e4ba9b",
+        "12:test_arbitrary_orientation_hold_and_tiny_duration_stay_finite": "fd88789f322811c42001b20b1ab6e15e968c00a4379f28756aa0480f38f5b32e",
+        "13:test_independent_counts_exact_limits_and_termination": "9b5c6c99fb96fba526651c51eeda3e56bea743a82a278ece304dedfddede63e5",
+        "14:test_each_budget_excess_is_atomic_and_fail_closed": "d0d758a14e8bf2910b72010bbb184c70e2b1dbb2f9a2f3d151ae262ea88c429d",
+        "15:test_invalid_counts_are_not_silently_coerced": "be5fec0f8b5eacb976487fb42491c1292110b6744a0c6559948b778d5835d400",
+        "16:test_returned_snapshots_cannot_change_counts": "c0cec74b690068f1c1f7f7dbef3846a0768a2687b07ffc557fb5072f30f7f24e"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_view_acquisition_protocol.py",
+      "new": "tests/dsol_paper1/acquisition/test_view_acquisition_protocol.py",
+      "before_sha256": "dd4411df58a6ea135a4bfc02c50a6528109bf58a8c8a594c297232c4534bd836",
+      "after_sha256": "5129b40e7a54c883a70fce68a9791fa93d5a57c5034acee95811b15a3857a82c",
+      "test_bodies": {
+        "0:test_draft_plans_but_never_releases": "4653afe3a4b0b792f7055e902d060fd0c3e30a8f531c9a0d8d3f15601feb61aa",
+        "1:test_complete_synthetic_fixture_passes_without_launch": "9092c8421dfdbbc469e5e80528db013b84b5b572e7196920f6dbd9cb19feb150",
+        "2:test_digest_is_stable_and_changes_with_contract": "789798dbd3e81a1296cf413c8b788460900965fc575662ed40ce143ed3aa7471",
+        "3:test_missing_and_undeclared_unresolved_fields_fail_closed": "cf6ec111629367ace2bf12886a699188e0017a83e04c1c0ae649628cd8b64c29",
+        "4:test_bad_or_stale_unresolved_pointers_rejected": "1bfe88d8d25df53592ed82a372ec7f4f97ba001ae402c52da9d7229e60ef21f1",
+        "5:test_no_release_by_changing_only_draft_status": "b6923de1f1ca0de5d9bf22aeb8ed3c3a34f27145124fcff87c6317b7e624db75",
+        "6:test_audit_gates_each_fail_closed": "5b5eee51fe9e189285ad740efd2c5f69f69db98536f55271bcb2a78d6872edf1",
+        "7:test_matching_training_inputs_and_schedule": "99d1daacdfab359ffd365052c16f00edd5a181d03c9d0bb92e07de3814f05b6f",
+        "8:test_different_manifest_hashes_are_not_optimizer_mismatch": "5b49dad30296f61781ceaa8b8689f0c66e8089cb75c51639905fbbf22776b1f9",
+        "9:test_noise_seed_and_hash_reuse_and_keys": "dbd13ce9d85b3022e59a8e202f3f6a0961bcd03e562f21ccfe17ac7d90a8870c",
+        "10:test_source_and_cluster_split_isolation": "b83af676bb071545af5f04d178b235152beae3b94c6b3a3fe7d864d61efc7791",
+        "11:test_planning_counts_cannot_replace_resolved_sources": "d38cc377e7edd7f494c8a296811017b69c3564936a428f037a80be56c686fa5a",
+        "12:test_branch_instances_never_count_as_independent_layouts": "32d7899a08000c025a095616fab42f67584ba6cf6ee64d5017e756d82e81af33",
+        "13:test_confirmation_bank_and_rule_freeze": "409f79b65ccc08ac0d5af3721998c59324503666f29bdbdeb74d2f399fa3395f",
+        "14:test_duration_and_continuation_budget": "1af4eb3f657a413ee10cdf8d3cc2f7dd8b3bec506a651b33595ff49737bed07f",
+        "15:test_action_count_pose_and_workspace": "a703dc743a2cb2172d303eae4bad2610f4b8fd4cf0099dba3cd7eafdfd2f02e8",
+        "16:test_privileged_and_unknown_query_inputs_rejected": "c48946c26c55be480496f95d8544cccd72172929c48427f85dec246b68536aec",
+        "17:test_budget_and_evidence_blocks": "da561190712660c3aa31a85ec9f1902a3ed0216b39cadc4395223e3813c3ad9e",
+        "18:test_numeric_bools_nonfinite_and_missing_contrasts": "509a00b701a48f85ea0fa008aad7ec8ea3d30b231576b97c2ac67a4d67d71109",
+        "19:test_malformed_shapes_report_errors_not_crashes": "b77ec82a4aa06345723188a87334430f312c221bfb69b4d49fd5689178994e4d",
+        "20:test_strict_json_loader": "ddb08481219e335be583f166126af6aae3086c0db037fd7bf04545ed32bbc565",
+        "21:test_cli_draft_success_release_failure_without_launch": "0ea8675365ffc50e4124f9ffbf0110c62187a110e43afb4ce1443ff513841570"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_core_architecture.py",
+      "new": "tests/dsol_paper1/architecture/test_core_architecture.py",
+      "before_sha256": "d83af67801aa164e8511a2fa8b38b7a4b12495526fdc9df87766aa9ed1c04bd0",
+      "after_sha256": "9388a748ba264c6ee793e43da0ae4562ceca3cc3089527d279ac25755f4033f6",
+      "test_bodies": {
+        "0:test_repository_boundaries_and_archive_integrity": "82fcc070381d9c0d32cff70f37d95fd48a03570edcfbfa92808d225a467e5587",
+        "1:test_oracle_noise_order": "4b75552e775951b95baf24a7e7a3bee82f661f52435f0d72dbda8cfa3cb7fc22",
+        "2:test_rule_tie_and_top10": "05104fd1bf982ba16897e974bb26700ea43116ab0c088d330e625824f62eccca",
+        "3:test_numerical_bodies_preserved_from_pre_refactor_baseline": "4a46fb805891e87e374de42c00672e298adf0bdcc01e86e7b7affe7647da5d63",
+        "4:test_test_labels_cannot_change_selection_or_alpha": "ed7f3f4aef9a6244f6f93ffb12b49e07d52605f1b9bcf88f0f1b371d02d9598b"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_repository_layout.py",
+      "new": "tests/dsol_paper1/architecture/test_repository_layout.py",
+      "before_sha256": "5e48763268e278ba5faa641bda0f978ff7d4e765ebb8ac1c61d990a7f91a41ee",
+      "after_sha256": "5e48763268e278ba5faa641bda0f978ff7d4e765ebb8ac1c61d990a7f91a41ee",
+      "test_bodies": {
+        "0:test_relocated_files_and_archive_bytes_are_preserved": "d2cf22bef334f31c7c35040fb1516a36f64691a2ddb5bcfd4c61f5ccf61a63d8",
+        "1:test_retired_operations_are_not_runtime_dependencies": "3dcaaccf8cb53da6e32cb520b6aaf4d32cbdc3af6b624d5b25cbb3ebd03fd419",
+        "2:test_moved_tests_remain_in_same_repository_relative_depth": "96ae04082f645d0591e5a425c16a6295fe373925f131a5d696ed9f2987fdfa49",
+        "3:test_cpu_runner_sets_environment_without_starting_research": "2385ff3950bb818f21d45dca39395a220fe680f17137405ae65313e1e7fd8d96",
+        "4:test_archived_document_bytes_match_relocation_receipt": "8e29558c6713cb274b69a59afe03f496defcd3253cb47a75ec6dcefe9e13f9ff",
+        "5:test_archival_does_not_introduce_broken_markdown_file_links": "f78f09144032c24162539101f048906e96a8ac5eb56d257f21d1cf7d6bbb0383"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_script_migration.py",
+      "new": "tests/dsol_paper1/architecture/test_script_migration.py",
+      "before_sha256": "ee48ba0e6cb16ee6f507c8f1334310b70f4536a93f4a430320d190cc1f05ed15",
+      "after_sha256": "13f78ec7c006ad0227af34a6aaebd2983cd5affec9767e8cf3503a785e9184ef",
+      "test_bodies": {
+        "0:test_current_runtime_and_active_controller_sources_are_byte_identical": "24df942b54af0a4f351d12c0291b8b5853d61f88482055af7d7715168d24e31d",
+        "1:test_every_original_source_is_recoverable_and_moved_path_is_absent": "b879fa7e3e72232100eb54f6b7c8fb9c6077983cd4fed1da7814bcc06d610392",
+        "2:test_relocated_local_imports_resolve_without_flat_aliases": "137d6cd49c73273b00cfcb85713767c55a5e94035e3beb12651064460aa4208d",
+        "3:test_reviewed_cli_help_from_unrelated_directory": "11b617b36da9b1b16b4fccb3f8db62fc22e254cf4d8809e0a2ed5a030de4d1be",
+        "4:test_all_moved_shell_recipes_parse_and_resolve_repo_root": "3a1b956872628da1c2354d33700f567bcd586e1fa8aff30d749cab6e7b4ef9e7",
+        "5:test_path_independent_function_bodies_preserved": "da512c1dd1309a47b4c65d41b550ec3913afcc306ff21b7379806014cfb095ed",
+        "6:test_previously_import_executed_recipes_now_have_main_guards": "1781095f4381a7a5139200688870462512af2ea0d1c228892cbabf031dcf6d76"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_schema_contracts.py",
+      "new": "tests/dsol_paper1/data/test_schema_contracts.py",
+      "before_sha256": "9ec88c30c96ad659b7d57574cdcf143cdb652fd79a0b854867722888891b48da",
+      "after_sha256": "290bc6c1b947dfd5c1945b6fde4e6b1e8fb6640b31f1268eef93b5224eacf999",
+      "test_bodies": {
+        "0:test_all_schemas_parse_and_local_refs_exist": "e78625e04cb0c42dd8eb4be64856b05c78b2f292f417f78b57948b3284227bc3",
+        "1:test_ed_schema_freezes_exact_five_gates": "92d26fc9f536dbcb69044f666e50689c9d3730d78582687d7140ce9da13749aa",
+        "2:test_temporal_schema_keeps_all_strata": "4ed3da9e744916fe003cc882c49723e5f7e73d647c835c3d6dba0eec3762f15c",
+        "3:test_release_schema_is_fail_closed": "e6f0d907515b19b610a4e8660ac3d75ce063a43574beae679d81842f4e857925"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_libero_constructed_view.py",
+      "new": "tests/dsol_paper1/data/test_libero_constructed_view.py",
+      "before_sha256": "cf1f08980efe036406d1f425ab9ca19b02a8fee15c78a85d8ee0c25a9e48ba36",
+      "after_sha256": "50b659085242daa00cb2ca1c1b3124c3feebaea2c3d5b4492a6e3f734e3dc198",
+      "test_bodies": {
+        "0:test_injected_occluder_is_static_visual_group": "2682fc3fa4d4739db2cd337a7e05160efd1d3114473d9a32e234cb0c4e9089ae",
+        "1:test_paired_pose_has_equal_position_displacement": "3e0c18c7d94cc06f9cc962e0c8d4a81d89fff27a045c8b5df5f684ebee47f340",
+        "2:test_explicit_pose_looks_at_declared_pivot": "4813c41005662d3374dd48a06bfba790fba6fb2cee1d89db6fd9830d5ff83d75",
+        "3:test_task_orbit_pose_selects_frozen_pair_member": "5830a114666ebae83dd0fbe2739430947d5c80b8455b2c7b4f1155ee99e4cead"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/libero_visibility_test.py",
+      "new": "tests/dsol_paper1/data/test_libero_visibility.py",
+      "before_sha256": "fdf3f2fa00ade260239a35bd8ff4a1507c523875ac970a366f1b0c9e515c7bd6",
+      "after_sha256": "fdf3f2fa00ade260239a35bd8ff4a1507c523875ac970a366f1b0c9e515c7bd6",
+      "test_bodies": {
+        "0:test_entity_geom_ids_matches_object_instance": "c7fe76e45152ff4d8582062c34ddef4b4b37284fa50329f23eb757099d034122",
+        "1:test_entity_geom_ids_resolves_semantic_region_to_fixture": "75a2eb1825c9e8b641bef3abf926ba953b5869edb095add95572be58ca8685bb",
+        "2:test_entity_geom_ids_fails_closed_for_unknown_region": "0707bc378d872e0a391d4287bf389b50aa51e16ea8deba0e282a35a1fb88eb85"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_libero_view_scan_geometry.py",
+      "new": "tests/dsol_paper1/data/test_libero_view_scan_geometry.py",
+      "before_sha256": "536b4bf50db165ce1de23a7aaea936934e4661c4d92103c9d52e9dcf24d1082c",
+      "after_sha256": "536b4bf50db165ce1de23a7aaea936934e4661c4d92103c9d52e9dcf24d1082c",
+      "test_bodies": {
+        "0:test_quaternion_geodesic_treats_sign_as_equivalent": "d10c77faf2ca041fb0fc4fe971acede0f1ce3335e684b23a168f322049e86342",
+        "1:test_quaternion_geodesic_reports_right_angle": "f19266c9da6f8b1d25496d4106280648158c1e7de11d50ebef4fc3d9e216754f",
+        "2:test_camera_displacement_reports_physical_units": "217414e526934cbb6bce61c760434c3c18bede110684059731c296f43374b0eb"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_libero_view_catalog.py",
+      "new": "tests/dsol_paper1/data/test_libero_view_catalog.py",
+      "before_sha256": "fca84159dbabd54187871aaf069d8495b2635ca4902433741cf3dd9cbbfb44eb",
+      "after_sha256": "f983ebf1deeb9dac0b12f9a7cd968bb4cebdc7e69735ab51a6289e51185fc6fa",
+      "test_bodies": {
+        "0:test_m1_catalog_adds_eval_only_crossed_orbits": "01bb0709cf66e0ef7895edbdf8f9bc1ed29ef660dc5f78c09c5233fe3185e2d7"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_libero_eval_sensor_controls.py",
+      "new": "tests/dsol_paper1/data/test_libero_eval_sensor_controls.py",
+      "before_sha256": "46ab94369e892618a38d478e1a37f50ab29d1112919cdd931d4d8061debf8589",
+      "after_sha256": "46ab94369e892618a38d478e1a37f50ab29d1112919cdd931d4d8061debf8589",
+      "test_bodies": {
+        "0:test_all_blackout_has_no_deployed_camera": "deedccc004084bce7f61cad3e3b00850abe22b736e11351fbb821482dfc0feb9",
+        "1:test_all_blackout_zeroes_both_policy_images": "9ea3924c21e585407d0e2fba3b44ff66801cf7fafaee10644ef4fe1f0e9941bc",
+        "2:test_selected_specs_accepts_per_spec_catalog": "96f2865d5eea3126acfe661bd072572b0c828a546807be7b61ca54290b2b9061",
+        "3:test_selected_specs_prefers_top_level_catalog": "c58e8b4e0ed8c1e76c4fff404f1f60898d2630ab0115e78cc337663859efcc6d",
+        "4:test_selected_specs_requires_a_frozen_catalog": "c6d65b2d20519e5c7d7104a3c01db07dfbba995375385f85d74fe4a49f4ea27f",
+        "5:test_compact_protocol_expands_deterministically": "334c4eccce00650cfebb9af9af09dbe2c1356c51bc1b249fccc18b045d49b566",
+        "6:test_compact_protocol_direct_shard_access": "653332207129dbb3b4a97d2c8832e5b12746e2cf090d9d1f84379a88a82de61c"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/explicit_flow_noise_test.py",
+      "new": "tests/dsol_paper1/data/test_explicit_flow_noise.py",
+      "before_sha256": "3553f284ebab0a282168250ff19f3a261450a7895a56212131e90bdc4cb9f34d",
+      "after_sha256": "3553f284ebab0a282168250ff19f3a261450a7895a56212131e90bdc4cb9f34d",
+      "test_bodies": {
+        "0:test_materialized_tensor_is_exactly_repeatable_and_index_specific": "812bd54db7cb4069cbeae1710c3a245dd8dd0df7dd751fcb909848a73e664048",
+        "1:test_file_tampering_fails_audit": "223063153c36f9299a28f086301bd16db507d97d0022135b1ea9fb05e55eddfc"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_standard_initial_aa0_v1.py",
+      "new": "tests/dsol_paper1/data/test_standard_initial_aa0_v1.py",
+      "before_sha256": "90fc64550af0e0169b0d77710d76775723280364d828b317d3af2471708673cd",
+      "after_sha256": "878cd6bf7a92252d444e8f8ee9c6d34b16f8cdb5c94d882e8cb2da1273ebe2c9",
+      "test_bodies": {
+        "0:test_materialized_official_state_hash": "d4b1f19b74e8d3891ad7708df4942487ac7902ad759bfa77e943c81205c83748",
+        "1:test_actual_first_input_must_match_asset": "e4fa65a951d06d268245f49aeab10e3d18a781eaf258387cf833b29800d82e78",
+        "2:test_freeze_whole_task_population": "f8f53365025ad45e576a1207d320faecdeae4deda381abc1ca3a8aad05e8fae9",
+        "3:test_initialization_uses_no_demo_xml_and_ten_settles": "4c3e3cd73b34523c3f9e8f8b085ae9f3640385a534492d7d7ad144aceb4999b5"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/accel_core_test.py",
+      "new": "tests/dsol_paper1/metrics/test_accel_core.py",
+      "before_sha256": "cc3a56f2406f07f045adcf215bd857fd52f3f0f98bde7ccb9e77a79e50b1e282",
+      "after_sha256": "cc3a56f2406f07f045adcf215bd857fd52f3f0f98bde7ccb9e77a79e50b1e282",
+      "test_bodies": {
+        "0:test_computes_registered_prefix_formula": "d3ea5758a8f6815de8944d076e702e87dcf65bf27eb1eacc4c19ee3e3f41cc32",
+        "1:test_constant_velocity_has_zero_non_degenerate_accel": "6bcab7880b880c0b9ca13e317768bf34cee332a5610199cb766800c58e0dbd45",
+        "2:test_zero_velocity_is_degenerate_and_not_selected": "540ad45e3b8fccc823d2babcbcea51f86b46e60cafffc4a02a30b7d955a27068",
+        "3:test_all_zero_velocity_returns_no_valid_candidate": "2f770650b1f22db1e9844658b39cc15acf6d20cc23157274e62fe963225d1eda",
+        "4:test_shared_noise_is_exact_and_reproducible": "bf6dbb64630b6ccafc062cd4ba30b079c823713e3c345d7f2956a93355642752",
+        "5:test_unshared_noise_invalidates_ranking": "7e5bcc2ddcd8ba1e5f74825b43fbeff69351344c693e877e683d725ae76dc422",
+        "6:test_relation_analysis_reports_exact_and_nearest_sets": "1c8d86ad7fa0bc4827b6f286035a3fab23a239971b5bbbba42c02618eb846f46",
+        "7:test_relation_analysis_requires_all_frozen_reference_sets": "01ebfe1a160ec8ec3b293d42a8837b683736be4a0ede162ee925a19c3ab45ad9"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/accel_inference_test.py",
+      "new": "tests/dsol_paper1/metrics/test_accel_inference.py",
+      "before_sha256": "60060cccfe1987428a2e6415e1724f95311172f110fcad7655e122d4e79082c8",
+      "after_sha256": "60060cccfe1987428a2e6415e1724f95311172f110fcad7655e122d4e79082c8",
+      "test_bodies": {
+        "0:test_fixed_state_batch_uses_one_shared_x0_and_ranks_candidates": "55ef1eb6f79a5989b94467562cc0fb8a41720a77a13d8f7007a52b4f7cbdc329",
+        "1:test_rejects_model_that_does_not_return_supplied_x0": "cbee7b732e17d78d9ce45ded29053337ba0a133709762f4e1e2d1be91a431316",
+        "2:test_rejects_non_ten_step_trace": "e1e92e9d655b03afbb93af5e672a4fc014c02222bd0785efd6dc272b8ddc7d4e",
+        "3:test_chunked_ranking_uses_fixed_batch_shape_and_one_x0": "4b3dcb9e727ac0d128459fa2ed7be42006372b6ab478fba7411a2dcf0f308ae3",
+        "4:test_chunked_ranking_rejects_duplicate_candidate_ids": "1941df0f63fc4f4595c4643a86712a7cbca9c4f923ceeac3cd8d8ce9866a333c"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/accel_cli_test.py",
+      "new": "tests/dsol_paper1/metrics/test_accel_cli.py",
+      "before_sha256": "b83debb7031d02b23618b2a23b0ebabe8a6e00ec4bdab2a355c85955e0cab496",
+      "after_sha256": "b83debb7031d02b23618b2a23b0ebabe8a6e00ec4bdab2a355c85955e0cab496",
+      "test_bodies": {
+        "0:test_writes_machine_readable_ranking_and_relations": "3f745e34e7cd3d69525093ab3b172d8eff80dd1c486e08228587c5d2a0e8e346"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_matched_view_accel_v1.py",
+      "new": "tests/dsol_paper1/metrics/test_matched_view_accel_v1.py",
+      "before_sha256": "14fd61b89b37c1410e26677ddf5d858430d9e81de478fe48f856510f4b1bba40",
+      "after_sha256": "14fd61b89b37c1410e26677ddf5d858430d9e81de478fe48f856510f4b1bba40",
+      "test_bodies": {
+        "0:test_code_identities_point_to_real_accel_implementation": "1102dfda4fe6d04f31af106e4796a7929b48d38135c976cfc10eea43e3fba2b6",
+        "1:test_legacy_seed_list_matches_actual_historical_broad_receipt": "fcc97628346a78507ec9e4c5120a08d0e09df520ede2aa49f39e18f214c0b415",
+        "2:test_actual_cached_artifact_matrix_and_legacy_seed_validation": "1c75d3380e55ac5877d7ed8e0ca44f1bd21c2a8ba4c35677ca32ba8bc9048f4f",
+        "3:test_cached_artifact_hash_and_physics_mismatch_rejected": "08876ec8baf5912972e3393e19620ec9864ccdd5b12eb5b235f6ee6f575b78a9",
+        "4:test_incomplete_or_invalid_97_by_8_scores_rejected": "bb3203de8a36f2fe278ee60a412cf814c49c3273165cf4ae89cda594ee4e9448",
+        "5:test_existing_result_requires_full_matching_identity": "a184f82c1832deb4cba4a9e82945495d0c1c44b9d441ed1c5d514f29ba126985",
+        "6:test_prepare_hashes_weights_once_and_never_overwrites": "20dc9aeae4e02e6ce8f70d97ea2c47df67d416cb31eac9d1665822995c290fd7",
+        "7:test_shard_resumes_without_weight_rehash_or_model_load": "38a38922dbb443edbcaf603d50656109a31fb5ad4a37e15a1ad8bc41928d4f73",
+        "8:test_output_is_restricted_to_new_landscape_tree": "ee4dc6d1374503cf375f196ac53c9d89d7464f54882735233b66ddc91c8013e9",
+        "9:test_wrong_denoising_configuration_is_rejected_before_weight_hash": "447cfc1ce1fbf348571a82fb8fb230fc609392bdb3f653b0855210a765efd47a"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/join_constructed_accel_m1_test.py",
+      "new": "tests/dsol_paper1/metrics/test_join_constructed_accel_m1.py",
+      "before_sha256": "45130b496d30604d91e4fb013bc453f9ba129ad36f61ee11360541ed5977b7e9",
+      "after_sha256": "45130b496d30604d91e4fb013bc453f9ba129ad36f61ee11360541ed5977b7e9",
+      "test_bodies": {
+        "0:test_selects_lowest_accel_and_defines_success_and_efficiency_oracles": "f9260a50b727a4756038a154d007d40e7a2ca28598fc03f449c229cc66501682",
+        "1:test_rejects_physics_state_mismatch": "f792a0e025bc3b6656d1176baf53adf563276b173bcf3a232214bc7a2e72a031",
+        "2:test_summary_bootstraps_source_groups_not_frames": "4a4075bb17d7473339aa72905b47b5d4f26c74c6173264f2c7487e6f0dd2e41c"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_view_metric_rules_v1.py",
+      "new": "tests/dsol_paper1/metrics/test_view_metric_rules_v1.py",
+      "before_sha256": "bfcbbb8b253d7c39bf12d471243ba5df2cb69c2346a6c942d0c0d4d6a5b3c98d",
+      "after_sha256": "75cad09d5aee5ee4e87e99d9620f0541e9805d747c032b375b1d3d8d5c73426f",
+      "test_bodies": {
+        "0:test_seven_weights_and_including_canonical": "d74ecb91ffee7c77f39e1b68c537e9464bc4f80b56e2e06780cfd929691f5531",
+        "1:test_historical_mixed_selection": "b1f431bbc3487660999738e4b7a920b922d6d05be74a1813570e8f58d65903ba",
+        "2:test_ties_use_historical_ids_not_canonical_first": "beebeaf14816563b6c7ee1aa6d554d0dd4a95b0bd43d272f8d309118e5ff47c7",
+        "3:test_mixed_visibility_tie_prefers_lower_accel_before_id": "2a60f9a00730a9176bb5525aead25b227117d872784515309d809ef04ef853ed",
+        "4:test_uniform_rule_is_expected_success_not_new_random_draw": "2f153e90e452aaa5267d3bf4cd98354b160efda869681b43d9c2b73fb86e72a1",
+        "5:test_missing_or_nonfinite_metric_rejected": "386c01e626f7be6010a724a0c7bee6a16cf58c1d55c077a13811e794016079d8",
+        "6:test_top10_noise_stability": "d0470f3c05cfc4e9d0e7a2c3464f34ac83793a01ae75cb4d7213cffda5eb464c",
+        "7:test_difficulty_boundaries": "3caccd0206595c7059f4328b955d0e5c1beecfbc665a3b4408e4daf1762b5a49",
+        "8:test_crossfit_classification_never_uses_evaluation_half": "c42b0e6235ab18d3dbf31ab057bf146cbdf4f19e88b50f822f56676150e6b5e6",
+        "9:test_same_stratum_directions_are_merged_within_state": "c2bd0aa6ddde8c80aaeda0c00626c512e15184e87ddcf3e3b90d6dd8e19cd1d3",
+        "10:test_source_and_task_equal_not_state_count_weighted": "718f3ad39dd676eb66a19df45ef1978088cfb2cb5f958fb71e9b5733b76b88da",
+        "11:test_no_false_source_ci_when_one_source_per_task": "f09df3d895555da6137e24a8fe1e8aa68b4d9317a4857286f748cb71e3c495f9",
+        "12:test_two_comparators_and_all_states_are_retained": "485477db4c261a4bc98e7e22c0db2c56e516cb91ff4ac596ba62bff951d9feb1"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_analyze_matched_view_metric_rules_v1.py",
+      "new": "tests/dsol_paper1/metrics/test_analyze_matched_view_metric_rules_v1.py",
+      "before_sha256": "2da3ef6867fe56141765502f065c385b2d338589775fdae1484e120921ebdf5f",
+      "after_sha256": "0df67985c762d76817a7d924cac254c169294cf7120c84e2fb8085befaf175e4",
+      "test_bodies": {
+        "0:test_paired_training_interaction_not_raw_success_difference": "b04e8c9a90585bf33ed2b5ad3c4dfeb6d27250bb05cc10e8a1b12ec657991f80",
+        "1:test_no_source_ci_for_one_state_per_task": "c163c4d9a11d3f7f6dfb985f44602cbf68ee6f6403e251640f1fdae5782a2090",
+        "2:test_missing_rule_is_rejected": "472b66c4a548729b83cac959d96ed04861a6090c1f9ef2cb5e3b5f0a78c51d0a",
+        "3:test_duplicate_or_source_mismatch_rejected": "7a672d393e1bf37ea4cb07d3e43c3e869d312b4a22987335f8aeeb248de0e834",
+        "4:test_frozen_core_rule_analysis_roundtrip": "33739343416bb4421cb355f74798cc67bdc834e3d55e958dea7561089ac57d42",
+        "5:test_existing_output_even_empty_is_not_overwritten": "f00bb97cf0617779702cb5ed822e7374d75c70468a5d3384b9ef10e2254b3c5f"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_statewise_view_selector_v1.py",
+      "new": "tests/dsol_paper1/selectors/test_statewise_view_selector_v1.py",
+      "before_sha256": "ce951580575cdc4a16d34e50794807403389490be3e107367a2d429402ced3b7",
+      "after_sha256": "ce951580575cdc4a16d34e50794807403389490be3e107367a2d429402ced3b7",
+      "test_bodies": {
+        "0:test_ridge_recovers_linear_order": "449ee99296859e7accd1de5aba55f72de3311ba64680a9bae1c66f192cbc9e7e",
+        "1:test_pca_transform_has_requested_dimension": "f5458b0ef7a3c6faef67339853e1061da80fcae12e3f75986f1aaaf6467b229e",
+        "2:test_prediction_ties_use_lexicographic_candidate_id": "46ea6025edf5e5ce7240f799ab6c0bb14bca5576296523e3df586fc92f73569b",
+        "3:test_geometry_vector_does_not_use_visibility": "569ab4a941379419ddfdc1e4b1b5018c6cad1e46ea151ef4e5d912bb897ca97e"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_dense_test_selector_summary.py",
+      "new": "tests/dsol_paper1/selectors/test_dense_test_selector_summary.py",
+      "before_sha256": "407e3e9d5bcb11bf1b77f7e27218fac5c827af8c9586f90136b09f60d57bf76e",
+      "after_sha256": "407e3e9d5bcb11bf1b77f7e27218fac5c827af8c9586f90136b09f60d57bf76e",
+      "test_bodies": {
+        "0:test_summary_reports_independent_test_rescue_and_harm": "30f953762091d1a11c0d2f780e56353bca2ac3c64ca3581949cc299875b5241b",
+        "1:test_summary_uses_majority_of_five_repeats": "621f0f211fac0dd5a5b35ecbd7ceaca14d622ef9b49036095cdbe2ef3904c4c3",
+        "2:test_summary_reports_task_macro_effect_for_unbalanced_tasks": "1b792328635ef4ef452485e7417148452e12b8c9f3ca88873ee43e43759b2f68"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/select_constructed_m0_candidates_test.py",
+      "new": "tests/dsol_paper1/selectors/test_select_constructed_m0_candidates.py",
+      "before_sha256": "e4f8e50829eaa2efc9e5770a830d69c633969ff5ce30242620f00bc0654ef907",
+      "after_sha256": "e4f8e50829eaa2efc9e5770a830d69c633969ff5ce30242620f00bc0654ef907",
+      "test_bodies": {
+        "0:test_initially_successful_states_are_excluded_before_threshold_freeze": "fc9dfd37198dc977306949efd755066436b5749d4b964d025e4942902eddc2ba",
+        "1:test_late_states_are_excluded_before_threshold_freeze": "d254451c29508413e516a46de2cd7de81009a92931b5bb1d3d41605fc2e031a2",
+        "2:test_selected_records_preserve_stage_eligibility_fields": "d74be936650d6144646fb93e6b612641612441e40df50414bbf5da789132157d",
+        "3:test_explicit_task_scope_is_audited_without_mutating_full_input": "5f3f7dbcc98f7d0fd1556431934410d061ac3ef62cdac8f2ff0c13dd78199230",
+        "4:test_explicit_task_scope_rejects_unknown_task": "0d05fb607bf373083d37a3f92b35ea18a6f750fa4a4c39fb82a066087c918b79",
+        "5:test_test_measurements_cannot_change_frozen_thresholds": "d2fca3ee039bac16aca84ecbeb7ce12fd23bae3f1a70727feb27f885c22b5b2f",
+        "6:test_extreme_candidate_is_never_selected_as_strong_info": "613d4a1b21d5e18464c2985553e027241a490adc32e663fe142f389a763831b6",
+        "7:test_high_information_near_pose_is_not_a_matched_control": "be893cb9dc1c382bf8ee8627ed8fe68052e99521fc58ac27d32eb5ad4af54d76",
+        "8:test_many_frames_from_one_episode_count_as_one_unit": "eed045b37dbc71e3d1989f9036bbf7ba784313502e0e825184ce8343934585c4",
+        "9:test_missing_control_produces_hold_with_explicit_reason": "510a44121235d6fe3a51a455de8fc7a3c1fb499fd3361e190270fd8885aa7536",
+        "10:test_validation_threshold_is_clamped_without_invalidating_task": "a653684d7109e0ad0fe784450ad55c0de2206935856a89481b97065b407ec05c"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_dense_selector_common_failures.py",
+      "new": "tests/dsol_paper1/selectors/test_dense_selector_common_failures.py",
+      "before_sha256": "46d1d3dde131bf8c8a568eb5a95d526521884b20267362626d0d4a2200fa6352",
+      "after_sha256": "46d1d3dde131bf8c8a568eb5a95d526521884b20267362626d0d4a2200fa6352",
+      "test_bodies": {
+        "0:test_evaluation_seed_is_not_the_state_specific_policy_noise": "b0ffe639291cac6a77c68246fd70f94e7272d5d1d25009b2b6266bce2aab0552",
+        "1:test_fixture_gain_can_hide_no_target_gain": "be9a27e347df747644fab06c35f7614c3cffe98e613e13c5913ba681deb3f304",
+        "2:test_source_equal_summary_does_not_count_states_as_sources": "79e4e2ee52beb58aaf7c5166f5e7880d93532ba84cfb1a7076a7f5d63426253a"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/analyze_m_b_multiseed_test.py",
+      "new": "tests/dsol_paper1/analysis/test_analyze_m_b_multiseed.py",
+      "before_sha256": "512df44508a6ee6dd0202c4139eff2e070c1939674b49e00db51b31c3c0073f3",
+      "after_sha256": "512df44508a6ee6dd0202c4139eff2e070c1939674b49e00db51b31c3c0073f3",
+      "test_bodies": {
+        "0:test_pairing_delta_is_grouped_across_seed": "45db6f8d4613855ee13f427c1f481729bd3aa03f02c58fdfcf4e268ceeebac4d",
+        "1:test_zero_deltas_are_not_directional": "98f66db33e3d3d782845db2308606703f00e4d49c3220ced7a475950ee49d230"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_compare_libero_m1_models.py",
+      "new": "tests/dsol_paper1/analysis/test_compare_libero_m1_models.py",
+      "before_sha256": "7cb74483b08928a1d56afd78165a879633073fd880dc9d15e64564c17da18319",
+      "after_sha256": "7cb74483b08928a1d56afd78165a879633073fd880dc9d15e64564c17da18319",
+      "test_bodies": {
+        "0:test_grouped_model_difference_clusters_frame_states_by_source_demo": "116591ceb3cf80fba1315a76a5b3a154e4497c9b71eceb714340163bb34d2a8a",
+        "1:test_validate_same_protocol_rejects_missing_state": "020dda83b7002dd638db9c69e034a96adaf6b3ad85178aaa491754711584b5b6"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_compare_matched_view_landscapes_v1.py",
+      "new": "tests/dsol_paper1/analysis/test_compare_matched_view_landscapes_v1.py",
+      "before_sha256": "34abab09176851964c32a204827cbb5dbb7f32ddf728c716c8f246f00678bce3",
+      "after_sha256": "de6968e67e0910dd0fef30b70e83fb279fe8e4c6e826dd13abef8b105fbd1440",
+      "test_bodies": {
+        "0:test_valid_join_allows_model_specific_support_fields": "2102283780f80b784726d098d19dcebf6b584db8ad46954790fa850db7c5f34b",
+        "1:test_broad_can_have_extra_states_but_canonical_cannot": "a9365fa4d9d51716a97fc054b1a678dcc7fffa74c51539aa7df92310d27c0fb3",
+        "2:test_missing_outcomes_not_zero_filled": "09d4f4ca5c3b14c509b0d2701e3bc56a269df8907263e0fc17c3da0698023101",
+        "3:test_rejects_duplicate_candidate_or_state": "d7fe3df8d70bf487fb8a7acfdb1e26f9f74af8151ae4247796fe92ab748c84bc",
+        "4:test_rejects_changed_member_seed_order": "c196ca7df80a58b29f67b8be6e80b7b9ad01e12ffde9c3d283f9a7dd0e365b1f",
+        "5:test_rejects_physics_or_image_mismatch": "726e21d4c837fa2d16a7ead41795d9a3b487d9bf32e357afe16718a560e81bf1",
+        "6:test_rejects_geometry_and_noise_mismatch": "f33fa455c62effcbddf41826241e6f70d510378b3f1cbe3a86392c7817819514",
+        "7:test_rejects_same_checkpoint": "529243b3658080a7fd32ad201c3ad96f3b52bc53e8ae001d85eb01876ad54f72",
+        "8:test_metrics_are_paired_not_pooled": "8ab3e6789fff3d12c9d46de4ef85f541442e781452855af910faf1cba50a323a",
+        "9:test_crossfit_evaluates_opposite_noise_half": "c2945f91d98019cad39fd4bd29eaccda59bd71d08a39bfc306b8bfa67033d7dc",
+        "10:test_conditional_se_preserves_noise_pairing": "8396fab6770ce95937d20329dbae419f956c7d63bccf8f6355db450ed89830c8",
+        "11:test_no_degenerate_source_confidence_interval": "3c91ffa201d3df6a81d8756601b8e6789f7d04062e1acac1c69becc6183d0e66"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_libero_closed_loop_summary.py",
+      "new": "tests/dsol_paper1/analysis/test_libero_closed_loop_summary.py",
+      "before_sha256": "827a0cf0d3c0557293d9c7ff833ddd0423ba4849336485ca5425fc6574f9cd80",
+      "after_sha256": "827a0cf0d3c0557293d9c7ff833ddd0423ba4849336485ca5425fc6574f9cd80",
+      "test_bodies": {
+        "0:test_paired_physics_audit_accepts_exact_restored_source_state": "f3efc4e35171e79852f9fad37a5570a57f2db4661a27c9e2e30150018b1fc5b3",
+        "1:test_paired_physics_audit_rejects_wrong_hash_stage": "bbd2b0adbb3fd72d1485ac2a56beb181d7bf473b7ae70bb07e1f38d8d0fe6648",
+        "2:test_paired_physics_audit_rejects_source_state_mismatch": "44f10358480ff1b36bfafbb414f129c53bdb4dd4daa1f55db502009923e51655"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_summarize_libero_visibility_scan.py",
+      "new": "tests/dsol_paper1/analysis/test_summarize_libero_visibility_scan.py",
+      "before_sha256": "9aba878a241b697e0f8405d47e0407aa5f97bd20c31039867a05dee2a0d28eb9",
+      "after_sha256": "9aba878a241b697e0f8405d47e0407aa5f97bd20c31039867a05dee2a0d28eb9",
+      "test_bodies": {
+        "0:test_diagnostic_plot_data_uses_protocol_split_names": "09ceee8b096b3745e5f36a568e4eafa7009883ea54916cea9edd290ca5a07800"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_statewise_view_oracle_v2_analysis.py",
+      "new": "tests/dsol_paper1/analysis/test_statewise_view_oracle_v2_analysis.py",
+      "before_sha256": "0f1808d53078fe04f71ee42b95a74a770da1d1d20519529abb435023c80148af",
+      "after_sha256": "0f1808d53078fe04f71ee42b95a74a770da1d1d20519529abb435023c80148af",
+      "test_bodies": {
+        "0:test_task_stratified_bootstrap_detects_positive_constant_effect": "5815c07606ff87433cf7891635786b1dc8129eec2c1c2427af3a54f61e75070c",
+        "1:test_decision_requires_statistical_and_practical_effects": "d870053f746ec29c4e9382f36b86cec6609c67a1168628a6ed7708ce9649897d"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_view_value_expectation_heldout.py",
+      "new": "tests/dsol_paper1/analysis/test_view_value_expectation_heldout.py",
+      "before_sha256": "81f3548197e6e33fe2ed5965d179df6f71692137277e9b823402423214dfb732",
+      "after_sha256": "81f3548197e6e33fe2ed5965d179df6f71692137277e9b823402423214dfb732",
+      "test_bodies": {
+        "0:test_state_method_rows_keeps_equal_repeat_ids_from_distinct_banks": "ab436160fdb13f9b8337c4c2a650aecbee0138a2cc3bf91e91e33e735e2ca558",
+        "1:test_cross_checkpoint_gate_requires_consistent_precise_gain": "4ef8445670ea2cc13fe6c28a0caff79c7fd8adadc02b7ec93da94ae067f20b9c",
+        "2:test_protocol_membership_requires_exact_episode_set": "9dd5dc54a38207214473d9f422d09d2abfd65aa9e1aa63496eb640e4ec3d7cd1",
+        "3:test_protocol_membership_rejects_identity_field_drift": "2eec26a9150c44fc814f6a36ffb55f647f41c13af45c48e205201dd4639804e1"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_view_repeatability_summary.py",
+      "new": "tests/dsol_paper1/analysis/test_view_repeatability_summary.py",
+      "before_sha256": "884500a2802632ab29f5646a24e2fc988143a732d49e1568940fd13a93dba761",
+      "after_sha256": "884500a2802632ab29f5646a24e2fc988143a732d49e1568940fd13a93dba761",
+      "test_bodies": {
+        "0:test_source_group_removes_only_stage_suffix": "fd37936985fddb0376a419edf3a1a9443675e5cf5bc5886253147900f80ba522",
+        "1:test_summary_reports_grouped_rescue_harm_and_bootstrap": "f37dbb45d9a472bafc25a204358258dd1b057f293a2765edd2ff9fd1d70c7a0e"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/view_value_discovery_test.py",
+      "new": "tests/dsol_paper1/analysis/test_view_value_discovery.py",
+      "before_sha256": "42a082ede9e4f7502fc86833a21897e234d9b893fb519cef305a232118fce2ca",
+      "after_sha256": "42a082ede9e4f7502fc86833a21897e234d9b893fb519cef305a232118fce2ca",
+      "test_bodies": {
+        "0:test_pairwise_auc": "36ca59e6bce2c3630ed2bb430e2cab1003924e9eb95943312109c18a2c6499ee",
+        "1:test_random_hit_probability": "26797ab028251827706be4a36d3fff445514a14f57268c4e22e1d60ea68801fb",
+        "2:test_analysis_is_state_conditional": "96f431a0ca992850f315c3e1f9afdba43a8bf74f6412f998c245f01b30d42e73"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_initial_refactor_golden.py",
+      "new": "tests/dsol_paper1/analysis/test_initial_refactor_golden.py",
+      "before_sha256": "be7f79f26d3bb4991530595ad97bdd7c27bcedbe954cf49b124a06abd371dbcf",
+      "after_sha256": "69d239e03bf12b1af573cc7118d51bcac51ce5e50635447cbe8bb1cf0e56d1e4",
+      "test_bodies": {
+        "0:test_full_initial32_statistics_and_selections_match_published_analysis": "8f354260ef3cbcf167c55d601f68313d05ee7cf1452d8d9e6032c0f26554f14b"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_protocol.py",
+      "new": "tests/dsol_paper1/protocols/test_protocol.py",
+      "before_sha256": "0c2203f7a601f0e1ad4f8477fb7f1c0ac924c30d76c3cb3aff8fcecf2c04c0b9",
+      "after_sha256": "0c2203f7a601f0e1ad4f8477fb7f1c0ac924c30d76c3cb3aff8fcecf2c04c0b9",
+      "test_bodies": {
+        "0:test_complete_protocol_passes": "6f9e4800c7df59c21f5b09fa440405213b4db30d85b5f260d2e6d6ee20427403",
+        "1:test_each_ed_gate_fails_closed": "10944fa3cb3201caa086b55de8ff771bd4b5c96c957dfafba5eb2c4f6dd1e92a",
+        "2:test_ed_requires_control_incompatible_decisions_and_no_recovery": "4d162db1472da40dabf658afd03fedc52855556b6aa825adc3ceccaf24a60daa",
+        "3:test_n_requires_action_set_relation_and_low_finite_r_hat": "be39f13b5c7b5485ec1bb667b4f05c9f0e094d96c825f97b44239528189e5152",
+        "4:test_frozen_leakage_keys_are_rejected_recursively": "812beb4b3ed4ce6593269ed1101ecbbd16ed17522801022b58bcfe29089d789b",
+        "5:test_required_task_and_observation_fields_fail_closed": "9191366f820a945a775ede01afe549e0d9e3b250e8a150f0e7c790413dfdbb0b",
+        "6:test_s1_is_excluded_from_main_analysis": "8d9d63495dd9120e14e318cbe22220261c28a5b71243affdbe35eaff9b566326",
+        "7:test_relations_may_compare_views_of_the_same_task": "e97c0ff7f2c6cf61a3f646a1f71de66d22bd1ee3a87e20ec5447da30a480b10b",
+        "8:test_release_holds_missing_or_unvalidated_artifacts": "a98d08267a392693ab4bc94d28b34a45bdd9bf63f85bab783ee50eb0f03ae9ea",
+        "9:test_invalid_preregistration_holds_every_release_gate": "51c56667b775bd444eae8b335f0131ce0904afb7d37af0b9274d36ef218fe115",
+        "10:test_custom_release_gate_cannot_override_protocol_gate": "9a00db6e1bb75ff68ffc871f8f996a63c205a46eec01ef0cc99e39b8bab0bcb5"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_dense_test_selector_protocol.py",
+      "new": "tests/dsol_paper1/protocols/test_dense_test_selector_protocol.py",
+      "before_sha256": "b7037816ca1bb48c1693618ca463039e581f9060d171011a24e032fd7c2ea24e",
+      "after_sha256": "b7037816ca1bb48c1693618ca463039e581f9060d171011a24e032fd7c2ea24e",
+      "test_bodies": {
+        "0:test_builder_freezes_outcome_blind_selector_methods": "cb63de7e0c6c56d7ac2da4ba846a5404e815c37d565d1fbaf57374839661bf44"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_dense_test_scan_plan.py",
+      "new": "tests/dsol_paper1/protocols/test_dense_test_scan_plan.py",
+      "before_sha256": "0e338eeebed300479848f58e3b904d85b05fe30d19a0da896a8fdc0aa02de7f3",
+      "after_sha256": "0e338eeebed300479848f58e3b904d85b05fe30d19a0da896a8fdc0aa02de7f3",
+      "test_bodies": {
+        "0:test_build_selects_only_frozen_test_states": "8fa24d0415584f539800fcde76022c548565d4095436143b01e2fae9847687f4",
+        "1:test_build_rejects_validation_protocol": "8ded5342809fb3e66c1a96c8d5492834a13e630b9230f766be17e3bacaa4b8c4"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/build_constructed_view_oracle_protocol_test.py",
+      "new": "tests/dsol_paper1/protocols/test_build_constructed_view_oracle_protocol.py",
+      "before_sha256": "1e992dc29f0b9131c7ad8dfdc21dbdddce4fab264f9af046b6bd2b58bc50b9b4",
+      "after_sha256": "1e992dc29f0b9131c7ad8dfdc21dbdddce4fab264f9af046b6bd2b58bc50b9b4",
+      "test_bodies": {
+        "0:test_group_for_pose": "1dbfa32d63bb06517d6c4af55ffbbc92362dcce7874398024b657eebd0c13cc1",
+        "1:test_select_stages_without_replacement": "ef569dd0d63bbf15d8558428687d6af686de885493b9ed6499287e542ba660a2"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/build_constructed_m1_protocol_test.py",
+      "new": "tests/dsol_paper1/protocols/test_build_constructed_m1_protocol.py",
+      "before_sha256": "8bf578ac196adf00295d84be32b1aa784d7446d34f98ae38d60daf9a0e9978a3",
+      "after_sha256": "8bf578ac196adf00295d84be32b1aa784d7446d34f98ae38d60daf9a0e9978a3",
+      "test_bodies": {
+        "0:test_builds_ten_exact_state_conditions_per_audited_group": "729fdd3d0027e60bd34cd737bf4c6bb6eaf1704f65df9de94b0e578e1fdc6bd0",
+        "1:test_rejects_audit_for_other_selection": "3871f0ba1fda8d4f93fb51472406b3d24b2933a4b00e792771ef0ec3c388d68b"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/build_matched_view_landscape_protocol_v1_test.py",
+      "new": "tests/dsol_paper1/protocols/test_build_matched_view_landscape_protocol_v1.py",
+      "before_sha256": "0e008aae6e76ad3b4974a284b9cfbd58fc03b1386c4e76b5e2edeb44c662d57b",
+      "after_sha256": "0e008aae6e76ad3b4974a284b9cfbd58fc03b1386c4e76b5e2edeb44c662d57b",
+      "test_bodies": {
+        "0:test_selection_is_eight_development_sources_ranked_without_outcomes": "d28cd500a1196fa94a919be2b95ce7a0d3fc7b6a474b155d383983a80170f31c",
+        "1:test_selection_does_not_depend_on_row_order_or_extra_outcome_fields": "ec3006b8343ee9f206a92bf0e3626add1a1546685be49aca334cf207025fbd3e",
+        "2:test_reject_test_role_or_duplicate_source": "d31bd4de40aef5269a9ad697a2faa35d1d1ce6e433b1c90d59cf14a0780d5016",
+        "3:test_original_state_aliases_and_candidates_are_preserved": "43e90c56918ad5d3c08478eed8a38adc05f8522491bb318fc550ed9ec2b20c09",
+        "4:test_reject_wave_changed_physics_or_repeat": "89a2ac7fd074d86fbf07ee0a601447a657b8d69add068b21c225b5f1d57c9686",
+        "5:test_smoke_is_exact_dense_subset_and_residuals_are_a_disjoint_cover": "4e315efd54cfacebffbdddd80fc08ea4dd9d77569a1df2b975255d222b137764",
+        "6:test_reuse_rejects_overlap_and_changed_execution_fields": "dbb07ff2f6e82dd75121294cce935b8c7b9066ed145307593d02507ba60c09f7",
+        "7:test_dense_eight_waves_have_24832_unique_ids": "4efb619b105041e3c15a2c8870290d33c703449f4aa260866709cc00595f1f90",
+        "8:test_no_overwrite_even_for_identical_bytes": "a042e6ee637fc1d41e7bf044776ef20e61178bca13114002e9944c4cbddda398",
+        "9:test_new_smoke_schema_passes_existing_integrity_auditor": "10c3ead3843f087086cb1986f5557011d4a3ec82f7b49092710585b648ed84ff"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_freeze_constructed_task_pairs.py",
+      "new": "tests/dsol_paper1/protocols/test_freeze_constructed_task_pairs.py",
+      "before_sha256": "1a120a2a5af0637240bdebadacc24be0ceb6f7810f3f24e9d0ee4f4a42efbe6b",
+      "after_sha256": "768644208849f41c38efc1b682971363c4010b92d11cbf6db2303d79bfc6d4d6",
+      "test_bodies": {
+        "0:test_freeze_uses_episode_medians_and_selects_direction": "ed088a9a685edc24e68b95724dc50263bf0001536e6fe8906c23e4b9d1b212a9"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_statewise_view_oracle_v2_builder.py",
+      "new": "tests/dsol_paper1/protocols/test_statewise_view_oracle_v2_builder.py",
+      "before_sha256": "061feedfa102a06e474cebe7b126b04e8e979c76db45fc908d3b8fe3ac83e56a",
+      "after_sha256": "061feedfa102a06e474cebe7b126b04e8e979c76db45fc908d3b8fe3ac83e56a",
+      "test_bodies": {
+        "0:test_candidate_sort_places_canonical_then_train_then_heldout": "d0fcdaade62b90f485be1b0709b2acf4ca9c7809df9b4176b473b2a6d3fd7e61",
+        "1:test_dense_compact_protocol_expands_full_matrix": "0851d8f4bd8493127eee9558c3501bc27e2c791b34aa6b2bb692b977c88ddf4c"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_statewise_view_oracle_v2_stage.py",
+      "new": "tests/dsol_paper1/protocols/test_statewise_view_oracle_v2_stage.py",
+      "before_sha256": "afd6383dad8477adb2cd63e6c3f0d3584bf3b11145ec4296a2ece11e2b4070ee",
+      "after_sha256": "afd6383dad8477adb2cd63e6c3f0d3584bf3b11145ec4296a2ece11e2b4070ee",
+      "test_bodies": {
+        "0:test_independent_stage_summary_and_selection": "4b2e99579bea452408b5cdf0388e4a60f5748691662f73aad064e247603f50dc",
+        "1:test_rank_uses_progress_before_harm_and_steps": "e2283d8080b9056e7ad33597e64096930e54250d311895e1439ddb549bb4c32b"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_statewise_view_oracle_v2_reserve.py",
+      "new": "tests/dsol_paper1/protocols/test_statewise_view_oracle_v2_reserve.py",
+      "before_sha256": "b33dd2edd89acdc67a993bbe7bf0938175206e1e70b79e00b19889213c67529d",
+      "after_sha256": "b33dd2edd89acdc67a993bbe7bf0938175206e1e70b79e00b19889213c67529d",
+      "test_bodies": {
+        "0:test_reserve_clone_changes_only_bank_identity_and_keeps_candidates": "8106787b58ab276effa3e932a278248b5d52d7e269f0a0b4c6e63cb3ba2aa7cb"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_expand_protocol_noise_repeats.py",
+      "new": "tests/dsol_paper1/protocols/test_expand_protocol_noise_repeats.py",
+      "before_sha256": "99ba00156550bcf3a9e88852a20abcce470812b57ec78634341fd285a4cfe296",
+      "after_sha256": "99ba00156550bcf3a9e88852a20abcce470812b57ec78634341fd285a4cfe296",
+      "test_bodies": {
+        "0:test_build_records_each_noise_seed_and_unique_episode": "f8dac9f4d80799717b61db7176387dbd7c23d90ba174061de1590e20f86962a8",
+        "1:test_build_rejects_duplicate_noise_seeds": "61238489394d22c309818bee1170f4e01c84dec693ea6822d24d28db0efb620b"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_build_strong_information_gate_plan.py",
+      "new": "tests/dsol_paper1/protocols/test_build_strong_information_gate_plan.py",
+      "before_sha256": "3f84d1c7e1cf3170e5d410ed70dbf041af32475db1cc8155948509d350023a84",
+      "after_sha256": "f5cb99aaa81ec484b0595f104a982d286df35eeacab9c1d2c9b93f6467c1d268",
+      "test_bodies": {
+        "0:test_build_is_outcome_blind_and_early": "86fe3d573eaf709a63b45be0af74dc4f1513bab0d066697cab7c491b5e644981"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_build_visibility_selected_strong_gate_protocol.py",
+      "new": "tests/dsol_paper1/protocols/test_build_visibility_selected_strong_gate_protocol.py",
+      "before_sha256": "278edd17a10c5ff1e0a78efba440bbd2910b449afed39c975236af27adef8eec",
+      "after_sha256": "d1ab5e1b86b6cfce6264f3ac4eb9d45fdd91fce24a17a6d60752bb79b3660b8b",
+      "test_bodies": {
+        "0:test_build_selects_visibility_without_policy_outcomes": "17995741b53c573eb89102793badc2b1aaadacf56d3a372abffd331f89c4a26b"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_build_prefreeze_bundle.py",
+      "new": "tests/dsol_paper1/protocols/test_build_prefreeze_bundle.py",
+      "before_sha256": "8edd4cda9039e8e4615123bf1de424bf4fe8d2bd1554c9f453301a2e1b0f036e",
+      "after_sha256": "9f0f471e1d35eda7fda1704d81343347e70fb1c616d258422243dbb32a59fd38",
+      "test_bodies": {
+        "0:test_formal_output_is_rejected": "82cb9c48bebb39d9e25fe0b1c33d059b47f68854db81bede949326fde6a43c55",
+        "1:test_task_enumeration_is_group_preserving": "8c2c54bab40b9e45f7b02d34c0e6b122179331849dfb0eadad6d2125e3411cc4",
+        "2:test_duplicate_group_fails_closed": "ef6d6f22a816a606c8f61618688d3aa6519ac69801a0d1f4a6d4319aacd51204"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_eval_throughput_benchmark.py",
+      "new": "tests/dsol_paper1/protocols/test_eval_throughput_benchmark.py",
+      "before_sha256": "c6087ac6c85f64e12c86bbb7688d324934ff66dbb962e7f2736198754bbdeb2b",
+      "after_sha256": "c6087ac6c85f64e12c86bbb7688d324934ff66dbb962e7f2736198754bbdeb2b",
+      "test_bodies": {
+        "0:test_benchmark_protocol_preserves_episode_identity_fields": "19bf99ea76e9575dd52efdb1ecec4339e929baab6f2a5b6d646d21694f013ef9",
+        "1:test_rollout_signature_ignores_nonscientific_serialization_fields": "7c120ab00259545d3663c5779e9d8789199d6cb0c2181df5ccec17f4abcb8de3"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_plan_precision_power.py",
+      "new": "tests/dsol_paper1/protocols/test_plan_precision_power.py",
+      "before_sha256": "ffbd73693950e624b7c3ad40938fd076d288a0b0dd2418e28bf14b4565750ca5",
+      "after_sha256": "7dbc34def650f55850d05711c97ee80350bb686c1562ca4a74df97c76261d575",
+      "test_bodies": {
+        "0:test_power_increases_with_sample_size_and_pairing": "7b7bcc84382cd6766cdddc32e3fa3329a4da17e854a44497079e0e6933e00794",
+        "1:test_full_population_is_near_target_but_attrition_is_not": "3900c0e65de5ef0e54dc1f6cf4a15ac3be2e15450abceabdedcbb6f52cadf9ef"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/view_repeatability_test.py",
+      "new": "tests/dsol_paper1/protocols/test_view_repeatability.py",
+      "before_sha256": "4812b916188b96dea61b02db237ac5ba90008ac3b73700882b33200521d6b9e5",
+      "after_sha256": "4812b916188b96dea61b02db237ac5ba90008ac3b73700882b33200521d6b9e5",
+      "test_bodies": {
+        "0:test_pose_distance": "cc42e163c0b6cc5a7f84431b161daf184c123d77b11ff7f98582b0f577de6d3a",
+        "1:test_selects_sparse_broad_harm_and_mixed": "9d416b45711b37b56a3ac21f3809f7ba39d2729bdbb3fddf7d2bb18bc87cc9c8",
+        "2:test_categorizes_every_state": "907e77b99c6671f8f355dc98e09ac1c8ba04633893e83235be8f4024944603f4",
+        "3:test_candidate_selection_handles_no_success": "57351cf9f582b98ec3dab5f02075f2a3f433067da71524fc38d8f750cf37adfb"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/accel_gate_a97_test.py",
+      "new": "tests/dsol_paper1/protocols/test_accel_gate_a97.py",
+      "before_sha256": "cddfdd8d510a96c5b2ac7b112c79acf53be34f3262b2cbecc59c719db1341fb8",
+      "after_sha256": "cddfdd8d510a96c5b2ac7b112c79acf53be34f3262b2cbecc59c719db1341fb8",
+      "test_bodies": {
+        "0:test_selection_separates_single_ensemble_visibility_and_hybrid": "a0817152160ba7489f6131ba61d17e8ccb1daeb22db5cb85a8151ff27b8a54eb",
+        "1:test_targeted_oracle_uses_requested_pair_keys": "784eba8ec380f50da36e0aa07783eaea7fd179d20f48dd82ba86a2e638b01341",
+        "2:test_shortlist_summary_uses_source_group_bootstrap": "0b34160fe6cb7dcfd1d0ba88b487859ee288811b6f951e69a551a831d237d81c",
+        "3:test_oracle_summary_clusters_states_by_source_episode": "44f9057419596dbac3aafa6890c9e45a14e40349540d023e67f011cb01421c46"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_render_protocol_bridge_v1.py",
+      "new": "tests/dsol_paper1/protocols/test_render_protocol_bridge_v1.py",
+      "before_sha256": "6e84874a09a516956ba72a17af3c7fb5347e27c6f8b1bc6ae4470372ad0dd031",
+      "after_sha256": "75eb839c7872c1c483668d9558a6877d7b7194d8ca6ec879e2a69b1d90d8328d",
+      "test_bodies": {
+        "0:test_noaa_is_opt_in_and_context_hook_restored": "4b5c93e611e5da5ec3816b119cef977dae2960fe9ed523bdc9358fa8f9ed3a68",
+        "1:test_determinism_is_not_common_prefix_or_success_only": "92badb39fae18820fcb1e3eace978043ccd80eaba25a98f96b038acdd69a9d02",
+        "2:test_cluster_interval_and_units": "83d5e9913eb9bc9213bc655738a405dad07b88d522de8f2c15b2f1615df58028",
+        "3:test_complete_array_identity_includes_shape_dtype_and_signed_zero": "f426ab9fa2a5effa053c97f0b24a6bef5b61052102c0f935afda02b9c75b4c67",
+        "4:test_rank_comparison_preserves_candidate_mapping": "c4cbff5a49a788efbfea0230345aff70fb606afce5e30708a396be0283089a1b",
+        "5:test_noise_repeat_is_part_of_pairing": "075938fac209ec46059cc2ec428da84a2570805a5b97edfbefadb05962f951ac"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_failure_view_search.py",
+      "new": "tests/dsol_paper1/execution/test_failure_view_search.py",
+      "before_sha256": "1c6e0e389c2eee2d39d4f963a974d50bec855969eda0ec37955c34ba3887090c",
+      "after_sha256": "1c6e0e389c2eee2d39d4f963a974d50bec855969eda0ec37955c34ba3887090c",
+      "test_bodies": {
+        "0:test_failure_screen_keeps_whole_bank_and_marks_sources_consumed": "35a964c27fbeb7c9fac66f4d810ee5420f66dbd748cb0211b5a033d35c90139b",
+        "1:test_missing_candidate_fails_closed": "ab3a7f08781e1b5b940f534fc7688b83ac1c87e3ba4cf237088dc04f44c9d5cd",
+        "2:test_confirmation_uses_behavior_and_keeps_canonical_and_controls": "1e0be3593db2f8cd2264846cbc53abb36c5c6636376181e7dc9934d69a56b009",
+        "3:test_paired_summary_resamples_sources_not_frames": "f3040989a503a1e2e37cb8333c89c7c16c864fbfa43dec0a7e2bc4062fcb05b0"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_dynamic_initial_scheduler_v1.py",
+      "new": "tests/dsol_paper1/execution/test_dynamic_initial_scheduler_v1.py",
+      "before_sha256": "ddb6229ff1042b6b1c3d6ae0de07f4b93b478eb7fe3a778c98fc006c88866df6",
+      "after_sha256": "da23c857fc02edeb11c2cd7eb1300c87724fd927fc6eb2ce56cd8be84b319a69",
+      "test_bodies": {
+        "0:test_every_index_exactly_once": "96f0a05b493c5138cd1ae82b8440ef2567ff0b5ee9adcb0079b7df4bbb5ee69d",
+        "1:test_resume_does_not_enqueue_completed": "f81f438c246f401308bc855af7562096d039c2c1045ef348344323dbcd2bfc6b",
+        "2:test_error_is_not_silently_skipped": "709d6283b283c17ecf616d933ddafd1b9059cf0f08c57ae29c58d3e83f3e9039",
+        "3:test_frozen_episode_entry_and_protocol_unchanged": "799cb3edcd9d3c9b6ff0ddd16ccfb7a4f9fbcda7a2bf63d1d42e06e36e0e36d8"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_dualhost_aa0_v1.py",
+      "new": "tests/dsol_paper1/execution/test_dualhost_aa0_v1.py",
+      "before_sha256": "8d4dccca089616a51f46e5708ef0bc6548a4f035142c1d1dcd8f3d0426732284",
+      "after_sha256": "451eb8da9fd8e5b8214dfbfb4c56c232c099b8b915dec5f02abd18b05277a701",
+      "test_bodies": {
+        "0:test_complete_population_and_candidates": "2759c8b1628df975ee20e20abbc56b462fb8a971af2a97c1db9528945a8b4504",
+        "1:test_host_partition_preserves_both_models_and_all_tasks": "be0f130ab9163e3a1d6e1301d86837b661860ef3aa937dd9129648f4500fd615",
+        "2:test_gate_is_outcome_blind_complete_small_cross": "4a8f099471c56498ae2100dc697f12af3b75957a21e9d81328fb45a8d0c89b33",
+        "3:test_namespace_separates_gate_hosts_and_models": "5ec4852d06e9c762cd849e7288d9900a83566b8ef8f12c884956ad85ba53e231",
+        "4:test_compact_index_preserves_explicit_noise_pairing": "085c44bb8bf4339daa5913fc1792d3d279a1807d994a1a31ccc5875b56efaab5"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_full64_view_landscape_v2.py",
+      "new": "tests/dsol_paper1/execution/test_full64_view_landscape_v2.py",
+      "before_sha256": "36b4534c5d21ebef7ab68e0d439c318557b35f1187d0982aa8f99dc2acd6f4fc",
+      "after_sha256": "32abdb5fc9232ce5baca806cda61552edd729c5b0cb0eafc586a809cd5d21830",
+      "test_bodies": {
+        "0:test_first_eight_and_extension_are_disjoint_complete": "e41e465ae22dffa8382b78a75ba0fc9fce98fdd69dfd3141d6286fccad55c9ef",
+        "1:test_changed_source_or_duplicate_is_rejected": "aaf9394c28894f8f54b6f9f1a2a30e351ce638ce14b8c491dec6b6c283fe7c94",
+        "2:test_no_scientific_state_or_pose_changes_in_new_protocol": "5d00dcb9feccf64129cf95884bf967cf4620408ae25d8a6fbd5aa04786f822ea",
+        "3:test_performance_choice_requires_equivalence_and_five_percent": "ccf0619d6a54802e330956f2cec47c3311a6e5bd034b446581fe61a9b4643560",
+        "4:test_reference_links_never_replace_existing_files": "f753eac26da8a38c44da779b2021b291dbb2382adcac4c0ff2f98ba9ea9753ab",
+        "5:test_crossfit_never_selects_on_evaluation_half": "71cd7d9d3cbe219cc05f87c50d2f0013845fc446c06af1898a770b2b2756646e",
+        "6:test_oracle_is_one_view_per_state_not_one_view_per_noise": "7d4912a9e1451a78aca5b460684fa374bdabc5727cd998e231111c729d4c4894",
+        "7:test_stable_best_view_and_canonical_tie": "d2bb71cb00386b282371ca449cd8d289e925f29e1f3b4d2e395c1e556a1b761d"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_matched_view_landscape_controller_v1.py",
+      "new": "tests/dsol_paper1/execution/test_matched_view_landscape_controller_v1.py",
+      "before_sha256": "060ad8cac037b0a6fa17aa105cef4082555ed6241f5a3637bcf9a44b3f6f9868",
+      "after_sha256": "f3c82161ee7a774a06214090bf661a165bc6d8d19ce96242f375a079b5eaa06e",
+      "test_bodies": {
+        "0:test_route_is_exact_nonoverlapping_budget": "0eaa6d1dddf0779543310b56f46bb8e7ff6128cee27dabd06afa38bfa2d087a8",
+        "1:test_empty_output_can_start": "3b41de42583bfffb5d44be5a92107c55a8132e9f4626d30e03de7aef133e5d7e",
+        "2:test_partial_output_never_automatically_resumes": "3ebe27072ababf39e03607d5c3efc16b5bb637fda2184e90bfba39987004f7a6",
+        "3:test_failed_receipt_never_reused": "99c0905fdf70c18b00d86d8540e2e671adb2babf4fec149c7aa7e54adcfbec11",
+        "4:test_changed_identity_never_reused": "352a7eb85d9512105d103568d1496fc49625d3dad8817bead40d2bb97fadfe27",
+        "5:test_receipts_are_exclusive": "088ccda149da842c3e54d9cd1803c763610fb91161cc99e588950b6300e7a544",
+        "6:test_exhausted_budget_does_not_start_process": "b5e73b6791172bdb0e6798f84935c8c0bc84462458a30ee4f41bb517f5d34899",
+        "7:test_interrupt_only_signals_owned_timeout": "ea96a3059e58da4f22229b22f849bfdc97c35b3516d8aec7b44ec6420d412013",
+        "8:test_manifest_rejects_wrong_checkpoint_or_noise": "8fcf10f8807a6054914b66731284d8ffcf8719e3f78a75b3743150271746b4fd",
+        "9:test_outer_timeout_and_explicit_mode_are_present": "578e212779113c791d45711c7f2f4a21fa6d7ebe190386114831bf7c3f90057f"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_statewise_view_oracle_v2_controller.py",
+      "new": "tests/dsol_paper1/execution/test_statewise_view_oracle_v2_controller.py",
+      "before_sha256": "dd4d5cd64b066c23c87c4da8e1a881973029f84fe046584bcbcfa5c0227d8ad1",
+      "after_sha256": "8f3ea2ff4d585f71837f3cf476ebf41705049173e39c7c1d48cfbc492fcca94a",
+      "test_bodies": {
+        "0:test_controller_requires_smoke_before_formal_O": "a06a5026c0a692b921f6ff832bb4e9de3f090aace57418107194401d8fd5562e",
+        "1:test_controller_runs_all_eight_four_repeat_waves_without_analysis": "d9a342f55d0a8f5b4937e25f1f82811cc4cc6f4ba2d6771a7af1e662133cfe31"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_statewise_view_oracle_v2_tail_controller.py",
+      "new": "tests/dsol_paper1/execution/test_statewise_view_oracle_v2_tail_controller.py",
+      "before_sha256": "4d2752a7983f0c87d6f37cb836fbfb399b7707da0c5d555ef6b91deebd898061",
+      "after_sha256": "3827283dd03b76208b1760cb010ecf3fcd444ed2d53a74ffdbc5ee2c79b34e66",
+      "test_bodies": {
+        "0:test_tail_freezes_selector_before_test_dense_execution": "22f3e1cdd1ebbf231a9421a51e4d958f66801fc8dbce782046384077f7487fe5",
+        "1:test_tail_uses_independent_banks_in_order": "5d210b6bcbb84c06816a7869cadc9a41f51a81cd944483cb246efebc46bf6850",
+        "2:test_tail_cross_checkpoint_transfer_reuses_frozen_Q_protocol": "2303474a93e6c58eda1a0b52a6478b9080d39482ce26e48c4ef7a635fc36af31"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_view_value_expectation_calibration_controller.py",
+      "new": "tests/dsol_paper1/execution/test_view_value_expectation_calibration_controller.py",
+      "before_sha256": "028cac78bb706221b572de33adb128339f12a76aa27060363e8d1db977fa9376",
+      "after_sha256": "d8b2f314be0b1b7eff3d2f2ad68ff8aac8c33411fd5cdbf295706930c3389602",
+      "test_bodies": {
+        "0:test_count_rows_treats_a_new_stage_directory_as_empty": "b971f6792e7654100d297e401f975ead068e2c92eacc583c5c92c55fd868b8dd",
+        "1:test_run_stage_creates_output_before_counting": "d87ec96fa7c6e35f297311d3f2c9bd642c18b307daa9122da8b6abecadd96329"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_view_value_expectation_post_controller.py",
+      "new": "tests/dsol_paper1/execution/test_view_value_expectation_post_controller.py",
+      "before_sha256": "8fb3e5429e925c8798a6501ca9b417402aec89f5d9c68e56c1600f808fc7cef0",
+      "after_sha256": "d11aaec73953632c672a926353a31e01bbaba5dc323bb646a56d8ba0b997e6eb",
+      "test_bodies": {
+        "0:test_accel_render_exposes_openpi_client_to_sim_python": "890f13c0f90054afb93fde29504ea1b5cf72b27530243b75d725521d0f4644a2"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_finalize_canonical_match_v1.py",
+      "new": "tests/dsol_paper1/execution/test_finalize_canonical_match_v1.py",
+      "before_sha256": "30e80a31f0ec8e65a4d5a2c1226c4cb71ce9ef0de26e6d0cfa01e9e567c6eaa4",
+      "after_sha256": "30e80a31f0ec8e65a4d5a2c1226c4cb71ce9ef0de26e6d0cfa01e9e567c6eaa4",
+      "test_bodies": {
+        "0:test_valid_metrics": "892ace07f20309837e597dd43a4279b4c9d5a2c1df5dc8544833280bebb51e8f",
+        "1:test_rejects_missing_or_duplicate_steps": "028fe757a9b371199f1b9b521d3980cc9ba603bea0f9a702c0031009aba16818",
+        "2:test_rejects_exposure_mismatch": "2035e3b3a974ab70257e643a7d18b4ae5b2a54eff3b45892413b90b4c059b28b",
+        "3:test_rejects_nonfinite_loss": "d48243784818aac9786fb45235b38919f7dabf8fe8ba434e81a556a1ed9e2f3e",
+        "4:test_rejects_early_lr_mismatch": "dbc37e6d51396e6a459f23345acf91815a02aff09d4f24cb0089deac9996714f",
+        "5:test_refuses_existing_receipt_before_reading_or_hashing": "99d789982032f82ba053b4488ad549e65044ba7cb780508e29687e1f001a4be6",
+        "6:test_rejects_empty_weight": "41de1e891d86723ec745855f2224d50adc74de6bfa5875837ff5e02dbc2fde60"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/finalize_constructed_m0_manual_audit_test.py",
+      "new": "tests/dsol_paper1/execution/test_finalize_constructed_m0_manual_audit.py",
+      "before_sha256": "ee7fc864dc4eb4195c965fd5a17a8dbf29ee88d9fa5aa3e873ca4ee4fc7df1c5",
+      "after_sha256": "ee7fc864dc4eb4195c965fd5a17a8dbf29ee88d9fa5aa3e873ca4ee4fc7df1c5",
+      "test_bodies": {
+        "0:test_all_checked_records_admit_m1": "6ae5f290327114fd9add6ca3998eb16ddbf35a32a61a42acd37754e75be5957e",
+        "1:test_failed_check_holds_m1": "2ac63dd321994be2136ac9af3a35a322f6a5102c4a45ab05d28dd0cf8549f2d8"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/run_constructed_accel_bank_test.py",
+      "new": "tests/dsol_paper1/execution/test_run_constructed_accel_bank.py",
+      "before_sha256": "4ef7f2ccf67d051dbda8961267aa91044011d9408f50acb4a23e9bd4d852d714",
+      "after_sha256": "4ef7f2ccf67d051dbda8961267aa91044011d9408f50acb4a23e9bd4d852d714",
+      "test_bodies": {
+        "0:test_bank_separates_operational_physical_and_sensor_candidates": "9a2bb5e4992b4018b82ab229b557006daf45bb2c68b48d14d47b97763df5ffb8",
+        "1:test_rejects_missing_frozen_diagnostic_pose": "4a8df06eac2c8f507a1df0ef201de0831bd1372002fddbc37265aa3d906f1e47",
+        "2:test_adds_frozen_wide_diagnostics_without_changing_operational_bank": "6526a6b1348ebb3db04fac59487380583f1c40a6df6c83342136be84f0e43697",
+        "3:test_summary_is_explicitly_descriptive_until_m1_join": "57da54476822bf0b3d06073f51002b7977fbb2689e5e7c89977e9da7561ddfdf"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_run_protocol_smoke.py",
+      "new": "tests/dsol_paper1/execution/test_run_protocol_smoke.py",
+      "before_sha256": "fdd89c8f2e0bfe90da28a2b3a04785b21e781818de352123a761ab374ddb8455",
+      "after_sha256": "b19d330fadc38ef0ea01765e16a8c971188999d1f9abc0f6d85c4169a7be61d9",
+      "test_bodies": {
+        "0:test_smoke_passes_and_never_claims_formal_eligibility": "bd6ee1e2016c4bd7e9ecb4fbf59b66a903ddf7c13f3c70910178828c40336c26",
+        "1:test_output_must_be_debug_scoped": "148177da6ae01d843a2ecf1b0b0572dd94c3e3b9da48a62b734bdf4f0433da6e"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/accel_checkpoint_smoke_test.py",
+      "new": "tests/dsol_paper1/execution/test_accel_checkpoint_smoke.py",
+      "before_sha256": "4efa132b6479aa3026ec6753c609c0962d2160a256316260f237daecddad142f",
+      "after_sha256": "4efa132b6479aa3026ec6753c609c0962d2160a256316260f237daecddad142f",
+      "test_bodies": {
+        "0:test_builds_physical_and_blackout_candidates_from_one_state": "f93b5f6cf93e81e5d52fc53de0a11a0641175d5d0de0e263a43dfdea044498ad",
+        "1:test_rejects_nonpaired_state": "cfd0bc45ab44c9d6d1939af4c57f4ca5c8e2af637f7737dc277cdf2b2adeda04"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_constructed_blind_reveal.py",
+      "new": "tests/dsol_paper1/execution/test_constructed_blind_reveal.py",
+      "before_sha256": "bfc9d8ac65f841802543b95bc671c5069ded2140bd3afaaf847c1f7eca111136",
+      "after_sha256": "bfc9d8ac65f841802543b95bc671c5069ded2140bd3afaaf847c1f7eca111136",
+      "test_bodies": {
+        "0:test_equal_weight_recomputation_does_not_use_camera_max": "4eeb30ff4a158a90cfb131c4f78554d014b35a109d2d0249f7a57dc2f69ad9fc",
+        "1:test_masked_visibility_zeroes_only_requested_camera": "06b18bd51dd84de13c51fdec005848df974efa830d219edf3dcb0c1a5209c22f",
+        "2:test_strict_snapshot_gate_passes_complete_constructed_state": "49c3486a23f7d1d79bf5d65c684e7b5f0064619a3de152c1debd72f820a9e45d",
+        "3:test_gate_holds_when_manual_visual_audit_is_pending": "b3daf9d61a49fff5d3fb612fa4a898fc333aba823a8f0b995a4dd7fa9750ea7e",
+        "4:test_gate_rejects_forged_manual_montage_hash": "b089fd327271f97c1c99341d6d760419530f790a7d8f3784c4f20d634b195bb6",
+        "5:test_gate_fails_when_one_view_uses_a_different_snapshot": "0d5d073a7407689477121138a222cc7fdf8be779c52b6dc45b174baeba77958b",
+        "6:test_gate_rejects_cached_max_camera_aggregation": "fce0c6f60c4b2864c7f75e504ace17a781aea0211a2adbdd3353de387658cad1",
+        "7:test_gate_rejects_condition_that_drops_a_task_entity": "15e511519c270e1d72d26845e88129915e2a876fbe2f9622d520082c0f76dde5",
+        "8:test_packager_binds_components_and_synthesizes_blackout": "3efb1a14331b8c3c0a4131efa69a8598aaed1c3e346dc6a6aed93822fca5077d",
+        "9:test_gate_rejects_training_eligible_validation_condition": "7e756d65f2b879a6a63ba7a5f5a0ddda1bbbafbb1d22599bf84293275ab00ef1",
+        "10:test_audit_cli_writes_gate_jsonl_and_camera_csv": "b8211285888fcbe19b09d97d2776f3391bdfe7775c681f316b482e69ca1e3c76"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_render_bridge_recovery_v1.py",
+      "new": "tests/dsol_paper1/execution/test_render_bridge_recovery_v1.py",
+      "before_sha256": "5cfc60200d66d958417b4b0f2d040ccb1a734a705aa63ba94422ff4392066846",
+      "after_sha256": "00bcb817ca9ada6b9ad33915b38c300a015f2489041a75df7ac814c1d25f190f",
+      "test_bodies": {
+        "0:test_numpy_scalars_preserve_values": "75ae768b3df7175c816eb95ab933a457d37368d0857351b65920a457cf67cf3f",
+        "1:test_unsupported_type_is_not_silently_stringified": "e4570eb98cb6be6c059b2f8a893db85bbdb114277706f67aadad4ca408c3cb69"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_capture_runtime_identity.py",
+      "new": "tests/dsol_paper1/diagnostics/test_capture_runtime_identity.py",
+      "before_sha256": "294039293531383404b55b4ecc348a3becf1a3a58f06566c84655098e0c0069f",
+      "after_sha256": "d3c8e71c582640c8c4b7114fa2115b8e2eacd3d1cf2c2fe64ff01fd882850002",
+      "test_bodies": {
+        "0:test_clean_repository_and_present_artifact_pass": "b73ba75302c233bd8143d5ff7f8c7b8e68567f793ba1ab6e209905ab8793359a",
+        "1:test_dirty_repository_is_hold_even_with_explicit_exception_label": "a9ddd855c6044c6fbac837ff77883f6a2db4b9cd031c835a779ef9f7bddf45c1",
+        "2:test_missing_artifact_writes_hold_receipt": "8b6036a62a143a9f939c66114ab400b9635c22390a6e1ecf04f6ac66e274e4d1",
+        "3:test_sensitive_artifact_labels_and_paths_are_rejected_without_receipt": "75fee3df7ad9d9c9e093d68f0f4c7af66ccdac1dc7ef473ee24c9a4d79b671ae"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_view_repeatability_trace_v1.py",
+      "new": "tests/dsol_paper1/diagnostics/test_view_repeatability_trace_v1.py",
+      "before_sha256": "ee57721632832c78727f88442d0c1a9d625d78306833cf72679bb920cf726d30",
+      "after_sha256": "55d01bd4277ce13b06a723b19603769cabfa230eb4be638110b106bdd0565038",
+      "test_bodies": {
+        "0:test_rgb_error_does_not_wrap_uint8": "956a624309ec91e46418e1cab744e05794267b485e79227e584f6555488855a2",
+        "1:test_empty_state_and_shape_mismatch": "3904960861d396c2d35eda20837d54abf4237dd4477c27ea47539fc9bde2ae6d",
+        "2:test_signed_zero_distinguishes_byte_and_numeric_equality": "1b0cf8a05b9cfbbe8d58839c5368debe2f1411d69f8a920bc12108481f1f1e35",
+        "3:test_physical_capture_copies_arrays_without_controller_update": "bd6448ae4d6f2d68da52b4480e2ff110366150a1adcd627161e34c0488313a46"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_view_speed_equivalence_v1.py",
+      "new": "tests/dsol_paper1/diagnostics/test_view_speed_equivalence_v1.py",
+      "before_sha256": "0ecbaa311ba3195946d8b5f84af100271ff49822e27518631a31006d72a1f32c",
+      "after_sha256": "41b300d152ca50fce7194bfbfc5fd7c53623cdd5946f1ee17b846b1cf2de3333",
+      "test_bodies": {
+        "0:test_late_action_drift_is_not_noise_mismatch": "05ad8f72c129000cd48ce0fdfab7a47a398c5bcd0fea81e154c5cb00d328aa47",
+        "1:test_identical_actions_do_not_prove_identical_noise": "4cc41c7bddda5e95e9523959a4459bdcf4087ef890fdd19a08edaa99e7e938f2",
+        "2:test_changed_scientific_controls_rejected": "d360eb65ac824a377b9265f4efd32ec93db322c3fb5c63e40f0c2cd0bb57144e"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_dsol_training_match_audit.py",
+      "new": "tests/dsol_paper1/diagnostics/test_dsol_training_match_audit.py",
+      "before_sha256": "663f8668ee00b8f94d10c4f006cf9bdf271715ca3e0e82c10b2dda681de6ac30",
+      "after_sha256": "663f8668ee00b8f94d10c4f006cf9bdf271715ca3e0e82c10b2dda681de6ac30",
+      "test_bodies": {
+        "0:test_matched_recipe_is_not_formal_release": "c922800071b222482db26dbe8c083726cbf515a6f5479f490ff37328cff6b583",
+        "1:test_all_manifest_invariants_detect_changes": "e7bbd8c91d6dc9e446fbdca63bd278fb3cf756985e337587c3fa60fc5efa57e8",
+        "2:test_equal_updates_different_schedule_rejected": "a72fe80030c97fe5eeae5496b1edf8ef1b3b111c28eadd9bd6f80584e907423f",
+        "3:test_initialization_interface_optimizer_changes_rejected": "902f6314a4c7f5ebcb75cea531d9d22b08d7d5f50b4de94b76f4dc424b2b4959",
+        "4:test_missing_key_is_not_equal_to_null": "47fbc402de83a2e7d10b540decc4ebb9c5f88a69bc0bc27db49b52adf23212c5",
+        "5:test_same_arm_is_not_treatment_pair": "bb26f062f50ca48782add1318a262e81c32814893026a0437e001e9b64214b39",
+        "6:test_code_difference_is_separately_reported": "d1fecf154ffd3eb7376a41e77bd011de28652aa684279f6d758d16f342d4ee6e",
+        "7:test_actual_small_artifact_tamper_blocks_recipe": "471753d75bf9ab1de8541ffab05784e5e4d22ba9212d8bf849efc9ad8f736434",
+        "8:test_actual_metric_budget_mismatch_detected": "54271fe358b6bca166879c85303d480a3ac34f9a4039b897bf44133eae2b2e3c",
+        "9:test_proposal_preserves_original_initialization_and_never_creates_run": "e79d9c8bb8671dbea083eeeba815f39b8c52198e03acca65f45fde7d1d277769",
+        "10:test_bad_proposal_anchor_or_output_refused": "0ba0b22539bd0feb961b89473edc5cd67cde960eb8a43a45454d9eee364e33b9"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_statewise_view_oracle_v2_audit.py",
+      "new": "tests/dsol_paper1/diagnostics/test_statewise_view_oracle_v2_audit.py",
+      "before_sha256": "5bcb09a8a94b7f3cb3583d052155e634ad53051aa0c6f0c41ab4b5545aba3ed7",
+      "after_sha256": "5bcb09a8a94b7f3cb3583d052155e634ad53051aa0c6f0c41ab4b5545aba3ed7",
+      "test_bodies": {
+        "0:test_outcome_blind_audit_accepts_complete_paired_matrix": "35afb348095041e4c0b7481a2e02a13c8c0b98b9fe2b34ab60339c842980a80f"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/audit_view_value_expectation_protocol_test.py",
+      "new": "tests/dsol_paper1/diagnostics/test_audit_view_value_expectation_protocol.py",
+      "before_sha256": "0f105993fcc5a86bb8a268606372361fc92d1f5cc27e8a131fd488d5a6bff2e1",
+      "after_sha256": "cee22e6eb09b659835b2f86db8d3815711780af16a78688398e1e70e6734cf97",
+      "test_bodies": {
+        "0:test_frozen_protocol_passes_and_budget_is_deterministic": "222afe2f84fe0bbba77fc1a115824c53d40b4b1d955453678af3b4ecdffacf56",
+        "1:test_seed_coupling_fails_closed": "6e9faa75190ee38706f176d246733925231a1c0bdc6615d4593321e3a570e4d3",
+        "2:test_posthoc_candidate_replacement_fails_closed": "79fbc8d33326f2b8cd6249e1cff6752251f56ad8715198e0bcdff6423b5b223e"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/audit_view_value_expectation_heldout_run_test.py",
+      "new": "tests/dsol_paper1/diagnostics/test_audit_view_value_expectation_heldout_run.py",
+      "before_sha256": "35a2a17029fab693a4f66dc704c7c5ca5cb488d150cf06934d39ca3ba70483eb",
+      "after_sha256": "35a2a17029fab693a4f66dc704c7c5ca5cb488d150cf06934d39ca3ba70483eb",
+      "test_bodies": {
+        "0:test_partial_subset_reconstructs_noise": "1524077253742f501933ba8d54dba1606acd1ae6299c78b541768fb5faba95d2",
+        "1:test_complete_population_and_shards_pass": "029740ab77c8333229741d9e486bfdcb0649b7146f16c57527ca47f06a2edd4d",
+        "2:test_protocol_field_drift_fails_closed": "da4f7ba3013f8c0e9776aa994e73f92ac83892275869efc3ab5a703aebb52e2b",
+        "3:test_noise_drift_fails_closed": "439ab2ab83f6dde25f1e73b14bf6f45ba1b3c7b03749c46c179101e972f62ec9",
+        "4:test_complete_mode_rejects_partial_population": "ecda1793b3aaaa689751c94a6bf5a265425223aff29472500652ae146c5aa169"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_view_value_expectation_completion_audit.py",
+      "new": "tests/dsol_paper1/diagnostics/test_view_value_expectation_completion_audit.py",
+      "before_sha256": "d0dfdb9d2ab5c0a043a405f32d890be407c0a43e1bf857f0af7f2f4e871600fc",
+      "after_sha256": "d0dfdb9d2ab5c0a043a405f32d890be407c0a43e1bf857f0af7f2f4e871600fc",
+      "test_bodies": {
+        "0:test_population_requires_source_and_state_disjoint_strata": "9fcd7c6ec3d13b9073652d654d2f1fadda0ef70e18a0eb5d6ccb41869c83672c",
+        "1:test_population_rejects_source_overlap": "f9996adc74dad1d2e213026fd244d585bd2e25b2562a87237261bfa285fa6e65",
+        "2:test_final_decision_must_match_both_analysis_gates": "fb82f3abd59341a740baca26c284e7b12e5381ed8b1c4f1db64deeb9c88f6c00"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_view_value_expectation_calibration_validation.py",
+      "new": "tests/dsol_paper1/diagnostics/test_view_value_expectation_calibration_validation.py",
+      "before_sha256": "d2edbe59d0fb991804628905d87c64f4ad2b6d5d50ef61ac5713dcbfa60f45a8",
+      "after_sha256": "d2edbe59d0fb991804628905d87c64f4ad2b6d5d50ef61ac5713dcbfa60f45a8",
+      "test_bodies": {
+        "0:test_complete_protocol_exact_pairing_passes": "422c645e8b7888c616be5af60480bede3f0aff6932dbedd04687cd6fc20f7013",
+        "1:test_missing_protocol_episode_fails_closed": "127b6f61f3779b7cfcf0b95003709c95dda9329c3397e486beab68eb3de13d33",
+        "2:test_pairing_or_restore_divergence_fails_closed": "b026d351f2f1506ac6efdc06f9c321b569c0bc4721d8aa089e06c461a4ee4dfc"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/render_constructed_m0_audit_montages_test.py",
+      "new": "tests/dsol_paper1/diagnostics/test_render_constructed_m0_audit_montages.py",
+      "before_sha256": "56d750ce569bd818aa7e57fae7967bc41c68cc96cdb3458b3acb0e6514d59815",
+      "after_sha256": "56d750ce569bd818aa7e57fae7967bc41c68cc96cdb3458b3acb0e6514d59815",
+      "test_bodies": {
+        "0:test_balances_tasks_and_source_episodes": "6e34b76f66e299f276d1c745f7b8a24927669e57883bff6e8af7b29d290b48e2",
+        "1:test_fills_target_when_one_task_has_few_candidates": "0df12a0753fa5de8bf8a5c92cac86a06752c51a5c58998eab963be9338f370f8",
+        "2:test_selected_pose_ids_excludes_synthetic_blackout": "4073340a75706dccbccc14f7f0042a7bff7c7f49c162666ccea5a384762c4f8e",
+        "3:test_catalog_filter_rejects_unknown_pose": "a912be2ca7164a78ab06444208b4e60abe84f2ec90ae6e4a88da069ddb7cf850",
+        "4:test_materialized_canonical_is_not_rendered_twice": "7973107bde739ae610c9fa95ea36d77198bda047dba378bccf7246ad36242f8c"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_consolidated_view_analysis_v1.py",
+      "new": "tests/dsol_paper1/reporting/test_consolidated_view_analysis_v1.py",
+      "before_sha256": "57820cab4dea84d266b2d86e701dfe8d56fef41536afa9ccea948b967cfff7b0",
+      "after_sha256": "6d6dc622750bf7e2a1bc85d0f0516921fc68ceef1a24edeaf00ec66c7125cef7",
+      "test_bodies": {
+        "0:test_empirical_hierarchy_uses_one_candidate_per_state_not_per_noise": "d7c4099d8b2b433ef6af656543adfac26272891d04bc7a895c347f958849b74d",
+        "1:test_empirical_hierarchy_nested_and_task_balanced": "1688424265548db367a6006c4b215bcf9c00281f8a6737009819e057f931fe94",
+        "2:test_rank_endpoints_and_direction": "6e20a838b4ef3af38acbac1906d7b23d7051958600e4b131f47c2ae2d4d11360",
+        "3:test_rank_ties_are_not_artificial_extremes": "41c49a72b0c7b66f1740a5095f9805461b55f525a8f21860e5de1e65515bf93b",
+        "4:test_invalid_rank_shape_rejected": "9021c5162c25fc996bb75a5c57415a61074dccd0173df82478eb86053fd01007",
+        "5:test_process_identity_is_bound_to_starttime_and_command": "0bde5dea5347b91986f90de0dbf332a68d3e7bb4981b7d5024b87921ab1b6566",
+        "6:test_full64_pair_and_nine_rule_source_intervals": "f3a747796fc5f08815e6412787598f39c2941dd41696d4e5ce794c6eaa67073d",
+        "7:test_full64_pair_rejects_unmatched_noise_or_physics": "9797bfcb78b7e2f4ac8a758235c982a08b80eab006f3f70456879a91b437fafa"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/build_view_landscape_report_v1_test.py",
+      "new": "tests/dsol_paper1/reporting/test_build_view_landscape_report_v1.py",
+      "before_sha256": "d7eb7bb0b6786d01e786c77a0c0407b0b857eafe4391f363a9807c45686d3d3d",
+      "after_sha256": "8ae1a265aa04b33320ac60b7981229f474e0ba905ed05f1103480ee9cbbc7292",
+      "test_bodies": {
+        "0:test_average_ranks_and_constant_outcome": "5ea6f11fe49dd25c4c5d4bfedc98699f6ae95d6e265e80d4b5c19e356ac184a2",
+        "1:test_binomial_interval_at_boundary": "7074acdb259c46957ebc4246871a67ebe882ea64b2c21dc529eb4c3ce37bf42a",
+        "2:test_frozen_catalog_and_support_distance": "a767dfa8592a9d22b63b2351b4b9ab2a4ed4927352b491cd91896510178443c6",
+        "3:test_source_equal_task_equal_not_row_equal": "565bfb657dd36a3b307cccd01c2672332196b1d4aae4c6f02ec4f84d8be9e460",
+        "4:test_state_view_noise_axes_and_negative_accel_sign": "d2de7723ecbaa18174c812a76754e0c2f9a608b7f2d716a2cba9b018fa35b554",
+        "5:test_noise_crossfit_does_not_reuse_selection_half": "db42f273fafade0c7bcad870c6bd8422139763612ccb77786a7db42bcb90c9f8",
+        "6:test_partial_dense_includes_smoke_and_remainder_and_rejects_holes": "d135f9790fbe315e6a4cd77b532cd1bf13fa76ef25268335b5a642fbf9d81cd5"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_unified_research_scope_v1.py",
+      "new": "tests/dsol_paper1/reporting/test_unified_research_scope_v1.py",
+      "before_sha256": "d1b54b158099e7eaf62b1bd5d46407fd5a2c9ee2be27da8df476dfb022dfa1f8",
+      "after_sha256": "7604963e2496794eb5bb17b07f3d94829c649e37f2815e9f955222de464d89e3",
+      "test_bodies": {
+        "0:test_accepted_scope": "e0e521b310c1575591e54520d431109018b1184ec59456f1559411455bafd9b3",
+        "1:test_snapshot_result_cannot_be_unqualified": "e841ae9c52582b32cb55bfcd7175c58c2c739bd455f9df7121dfced3bcdf6f86",
+        "2:test_every_historical_analysis_page_is_labeled": "47db91a782cc2b0062a9ebbe515b57c301ca9da32dfba273d14275c8273d9eda",
+        "3:test_old_comparison_and_completed_claim_rejected": "392cb903dd92e1cfe08f0da4971618081e5c56154ba72d328299334723604f0e"
+      }
+    },
+    {
+      "old": "tests/dsol_paper1/test_view_value_expectation_report.py",
+      "new": "tests/dsol_paper1/reporting/test_view_value_expectation_report.py",
+      "before_sha256": "8a4659b5b182bb0dc7b1eff79e43d6bbaa108d7116bee318168349259f28d521",
+      "after_sha256": "8a4659b5b182bb0dc7b1eff79e43d6bbaa108d7116bee318168349259f28d521",
+      "test_bodies": {
+        "0:test_report_pages_render_with_complete_schema": "492d20a2b931bc6cdfe51e3d48e0cd5c1bafdc8c907a4d2888044bd6bafc60ed"
+      }
+    }
+  ]
+}

@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 import signal
 import time
-import scripts.dsol_paper1.run_full64_view_landscape_v2 as control
+import scripts.dsol_paper1.operations.controllers.run_full64_view_landscape_v2 as control
 from scripts.dsol_paper1.operations.controllers.run_early_landscape_speed_gate_v1 import process_identity, same_process, resume
 
 ROOT = control.ROOT/'repeatability-root-cause-v1/render-fix-window-v1'

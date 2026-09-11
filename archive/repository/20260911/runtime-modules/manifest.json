@@ -1,0 +1,901 @@
+{
+  "scope": "Runtime relocation after user-authorized retirement of two old controllers; frozen releases unchanged",
+  "records": [
+    {
+      "old": "reports/paper1/initial_results.py",
+      "new": "reports/paper1/initial_results.py",
+      "before": "archive/repository/20260911/runtime-modules/before/reports/paper1/initial_results.py",
+      "before_sha256": "a2429bfb38f41ae75a21432c0c0b9c1f5069188ecd812ba8760b569d686fd55a",
+      "after_sha256": "fca3dcb5f61f83a6102f9f97d97849d8c587291f1c45383720141f1266b7216b"
+    },
+    {
+      "old": "scripts/dsol_paper1/accel_core.py",
+      "new": "AlphaBrain/research/dsol/metrics/accel.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/accel_core.py",
+      "before_sha256": "38e1eafdeb43f3f9a2499d868f696aaec1665e7a9a00f59848318d028a1e9a23",
+      "after_sha256": "38e1eafdeb43f3f9a2499d868f696aaec1665e7a9a00f59848318d028a1e9a23"
+    },
+    {
+      "old": "scripts/dsol_paper1/accel_inference.py",
+      "new": "AlphaBrain/research/dsol/metrics/accel_inference.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/accel_inference.py",
+      "before_sha256": "a0180e598fb32c8a70fe80f3d8b31f2a54c8ae272a8492a0cbb01b14eecf7a56",
+      "after_sha256": "2f32b20f891c0374dea9b15b8d262ae4848e33d3976c3a6d363a3328fd4c9e1d"
+    },
+    {
+      "old": "scripts/dsol_paper1/analysis/analyze_accel_relations.py",
+      "new": "scripts/dsol_paper1/analysis/analyze_accel_relations.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/analysis/analyze_accel_relations.py",
+      "before_sha256": "ad50a7c264f3feb247e052e45e8941bbca6a6b49f8b2929d1094930db9cdee98",
+      "after_sha256": "64ab1d0c0e7a548696217542502ca1f88a6ec70b0e08a49fffcb17bc3938d143"
+    },
+    {
+      "old": "scripts/dsol_paper1/analysis/analyze_matched_view_metric_rules_v1.py",
+      "new": "scripts/dsol_paper1/analysis/analyze_matched_view_metric_rules_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/analysis/analyze_matched_view_metric_rules_v1.py",
+      "before_sha256": "78a529979ce2c8effa9f636548fe96672d497704ed36309d45579cdacf780fcd",
+      "after_sha256": "7a497ccd6efaed32a9ee186008d6f6d729f2f8576cac428b5fbbb2164fdabf35"
+    },
+    {
+      "old": "scripts/dsol_paper1/analysis/analyze_render_protocol_bridge_v1.py",
+      "new": "scripts/dsol_paper1/analysis/analyze_render_protocol_bridge_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/analysis/analyze_render_protocol_bridge_v1.py",
+      "before_sha256": "6bfadb1f22cf3acec1f598f0e1e8d7c754652ce440de3dbf9ca73d25497bc3d6",
+      "after_sha256": "0d7751eaf93977d6b4b19a7889957830f4c76cb259bebaf654100db2a6b1ba54"
+    },
+    {
+      "old": "scripts/dsol_paper1/analysis/analyze_statewise_view_oracle_v2.py",
+      "new": "scripts/dsol_paper1/analysis/analyze_statewise_view_oracle_v2.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/analysis/analyze_statewise_view_oracle_v2.py",
+      "before_sha256": "095fae6bc7ff11d3d198c640b8e17add068425f35beff8d3872245830e5cbc88",
+      "after_sha256": "e9e4a63774fb2f895bd0943414d4dc74f3b5df9086d671a931667f2d1d06a620"
+    },
+    {
+      "old": "scripts/dsol_paper1/analysis/analyze_view_render_fix_v1.py",
+      "new": "scripts/dsol_paper1/analysis/analyze_view_render_fix_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/analysis/analyze_view_render_fix_v1.py",
+      "before_sha256": "89de1cc4e8c38d19ad2d781ed21957ae39916a8a4afe5578dfa779238ceda03a",
+      "after_sha256": "36c43cc6deac15c8da07b48baf2e0fd586f2efb1944365cf6fe72466ebf1a8f0"
+    },
+    {
+      "old": "scripts/dsol_paper1/analysis/analyze_view_repeatability_traces_v1.py",
+      "new": "scripts/dsol_paper1/analysis/analyze_view_repeatability_traces_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/analysis/analyze_view_repeatability_traces_v1.py",
+      "before_sha256": "14b3d4a74c57ec7ce4ce7193964dbb44042c42d154e6f73179a7cb1feba88fcc",
+      "after_sha256": "abd0fb778f100a10d77c16545ebb54c571f8230c032200e6ed58ce125dafb2e8"
+    },
+    {
+      "old": "scripts/dsol_paper1/analysis/compare_eval_throughput_benchmarks.py",
+      "new": "scripts/dsol_paper1/analysis/compare_eval_throughput_benchmarks.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/analysis/compare_eval_throughput_benchmarks.py",
+      "before_sha256": "b167b3356466d62f165e696a3f29962ea47dedf31eb106076961825bd22c3cfa",
+      "after_sha256": "c8f237c78ee35ffb6f34b05d46286c56085b255e9d0199f923a7faa9172284ae"
+    },
+    {
+      "old": "scripts/dsol_paper1/analyze_standard_initial_results_v1.py",
+      "new": "scripts/dsol_paper1/analysis/analyze_standard_initial_results_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/analyze_standard_initial_results_v1.py",
+      "before_sha256": "ddd67a7067284e7a304fcc14671231ac95c2a32322f5968ec5c8123a85286b0c",
+      "after_sha256": "65685ec46680ba86895d5b9bcfa31217add18c2437e2761680bed8fd3e891ccf"
+    },
+    {
+      "old": "scripts/dsol_paper1/analyze_view_metric_rules_v1.py",
+      "new": "scripts/dsol_paper1/analysis/analyze_view_metric_rules_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/analyze_view_metric_rules_v1.py",
+      "before_sha256": "50f028cc54340731dbd35922237310c016188307e74acabef018cc87dbe23187",
+      "after_sha256": "499405b38a4b7d89e204ed773498aef0ed334c6ac0a51451585144f96396144a"
+    },
+    {
+      "old": "scripts/dsol_paper1/analyze_view_oracle_comparison_v2.py",
+      "new": "scripts/dsol_paper1/analysis/analyze_view_oracle_comparison_v2.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/analyze_view_oracle_comparison_v2.py",
+      "before_sha256": "bcd91bc00156b94c3b5a0a1066a971513fd7716eb44e409f444d747e61de09e6",
+      "after_sha256": "eb48d9e2af1c339b52c3ba7dc0749355d1694be1e7605f7ff2d203542968a58c"
+    },
+    {
+      "old": "scripts/dsol_paper1/audit_libero_hdf5_restore.py",
+      "new": "scripts/dsol_paper1/runtime/audit_libero_hdf5_restore.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/audit_libero_hdf5_restore.py",
+      "before_sha256": "4e3473ebf81f8a63726d6ca279f05daa434ce9ea0166e71bcffd053a64a63cc0",
+      "after_sha256": "a0c5e1e7ccf1d4ab4add0a6abf8cbb6aa33568194d60bd3663459c5d09a58194"
+    },
+    {
+      "old": "scripts/dsol_paper1/audit_statewise_view_oracle_v2_run.py",
+      "new": "scripts/dsol_paper1/diagnostics/audit_statewise_view_oracle_v2_run.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/audit_statewise_view_oracle_v2_run.py",
+      "before_sha256": "723dd5f91256a5c20adbd865e8425a894b83c4de269dbf8432fbbe7b52333647",
+      "after_sha256": "c6183894e897e46a317efe8046a4061fe76a81522d44750ebecac9c6c9fae8c4"
+    },
+    {
+      "old": "scripts/dsol_paper1/build_consolidated_view_analysis_v1.py",
+      "new": "reports/paper1/historical/build_consolidated_view_analysis_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/build_consolidated_view_analysis_v1.py",
+      "before_sha256": "9ea4064855688ed0f427b0ac4e09833e0c7377cdbd20bde05117f2d1dd89efe5",
+      "after_sha256": "a75c7ea4f32224ada392623f73e27f1bcc53fef5ca2e94188bc418f3636ea4ec"
+    },
+    {
+      "old": "scripts/dsol_paper1/build_full64_view_landscape_v2.py",
+      "new": "scripts/dsol_paper1/protocols/build_full64_view_landscape_v2.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/build_full64_view_landscape_v2.py",
+      "before_sha256": "fd6446f675b3b901f1f317ddf6e39767e56fa549f8d4cdaf103160fee0e14336",
+      "after_sha256": "437b41768854c54452d7150b591bfc433baceff27f30ebef99980f3d724023fc"
+    },
+    {
+      "old": "scripts/dsol_paper1/build_matched_view_landscape_protocol_v1.py",
+      "new": "scripts/dsol_paper1/protocols/build_matched_view_landscape_protocol_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/build_matched_view_landscape_protocol_v1.py",
+      "before_sha256": "4024d1f2c86b0157973e95739fb83473eedd95f340b7d47772a311174b3bf4d6",
+      "after_sha256": "74ae856705b1c6440ad9d99f97eb1be2c4b7bb1b57bf3d9adb6cc3f48242f797"
+    },
+    {
+      "old": "scripts/dsol_paper1/build_unified_research_progress_v1.py",
+      "new": "reports/paper1/unified.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/build_unified_research_progress_v1.py",
+      "before_sha256": "7925d2151eea4acfc0c233de46d6708a4bce5270c2c407ca7811bb6cd0eb22c9",
+      "after_sha256": "2e5a8b931d65822b4681ce24a1423c0dfdec914e1404a8b091f64d643893ccce"
+    },
+    {
+      "old": "scripts/dsol_paper1/build_view_landscape_report_v1.py",
+      "new": "reports/paper1/historical/build_view_landscape_report_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/build_view_landscape_report_v1.py",
+      "before_sha256": "6d2550656974ad2008692d84446416548d53e724779dcb3f935a8fd79723b1c0",
+      "after_sha256": "0d294ed5966dc00fa12ad7210769b053c70cb77954ecfe3bfe45bddbecb73d32"
+    },
+    {
+      "old": "scripts/dsol_paper1/build_view_metric_comparison_brief_v1.py",
+      "new": "reports/paper1/historical/build_view_metric_comparison_brief_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/build_view_metric_comparison_brief_v1.py",
+      "before_sha256": "d31dba2e9f300e76f2cd0310f6942371c0c6c2179d2f230e3b61f2c1f857d82c",
+      "after_sha256": "99d3c32481f1d8b044e3d7eff433ee594c1d93ec502283c345dbaccfbcf609b8"
+    },
+    {
+      "old": "scripts/dsol_paper1/build_view_research_focus_brief.py",
+      "new": "scripts/dsol_paper1/reporting/build_view_research_focus_brief.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/build_view_research_focus_brief.py",
+      "before_sha256": "963377fb0a786495235e1fdaba41f6e187eac81f47977a2ffb6b46e3e4fe832b",
+      "after_sha256": "eb3569a149aaec7429f024707f91bf5cef5670462c3449d59aa5be3199a15afe"
+    },
+    {
+      "old": "scripts/dsol_paper1/compare_matched_view_landscapes_v1.py",
+      "new": "scripts/dsol_paper1/analysis/compare_matched_view_landscapes_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/compare_matched_view_landscapes_v1.py",
+      "before_sha256": "e92de645f8e877463b733866670dc0828ac9bbd4307e99eb10a543090d8d02da",
+      "after_sha256": "2268d6bf59fb265d1df1d4010c73a29f7aed6e9f9c179602ad3bc91880f3b815"
+    },
+    {
+      "old": "scripts/dsol_paper1/diagnostics/audit_view_speed_equivalence_v1.py",
+      "new": "scripts/dsol_paper1/diagnostics/audit_view_speed_equivalence_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/diagnostics/audit_view_speed_equivalence_v1.py",
+      "before_sha256": "946303fdeb835392a27623ac40491b46dab42abf8262e7d87ccc4d7884e051ed",
+      "after_sha256": "4a17946542d79817fbb6e9cb7fd841bba8a40f44f8070f8d312fc7039913fc96"
+    },
+    {
+      "old": "scripts/dsol_paper1/diagnostics/audit_view_value_expectation_completion.py",
+      "new": "scripts/dsol_paper1/diagnostics/audit_view_value_expectation_completion.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/diagnostics/audit_view_value_expectation_completion.py",
+      "before_sha256": "f769c09927d6253a43a26c94c5f008a3e14b3a83d6082873a4c0789d67bf17c1",
+      "after_sha256": "23ac38b72e9201762f6fb009bbeb429534f69b6bededde587ec8f321de41d34a"
+    },
+    {
+      "old": "scripts/dsol_paper1/diagnostics/audit_view_value_expectation_heldout_run.py",
+      "new": "scripts/dsol_paper1/diagnostics/audit_view_value_expectation_heldout_run.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/diagnostics/audit_view_value_expectation_heldout_run.py",
+      "before_sha256": "6806a8f07f1829f8bf4d53f558ba8bdf7967fcfe477dedb00cddaa834a937d39",
+      "after_sha256": "73933cd149c9d0bbb591f5fa03e5ebbb1003f7e196369d96341bb0d58a19df20"
+    },
+    {
+      "old": "scripts/dsol_paper1/diagnostics/diagnose_standard_initial_input_v1.py",
+      "new": "scripts/dsol_paper1/diagnostics/diagnose_standard_initial_input_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/diagnostics/diagnose_standard_initial_input_v1.py",
+      "before_sha256": "f08e3cf82c0de12383ded9e89bd4b7f040a92b00ee56ad8f8ced9686495a12da",
+      "after_sha256": "f40ee4cc445b4f6003526db3714d7ea21e30786ee456862cd182f317ebbee315"
+    },
+    {
+      "old": "scripts/dsol_paper1/diagnostics/probe_view_gl_pixels_v1.py",
+      "new": "scripts/dsol_paper1/diagnostics/probe_view_gl_pixels_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/diagnostics/probe_view_gl_pixels_v1.py",
+      "before_sha256": "22d300c289c1d008402e426a3648f3b15084815dd869fcfcdc96aa2adf5d4a82",
+      "after_sha256": "25148970001f5b772ef7abdcb7bdca142b0c4b1e31a8dd4e741b23ffa310038f"
+    },
+    {
+      "old": "scripts/dsol_paper1/diagnostics/trace_view_noaa_v1.py",
+      "new": "scripts/dsol_paper1/diagnostics/trace_view_noaa_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/diagnostics/trace_view_noaa_v1.py",
+      "before_sha256": "dc8ebbf429cf898a8822e3eb96b30d5a1ab18c5a35e108d908b7c565b391f0c0",
+      "after_sha256": "f51f862e96d2ccd441aba0cee32aa32257f8c5e062ca8e38579441ccd2757b18"
+    },
+    {
+      "old": "scripts/dsol_paper1/dualhost_aa0_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/dualhost_aa0_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/dualhost_aa0_v1.py",
+      "before_sha256": "45463c44c0284320cb7fd133290d6af274754a2c965b63d3cc5525dca453112d",
+      "after_sha256": "df57af5c11e1ad0b6b509320a57aa58f5af9a811104032f084d678c420ed60c7"
+    },
+    {
+      "old": "scripts/dsol_paper1/dynamic_initial_scheduler_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/dynamic_initial_scheduler_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/dynamic_initial_scheduler_v1.py",
+      "before_sha256": "a04d5f34ebd5611c787cc513a18c61c034ad4233d26f9f9be6a7d3dd93fb6e16",
+      "after_sha256": "48663a25a2d426e3ee78eff7de6b654d9d267725b579de39860ee4749419ed3d"
+    },
+    {
+      "old": "scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py",
+      "new": "scripts/dsol_paper1/runtime/evaluate_dsol_libero_hdf5_views.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py",
+      "before_sha256": "0fb71779cf1655eab94273ea0996ac04bb77f64b639ce07c4d95ebca1cc7d561",
+      "after_sha256": "1fa440477c6f339d75ff37182ad50dbadcd2aeb78cd8c2ff4ed3fdd29ed850a3"
+    },
+    {
+      "old": "scripts/dsol_paper1/explicit_flow_noise.py",
+      "new": "AlphaBrain/research/dsol/data/flow_noise.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/explicit_flow_noise.py",
+      "before_sha256": "c93b13b65c4aa063aa36d5f30d1b5d6accb88b0aa66e376a2b20857ca38db097",
+      "after_sha256": "c93b13b65c4aa063aa36d5f30d1b5d6accb88b0aa66e376a2b20857ca38db097"
+    },
+    {
+      "old": "scripts/dsol_paper1/finalize_full64_view_landscape_v2.py",
+      "new": "scripts/dsol_paper1/operations/controllers/finalize_full64_view_landscape_v2.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/finalize_full64_view_landscape_v2.py",
+      "before_sha256": "8fd989149e1f2cde501c4d3c90082fefd34a43f08d289f886d82583fc41cf9bb",
+      "after_sha256": "7c048f95e90e41fdb07adce3da10819320acabf504972c36d952683a4d25d590"
+    },
+    {
+      "old": "scripts/dsol_paper1/libero_constructed_view.py",
+      "new": "scripts/dsol_paper1/runtime/libero_constructed_view.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/libero_constructed_view.py",
+      "before_sha256": "2142ed1e368b0f0418cfa59b0c4af9f2fb08d38b31a92384a7fbc328225722e2",
+      "after_sha256": "b1f28cdec86b60dcdd0660b75a616dbdd6f1da0223532ec1fbf1abfde6703b73"
+    },
+    {
+      "old": "scripts/dsol_paper1/libero_visibility.py",
+      "new": "AlphaBrain/research/dsol/metrics/visibility.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/libero_visibility.py",
+      "before_sha256": "cc3dc01b6efd31a6b0cb8adef3cca1e359c673ec4d97c7ff9435bf193494f82c",
+      "after_sha256": "cc3dc01b6efd31a6b0cb8adef3cca1e359c673ec4d97c7ff9435bf193494f82c"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/hold_view_render_diagnostic_window_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/hold_view_render_diagnostic_window_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/hold_view_render_diagnostic_window_v1.py",
+      "before_sha256": "acb9bba210178b0263ba076399f428ebea06be7cf0c57e8a3831ead2ec2190a5",
+      "after_sha256": "6faf4153944770b41c77233c799cd961152bff8950e87418f657519f0b016b1e"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/prepare_dynamic_scheduler_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/prepare_dynamic_scheduler_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/prepare_dynamic_scheduler_v1.py",
+      "before_sha256": "28b4adace2cd734d7948cc50e8d425f779af5c5fe57de6cfafa4db3533e32aea",
+      "after_sha256": "ad66f7f687294cb6a53adeb3f7adde63df693e00291478dc6fe7d8e3c0ada337"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/queue_render_protocol_bridge_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/queue_render_protocol_bridge_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/queue_render_protocol_bridge_v1.py",
+      "before_sha256": "e533f1db38f8826a08413717ab4312959fe9bf0fba5e008b47757e95a244443a",
+      "after_sha256": "edfe53df52885a9059a1856881103809b5753ab12264ccdd13ffe6acbc95f107"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/recover_render_bridge_analysis_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/recover_render_bridge_analysis_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/recover_render_bridge_analysis_v1.py",
+      "before_sha256": "3031630d958d48a48a6e84441aef438798ef17ae8efab03cc51b98ac268525c8",
+      "after_sha256": "36cf60377213751c7035d181bb595c04d7e2b353440287ba49eedf134291d1c1"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/render_constructed_m0_audit_montages.py",
+      "new": "scripts/dsol_paper1/operations/controllers/render_constructed_m0_audit_montages.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/render_constructed_m0_audit_montages.py",
+      "before_sha256": "c56817d7244a6a5d1650ed91678a3f29c04f69174beefed3729a883b00000a9a",
+      "after_sha256": "7e0ca415755abd91567c5a4acf95d20be4309ed67a7b126c1122a816fea2dfd1"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/run_accel_checkpoint_smoke.py",
+      "new": "scripts/dsol_paper1/operations/controllers/run_accel_checkpoint_smoke.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/run_accel_checkpoint_smoke.py",
+      "before_sha256": "5803da84d271320ee12cddcbc0f4e1787be1daa8e984d3815f6276b7e3b9d78c",
+      "after_sha256": "d825b735a49808c5d1e01415bda087cf3c1fb1bf3984a78ae7df9795193f9103"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/run_constructed_accel_bank.py",
+      "new": "scripts/dsol_paper1/operations/controllers/run_constructed_accel_bank.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/run_constructed_accel_bank.py",
+      "before_sha256": "6c47c72c8ed39c33309de6ef3a0af3f229c23e46d6966a4984974886ff9c1f35",
+      "after_sha256": "8fbaf26f3293e3223c365299204d3dcca32a9a239a8422f48205b46799b3ca45"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/run_early_landscape_speed_gate_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/run_early_landscape_speed_gate_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/run_early_landscape_speed_gate_v1.py",
+      "before_sha256": "8d1e72a10a42fb647003cb3333ca81d07c53572f74f77f96672f7c004d0499b7",
+      "after_sha256": "257c1fd43db0514cc8f62a20ee36cd540df6cb2d7bc17e19a364282f410d329c"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/run_failure_view_search.py",
+      "new": "scripts/dsol_paper1/operations/controllers/run_failure_view_search.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/run_failure_view_search.py",
+      "before_sha256": "910802379356e76ed609548a732c63ff8d3abe72c73ad35941835730b98b44c8",
+      "after_sha256": "7e1ebfd1dd4275e2ff107f23cf40f5598e1c342e4c09ed73806564c52799432e"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/run_libero_visibility_scan_plan.py",
+      "new": "scripts/dsol_paper1/operations/controllers/run_libero_visibility_scan_plan.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/run_libero_visibility_scan_plan.py",
+      "before_sha256": "e9c535cb9c5171f624638fbd65993656875cfdd0e76ab5b1da59fa8df9c870f5",
+      "after_sha256": "89db7ddc8ec1a6f2dd53b93179b9e7b22151e9ec6805ef9b9754abc02c57547f"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/run_render_protocol_bridge_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/run_render_protocol_bridge_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/run_render_protocol_bridge_v1.py",
+      "before_sha256": "8d190879b659f593180d612d15fdf1e449dc043eadd122cd951b984902372433",
+      "after_sha256": "9f4cdea3c87c4481aab41bebc0253e5f1e4bed94ec25fba7f828b41c5dc7d646"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/run_view_acquisition_engineering_smoke.py",
+      "new": "scripts/dsol_paper1/operations/controllers/run_view_acquisition_engineering_smoke.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/run_view_acquisition_engineering_smoke.py",
+      "before_sha256": "4e0e5fddaabaffc9a5f01186a143bf036f1e0ac67409a04d266c65e25e81030e",
+      "after_sha256": "1830bad1398c9568dac88f17c78779d6d895941f6d712a8b464c8784b9ab2d91"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/run_view_noaa_validation_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/run_view_noaa_validation_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/run_view_noaa_validation_v1.py",
+      "before_sha256": "1b77b6e87f9d67fcb829535d6f69857ac0e10c19616149adfccb2fa4a55edb6c",
+      "after_sha256": "eeff9244f788604c18cc37374e3614716438d9b081a3a69b9d09439204c38d6e"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/run_view_repeatability_boundary_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/run_view_repeatability_boundary_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/run_view_repeatability_boundary_v1.py",
+      "before_sha256": "1b7ec665d8336302e2781ef9c5893f8c3b6acff529a57edd7a283a0394a6d6f6",
+      "after_sha256": "345459ab3c3a199b844b2fe7f2e4a99c37431a19346fbb4035820966e20581f9"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/run_view_repeatability_probe_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/run_view_repeatability_probe_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/run_view_repeatability_probe_v1.py",
+      "before_sha256": "740de41164d197bc0363efb75e2ef9c9a659a992fdf34e6d06dc8bb90073453a",
+      "after_sha256": "866ea852827a6e2121ad02bd5bc617c0394d7e15191db937d77f20fe92beb53a"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/transition_initial_dynamic_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/transition_initial_dynamic_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/controllers/transition_initial_dynamic_v1.py",
+      "before_sha256": "543b679e47e75f5bc097f3a03bd7e34e27bca90a50377df370a25088befc28de",
+      "after_sha256": "93dbb4e1bf9728c75e465999cd1d4c06080cda07377cd4159bfcc30fb14a5d92"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_accel_gate_a97.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_accel_gate_a97.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_accel_gate_a97.sh",
+      "before_sha256": "394089d8554398a949c0b6580b820674d09546cff844621aa1bfcf245dac946a",
+      "after_sha256": "09f8f44e0b2ec00f40f13c11ea13d1fd5bf4ae3df7c511be0e7ee56c059e07c3"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_constructed_all8_dense_discovery.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_constructed_all8_dense_discovery.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_constructed_all8_dense_discovery.sh",
+      "before_sha256": "20c127ed6a2251394fa2cb90bd6e4dff70915b024fb85657e212588def5fba3a",
+      "after_sha256": "5f9e1eeb13a1034a689b91b9d67935262c9da27b8110eba490eb99d7e7c24803"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_constructed_all8_repeatability.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_constructed_all8_repeatability.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_constructed_all8_repeatability.sh",
+      "before_sha256": "56bcee73cdfdbd17c4313ee5a7cab12210e5791b1059a4d9d22419b6b9f0868e",
+      "after_sha256": "7e24d1438beb48b5357c962707b7d1a6b85b48339d3738c845b125251c97cef4"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_constructed_m1_practical_early.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_constructed_m1_practical_early.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_constructed_m1_practical_early.sh",
+      "before_sha256": "1e994eee872bac5810945fe02484829ae82370a68789aef6431b190e942e073b",
+      "after_sha256": "958742b1d9df75916c20a6a341e957f561ee9a1cd95bb0697f5a874a976c4fdf"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_constructed_view_oracle_pilot.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_constructed_view_oracle_pilot.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_constructed_view_oracle_pilot.sh",
+      "before_sha256": "d3d919c65d22b95c6b3bab49ce2a250e3bb2dc53cb0d19d88a3a0a45934fcfe9",
+      "after_sha256": "c61eae0c71deac8fb5094e319da90520b1bd71b57222a7ab400f7e185b2f52af"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_dense_test_selector_eval.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_dense_test_selector_eval.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_dense_test_selector_eval.sh",
+      "before_sha256": "53fe9e575e1572ad0f5111e3235af452499d2d597ce8c67470dcb9ca9ec17231",
+      "after_sha256": "1ef74675870add96bcae037e1f8d0d49343b1579663e50d6a4d05fca29e3191f"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_dense_test_source_extension.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_dense_test_source_extension.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_dense_test_source_extension.sh",
+      "before_sha256": "c22ca90313d14efeefe23aa3788b09fd45da1b91be3d1fd549f9078e5cea7933",
+      "after_sha256": "c3e9d69134f202e439563997df36e123a768cb08ff5ffb7e37ff5dcbb685e425"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_libero_pair_closed_loop_matrix.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_libero_pair_closed_loop_matrix.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_libero_pair_closed_loop_matrix.sh",
+      "before_sha256": "827ad5b658666953f4a29bad4cd177e302e683d071f560b25c0703eb3d5c7efd",
+      "after_sha256": "4148e54fe69774f5b1fb48ed49750338eafb6a609666303a182db9ee784828bc"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_libero_visibility_scan_matrix.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_libero_visibility_scan_matrix.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_libero_visibility_scan_matrix.sh",
+      "before_sha256": "e92fa043ba75f65e95957f1b1033c96bcdb4c47d235509ff630a13230082c315",
+      "after_sha256": "3c7ea12e8560a1a6c281ebfd24ab0eb13a9592804c9a10bd97b7bd2936ab9a01"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_matched_view_landscape_pipeline_v1.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_matched_view_landscape_pipeline_v1.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_matched_view_landscape_pipeline_v1.sh",
+      "before_sha256": "f7a3ffb7f6715c2fee444f45bed0b7b4e6a8898f3d91f38ce5e105f86df5ac34",
+      "after_sha256": "681471a6cb9b53da5a281c853df04f56b5fa3bf3dc7fff6b123d447b36e179d1"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_post_calibration_gates.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_post_calibration_gates.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_post_calibration_gates.sh",
+      "before_sha256": "4e5a8cced6c12b4a57c25b0cd27f0863e691cee0e040c3ceb7e7d1d219767e9b",
+      "after_sha256": "df92b5e7bab0487c7ded9681c9ef2ef137e1a6c891e1336ecca623ec99c267c4"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_statewise_view_oracle_v2_development_O.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_statewise_view_oracle_v2_development_O.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_statewise_view_oracle_v2_development_O.sh",
+      "before_sha256": "bbcc922ef84937ca53c574689a6639146d8462caf1b3e9dbe97aef6fc436a016",
+      "after_sha256": "892ffbe534f9eea4942ceed9209e5e38b284356e81dbdbc51506044aa67321ba"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_statewise_view_oracle_v2_tail.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_statewise_view_oracle_v2_tail.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_statewise_view_oracle_v2_tail.sh",
+      "before_sha256": "bb2c0fce3975a42796d7c7e2c4e8acb985ba066c4a422c69914e45556ef835c1",
+      "after_sha256": "cb0143abb6ad775417e63e4ccb549a154e584fb833df22fa40c205c25406fba2"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_view_repeatability.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_view_repeatability.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_view_repeatability.sh",
+      "before_sha256": "a9e355120f5611dd2ef862913bdc2ed48dcc3d996820f7a117b3f06bd7905880",
+      "after_sha256": "afce5f22f5c9fa582069ef886d0085753f0f9a1c3c2c7339484bfbd88716a2aa"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_view_value_expectation_calibration_full.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_view_value_expectation_calibration_full.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_view_value_expectation_calibration_full.sh",
+      "before_sha256": "63e3b7bacbb74e143708b98cdf921b0449b7fd0cb49fcebb4700e2c25f1f54dd",
+      "after_sha256": "47dd30cde31be87a0a9ac846e221e08de1a40256734a7823a7bd5804fa9f5466"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_view_value_expectation_calibration_tail.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_view_value_expectation_calibration_tail.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_view_value_expectation_calibration_tail.sh",
+      "before_sha256": "0d41e63fdcca0e819d05e744ff2789a33aeb47e2d03772cb6137c580c76e92d5",
+      "after_sha256": "7defbf664795630822b8cf1e008806a91fd90cb896ffb6a00f9bd52d358c88a4"
+    },
+    {
+      "old": "scripts/dsol_paper1/operations/launchers/run_view_value_expectation_post_calibration.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_view_value_expectation_post_calibration.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/operations/launchers/run_view_value_expectation_post_calibration.sh",
+      "before_sha256": "a51b6973e401ee5c284bdc6a2cff6551b32ac6b5f0b215da03e2a10034320278",
+      "after_sha256": "62588804ed7f98c7ee2c542ac00e3a8edbe6a7eb346b6727d7dc4ee49d201903"
+    },
+    {
+      "old": "scripts/dsol_paper1/protocols/build_eval_throughput_benchmark.py",
+      "new": "scripts/dsol_paper1/protocols/build_eval_throughput_benchmark.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/protocols/build_eval_throughput_benchmark.py",
+      "before_sha256": "d28cab732cdb08f598c40eea88059034ffb3ee267684012b249736dd1f902c3b",
+      "after_sha256": "ff7efc9f66cd4d1cedf950e9ccd6e81b621dfae90ee0a736bdab16b33437f2e1"
+    },
+    {
+      "old": "scripts/dsol_paper1/protocols/build_render_protocol_bridge_v1.py",
+      "new": "scripts/dsol_paper1/protocols/build_render_protocol_bridge_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/protocols/build_render_protocol_bridge_v1.py",
+      "before_sha256": "8c5c0e8e4ddfda98687457b94a02c18c5cd20a2f0eca248e469b26dcee7d840e",
+      "after_sha256": "c9030f56105c802a51275c82f1600aefd785222634a7a722b7b117d94e15def1"
+    },
+    {
+      "old": "scripts/dsol_paper1/protocols/build_statewise_view_oracle_v2.py",
+      "new": "scripts/dsol_paper1/protocols/build_statewise_view_oracle_v2.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/protocols/build_statewise_view_oracle_v2.py",
+      "before_sha256": "777cbc51348ea4bc7126b3930aff27ac0621cab771d69b7f468d23126835f57b",
+      "after_sha256": "4d19ac4e8d9e6311987a3ecec73a554271f9bd142215bf63741baa3fb2500d94"
+    },
+    {
+      "old": "scripts/dsol_paper1/protocols/build_statewise_view_oracle_v2_stage.py",
+      "new": "scripts/dsol_paper1/protocols/build_statewise_view_oracle_v2_stage.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/protocols/build_statewise_view_oracle_v2_stage.py",
+      "before_sha256": "a6c53e9c3b91818a0592dfc4a6a837d320d5e552044c2e45919c4ad11c86ef4b",
+      "after_sha256": "a8323bcd28406204e36d2a0688dd650f81b8879e9fe5de23fcfca058a00b0889"
+    },
+    {
+      "old": "scripts/dsol_paper1/protocols/clone_statewise_view_oracle_v2_reserve.py",
+      "new": "scripts/dsol_paper1/protocols/clone_statewise_view_oracle_v2_reserve.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/protocols/clone_statewise_view_oracle_v2_reserve.py",
+      "before_sha256": "decb957710a80f51ee463d15e01a8b29a84c85a2ad69cfe46b46e134beb1b8fa",
+      "after_sha256": "cde68eebb2721fefaec4983ba36b25e9147175dee9030b22d3b49321a43ba1d2"
+    },
+    {
+      "old": "scripts/dsol_paper1/rank_accel_candidates.py",
+      "new": "scripts/dsol_paper1/analysis/rank_accel_candidates.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/rank_accel_candidates.py",
+      "before_sha256": "763ab461aadbf6c432eea84000abc8df0b1d77231a1744ad5b0af428d9b19fe7",
+      "after_sha256": "6d5b861c3bebb4eb2c660457aab2e35479711f4e1ff188c14694a9dc0c982055"
+    },
+    {
+      "old": "scripts/dsol_paper1/render_bridge_common_v1.py",
+      "new": "scripts/dsol_paper1/runtime/render_bridge_common_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/render_bridge_common_v1.py",
+      "before_sha256": "30d8f65d5df4e84c06a255140b5e673481de5d790a315f4318cff50f336805e3",
+      "after_sha256": "682e62825747644d61babbabb25c9f13f3ccafc8b10f847b38bd050c778dd57e"
+    },
+    {
+      "old": "scripts/dsol_paper1/report_standard_initial_results_v1.py",
+      "new": "scripts/dsol_paper1/reporting/report_standard_initial_results_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/report_standard_initial_results_v1.py",
+      "before_sha256": "764aada7323fb5f4ff244f292a8f8c758422e17257b38ac7a6d4885577324d8e",
+      "after_sha256": "00eae5755417148128570a7c449e1a67ed6c9448adabb0dcba336d0f4e3a7eb6"
+    },
+    {
+      "old": "scripts/dsol_paper1/reporting/finalize_matched_view_landscape_reports_v1.sh",
+      "new": "scripts/dsol_paper1/reporting/finalize_matched_view_landscape_reports_v1.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/reporting/finalize_matched_view_landscape_reports_v1.sh",
+      "before_sha256": "dd166ff1267e07c3e9a39cb732431fdabfa9def169c90c4b90254f685374a740",
+      "after_sha256": "42c63e687ce8b905ce1ed88f929d514c2babbd7e1148b911c820d5af31a90e38"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh",
+      "before_sha256": "ff3414a8e77837dff3621751e4c76633256894738854b02bd0f26ddd26b93082",
+      "after_sha256": "9c5e3e3e4d5574a0fca90a669b437dfe43fd57a75cf9d14b18ea30853089f4d8"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_full64_view_landscape_v2.py",
+      "new": "scripts/dsol_paper1/operations/controllers/run_full64_view_landscape_v2.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/run_full64_view_landscape_v2.py",
+      "before_sha256": "4ef926d62629a0dae5730657cf1bca9b6eb34839a8f490d69542aa05f5c56cb4",
+      "after_sha256": "440bcc6aacc9e111a4faf13decfca0c4a1fdf9b03d9b1c30efaca318ebe5e88f"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_matched_view_accel_v1.py",
+      "new": "scripts/dsol_paper1/runtime/run_matched_view_accel_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/run_matched_view_accel_v1.py",
+      "before_sha256": "8b7a63a876bfb5032335d79bf803cf94558c2c1a718d0abf46e45f60519976a6",
+      "after_sha256": "5f90b324e9625fa0b38b07ecd91b248a3a06b11b361d9029548acedfcb2a3989"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_matched_view_landscape_v1.sh",
+      "new": "scripts/dsol_paper1/operations/launchers/run_matched_view_landscape_v1.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/run_matched_view_landscape_v1.sh",
+      "before_sha256": "17b1759e886685980256b171c5d95906217888918e72c50ed4be26086d168581",
+      "after_sha256": "3a95e3249170ff6707c4e4e6001685c8be789fb1699bb802fd85164bcb73cb71"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_render_bridge_worker_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/run_render_bridge_worker_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/run_render_bridge_worker_v1.py",
+      "before_sha256": "13bad6fb89c92575b9248754a1d6659cd428b687ffe097103d199869ffcfc5bf",
+      "after_sha256": "29007095fd34e926e5335b473a9ad48dfda0e839aa9f1b383ca05688c5c0c53b"
+    },
+    {
+      "old": "scripts/dsol_paper1/run_view_value_expectation_accel_ensemble.py",
+      "new": "scripts/dsol_paper1/runtime/run_view_value_expectation_accel_ensemble.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/run_view_value_expectation_accel_ensemble.py",
+      "before_sha256": "460bd279e7b90bd000d89a1c3e1642dad7a4adca79d220c93f0e306ca48447cf",
+      "after_sha256": "782692d2cd17acda7cbdf9924bfe936ec832c788a81c4ad9df9f384c1a21a76c"
+    },
+    {
+      "old": "scripts/dsol_paper1/scan_libero_hdf5_views.py",
+      "new": "scripts/dsol_paper1/runtime/scan_libero_hdf5_views.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/scan_libero_hdf5_views.py",
+      "before_sha256": "830b7264bf2e30fef1f35b2c5d88882e4652397aea6f74bfd61067791d6090e1",
+      "after_sha256": "3d21b87900c75d098a3f2578d461f4e4612333b2fd13735f9e83637b25dc1918"
+    },
+    {
+      "old": "scripts/dsol_paper1/shared_runtime_paths.py",
+      "new": "scripts/dsol_paper1/runtime/shared_runtime_paths.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/shared_runtime_paths.py",
+      "before_sha256": "bc7efd25643619f1cd42da884b92ac3c7bb0f226cc57056ec1e7f820c69a0bab",
+      "after_sha256": "bc3f4bf5becfad2e4b22951cd51f3ff6a844f3a63b26bec9ed73b2d2117bd350"
+    },
+    {
+      "old": "scripts/dsol_paper1/standard_initial_aa0_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/standard_initial_aa0_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/standard_initial_aa0_v1.py",
+      "before_sha256": "810944bdadfe1039b11bc4fbeac86a1362d835ac1fbd38cb5c4b52ecfd714678",
+      "after_sha256": "6f9e396d6962a69b3cba7767d86ae83f93f1f298c4712a7662338be7ff7e3860"
+    },
+    {
+      "old": "scripts/dsol_paper1/standard_initialization_v1.py",
+      "new": "scripts/dsol_paper1/runtime/standard_initialization_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/standard_initialization_v1.py",
+      "before_sha256": "2cfe9609a65e1dc0ba4b1ce086de2b3652f560d4e297760c3d22729aefabf858",
+      "after_sha256": "297ed6b8d70b1968a886815fae2b615f20cd1d10f8263910d1ff81becc529cb9"
+    },
+    {
+      "old": "scripts/dsol_paper1/summarize_dsol_libero_hdf5_closed_loop.py",
+      "new": "scripts/dsol_paper1/analysis/summarize_dsol_libero_hdf5_closed_loop.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/summarize_dsol_libero_hdf5_closed_loop.py",
+      "before_sha256": "a70047493071f70baf5de86fbf496aa7606f42d1644213a8be110e11b651ccef",
+      "after_sha256": "21c8c33fac7f0b024154b8b8b54c6e6935b8e3338b3a0da77d3c704d649e321d"
+    },
+    {
+      "old": "scripts/dsol_paper1/trace_view_repeatability_v1.py",
+      "new": "scripts/dsol_paper1/diagnostics/trace_view_repeatability_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/trace_view_repeatability_v1.py",
+      "before_sha256": "9f7df3a282a4988f24a6f101a596e67154dc5a6061066719e4fd9241dd34abd2",
+      "after_sha256": "fcd480eeab5731e555eb1a23c82cebc90fd42deb126b9b198804e2c33bcc43f8"
+    },
+    {
+      "old": "scripts/dsol_paper1/training/generate_libero_hdf5_view_pairs.py",
+      "new": "scripts/dsol_paper1/training/generate_libero_hdf5_view_pairs.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/training/generate_libero_hdf5_view_pairs.py",
+      "before_sha256": "1b2ff408ca1661ff3719720a6b76482797baf1bbd822b53da2ff9ff8192d96b9",
+      "after_sha256": "070bc0f18eb9509d45332ad6296c6a8ae661f349915ad342514bcca789fda108"
+    },
+    {
+      "old": "scripts/dsol_paper1/training/run_broad64_posttrain_gate.sh",
+      "new": "scripts/dsol_paper1/training/run_broad64_posttrain_gate.sh",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/training/run_broad64_posttrain_gate.sh",
+      "before_sha256": "8286e37da364ecde365b562b1c312784ab0cf5d381b00164896544f8bf671c87",
+      "after_sha256": "da39dc7f838d74832387ee93e67e1597f112783b942288a67c07f3c1766888dc"
+    },
+    {
+      "old": "scripts/dsol_paper1/training/train_statewise_view_selector_v1.py",
+      "new": "scripts/dsol_paper1/training/train_statewise_view_selector_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/scripts/dsol_paper1/training/train_statewise_view_selector_v1.py",
+      "before_sha256": "930624b522a840f5c44d2fb8bafc2179ddaaa6702fcdbefd1a1bea149e8923b8",
+      "after_sha256": "a7a190358ee519ea15d776285c4bb0f13ba23c7ed89a7dafeac58aef4cb2f3eb"
+    },
+    {
+      "old": "tests/dsol_paper1/analysis/test_compare_matched_view_landscapes_v1.py",
+      "new": "tests/dsol_paper1/analysis/test_compare_matched_view_landscapes_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/analysis/test_compare_matched_view_landscapes_v1.py",
+      "before_sha256": "de6968e67e0910dd0fef30b70e83fb279fe8e4c6e826dd13abef8b105fbd1440",
+      "after_sha256": "56eb48fbb802b7072663b37bbd32f435584aae0ea4be716cea736f1c7b861b10"
+    },
+    {
+      "old": "tests/dsol_paper1/analysis/test_libero_closed_loop_summary.py",
+      "new": "tests/dsol_paper1/analysis/test_libero_closed_loop_summary.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/analysis/test_libero_closed_loop_summary.py",
+      "before_sha256": "827a0cf0d3c0557293d9c7ff833ddd0423ba4849336485ca5425fc6574f9cd80",
+      "after_sha256": "86af7cf31ee016348a56b7763d952d06f61ab4332f48174e309a92440972bab4"
+    },
+    {
+      "old": "tests/dsol_paper1/data/test_explicit_flow_noise.py",
+      "new": "tests/dsol_paper1/data/test_explicit_flow_noise.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/data/test_explicit_flow_noise.py",
+      "before_sha256": "3553f284ebab0a282168250ff19f3a261450a7895a56212131e90bdc4cb9f34d",
+      "after_sha256": "3432e847c019b30a9021a4abb4904a138ebb1162608fc7defb69f331e8028bb3"
+    },
+    {
+      "old": "tests/dsol_paper1/data/test_libero_constructed_view.py",
+      "new": "tests/dsol_paper1/data/test_libero_constructed_view.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/data/test_libero_constructed_view.py",
+      "before_sha256": "50b659085242daa00cb2ca1c1b3124c3feebaea2c3d5b4492a6e3f734e3dc198",
+      "after_sha256": "7070493ad39cb54ee75b19faf408b3b8877cabbae214088a2d4cf1747eb2d350"
+    },
+    {
+      "old": "tests/dsol_paper1/data/test_libero_eval_sensor_controls.py",
+      "new": "tests/dsol_paper1/data/test_libero_eval_sensor_controls.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/data/test_libero_eval_sensor_controls.py",
+      "before_sha256": "46ab94369e892618a38d478e1a37f50ab29d1112919cdd931d4d8061debf8589",
+      "after_sha256": "d881eb8fdf50d9f94492e564cdb8dd103dd74cf5e13b270bfa2f2f525dc7b3ed"
+    },
+    {
+      "old": "tests/dsol_paper1/data/test_libero_view_scan_geometry.py",
+      "new": "tests/dsol_paper1/data/test_libero_view_scan_geometry.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/data/test_libero_view_scan_geometry.py",
+      "before_sha256": "536b4bf50db165ce1de23a7aaea936934e4661c4d92103c9d52e9dcf24d1082c",
+      "after_sha256": "415ddae02b56e96688349e89a7b58223315c1d14c427e952c730694219db3bbe"
+    },
+    {
+      "old": "tests/dsol_paper1/data/test_libero_visibility.py",
+      "new": "tests/dsol_paper1/data/test_libero_visibility.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/data/test_libero_visibility.py",
+      "before_sha256": "fdf3f2fa00ade260239a35bd8ff4a1507c523875ac970a366f1b0c9e515c7bd6",
+      "after_sha256": "ca51732fbcdcbda12c6ecee54c8e84ff1ccc64644d40b4ac0f787ac91d4cc68a"
+    },
+    {
+      "old": "tests/dsol_paper1/data/test_standard_initial_aa0_v1.py",
+      "new": "tests/dsol_paper1/data/test_standard_initial_aa0_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/data/test_standard_initial_aa0_v1.py",
+      "before_sha256": "878cd6bf7a92252d444e8f8ee9c6d34b16f8cdb5c94d882e8cb2da1273ebe2c9",
+      "after_sha256": "e4b3a52300177b3e1d02cc089747483d35e58c919b38932665da5ed5f0966518"
+    },
+    {
+      "old": "tests/dsol_paper1/diagnostics/test_audit_view_value_expectation_heldout_run.py",
+      "new": "tests/dsol_paper1/diagnostics/test_audit_view_value_expectation_heldout_run.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/diagnostics/test_audit_view_value_expectation_heldout_run.py",
+      "before_sha256": "35a2a17029fab693a4f66dc704c7c5ca5cb488d150cf06934d39ca3ba70483eb",
+      "after_sha256": "a4565ad690cef8543d7844dff4642a09abe3c6587e4a53a11ef9c6bf156bfd8c"
+    },
+    {
+      "old": "tests/dsol_paper1/diagnostics/test_render_constructed_m0_audit_montages.py",
+      "new": "tests/dsol_paper1/diagnostics/test_render_constructed_m0_audit_montages.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/diagnostics/test_render_constructed_m0_audit_montages.py",
+      "before_sha256": "56d750ce569bd818aa7e57fae7967bc41c68cc96cdb3458b3acb0e6514d59815",
+      "after_sha256": "7f25c8d81b187bd3ef88af7f1bf31e10e6c3728c117320d75b9c720bc1dea06a"
+    },
+    {
+      "old": "tests/dsol_paper1/diagnostics/test_statewise_view_oracle_v2_audit.py",
+      "new": "tests/dsol_paper1/diagnostics/test_statewise_view_oracle_v2_audit.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/diagnostics/test_statewise_view_oracle_v2_audit.py",
+      "before_sha256": "5bcb09a8a94b7f3cb3583d052155e634ad53051aa0c6f0c41ab4b5545aba3ed7",
+      "after_sha256": "02923cc879ff5039699ce69efeb294887a79e60dc8b0258e7d68f9cfb898a11d"
+    },
+    {
+      "old": "tests/dsol_paper1/diagnostics/test_view_repeatability_trace_v1.py",
+      "new": "tests/dsol_paper1/diagnostics/test_view_repeatability_trace_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/diagnostics/test_view_repeatability_trace_v1.py",
+      "before_sha256": "55d01bd4277ce13b06a723b19603769cabfa230eb4be638110b106bdd0565038",
+      "after_sha256": "780ac9792f9a87fcde20795424f5e7f31ed80724883de80313a369cb13003342"
+    },
+    {
+      "old": "tests/dsol_paper1/execution/test_dualhost_aa0_v1.py",
+      "new": "tests/dsol_paper1/execution/test_dualhost_aa0_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/execution/test_dualhost_aa0_v1.py",
+      "before_sha256": "451eb8da9fd8e5b8214dfbfb4c56c232c099b8b915dec5f02abd18b05277a701",
+      "after_sha256": "5685ed03daa22ca1e712bdb77f90dfaaa05e0876178d2081f651133e2ec50436"
+    },
+    {
+      "old": "tests/dsol_paper1/execution/test_dynamic_initial_scheduler_v1.py",
+      "new": "tests/dsol_paper1/execution/test_dynamic_initial_scheduler_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/execution/test_dynamic_initial_scheduler_v1.py",
+      "before_sha256": "da23c857fc02edeb11c2cd7eb1300c87724fd927fc6eb2ce56cd8be84b319a69",
+      "after_sha256": "d9702ba285c65bbdd8d086bf3eaf15cb98bce39010f9ae3670807e902866c556"
+    },
+    {
+      "old": "tests/dsol_paper1/execution/test_full64_view_landscape_v2.py",
+      "new": "tests/dsol_paper1/execution/test_full64_view_landscape_v2.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/execution/test_full64_view_landscape_v2.py",
+      "before_sha256": "32abdb5fc9232ce5baca806cda61552edd729c5b0cb0eafc586a809cd5d21830",
+      "after_sha256": "a783528b297baa2e1a67471830e483651128da963df2d82a5a869dd4c986c9f6"
+    },
+    {
+      "old": "tests/dsol_paper1/execution/test_matched_view_landscape_controller_v1.py",
+      "new": "tests/dsol_paper1/execution/test_matched_view_landscape_controller_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/execution/test_matched_view_landscape_controller_v1.py",
+      "before_sha256": "f3c82161ee7a774a06214090bf661a165bc6d8d19ce96242f375a079b5eaa06e",
+      "after_sha256": "bd8c942288cf2fd2064bd6b243298368e6749d2721ef42ffc67236608dfb52be"
+    },
+    {
+      "old": "tests/dsol_paper1/helpers/landscape.py",
+      "new": "tests/dsol_paper1/helpers/landscape.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/helpers/landscape.py",
+      "before_sha256": "230b27d72c96163b96baf519aefdeeaef261dd95835932adec33496f1e5e2fe5",
+      "after_sha256": "044e3f07b39806737bfdd5ab6d6df7face30fda4ed4d575e3b52835c34d019a7"
+    },
+    {
+      "old": "tests/dsol_paper1/metrics/test_accel_cli.py",
+      "new": "tests/dsol_paper1/metrics/test_accel_cli.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/metrics/test_accel_cli.py",
+      "before_sha256": "b83debb7031d02b23618b2a23b0ebabe8a6e00ec4bdab2a355c85955e0cab496",
+      "after_sha256": "8db2836861eb8712010d888cce0d85c11cadaef2aaa4e9e1838099f5f6ba6f2a"
+    },
+    {
+      "old": "tests/dsol_paper1/metrics/test_accel_core.py",
+      "new": "tests/dsol_paper1/metrics/test_accel_core.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/metrics/test_accel_core.py",
+      "before_sha256": "cc3a56f2406f07f045adcf215bd857fd52f3f0f98bde7ccb9e77a79e50b1e282",
+      "after_sha256": "56b8a85e011d1cd34e4ce7f5b8b817d0af1406f8133fa7cfb34ad046722af643"
+    },
+    {
+      "old": "tests/dsol_paper1/metrics/test_accel_inference.py",
+      "new": "tests/dsol_paper1/metrics/test_accel_inference.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/metrics/test_accel_inference.py",
+      "before_sha256": "60060cccfe1987428a2e6415e1724f95311172f110fcad7655e122d4e79082c8",
+      "after_sha256": "23e8d18970c503b1e265b656d1dbf9d818df20e9a95e89699e084e8cc50f79f6"
+    },
+    {
+      "old": "tests/dsol_paper1/metrics/test_matched_view_accel_v1.py",
+      "new": "tests/dsol_paper1/metrics/test_matched_view_accel_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/metrics/test_matched_view_accel_v1.py",
+      "before_sha256": "14fd61b89b37c1410e26677ddf5d858430d9e81de478fe48f856510f4b1bba40",
+      "after_sha256": "f8aecd2fcc896b37b81a9d183e7a19ecad751bb87c26d17c91a5551ebe534bc7"
+    },
+    {
+      "old": "tests/dsol_paper1/metrics/test_view_metric_rules_v1.py",
+      "new": "tests/dsol_paper1/metrics/test_view_metric_rules_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/metrics/test_view_metric_rules_v1.py",
+      "before_sha256": "75cad09d5aee5ee4e87e99d9620f0541e9805d747c032b375b1d3d8d5c73426f",
+      "after_sha256": "1bc3c2de167153d2f1ffc4f57e9b9d033e174308ac929fbfa0e5a67bf0b929b7"
+    },
+    {
+      "old": "tests/dsol_paper1/protocols/test_build_matched_view_landscape_protocol_v1.py",
+      "new": "tests/dsol_paper1/protocols/test_build_matched_view_landscape_protocol_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/protocols/test_build_matched_view_landscape_protocol_v1.py",
+      "before_sha256": "0e008aae6e76ad3b4974a284b9cfbd58fc03b1386c4e76b5e2edeb44c662d57b",
+      "after_sha256": "90f096230437abcb4325fa834b2e48b10602b0d3dd8a5a1762c41a49b7ef6c90"
+    },
+    {
+      "old": "tests/dsol_paper1/protocols/test_render_protocol_bridge_v1.py",
+      "new": "tests/dsol_paper1/protocols/test_render_protocol_bridge_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/protocols/test_render_protocol_bridge_v1.py",
+      "before_sha256": "75eb839c7872c1c483668d9558a6877d7b7194d8ca6ec879e2a69b1d90d8328d",
+      "after_sha256": "e4be1906fd8f7d9cf14706ba385b7599dd134a27a0c4c51276649c3ab8d2f5ea"
+    },
+    {
+      "old": "tests/dsol_paper1/protocols/test_statewise_view_oracle_v2_builder.py",
+      "new": "tests/dsol_paper1/protocols/test_statewise_view_oracle_v2_builder.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/protocols/test_statewise_view_oracle_v2_builder.py",
+      "before_sha256": "061feedfa102a06e474cebe7b126b04e8e979c76db45fc908d3b8fe3ac83e56a",
+      "after_sha256": "674d2c0669c9b8d0e7cbd36c7b2100c7118b3703ab464909694d8ae749e69620"
+    },
+    {
+      "old": "tests/dsol_paper1/reporting/test_build_view_landscape_report_v1.py",
+      "new": "tests/dsol_paper1/reporting/test_build_view_landscape_report_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/reporting/test_build_view_landscape_report_v1.py",
+      "before_sha256": "8ae1a265aa04b33320ac60b7981229f474e0ba905ed05f1103480ee9cbbc7292",
+      "after_sha256": "f32a165c74737fba6e21b64442cb914f42f674058a62ad18d112d76e11c26315"
+    },
+    {
+      "old": "tests/dsol_paper1/reporting/test_consolidated_view_analysis_v1.py",
+      "new": "tests/dsol_paper1/reporting/test_consolidated_view_analysis_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/reporting/test_consolidated_view_analysis_v1.py",
+      "before_sha256": "6d6dc622750bf7e2a1bc85d0f0516921fc68ceef1a24edeaf00ec66c7125cef7",
+      "after_sha256": "91b153fbb406e9823da5ce207177baf5e917d7a91e27b12165aaaee556572566"
+    },
+    {
+      "old": "tests/dsol_paper1/reporting/test_unified_research_scope_v1.py",
+      "new": "tests/dsol_paper1/reporting/test_unified_research_scope_v1.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/reporting/test_unified_research_scope_v1.py",
+      "before_sha256": "7604963e2496794eb5bb17b07f3d94829c649e37f2815e9f955222de464d89e3",
+      "after_sha256": "8602d24a0e0394490d9e5d3f740e55d6f6907b2fa10bf82666d78be8a4861854"
+    },
+    {
+      "old": "tests/vla_shared/test_extraction_equivalence.py",
+      "new": "tests/vla_shared/test_extraction_equivalence.py",
+      "before": "archive/repository/20260911/runtime-modules/before/tests/vla_shared/test_extraction_equivalence.py",
+      "before_sha256": "8b851a174c1db8e6cd67ef27c409693a93fd10dea86ccc68b4ea97851a920f2a",
+      "after_sha256": "c8d4e8bbd5bf296b54015e6659df0f838f8868d713e3694f12a9edc0378b3e27"
+    },
+    {
+      "old": "docs/dsol_paper1/HISTORY.md",
+      "new": "docs/dsol_paper1/HISTORY.md",
+      "before": "archive/repository/20260911/runtime-modules/before/docs/dsol_paper1/HISTORY.md",
+      "before_sha256": "6466bea2fd2496cba57ec965989bcd98bcd901fe361fec870de142ebb18c6c74",
+      "after_sha256": "8b3baf1b0700a62462612e9eacc3e5aaf493d21de5d64989f2ff6bd6057f1775"
+    },
+    {
+      "old": "docs/dsol_paper1/audits/render_protocol_bridge_and_historical_validity_20260908_zh.md",
+      "new": "docs/dsol_paper1/audits/render_protocol_bridge_and_historical_validity_20260908_zh.md",
+      "before": "archive/repository/20260911/runtime-modules/before/docs/dsol_paper1/audits/render_protocol_bridge_and_historical_validity_20260908_zh.md",
+      "before_sha256": "d7dccadfaaa5d2fbe2694f3d4544fb2b55cdc58d09124b4cbb0873b1f30c29f1",
+      "after_sha256": "814c0e3812ddbd437dec833a19de1dd26cb59a99d1f425f8c3dacc6edd987cab"
+    },
+    {
+      "old": "docs/dsol_paper1/audits/view_repeatability_root_cause_20260908_zh.md",
+      "new": "docs/dsol_paper1/audits/view_repeatability_root_cause_20260908_zh.md",
+      "before": "archive/repository/20260911/runtime-modules/before/docs/dsol_paper1/audits/view_repeatability_root_cause_20260908_zh.md",
+      "before_sha256": "3470c507440d7e5eb502f680bf5c43342018e657082e946636f4e6beb700360b",
+      "after_sha256": "207d9d281e1990748509142700617dca9bcf0c0907f12134655d61239442b638"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/full64_view_landscape_execution_20260908_zh.md",
+      "new": "docs/dsol_paper1/execution/full64_view_landscape_execution_20260908_zh.md",
+      "before": "archive/repository/20260911/runtime-modules/before/docs/dsol_paper1/execution/full64_view_landscape_execution_20260908_zh.md",
+      "before_sha256": "d4d808c7053b435f2b014c2540600925c9086af76ca2e82959f6c087fcd38238",
+      "after_sha256": "5d3c2ce46fe448feddd1877e49c2457831e37c2d265d90b09e2be7a82f514c16"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/paper_master_plan_v2_active_bridge_20260907_zh.md",
+      "new": "docs/dsol_paper1/planning/paper_master_plan_v2_active_bridge_20260907_zh.md",
+      "before": "archive/repository/20260911/runtime-modules/before/docs/dsol_paper1/planning/paper_master_plan_v2_active_bridge_20260907_zh.md",
+      "before_sha256": "6ed840907d7e5ee7d99b2fad1a525d369f5668937933f2ad143a38db74bd2df7",
+      "after_sha256": "89510f8d105593210fbaa72a8c4e443b7dd524f2d4717c3517c979b1e0f9e25a"
+    },
+    {
+      "old": "docs/dsol_paper1/results/view_metric_interpretation_revision_20260908_zh.md",
+      "new": "docs/dsol_paper1/results/view_metric_interpretation_revision_20260908_zh.md",
+      "before": "archive/repository/20260911/runtime-modules/before/docs/dsol_paper1/results/view_metric_interpretation_revision_20260908_zh.md",
+      "before_sha256": "c67dabe773d2f8ec9dbeb016d711267e519e6004f5c84e3a4010e2e6366eba37",
+      "after_sha256": "3c8a5827afe7ab37b469c4821326d5f9ee131ff9c85e292c9b2633599cbbbc00"
+    }
+  ]
+}

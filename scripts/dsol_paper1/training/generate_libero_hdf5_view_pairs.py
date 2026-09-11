@@ -102,7 +102,7 @@ def generate(args: argparse.Namespace) -> dict[str, Any]:
     script_root = Path(__file__).resolve().parents[1]
     sys.path.insert(0, str(script_root))
     sys.path.insert(0, str(script_root.parent / "vla_shared"))
-    from scripts.dsol_paper1.audit_libero_hdf5_restore import _configure_runtime, _decode, _rewrite_model_paths
+    from scripts.dsol_paper1.runtime.audit_libero_hdf5_restore import _configure_runtime, _decode, _rewrite_model_paths
     from AlphaBrain.common.pair_records import IMAGE_ORDER, initialize_shard, sha256_file, write_record
 
     hdf5_path = args.hdf5.resolve()
@@ -122,7 +122,7 @@ def generate(args: argparse.Namespace) -> dict[str, Any]:
         install_camera_pose,
         mujoco_camera_calibration,
     )
-    from scripts.dsol_paper1.libero_constructed_view import install_constructed_camera_pose, resolve_task_view_context, task_orbit_pose_from_specification
+    from scripts.dsol_paper1.runtime.libero_constructed_view import install_constructed_camera_pose, resolve_task_view_context, task_orbit_pose_from_specification
 
     catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
     pose_by_id = {}

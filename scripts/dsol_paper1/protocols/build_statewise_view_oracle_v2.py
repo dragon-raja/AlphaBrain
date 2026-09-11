@@ -21,10 +21,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-try:
-    from scripts.dsol_paper1.explicit_flow_noise import ExplicitFlowNoiseBank, materialize_bank, sha256_file
-except ImportError:  # Direct script execution.
-    from scripts.dsol_paper1.explicit_flow_noise import ExplicitFlowNoiseBank, materialize_bank, sha256_file
+from AlphaBrain.research.dsol.data.flow_noise import ExplicitFlowNoiseBank, materialize_bank, sha256_file
 
 
 COMPACT_SCHEMA = "dsol_compact_view_matrix_protocol_v1"

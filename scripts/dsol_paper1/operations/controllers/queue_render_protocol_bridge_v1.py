@@ -16,8 +16,8 @@ import signal
 import subprocess
 import sys
 import time
-from scripts.dsol_paper1.render_bridge_common_v1 import ROOT, REPO, read, sha, write_new, verify_release
-import scripts.dsol_paper1.run_full64_view_landscape_v2 as control
+from scripts.dsol_paper1.runtime.render_bridge_common_v1 import ROOT, REPO, read, sha, write_new, verify_release
+import scripts.dsol_paper1.operations.controllers.run_full64_view_landscape_v2 as control
 from scripts.dsol_paper1.operations.controllers.run_early_landscape_speed_gate_v1 import process_identity, same_process, resume
 
 def stop_owned():

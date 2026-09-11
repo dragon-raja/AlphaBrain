@@ -31,7 +31,7 @@ fi
 
 CHECKPOINT="$SMOKE_CHECKPOINT" OUTPUT_DIR="$EVAL_SMOKE_ROOT" \
 GPU_COUNT=1 MAX_EPISODES_PER_SHARD=1 RUN_ANALYSIS=0 VIDEO_EPISODES=1 \
-  "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
+  "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh"
 
 OUTPUT_ROOT="$M0_SMOKE_ROOT" GPU_COUNT=8 MAX_STATES_PER_SHARD=1 \
   "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_libero_visibility_scan_matrix.sh"

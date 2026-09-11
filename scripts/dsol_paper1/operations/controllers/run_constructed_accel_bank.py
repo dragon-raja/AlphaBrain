@@ -27,8 +27,8 @@ from typing import Any
 import numpy as np
 from PIL import Image, ImageDraw
 
-from scripts.dsol_paper1.accel_core import rank_accel_candidates
-from scripts.dsol_paper1.accel_inference import rank_fixed_state_candidates_chunked
+from AlphaBrain.research.dsol.metrics.accel import rank_accel_candidates
+from AlphaBrain.research.dsol.metrics.accel_inference import rank_fixed_state_candidates_chunked
 
 
 PROTOCOL_SCHEMA = "dsol_constructed_m1_frozen_closed_loop_protocol_v1"
@@ -321,14 +321,14 @@ def render_state_candidates(
     import h5py
 
     _configure_import_paths()
-    from scripts.dsol_paper1.audit_libero_hdf5_restore import _configure_runtime, _decode, _rewrite_model_paths
+    from scripts.dsol_paper1.runtime.audit_libero_hdf5_restore import _configure_runtime, _decode, _rewrite_model_paths
 
     hdf5_path = Path(spec["hdf5"]).resolve()
     _configure_runtime(runtime, hdf5_path.parent.parent, config_root)
     from libero.libero.envs import OffScreenRenderEnv
     from libero_camera_pose import capture_camera_reference, install_camera_pose
-    from scripts.dsol_paper1.libero_visibility import task_entity_visibility
-    from scripts.dsol_paper1.scan_libero_hdf5_views import _install_look_away, _restore_reference
+    from AlphaBrain.research.dsol.metrics.visibility import task_entity_visibility
+    from scripts.dsol_paper1.runtime.scan_libero_hdf5_views import _install_look_away, _restore_reference
     from evaluate_pi05_libero_plus_views import (
         agentview_camera_calibration,
         physics_state_sha256,

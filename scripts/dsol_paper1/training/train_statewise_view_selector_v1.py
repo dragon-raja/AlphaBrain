@@ -22,14 +22,9 @@ from typing import Any, Mapping, Sequence
 
 import numpy as np
 
-try:
-    from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2 import freeze_json, load_scan_assets, operational_candidates
-    from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2_stage import matched_paths, summarize_ledgers, validate_input_audits
-    from scripts.dsol_paper1.explicit_flow_noise import sha256_file
-except ImportError:  # Direct script execution.
-    from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2 import freeze_json, load_scan_assets, operational_candidates
-    from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2_stage import matched_paths, summarize_ledgers, validate_input_audits
-    from scripts.dsol_paper1.explicit_flow_noise import sha256_file
+from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2 import freeze_json, load_scan_assets, operational_candidates
+from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2_stage import matched_paths, summarize_ledgers, validate_input_audits
+from AlphaBrain.research.dsol.data.flow_noise import sha256_file
 
 
 def atomic_json(path: Path, payload: object) -> None:

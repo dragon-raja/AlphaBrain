@@ -11,8 +11,8 @@ flock -n 8 || { echo 'another matched-landscape pipeline holds the GPUs' >&2; ex
 
 [[ -f "$ACCEL_ROOT/manifest.json" ]] || { echo 'frozen Accel manifest missing' >&2; exit 2; }
 [[ -f "$LANDSCAPE_ROOT/protocols/protocol_manifest.json" ]] || exit 2
-[[ -f "$REPO_ROOT/scripts/dsol_paper1/run_matched_view_landscape_v1.sh" ]] || exit 2
-bash "$REPO_ROOT/scripts/dsol_paper1/run_matched_view_landscape_v1.sh" --check-only
+[[ -f "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_matched_view_landscape_v1.sh" ]] || exit 2
+bash "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_matched_view_landscape_v1.sh" --check-only
 /alphabrain/.venv/bin/python - <<'PY'
 import subprocess
 from pathlib import Path
@@ -66,7 +66,7 @@ for gpu in 0 1 2 3 4 5 6 7; do
     PRETRAINED_MODELS_DIR=/share/longjunyu/alphabrain/pretrained_models \
     ALPHABRAIN_DISABLE_AUTO_DOWNLOAD=1 \
     PYTHONPATH="$REPO_ROOT:/projects/openpi/src:/projects/openpi/packages/openpi-client/src" \
-    /alphabrain/.venv/bin/python "$REPO_ROOT/scripts/dsol_paper1/run_matched_view_accel_v1.py" \
+    /alphabrain/.venv/bin/python "$REPO_ROOT/scripts/dsol_paper1/runtime/run_matched_view_accel_v1.py" \
       --manifest "$ACCEL_ROOT/manifest.json" --num-shards 8 --shard-index "$gpu" --device cuda:0 \
       > "$ACCEL_ROOT/logs/shard-$gpu.log" 2>&1 &
   active_pids+=("$!")
@@ -80,8 +80,8 @@ restore_keepalives
 PYTHONPATH="$REPO_ROOT/scripts/dsol_paper1" /alphabrain/.venv/bin/python - "$ACCEL_ROOT" <<'PY'
 import json, sys
 from pathlib import Path
-from run_matched_view_accel_v1 import validate_result
-from run_view_value_expectation_accel_ensemble import atomic_json, sha256_file
+from scripts.dsol_paper1.runtime.run_matched_view_accel_v1 import validate_result
+from scripts.dsol_paper1.runtime.run_view_value_expectation_accel_ensemble import atomic_json, sha256_file
 root = Path(sys.argv[1])
 manifest_path = root / 'manifest.json'
 manifest = json.loads(manifest_path.read_text())
@@ -106,7 +106,7 @@ print(json.dumps(receipt), flush=True)
 PY
 echo "accel_complete $(date -u +%FT%TZ)"
 echo "closed_loop_start $(date -u +%FT%TZ) budget=24832_unique_episodes"
-bash "$REPO_ROOT/scripts/dsol_paper1/run_matched_view_landscape_v1.sh" &
+bash "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_matched_view_landscape_v1.sh" &
 active_pids=("$!")
 wait "${active_pids[0]}"
 active_pids=()

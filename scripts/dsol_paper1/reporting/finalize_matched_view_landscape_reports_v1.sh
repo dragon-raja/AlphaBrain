@@ -11,7 +11,7 @@ with open(sys.argv[1]) as stream:
 if status.get('status') != 'PASS_COMPLETE_STATIC_DIAGNOSTIC' or status.get('completed_unique_episodes') != 24832:
     raise SystemExit('closed-loop matrix is incomplete; no final paired report')
 PY
-/alphabrain/.venv/bin/python "$REPO_ROOT/scripts/dsol_paper1/build_view_landscape_report_v1.py" \
+/alphabrain/.venv/bin/python "$REPO_ROOT/reports/paper1/historical/build_view_landscape_report_v1.py" \
   --accel-root "$LANDSCAPE_ROOT/canonical-accel" \
   --dense-dir "$LANDSCAPE_ROOT/closed-loop/canonical/O" \
   --noise-bank-manifest /share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/noise-banks/bank_O.manifest.json \
@@ -20,7 +20,7 @@ PY
   --expected-checkpoint-sha256 7e510b752143bb6fd4987988dfab5e94f7db1de5f7e97579f892a58eed22cc68 \
   --model-label 'Canonical matched / seed41' --training-support canonical \
   --output-dir "$LANDSCAPE_ROOT/canonical-report"
-/alphabrain/.venv/bin/python "$REPO_ROOT/scripts/dsol_paper1/compare_matched_view_landscapes_v1.py" \
+/alphabrain/.venv/bin/python "$REPO_ROOT/scripts/dsol_paper1/analysis/compare_matched_view_landscapes_v1.py" \
   --broad-root "$LANDSCAPE_ROOT/broad-existing" \
   --canonical-root "$LANDSCAPE_ROOT/canonical-report" \
   --selection-manifest "$LANDSCAPE_ROOT/protocols/selection.json" \

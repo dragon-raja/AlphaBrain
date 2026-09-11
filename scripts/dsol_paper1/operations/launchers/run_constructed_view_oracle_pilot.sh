@@ -5,7 +5,7 @@ REPO_ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
 OUTPUT_ROOT=${DSOL_CONSTRUCTED_VIEW_ORACLE_ROOT:-/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-val-pilot}
 PROTOCOL=${DSOL_CONSTRUCTED_VIEW_ORACLE_PROTOCOL:-$OUTPUT_ROOT/protocol.json}
 CHECKPOINT=${DSOL_CONSTRUCTED_VIEW_ORACLE_CHECKPOINT:-/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_broad64-quick-gate-v1_seed41_g8_gb32_steps2000/final_model}
-EVALUATOR=$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh
+EVALUATOR=$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh
 ANALYZER=$REPO_ROOT/scripts/dsol_paper1/analysis/analyze_view_value_discovery.py
 RUN_ROOT=$OUTPUT_ROOT/closed_loop_broad64_practical
 

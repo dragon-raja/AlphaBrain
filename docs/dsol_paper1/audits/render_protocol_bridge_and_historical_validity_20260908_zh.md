@@ -79,7 +79,7 @@
 - [当前状态](../../../../../../share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/render-protocol-bridge-v1/status.json)
 - [排程日志](../../../../../../share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/render-protocol-bridge-v1/queue.log)
 - [执行器](../../../scripts/dsol_paper1/operations/controllers/run_render_protocol_bridge_v1.py)
-- [独立渲染／闭环／打分入口](../../../scripts/dsol_paper1/run_render_bridge_worker_v1.py)
+- [独立渲染／闭环／打分入口](../../../scripts/dsol_paper1/operations/controllers/run_render_bridge_worker_v1.py)
 - [统计分析代码](../../../scripts/dsol_paper1/analysis/analyze_render_protocol_bridge_v1.py)
 
 完成后分析器将在同一实验目录生成 `analysis.json` 和 `summary_zh.md`；目前排程阶段不将它们描述为已有结果。

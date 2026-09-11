@@ -21,15 +21,11 @@ import tempfile
 from pathlib import Path
 from typing import Any, Mapping
 
-try:
-    from scripts.dsol_paper1.diagnostics.audit_view_value_expectation_heldout_run import (
-        _load_shards,
-        audit as audit_heldout,
-    )
-    from scripts.dsol_paper1.explicit_flow_noise import ExplicitFlowNoiseBank, sha256_file
-except ModuleNotFoundError:
-    from scripts.dsol_paper1.diagnostics.audit_view_value_expectation_heldout_run import _load_shards, audit as audit_heldout
-    from scripts.dsol_paper1.explicit_flow_noise import ExplicitFlowNoiseBank, sha256_file
+from scripts.dsol_paper1.diagnostics.audit_view_value_expectation_heldout_run import (
+    _load_shards,
+    audit as audit_heldout,
+)
+from AlphaBrain.research.dsol.data.flow_noise import ExplicitFlowNoiseBank, sha256_file
 
 
 CALIBRATION_PROTOCOLS = {

@@ -16,7 +16,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from scripts.dsol_paper1.accel_core import analyze_selected_relations
+from AlphaBrain.research.dsol.metrics.accel import analyze_selected_relations
 
 
 def _atomic_json(path: Path, payload: object) -> None:

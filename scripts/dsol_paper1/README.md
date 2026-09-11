@@ -6,8 +6,9 @@
 
 | 要做什么 | 位置 |
 | --- | --- |
-| 当前初态结果核查、统计和选择器 | `analyze_standard_initial_results_v1.py`；实现见 [研究包](../../AlphaBrain/research/dsol/README.md) |
-| 当前统一汇报 | `build_unified_research_progress_v1.py`；实现见 [报告模块](../../reports/paper1/README.md) |
+| 当前初态结果核查、统计和选择器 | [薄分析入口](analysis/analyze_standard_initial_results_v1.py)；实现见 [研究包](../../AlphaBrain/research/dsol/README.md) |
+| 当前统一汇报 | [统一入口](../../reports/paper1/unified.py)；实现见 [报告模块](../../reports/paper1/README.md) |
+| 仿真输入、恢复、闭环与评分适配 | [runtime](runtime/)；不承担通用指标算法 |
 | 历史指标、Oracle、闭环统计和画图 | [analysis](analysis/) |
 | 历史候选空间、协议、噪声预算构造 | [protocols](protocols/) |
 | 数据生成、训练、训练匹配与来源核查 | [training](training/) |
@@ -18,16 +19,13 @@
 
 目录分组不是协议统一：历史工具仍有各自的数据 schema、模型与初始化约束。旧快照统计不能直接混入标准初态结果。
 
-## 根目录为何还保留 37 个入口／依赖
+## 根目录不再保留旧入口
 
-本轮从 186 个平铺文件迁出了 149 个，没有为它们批量留下根目录转发文件。剩余 37 个是当前入口、评测依赖，以及仍在运行的旧控制器所需的原路径或源码哈希目标：
+原 186 个平铺脚本已分两次完成职责迁移（149 + 37），根目录只保留导航，不留批量转发壳。Accel、可见性和显式噪声实现进入研究包；运行适配、调度、分析、协议和报告各有归属。
 
-- 当前标准初态运行链：`dynamic_initial_scheduler_v1.py`、`standard_initial_aa0_v1.py`、`standard_initialization_v1.py`、`dualhost_aa0_v1.py`。
-- 评测、噪声、渲染、可见性与 Accel 的共享依赖。
-- 仍在运行的 `run_full64_view_landscape_v2.py` 与 `build_consolidated_view_analysis_v1.py` 的依赖，以及冻结清单核验的来源文件。
-- 三个薄兼容入口和当前统一汇报入口。
+用户已授权结束暂停的旧 full64 控制器与旧 PDF 监视器；操作前复核没有评测子进程，保存了身份记录，未启动或重跑任何实验。原源码和路径映射见 [本轮迁移记录](../../archive/repository/20260911/runtime-modules/manifest.json)。
 
-它们在本轮保持原字节；没有停止任务、改变实验或伪造新哈希。进一步迁移运行链必须单独建立新运行源码版本，并做首帧与整轨迹一致性验证，不能靠 CPU 单测代替。
+源码布局迁移不意味着旧 release 可以换上新源码继续跑。历史源码身份属于冻结 checkout；新的运行链正式投入实验前仍需首帧和整轨迹等价验收，不能给新文件冒用旧哈希。
 
 ## 旧路径在哪里
 

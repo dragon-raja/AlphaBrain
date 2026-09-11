@@ -25,6 +25,10 @@ def check(root=ROOT):
     errors = []
     counts = Counter()
     source_count = 0
+    test_root = root / "tests/dsol_paper1"
+    for p in test_root.glob("*.py"):
+        if p.name not in {"conftest.py", "paths.py", "__init__.py"}:
+            errors.append(f"Flat Paper 1 test/helper must have an owning module: {p.relative_to(root)}")
     for p in files(root):
         rel = p.relative_to(root)
         if rel.parts[0] == "archive":
@@ -42,6 +46,13 @@ def check(root=ROOT):
             errors.append(f"Executable implementation inside documentation: {rel}")
         if (p.name.startswith("test_") or p.name.endswith("_test.py")) and rel.parts[0] not in {"tests", "tools"}:
             errors.append(f"Unit test outside tests/: {rel}")
+        if p.is_relative_to(test_root):
+            if p.name.endswith("_test.py"):
+                errors.append(f"Use the canonical test_ naming convention: {rel}")
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("tests.dsol_paper1."):
+                    if node.module.rsplit(".", 1)[-1].startswith("test_"):
+                        errors.append(f"Shared fixtures must live in helpers, not another test: {rel}:{node.lineno}")
         if rel.parts[0] != "AlphaBrain":
             continue
         for n in ast.walk(tree):

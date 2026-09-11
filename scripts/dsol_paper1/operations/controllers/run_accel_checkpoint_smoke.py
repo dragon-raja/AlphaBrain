@@ -22,8 +22,8 @@ from typing import Any
 import numpy as np
 from PIL import Image, ImageDraw
 
-from scripts.dsol_paper1.accel_inference import rank_fixed_state_candidates
-from scripts.dsol_paper1.accel_core import shared_flow_noise
+from AlphaBrain.research.dsol.metrics.accel_inference import rank_fixed_state_candidates
+from AlphaBrain.research.dsol.metrics.accel import shared_flow_noise
 
 
 CANDIDATE_IDS = (

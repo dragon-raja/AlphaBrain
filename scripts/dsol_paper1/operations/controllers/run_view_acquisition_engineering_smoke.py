@@ -47,14 +47,14 @@ def run_condition(spec: dict[str, Any], args: argparse.Namespace, condition: str
     import h5py
     import numpy as np
 
-    from scripts.dsol_paper1.audit_libero_hdf5_restore import _configure_runtime, _decode, _rewrite_model_paths
+    from scripts.dsol_paper1.runtime.audit_libero_hdf5_restore import _configure_runtime, _decode, _rewrite_model_paths
     from AlphaBrain.research.dsol.acquisition.executor import LiberoKinematicCameraBackend, PersistentOSCGoalHold, execute_acquisition
     from AlphaBrain.research.dsol.acquisition.motion import BudgetLedger, MotionLimits, Pose, WorldAABB, no_acquisition, plan_camera_motion, plan_matched_hold
 
     hdf5 = Path(spec["hdf5"])
     _configure_runtime(args.runtime, hdf5.parent.parent, args.output_dir / "libero-config")
     from libero.libero.envs import OffScreenRenderEnv
-    from scripts.dsol_paper1.libero_constructed_view import inject_static_visual_occluder
+    from scripts.dsol_paper1.runtime.libero_constructed_view import inject_static_visual_occluder
 
     with h5py.File(hdf5, "r") as handle:
         data = handle["data"]
@@ -226,7 +226,7 @@ def main() -> int:
     if any(args.output_dir.iterdir()):
         parser.error("output directory must be empty; never overwrite prior evidence")
     configure_imports()
-    from scripts.dsol_paper1.evaluate_dsol_libero_hdf5_views import protocol_spec_at
+    from scripts.dsol_paper1.runtime.evaluate_dsol_libero_hdf5_views import protocol_spec_at
 
     protocol = json.loads(args.source_protocol.read_text())
     spec = protocol_spec_at(protocol, 0)

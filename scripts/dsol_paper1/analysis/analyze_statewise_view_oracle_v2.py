@@ -23,12 +23,8 @@ from typing import Any, Mapping, Sequence
 
 import numpy as np
 
-try:
-    from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2_stage import iter_rows, matched_paths
-    from scripts.dsol_paper1.explicit_flow_noise import sha256_file
-except ImportError:  # Direct script execution.
-    from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2_stage import iter_rows, matched_paths
-    from scripts.dsol_paper1.explicit_flow_noise import sha256_file
+from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2_stage import iter_rows, matched_paths
+from AlphaBrain.research.dsol.data.flow_noise import sha256_file
 
 
 def atomic_json(path: Path, payload: object) -> None:

@@ -15,8 +15,8 @@ from collections import Counter
 import json
 from pathlib import Path
 
-import scripts.dsol_paper1.run_full64_view_landscape_v2 as control
-from scripts.dsol_paper1.build_matched_view_landscape_protocol_v1 import source_identity, write_new_json
+import scripts.dsol_paper1.operations.controllers.run_full64_view_landscape_v2 as control
+from scripts.dsol_paper1.protocols.build_matched_view_landscape_protocol_v1 import source_identity, write_new_json
 
 
 def load_rows(paths):

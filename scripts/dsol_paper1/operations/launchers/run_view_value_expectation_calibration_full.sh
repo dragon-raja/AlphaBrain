@@ -29,7 +29,7 @@ if [[ "$count" != 6208 ]]; then
   VIDEO_EPISODES=0 \
   RUN_ANALYSIS=0 \
   KEEPALIVE_MODE=managed \
-    "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
+    "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh"
 else
   printf 'stage_A_skip_complete episodes=%s\n' "$count"
 fi

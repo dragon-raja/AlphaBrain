@@ -79,7 +79,7 @@ def test_old_and_new_policy_adapter_have_identical_inputs_actions_and_hashes(see
 
 
 def test_shared_path_resolver_only_falls_back_to_verified_frozen_release(tmp_path):
-    from scripts.dsol_paper1.shared_runtime_paths import shared_scripts
+    from scripts.dsol_paper1.runtime.shared_runtime_paths import shared_scripts
     repo=tmp_path/'repo';shared=repo/'scripts/vla_shared';shared.mkdir(parents=True)
     assert shared_scripts(repo)==shared
     shared.rmdir()
@@ -93,11 +93,11 @@ def test_shared_path_resolver_only_falls_back_to_verified_frozen_release(tmp_pat
 
 
 def test_new_runner_receipts_cover_shared_implementation_not_only_shims():
-    from scripts.dsol_paper1.shared_runtime_paths import SHARED_SOURCE_NAMES, shared_code_paths
+    from scripts.dsol_paper1.runtime.shared_runtime_paths import SHARED_SOURCE_NAMES, shared_code_paths
     paths=shared_code_paths(ROOT)
     assert len(paths)==6
     assert {p.name for p in paths} == {*SHARED_SOURCE_NAMES,'shared_runtime_paths.py'}
     assert all(p.is_file() for p in paths)
-    shell=(ROOT/'scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh').read_text()
+    shell=(ROOT/'scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh').read_text()
     assert '"${shared_code_files[@]}"' in shell
     for name in SHARED_SOURCE_NAMES:assert name in shell

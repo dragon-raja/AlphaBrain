@@ -14,7 +14,7 @@ from pathlib import Path
 import signal
 import subprocess
 import time
-from scripts.dsol_paper1.dynamic_initial_scheduler_v1 import ROOT, EXT, core, verify_extension
+from scripts.dsol_paper1.operations.controllers.dynamic_initial_scheduler_v1 import ROOT, EXT, core, verify_extension
 from scripts.dsol_paper1.operations.controllers.run_early_landscape_speed_gate_v1 import process_identity, same_process
 
 

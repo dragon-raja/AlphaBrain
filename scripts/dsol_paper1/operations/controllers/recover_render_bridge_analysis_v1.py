@@ -14,7 +14,7 @@ import json
 from pathlib import Path
 import numpy as np
 import scripts.dsol_paper1.analysis.analyze_render_protocol_bridge_v1 as analyzer
-from scripts.dsol_paper1.render_bridge_common_v1 import ROOT, sha, verify_release
+from scripts.dsol_paper1.runtime.render_bridge_common_v1 import ROOT, sha, verify_release
 
 
 def json_value(value):

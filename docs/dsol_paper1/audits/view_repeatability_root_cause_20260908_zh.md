@@ -33,7 +33,7 @@
 
 - [安全接管脚本](../../../scripts/dsol_paper1/operations/controllers/run_view_repeatability_boundary_v1.py)
 - [诊断调度](../../../scripts/dsol_paper1/operations/controllers/run_view_repeatability_probe_v1.py)
-- [逐步捕获与回放](../../../scripts/dsol_paper1/trace_view_repeatability_v1.py)
+- [逐步捕获与回放](../../../scripts/dsol_paper1/diagnostics/trace_view_repeatability_v1.py)
 - [首次分歧分析](../../../scripts/dsol_paper1/analysis/analyze_view_repeatability_traces_v1.py)
 - [执行目录](../../../../../../share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/full64-extension-v2/repeatability-root-cause-v1)
 

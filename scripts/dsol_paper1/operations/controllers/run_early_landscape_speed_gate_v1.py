@@ -24,10 +24,10 @@ import subprocess
 import sys
 import time
 
-import scripts.dsol_paper1.run_full64_view_landscape_v2 as control
-from scripts.dsol_paper1.build_matched_view_landscape_protocol_v1 import read_json, write_new_json, source_identity
-from scripts.dsol_paper1.explicit_flow_noise import sha256_file
-from scripts.dsol_paper1.audit_statewise_view_oracle_v2_run import atomic_json
+import scripts.dsol_paper1.operations.controllers.run_full64_view_landscape_v2 as control
+from scripts.dsol_paper1.protocols.build_matched_view_landscape_protocol_v1 import read_json, write_new_json, source_identity
+from AlphaBrain.research.dsol.data.flow_noise import sha256_file
+from scripts.dsol_paper1.diagnostics.audit_statewise_view_oracle_v2_run import atomic_json
 
 ROOT=control.ROOT/'early-speed-gate-v1'
 

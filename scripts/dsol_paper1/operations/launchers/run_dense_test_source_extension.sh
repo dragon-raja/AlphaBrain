@@ -136,7 +136,7 @@ if [[ "$actual" != 1080 ]]; then
   EVAL_SEED=0 \
   VIDEO_EPISODES=1 \
   RUN_ANALYSIS=0 \
-    "$REPO_ROOT/scripts/dsol_paper1/run_dsol_libero_hdf5_closed_loop_eval.sh"
+    "$REPO_ROOT/scripts/dsol_paper1/operations/launchers/run_dsol_libero_hdf5_closed_loop_eval.sh"
 else
   printf 'dense_test_source_extension_skip_complete episodes=%s\n' "$actual"
 fi

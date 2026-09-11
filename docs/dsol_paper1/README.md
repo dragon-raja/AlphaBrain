@@ -72,6 +72,6 @@ python tools/paper1/test.py
 - 95 份旁支文档已转入 `docs/archive/research/`；论文引用的两份 KYC 证据和原图/历史配置保留原位。
 - 当前共享服务、观测和相机实现位于 `scripts/vla_shared/`。旧 CABI 四个同名文件仅作兼容入口；绑定旧冻结 release 的驱动只在哈希核验后使用其中的原副本。
 - 2026-09-11：新初态数据核查、指标规则、选择器与统计已抽入 `AlphaBrain/research/dsol/`；报告布局移到 `reports/paper1/`。旧入口保留兼容，科学结果不因目录调整重写。
-- 2026-09-11 后续整理：主线脚本平铺区从 186 个文件减到 37 个，149 个按职责迁移；完整旧→新路径见 [迁移清单](../../archive/paper1/maintenance/script-layout-20260911/manifest.json)。活动运行链及其源码身份目标原字节不动；4 个旧导入即执行脚本已增加显式入口。
+- 2026-09-11 整理：原 186 个平铺脚本已分两轮全部按职责迁出（149 + 37），85 个平铺测试也已模块化。第一轮见 [迁移清单](../../archive/paper1/maintenance/script-layout-20260911/manifest.json)，最终路径见 [运行模块迁移](../../archive/repository/20260911/runtime-modules/manifest.json) 与 [测试导航](../../tests/dsol_paper1/README.md)。旧控制进程已获准结束，原源码和冻结实验身份保留；没有因整理重新评测或替换 PDF。
 - 8 个退出主线的旁支共 208 个文件已原字节归档到 `archive/research/code/scripts/`；数据、权重、冻结运行目录不动。FRESH 中仍被历史 CABI 引用的两项工具保留共享实现。
 - 21 个混放测试已统一到 `tests/dsol_paper1`；12 个已核对的一次性操作脚本转为历史文本归档。其余脚本不能据此视为已完成模块化重构。

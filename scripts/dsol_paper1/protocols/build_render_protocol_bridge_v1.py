@@ -10,9 +10,9 @@ for _layout_path in (_layout_root, _layout_root / 'scripts/dsol_paper1', _layout
         _layout_sys.path.insert(0, str(_layout_path))
 
 from pathlib import Path
-from scripts.dsol_paper1.render_bridge_common_v1 import ROOT, REPO, read, sha, write_new, cell_key
-from scripts.dsol_paper1.evaluate_dsol_libero_hdf5_views import protocol_spec_at, protocol_spec_count
-import scripts.dsol_paper1.run_full64_view_landscape_v2 as old_control
+from scripts.dsol_paper1.runtime.render_bridge_common_v1 import ROOT, REPO, read, sha, write_new, cell_key
+from scripts.dsol_paper1.runtime.evaluate_dsol_libero_hdf5_views import protocol_spec_at, protocol_spec_count
+import scripts.dsol_paper1.operations.controllers.run_full64_view_landscape_v2 as old_control
 
 def identity(path): return {'path':str(path),'sha256':sha(path)}
 
@@ -27,11 +27,11 @@ def build():
     assert {s['selected_candidate_id'] for s in specs}=={'canonical','broad_train_000','broad_heldout_000'}
     assert {s['policy_repeat_id'] for s in specs}==set(range(8))
     source_paths=[Path(old['benchmark_protocol']['path']),Path(anchor['catalog']['path']),Path(anchor['noise_bank']['path']),
-        REPO/'scripts/dsol_paper1/evaluate_dsol_libero_hdf5_views.py',REPO/'scripts/dsol_paper1/trace_view_repeatability_v1.py',
-        REPO/'scripts/dsol_paper1/run_view_value_expectation_accel_ensemble.py',REPO/'scripts/dsol_paper1/explicit_flow_noise.py',
-        REPO/'scripts/dsol_paper1/libero_visibility.py',REPO/'scripts/cabi_vla/serve_alphabrain_pi05_websocket.py']
+        REPO/'scripts/dsol_paper1/runtime/evaluate_dsol_libero_hdf5_views.py',REPO/'scripts/dsol_paper1/diagnostics/trace_view_repeatability_v1.py',
+        REPO/'scripts/dsol_paper1/runtime/run_view_value_expectation_accel_ensemble.py',REPO/'AlphaBrain/research/dsol/data/flow_noise.py',
+        REPO/'AlphaBrain/research/dsol/metrics/visibility.py',REPO/'scripts/cabi_vla/serve_alphabrain_pi05_websocket.py']
     source_paths += [REPO/'scripts/dsol_paper1'/name for name in (
-        'render_bridge_common_v1.py', 'run_render_bridge_worker_v1.py',
+        'runtime/render_bridge_common_v1.py', 'operations/controllers/run_render_bridge_worker_v1.py',
         'protocols/build_render_protocol_bridge_v1.py',
         'operations/controllers/run_render_protocol_bridge_v1.py',
         'operations/controllers/queue_render_protocol_bridge_v1.py',

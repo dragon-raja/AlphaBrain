@@ -8,6 +8,32 @@ import copy
 from tests.dsol_paper1.paths import ROOT
 
 
+def baseline_ast_dump(tree):
+    """Render the original Python 3.12 receipt on Python 3.10 as well.
+
+    PEP 695 added the empty type_params field to definitions in 3.12.
+    Preserve the recorded digest instead of regenerating historical receipts.
+    These sources use no generic type-parameter syntax; no executable field is
+    removed or ignored here.
+    """
+    tree = copy.deepcopy(tree)
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and 'type_params' not in node._fields:
+            node._fields = (*node._fields, 'type_params')
+            node.type_params = []
+    return ast.dump(tree, include_attributes=False)
+
+
+def test_baseline_ast_representation_handles_pre_312_definition_fields():
+    node = ast.parse('def probe():\n    assert 1 == 1\n').body[0]
+    expected = baseline_ast_dump(node)
+    old_style = copy.deepcopy(node)
+    old_style._fields = tuple(f for f in old_style._fields if f != 'type_params')
+    assert baseline_ast_dump(old_style) == expected
+    changed = ast.parse('def probe():\n    assert 1 == 2\n').body[0]
+    assert baseline_ast_dump(changed) != expected
+
+
 def test_all_85_modules_have_an_owner_and_no_flat_forwarders():
     manifest = json.loads((ROOT / 'archive/repository/20260911/test-modules/manifest.json').read_text())
     assert len(manifest['records']) == 85
@@ -54,7 +80,7 @@ def test_scientific_test_bodies_and_assertions_were_not_removed_or_weakened():
         path = ROOT / row['new']
         tree = ast.parse(previous.get(row['new'], path).read_text())
         actual = {
-            str(index) + ':' + node.name: hashlib.sha256(ast.dump(node, include_attributes=False).encode()).hexdigest()
+            str(index) + ':' + node.name: hashlib.sha256(baseline_ast_dump(node).encode()).hexdigest()
             for index, node in enumerate(n for n in ast.walk(tree)
                                          if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name.startswith('test_'))
         }

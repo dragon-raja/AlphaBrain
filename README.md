@@ -1,5 +1,9 @@
 > 本研究分支的入口：[Paper 1：VLA 视角利用研究](docs/dsol_paper1/README.md)。以下为 AlphaBrain 框架说明；其他历史研究目录不代表当前论文范围。
 
+开发前阅读 [贡献与维护规范](CONTRIBUTING.md)。主线可复用实现位于 [研究包](AlphaBrain/research/dsol/README.md)，报告位于 [报告层](reports/paper1/README.md)，已退出主线的方向见 [旁支归档](archive/research/README.md)。
+
+仓库导航：[整体架构与职责](docs/architecture/README.md) · [命令入口](scripts/README.md) · [测试与验收](tests/README.md)。核心代码不依赖执行脚本或部署层；当前研究与历史证据分开管理。
+
 <div align="center">
 
 # AlphaBrain

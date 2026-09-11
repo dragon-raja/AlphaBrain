@@ -10,7 +10,7 @@ import sys
 import tempfile
 import unittest
 
-from scripts.dsol_paper1.view_acquisition_protocol import (
+from AlphaBrain.research.dsol.acquisition.protocol import (
     GATES,
     ProtocolValidationError,
     build_plan,
@@ -23,7 +23,7 @@ from scripts.dsol_paper1.view_acquisition_protocol import (
 
 REPO = Path(__file__).resolve().parents[2]
 DRAFT = REPO / "configs/dsol_paper1/view_acquisition_a1_draft_v1.json"
-SCRIPT = REPO / "scripts/dsol_paper1/view_acquisition_protocol.py"
+SCRIPT = REPO / "AlphaBrain/research/dsol/acquisition/protocol.py"
 
 
 def sha(value: str) -> str:

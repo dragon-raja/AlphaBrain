@@ -5,10 +5,10 @@ from unittest.mock import patch
 import types
 import numpy as np
 
-from scripts.dsol_paper1.view_acquisition_executor import (
+from AlphaBrain.research.dsol.acquisition.executor import (
     LiberoKinematicCameraBackend, PersistentOSCGoalHold, StepFeedback, execute_acquisition,
 )
-from scripts.dsol_paper1.view_acquisition_motion import (
+from AlphaBrain.research.dsol.acquisition.motion import (
     BudgetLedger, MotionLimits, Pose, WorldAABB, no_acquisition, plan_camera_motion, plan_matched_hold,
 )
 

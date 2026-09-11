@@ -1,0 +1,885 @@
+{
+  "scope": "Final source identities after reviewed path fixes and import-safety guards",
+  "sources": [
+    {
+      "path": "scripts/dsol_paper1/analysis/aggregate_dsol_libero_closed_loop.py",
+      "sha256": "7c130ae3ed2ccfef34a8e8b13ca6d88220b3e641b2966f321add03957b8b7056"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/analyze_accel_noise_stability.py",
+      "sha256": "22330617c7f7d2e6cdf62386f221927e2e6fc029eccc1a28efa3e86186431bba"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/analyze_accel_relations.py",
+      "sha256": "ad50a7c264f3feb247e052e45e8941bbca6a6b49f8b2929d1094930db9cdee98"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/analyze_m_b_multiseed.py",
+      "sha256": "6ba1e87a37a5b6e49fa5ebb0ad458111b31465c7e7c015625d999a20358a338c"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/analyze_matched_view_metric_rules_v1.py",
+      "sha256": "78a529979ce2c8effa9f636548fe96672d497704ed36309d45579cdacf780fcd"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/analyze_render_protocol_bridge_v1.py",
+      "sha256": "6bfadb1f22cf3acec1f598f0e1e8d7c754652ce440de3dbf9ca73d25497bc3d6"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/analyze_statewise_view_oracle_v2.py",
+      "sha256": "095fae6bc7ff11d3d198c640b8e17add068425f35beff8d3872245830e5cbc88"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/analyze_view_render_fix_v1.py",
+      "sha256": "89de1cc4e8c38d19ad2d781ed21957ae39916a8a4afe5578dfa779238ceda03a"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/analyze_view_repeatability_traces_v1.py",
+      "sha256": "14b3d4a74c57ec7ce4ce7193964dbb44042c42d154e6f73179a7cb1feba88fcc"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/analyze_view_value_discovery.py",
+      "sha256": "958f84a713236674b143a094f92430c10f0879333856d36cddd62d0f5b47285a"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/analyze_view_value_expectation_calibration.py",
+      "sha256": "0df8a45a58530a925eb6a3ac459271825bdf4279dbed28a3eefd4f9a1f3e143d"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/analyze_view_value_expectation_heldout.py",
+      "sha256": "0dcd767a871d71ca14fe203422f09946c475e64fd7d91ea26595183e3a2862ed"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/audit_accel_view_selector.py",
+      "sha256": "078a327eaedd1d4443a25e749869c41d81e5681bafa125dc531d182c993869c5"
+    },
+    {
+      "path": "reports/paper1/historical/audit_consolidated_view_pdf_v1.py",
+      "sha256": "c336c8d15b98072d829a98339c033feaebc40bd7bec6cda1c49ead8bf920d0e9"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/audit_constructed_blind_reveal.py",
+      "sha256": "87d167fad29c142fd3759a521eec78382d0f83d14091c8b95c027f0d42aa4867"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/audit_dense_selector_common_failures.py",
+      "sha256": "e0b55e72b59a6cce2bb0bc4fbe70be700fbd50134c3841eae3e72bfcc5dc4dc7"
+    },
+    {
+      "path": "scripts/dsol_paper1/training/audit_dsol_training_match.py",
+      "sha256": "acc9e65eb27c5b31bd891e03dfd483a5578ca43a325229a0ebc569fc358fa924"
+    },
+    {
+      "path": "scripts/dsol_paper1/training/audit_libero_pair_collection.py",
+      "sha256": "963f9a72af49b6fda86ae4feb4c33decb0bf9661081e201f22729cb186d95f22"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/audit_taskcentric_support_pair.py",
+      "sha256": "bcb939345125b77dea7dfc936f99a2c48d47d59f90aef38e8dc98b5593a44451"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/audit_view_speed_equivalence_v1.py",
+      "sha256": "946303fdeb835392a27623ac40491b46dab42abf8262e7d87ccc4d7884e051ed"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/audit_view_value_expectation_completion.py",
+      "sha256": "f769c09927d6253a43a26c94c5f008a3e14b3a83d6082873a4c0789d67bf17c1"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/audit_view_value_expectation_heldout_run.py",
+      "sha256": "6806a8f07f1829f8bf4d53f558ba8bdf7967fcfe477dedb00cddaa834a937d39"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/audit_view_value_expectation_protocol.py",
+      "sha256": "10c8c8f178b24738298532594f5f70d1627c31c99c85a6ab5684fe5f98217bd9"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/audit_view_value_expectation_runner_release.py",
+      "sha256": "213ee57bb5731ec3173e83d856125be8f9fd28fc1ba206bd8152f9e8e7cbd4b8"
+    },
+    {
+      "path": "reports/paper1/historical/build_accel_expanded_brief_pdf.py",
+      "sha256": "a6fddee924feb3b0c47ec5d3ab2574cab33078bd425b60af6ef7b3b733a374a7"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_accel_expanded_diagnostic_protocol.py",
+      "sha256": "4f0ee31777b9ef3050b94e2367660b34d4204787bc6943be55bf9ebf79a50c48"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_accel_gate_a97_protocol.py",
+      "sha256": "73456e7057f06154450602c3d0f9209d32b0d1346529a79c9f25697eb07706e3"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_constructed_m1_protocol.py",
+      "sha256": "796730afb987aadc6794faab234095b8f979ffad853c6ab8b2cddeec0704d704"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_constructed_taskcentric_closed_loop_protocol.py",
+      "sha256": "93f58478f1d4818c9944d2f5744ca5b30f4456aa14a14fc6ded7803d5ae7d356"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_constructed_view_oracle_protocol.py",
+      "sha256": "18e0e9be696fcd5c540c9145926d09496daf38b1748585ba9051123b3b7daa41"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_dense_test_scan_plan.py",
+      "sha256": "14b5e9202b60be39675cb3ced93fb40fa572a7f1925596b609e9dc5e57658de5"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_dense_test_selector_protocol.py",
+      "sha256": "1e535e3724801b1c289824fb8a465881bae1dff51c3b8e40ab27542deb37494c"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_eval_throughput_benchmark.py",
+      "sha256": "d28cab732cdb08f598c40eea88059034ffb3ee267684012b249736dd1f902c3b"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_libero_hdf5_closed_loop_protocol.py",
+      "sha256": "5dc0330e0732afed43f9d552f613144c9b463ecf537a267899d81a41f3d35a3b"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_libero_m1_visibility_protocol.py",
+      "sha256": "0b9256c9b14be80b9098d4102b365308ccf4a56780347394884c1efdef30749f"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_libero_view_catalog.py",
+      "sha256": "f564f426b58b7f3ab81cf36dea9edfd5ed06935131830b515daaa29d2186500c"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_libero_visibility_scan_plan.py",
+      "sha256": "178b77dfbbaa5b2641f20fcfa95241422a72cf7bc847f7720e5e425602b66966"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_prefreeze_bundle.py",
+      "sha256": "631952653a5d2ccff2ca4cd236c5c8ea5fa5ca7c1c28b43927f640ab744bc78e"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_render_protocol_bridge_v1.py",
+      "sha256": "8c5c0e8e4ddfda98687457b94a02c18c5cd20a2f0eca248e469b26dcee7d840e"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_statewise_view_oracle_v2.py",
+      "sha256": "777cbc51348ea4bc7126b3930aff27ac0621cab771d69b7f468d23126835f57b"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_statewise_view_oracle_v2_stage.py",
+      "sha256": "a6c53e9c3b91818a0592dfc4a6a837d320d5e552044c2e45919c4ad11c86ef4b"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_strong_information_gate_plan.py",
+      "sha256": "6f356fcf5497a170bfa2731bfd2e50f62db919624bd465ea0ca39b5b2d73edb5"
+    },
+    {
+      "path": "reports/paper1/historical/build_unified_view_research_report.py",
+      "sha256": "9f0e5c39b3f77c3541ec9384a3f1373490c5d4e0e15dcfdfb910cb3d50a1e046"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_view_repeatability_protocols.py",
+      "sha256": "47e946ac4d418f6dce845a5327050b7aff71626821b0e2b788d2d3b790b96da4"
+    },
+    {
+      "path": "reports/paper1/historical/build_view_revalidation_brief_pdf.py",
+      "sha256": "36d637adc7600123a9455fdd299ea4f3af3344ce0e7516b9caa4cf1d3d6758bd"
+    },
+    {
+      "path": "reports/paper1/historical/build_view_revalidation_integrated_v2_pdf.py",
+      "sha256": "4b3067c4733de8effb758a54a843274471d95dc22e016198e0478b16518e9f55"
+    },
+    {
+      "path": "reports/paper1/historical/build_view_revalidation_report_pdf.py",
+      "sha256": "61c8d151039b2dcf288decc6584755995b0f5492ed7e6e2246fb9911b2718f5a"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_view_value_expectation_calibration_stage.py",
+      "sha256": "1718942d1d40e3dc86021c850de6cc9bc2c99261460d806d90b729e338fb140c"
+    },
+    {
+      "path": "reports/paper1/historical/build_view_value_expectation_final_report.py",
+      "sha256": "4edba4003fbf8416c5964d6a32e17f627a58c809aa76557780f4fbd24c40bf7b"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_view_value_expectation_heldout_protocols.py",
+      "sha256": "cb2294ae5fe455634473b862258b33b312c82d84bdd0acadb3f09e618b2e6e3a"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_view_value_expectation_population.py",
+      "sha256": "80d6f17995609ba6b2054a39840004e3390176ec409b2b06c84d0914e3c95322"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_view_value_expectation_reserve_protocol.py",
+      "sha256": "4cfbde78578b3c76b06fd470d7bd2b0866dda69522bc216a7cc6e8f508d78949"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_view_value_expectation_scan_plan.py",
+      "sha256": "3bd4029fe248801d56c5f0e93d92ab0907d39fb976849dc8ab3df8a92bd08534"
+    },
+    {
+      "path": "reports/paper1/historical/build_view_value_new_experiments_pdf.py",
+      "sha256": "9097a6556f79b4ba57f45eec519b0fd16bd1a432b088d1103348bac2225559c9"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/build_visibility_selected_strong_gate_protocol.py",
+      "sha256": "9fcca990b9227bf4cd92038ca09a5d763c6ff18b121a0b3368fcad1f0461faaf"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/capture_runtime_identity.py",
+      "sha256": "af4b929957e6015f5d65a8a25078a855175f68ab51aecfd5bb62d3cc2e3d849f"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/clone_statewise_view_oracle_v2_reserve.py",
+      "sha256": "decb957710a80f51ee463d15e01a8b29a84c85a2ad69cfe46b46e134beb1b8fa"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/compare_dsol_libero_m1_models.py",
+      "sha256": "43058b0c735ae34490ac25fa9186a8f2b4aa74802474663c1f6de0cc3e4c9c73"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/compare_eval_throughput_benchmarks.py",
+      "sha256": "b167b3356466d62f165e696a3f29962ea47dedf31eb106076961825bd22c3cfa"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/compare_taskcentric_support_models.py",
+      "sha256": "7b2bfd7432034e30535cf81fda1b43588e253023ce4ed84576aef7f0271734f3"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/constructed_blind_reveal.py",
+      "sha256": "ca0ff12e8c49ef8263394a58630a9a335bcdb564c9a9b93ce488c78d546c6d17"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/diagnose_standard_initial_input_v1.py",
+      "sha256": "f08e3cf82c0de12383ded9e89bd4b7f040a92b00ee56ad8f8ced9686495a12da"
+    },
+    {
+      "path": "scripts/dsol_paper1/training/download_libero_hdf5.py",
+      "sha256": "8033129d9dece5534dcc4767dc4dd8f11681537f2f7dd0f75fd7722ed8d4af8d"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/expand_protocol_noise_repeats.py",
+      "sha256": "07bd38ba463d1d2d76af8f8b2960b5a11917953cc112833c7b3db130d004d94e"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/failure_view_search.py",
+      "sha256": "02b507d7d31395f4634dee59833943c58218d27b144ccdd26b7ff0c3a2a901b4"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/finalize_canonical_match_v1.py",
+      "sha256": "476f23d9950c2d3b67f3315b5e9fc71341f1cfdb4eeb01cdea6a521a653a95e7"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/finalize_constructed_m0_manual_audit.py",
+      "sha256": "4cf793248f143338cee3d3069d0bce8df7cb64b6e019d4bb710237118b8b1f4f"
+    },
+    {
+      "path": "scripts/dsol_paper1/reporting/finalize_matched_view_landscape_reports_v1.sh",
+      "sha256": "dd166ff1267e07c3e9a39cb732431fdabfa9def169c90c4b90254f685374a740"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/freeze_constructed_task_pairs.py",
+      "sha256": "56f8ea754743517cdf69e6ce867b65695dae004b7ecb34b1dd7bcded1af8483c"
+    },
+    {
+      "path": "scripts/dsol_paper1/training/generate_libero_hdf5_view_pairs.py",
+      "sha256": "3643613ccc8d674da5ce8156b231dd34f458a16d0351ef9be939ca0c855c14e5"
+    },
+    {
+      "path": "scripts/dsol_paper1/training/generate_libero_pair_collection.py",
+      "sha256": "a76ac86564d97fa3bae066997657e492cadc3d58d957e6f0435ac2b540c8adf6"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/hold_view_render_diagnostic_window_v1.py",
+      "sha256": "acb9bba210178b0263ba076399f428ebea06be7cf0c57e8a3831ead2ec2190a5"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/join_constructed_accel_m1.py",
+      "sha256": "f790ec06a5bc07496bb5da8b89cf829de15b29911f1c86b1b155850e536fb6d8"
+    },
+    {
+      "path": "scripts/dsol_paper1/training/libero_pair_records.py",
+      "sha256": "69ab72d3b71d409c2dee8b3f92709d98488238fd224a26e126765ebe89bdf592"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/log_view_value_expectation_wandb.py",
+      "sha256": "81af32579260ac2be708e750fe5feb5b18ce959d3947d10fceaee46291e26cfc"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/measure_view_speed_resources_v1.py",
+      "sha256": "8a43102267888b100490acff0fbef68498d123d5063019a3b77029dbd8bc757b"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/package_constructed_blind_reveal.py",
+      "sha256": "aa888cb10387d205b9de489c52bfec3788d66dca0c098e1abc66fd6b1452ad4c"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/plan_precision_power.py",
+      "sha256": "70fc650867299af7dc7a7904f8ea729fd54e4b7efe6c72c2e501d028f247abf6"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/plot_constructed_accel_relations.py",
+      "sha256": "f9d7d8a2df22182d526188f2d221ca92395ddd5b510a6565f70a9520d483a076"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/plot_dense_test_selectors.py",
+      "sha256": "47ac7a34eabb34c8997e07b0bed0778afd2618fcf3bfc63fb4266775930f12a7"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/plot_failure_view_search.py",
+      "sha256": "d61ad40573f8a808a10792b61ab751c6aaeee138b7d5d9c71848147e11a5fb56"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/plot_view_repeatability.py",
+      "sha256": "bb20b9df5df5ab4335a1b29098ed5a1513c4394d69025ad2c5026f7d0e0ce300"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/plot_view_revalidation_interim.py",
+      "sha256": "1e2889e76dd58261c7f0827e76bd6286382b7d6c0fb8f960e1256ee92dcec649"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/plot_view_value_discovery.py",
+      "sha256": "9281ad49da6078fd7b5fa2eba39ebbd12b3edf6e078e39002b6b1da4eaa3547e"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/prepare_dynamic_scheduler_v1.py",
+      "sha256": "28b4adace2cd734d7948cc50e8d425f779af5c5fe57de6cfafa4db3533e32aea"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/probe_view_gl_pixels_v1.py",
+      "sha256": "22d300c289c1d008402e426a3648f3b15084815dd869fcfcdc96aa2adf5d4a82"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/queue_render_protocol_bridge_v1.py",
+      "sha256": "e533f1db38f8826a08413717ab4312959fe9bf0fba5e008b47757e95a244443a"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/recover_render_bridge_analysis_v1.py",
+      "sha256": "3031630d958d48a48a6e84441aef438798ef17ae8efab03cc51b98ac268525c8"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/render_constructed_m0_audit_montages.py",
+      "sha256": "c56817d7244a6a5d1650ed91678a3f29c04f69174beefed3729a883b00000a9a"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/run_accel_checkpoint_smoke.py",
+      "sha256": "5803da84d271320ee12cddcbc0f4e1787be1daa8e984d3815f6276b7e3b9d78c"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_accel_gate_a97.sh",
+      "sha256": "394089d8554398a949c0b6580b820674d09546cff844621aa1bfcf245dac946a"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_accel_noise_stability.sh",
+      "sha256": "b2dce0d74c4f828ba602a0a1bf75666dbfd033cabdc07cef47b421697376ace9"
+    },
+    {
+      "path": "scripts/dsol_paper1/training/run_broad64_posttrain_gate.sh",
+      "sha256": "8286e37da364ecde365b562b1c312784ab0cf5d381b00164896544f8bf671c87"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/run_constructed_accel_bank.py",
+      "sha256": "6c47c72c8ed39c33309de6ef3a0af3f229c23e46d6966a4984974886ff9c1f35"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_constructed_accel_bank.sh",
+      "sha256": "4c9e27918597904035710a86ac54b4155448012a480240398ee773b32c2b07bc"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_constructed_all8_dense_discovery.sh",
+      "sha256": "20c127ed6a2251394fa2cb90bd6e4dff70915b024fb85657e212588def5fba3a"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_constructed_all8_repeatability.sh",
+      "sha256": "56bcee73cdfdbd17c4313ee5a7cab12210e5791b1059a4d9d22419b6b9f0868e"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_constructed_all8_scan.sh",
+      "sha256": "c3df4c8c9159d8242c7c6acecb34b62e9a7683ac744c9939a1434937da381f8d"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_constructed_m1_practical_early.sh",
+      "sha256": "1e994eee872bac5810945fe02484829ae82370a68789aef6431b190e942e073b"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_constructed_view_oracle_pilot.sh",
+      "sha256": "d3d919c65d22b95c6b3bab49ce2a250e3bb2dc53cb0d19d88a3a0a45934fcfe9"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_dense_test_selector_eval.sh",
+      "sha256": "53fe9e575e1572ad0f5111e3235af452499d2d597ce8c67470dcb9ca9ec17231"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_dense_test_source_extension.sh",
+      "sha256": "c22ca90313d14efeefe23aa3788b09fd45da1b91be3d1fd549f9078e5cea7933"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/run_early_landscape_speed_gate_v1.py",
+      "sha256": "8d1e72a10a42fb647003cb3333ca81d07c53572f74f77f96672f7c004d0499b7"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/run_failure_view_search.py",
+      "sha256": "910802379356e76ed609548a732c63ff8d3abe72c73ad35941835730b98b44c8"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_libero_pair_closed_loop_matrix.sh",
+      "sha256": "827ad5b658666953f4a29bad4cd177e302e683d071f560b25c0703eb3d5c7efd"
+    },
+    {
+      "path": "scripts/dsol_paper1/training/run_libero_pair_collection.sh",
+      "sha256": "3681d34296895bfea0fbd26786599236ae7c45c1791fca24475fb09fd4a10033"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_libero_pair_formal_matrix.sh",
+      "sha256": "8acbea6abdd1e28d7dd2e92b8d08c5827a51f2415ff81673da94c406e8063ab7"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_libero_pair_smoke_matrix.sh",
+      "sha256": "b4650c13df7ed67d207964c768047636fc689c8e53c80ccd95f79c8b136d8f1d"
+    },
+    {
+      "path": "scripts/dsol_paper1/training/run_libero_pair_train.sh",
+      "sha256": "a6aaab14508f62755a7eb8da7f1a130047f5f63d2716848e12cc8fcb104df984"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_libero_plus_camera_full_gate.sh",
+      "sha256": "7d046da0169cce23c8d298b20e013e4e87cf74a3ccd2567348a858f3654d30c2"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_libero_visibility_scan_matrix.sh",
+      "sha256": "e92fa043ba75f65e95957f1b1033c96bcdb4c47d235509ff630a13230082c315"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/run_libero_visibility_scan_plan.py",
+      "sha256": "e9c535cb9c5171f624638fbd65993656875cfdd0e76ab5b1da59fa8df9c870f5"
+    },
+    {
+      "path": "scripts/dsol_paper1/training/run_m_b_finalist_training.sh",
+      "sha256": "c251d16f4598b1fa5aebef3c1a273c54ab391d6375caf5cd01458c09185261e7"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_m_b_formal_evaluation.sh",
+      "sha256": "bd0acd49c9bc7f03f6f210a0328c3fef030c05e8bdfc020542f2bc6e91f73101"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_matched_view_landscape_pipeline_v1.sh",
+      "sha256": "f7a3ffb7f6715c2fee444f45bed0b7b4e6a8898f3d91f38ce5e105f86df5ac34"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_original_libero_retention_gate.sh",
+      "sha256": "842c2669df65d55dcd3af4bdb585bbd57e2e87fa740853538d4a49306ae66011"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_post_calibration_gates.sh",
+      "sha256": "4e5a8cced6c12b4a57c25b0cd27f0863e691cee0e040c3ceb7e7d1d219767e9b"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/run_protocol_smoke.py",
+      "sha256": "fe052b4e0ecb9e0a9a23b070b5d84d1dbaaf984f4a79109013fda9adbf3c6d99"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/run_render_protocol_bridge_v1.py",
+      "sha256": "8d190879b659f593180d612d15fdf1e449dc043eadd122cd951b984902372433"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_statewise_view_oracle_v2_development_O.sh",
+      "sha256": "bbcc922ef84937ca53c574689a6639146d8462caf1b3e9dbe97aef6fc436a016"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_statewise_view_oracle_v2_tail.sh",
+      "sha256": "bb2c0fce3975a42796d7c7e2c4e8acb985ba066c4a422c69914e45556ef835c1"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/run_view_acquisition_engineering_smoke.py",
+      "sha256": "4e0e5fddaabaffc9a5f01186a143bf036f1e0ac67409a04d266c65e25e81030e"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/run_view_noaa_validation_v1.py",
+      "sha256": "1b77b6e87f9d67fcb829535d6f69857ac0e10c19616149adfccb2fa4a55edb6c"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_view_repeatability.sh",
+      "sha256": "a9e355120f5611dd2ef862913bdc2ed48dcc3d996820f7a117b3f06bd7905880"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/run_view_repeatability_boundary_v1.py",
+      "sha256": "1b7ec665d8336302e2781ef9c5893f8c3b6acff529a57edd7a283a0394a6d6f6"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/run_view_repeatability_probe_v1.py",
+      "sha256": "740de41164d197bc0363efb75e2ef9c9a659a992fdf34e6d06dc8bb90073453a"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_view_value_expectation_calibration_full.sh",
+      "sha256": "63e3b7bacbb74e143708b98cdf921b0449b7fd0cb49fcebb4700e2c25f1f54dd"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_view_value_expectation_calibration_tail.sh",
+      "sha256": "0d41e63fdcca0e819d05e744ff2789a33aeb47e2d03772cb6137c580c76e92d5"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_view_value_expectation_finalize.sh",
+      "sha256": "a3a6779b0b5cd2b301ef7b5b89ddf03707c61a49e50523af7cd5bf763f8b6e3d"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/launchers/run_view_value_expectation_post_calibration.sh",
+      "sha256": "a51b6973e401ee5c284bdc6a2cff6551b32ac6b5f0b215da03e2a10034320278"
+    },
+    {
+      "path": "scripts/dsol_paper1/protocols/select_constructed_m0_candidates.py",
+      "sha256": "273cef1d246562384c5024b80fc6079efc1a62eb46b80c5c7b63eb765c14d3a0"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/summarize_accel_gate_a97.py",
+      "sha256": "e16f0bbd5bbdd1b68864458560a783bff2ad1f67374c56691fc88f8015dab389"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/summarize_constructed_taskcentric_closed_loop.py",
+      "sha256": "3554d0ec7eece118504d56c41e52c89fb500ac2de35d832b7e88d887e00dfbc5"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/summarize_dense_test_selectors.py",
+      "sha256": "2c92c03e9d788f8ec31b11352cd3b8759788c3623265d7a524c5cd922672eb13"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/summarize_dsol_calibration.py",
+      "sha256": "77b471277668f435050de9476da4471de3224ea2be2ad5895f81cac72b29301c"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/summarize_dsol_libero_m1_visibility.py",
+      "sha256": "90e283d544462100407a4823c21b4fef58e59f760878d902f37a492e3f7f4a5e"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/summarize_libero_pair_smokes.py",
+      "sha256": "5b25efdfebf6c069f7c4a7f251996468d949fda4fd69296b8b3717877ccb1ad9"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/summarize_libero_visibility_scan.py",
+      "sha256": "beedefdff007b9f5973260324a01f9e4d7526d7fa393b66b5d5f240926809c42"
+    },
+    {
+      "path": "scripts/dsol_paper1/analysis/summarize_view_repeatability.py",
+      "sha256": "2562a9f743546fad319aefcc8b6d6081fd1ada4904352d81b25616b2a3b6d3a4"
+    },
+    {
+      "path": "reports/paper1/historical/tidy_research_report_artifacts_v1.py",
+      "sha256": "a20b617186ac10320056e5a986c56239d2addb8c0230844730e67ac3534f9f49"
+    },
+    {
+      "path": "scripts/dsol_paper1/diagnostics/trace_view_noaa_v1.py",
+      "sha256": "dc8ebbf429cf898a8822e3eb96b30d5a1ab18c5a35e108d908b7c565b391f0c0"
+    },
+    {
+      "path": "scripts/dsol_paper1/training/train_statewise_view_selector_v1.py",
+      "sha256": "930624b522a840f5c44d2fb8bafc2179ddaaa6702fcdbefd1a1bea149e8923b8"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/transition_initial_dynamic_v1.py",
+      "sha256": "543b679e47e75f5bc097f3a03bd7e34e27bca90a50377df370a25088befc28de"
+    },
+    {
+      "path": "AlphaBrain/research/dsol/acquisition/executor.py",
+      "sha256": "11cccd670ff10f404194247e115e56be4ac03bf7ba2a01dffe435f2beaf7151b"
+    },
+    {
+      "path": "AlphaBrain/research/dsol/acquisition/inputs.py",
+      "sha256": "27cffae5a221e5ec56983d5d5c896efe222768d79184f101736d9586fe0e350d"
+    },
+    {
+      "path": "AlphaBrain/research/dsol/acquisition/motion.py",
+      "sha256": "b4413261a397369954c9cd8844431932dafc36de6234a8424dc3f47561f5d71e"
+    },
+    {
+      "path": "AlphaBrain/research/dsol/acquisition/protocol.py",
+      "sha256": "77e82726177082e5a67030cfb027dd14a9cba4603bf2c7491485ea9d5c0eb5cf"
+    },
+    {
+      "path": "scripts/dsol_paper1/operations/controllers/write_checkpoint_identity_receipt.py",
+      "sha256": "4f21cfcc77407f7917048d1197ad8a64a760a8a79a491e1e3419e850236e8343"
+    },
+    {
+      "path": "scripts/dsol_paper1/training/write_dsol_training_manifest.py",
+      "sha256": "fc28e5b9065e116e6dccafb5431b4c1acdd038a7a7cafb620d03a278c1eba87f"
+    },
+    {
+      "path": "tests/dsol_paper1/accel_checkpoint_smoke_test.py",
+      "sha256": "4efa132b6479aa3026ec6753c609c0962d2160a256316260f237daecddad142f"
+    },
+    {
+      "path": "tests/dsol_paper1/accel_cli_test.py",
+      "sha256": "b83debb7031d02b23618b2a23b0ebabe8a6e00ec4bdab2a355c85955e0cab496"
+    },
+    {
+      "path": "tests/dsol_paper1/accel_core_test.py",
+      "sha256": "cc3a56f2406f07f045adcf215bd857fd52f3f0f98bde7ccb9e77a79e50b1e282"
+    },
+    {
+      "path": "tests/dsol_paper1/accel_gate_a97_test.py",
+      "sha256": "cddfdd8d510a96c5b2ac7b112c79acf53be34f3262b2cbecc59c719db1341fb8"
+    },
+    {
+      "path": "tests/dsol_paper1/accel_inference_test.py",
+      "sha256": "60060cccfe1987428a2e6415e1724f95311172f110fcad7655e122d4e79082c8"
+    },
+    {
+      "path": "tests/dsol_paper1/analyze_m_b_multiseed_test.py",
+      "sha256": "512df44508a6ee6dd0202c4139eff2e070c1939674b49e00db51b31c3c0073f3"
+    },
+    {
+      "path": "tests/dsol_paper1/audit_view_value_expectation_heldout_run_test.py",
+      "sha256": "35a2a17029fab693a4f66dc704c7c5ca5cb488d150cf06934d39ca3ba70483eb"
+    },
+    {
+      "path": "tests/dsol_paper1/audit_view_value_expectation_protocol_test.py",
+      "sha256": "0f105993fcc5a86bb8a268606372361fc92d1f5cc27e8a131fd488d5a6bff2e1"
+    },
+    {
+      "path": "tests/dsol_paper1/build_constructed_m1_protocol_test.py",
+      "sha256": "8bf578ac196adf00295d84be32b1aa784d7446d34f98ae38d60daf9a0e9978a3"
+    },
+    {
+      "path": "tests/dsol_paper1/build_constructed_view_oracle_protocol_test.py",
+      "sha256": "1e992dc29f0b9131c7ad8dfdc21dbdddce4fab264f9af046b6bd2b58bc50b9b4"
+    },
+    {
+      "path": "tests/dsol_paper1/build_matched_view_landscape_protocol_v1_test.py",
+      "sha256": "0e008aae6e76ad3b4974a284b9cfbd58fc03b1386c4e76b5e2edeb44c662d57b"
+    },
+    {
+      "path": "tests/dsol_paper1/build_view_landscape_report_v1_test.py",
+      "sha256": "d7eb7bb0b6786d01e786c77a0c0407b0b857eafe4391f363a9807c45686d3d3d"
+    },
+    {
+      "path": "tests/dsol_paper1/explicit_flow_noise_test.py",
+      "sha256": "3553f284ebab0a282168250ff19f3a261450a7895a56212131e90bdc4cb9f34d"
+    },
+    {
+      "path": "tests/dsol_paper1/finalize_constructed_m0_manual_audit_test.py",
+      "sha256": "ee7fc864dc4eb4195c965fd5a17a8dbf29ee88d9fa5aa3e873ca4ee4fc7df1c5"
+    },
+    {
+      "path": "tests/dsol_paper1/join_constructed_accel_m1_test.py",
+      "sha256": "45130b496d30604d91e4fb013bc453f9ba129ad36f61ee11360541ed5977b7e9"
+    },
+    {
+      "path": "tests/dsol_paper1/render_constructed_m0_audit_montages_test.py",
+      "sha256": "56d750ce569bd818aa7e57fae7967bc41c68cc96cdb3458b3acb0e6514d59815"
+    },
+    {
+      "path": "tests/dsol_paper1/run_constructed_accel_bank_test.py",
+      "sha256": "4ef7f2ccf67d051dbda8961267aa91044011d9408f50acb4a23e9bd4d852d714"
+    },
+    {
+      "path": "tests/dsol_paper1/select_constructed_m0_candidates_test.py",
+      "sha256": "e4f8e50829eaa2efc9e5770a830d69c633969ff5ce30242620f00bc0654ef907"
+    },
+    {
+      "path": "tests/dsol_paper1/test_analyze_matched_view_metric_rules_v1.py",
+      "sha256": "2da3ef6867fe56141765502f065c385b2d338589775fdae1484e120921ebdf5f"
+    },
+    {
+      "path": "tests/dsol_paper1/test_build_prefreeze_bundle.py",
+      "sha256": "8edd4cda9039e8e4615123bf1de424bf4fe8d2bd1554c9f453301a2e1b0f036e"
+    },
+    {
+      "path": "tests/dsol_paper1/test_build_strong_information_gate_plan.py",
+      "sha256": "3f84d1c7e1cf3170e5d410ed70dbf041af32475db1cc8155948509d350023a84"
+    },
+    {
+      "path": "tests/dsol_paper1/test_build_visibility_selected_strong_gate_protocol.py",
+      "sha256": "278edd17a10c5ff1e0a78efba440bbd2910b449afed39c975236af27adef8eec"
+    },
+    {
+      "path": "tests/dsol_paper1/test_compare_libero_m1_models.py",
+      "sha256": "7cb74483b08928a1d56afd78165a879633073fd880dc9d15e64564c17da18319"
+    },
+    {
+      "path": "tests/dsol_paper1/test_consolidated_view_analysis_v1.py",
+      "sha256": "57820cab4dea84d266b2d86e701dfe8d56fef41536afa9ccea948b967cfff7b0"
+    },
+    {
+      "path": "tests/dsol_paper1/test_constructed_blind_reveal.py",
+      "sha256": "bfc9d8ac65f841802543b95bc671c5069ded2140bd3afaaf847c1f7eca111136"
+    },
+    {
+      "path": "tests/dsol_paper1/test_dense_selector_common_failures.py",
+      "sha256": "46d1d3dde131bf8c8a568eb5a95d526521884b20267362626d0d4a2200fa6352"
+    },
+    {
+      "path": "tests/dsol_paper1/test_dense_test_scan_plan.py",
+      "sha256": "0e338eeebed300479848f58e3b904d85b05fe30d19a0da896a8fdc0aa02de7f3"
+    },
+    {
+      "path": "tests/dsol_paper1/test_dense_test_selector_protocol.py",
+      "sha256": "b7037816ca1bb48c1693618ca463039e581f9060d171011a24e032fd7c2ea24e"
+    },
+    {
+      "path": "tests/dsol_paper1/test_dense_test_selector_summary.py",
+      "sha256": "407e3e9d5bcb11bf1b77f7e27218fac5c827af8c9586f90136b09f60d57bf76e"
+    },
+    {
+      "path": "tests/dsol_paper1/test_dsol_training_match_audit.py",
+      "sha256": "663f8668ee00b8f94d10c4f006cf9bdf271715ca3e0e82c10b2dda681de6ac30"
+    },
+    {
+      "path": "tests/dsol_paper1/test_dualhost_aa0_v1.py",
+      "sha256": "8d4dccca089616a51f46e5708ef0bc6548a4f035142c1d1dcd8f3d0426732284"
+    },
+    {
+      "path": "tests/dsol_paper1/test_dynamic_initial_scheduler_v1.py",
+      "sha256": "ddb6229ff1042b6b1c3d6ae0de07f4b93b478eb7fe3a778c98fc006c88866df6"
+    },
+    {
+      "path": "tests/dsol_paper1/test_eval_throughput_benchmark.py",
+      "sha256": "c6087ac6c85f64e12c86bbb7688d324934ff66dbb962e7f2736198754bbdeb2b"
+    },
+    {
+      "path": "tests/dsol_paper1/test_expand_protocol_noise_repeats.py",
+      "sha256": "99ba00156550bcf3a9e88852a20abcce470812b57ec78634341fd285a4cfe296"
+    },
+    {
+      "path": "tests/dsol_paper1/test_failure_view_search.py",
+      "sha256": "1c6e0e389c2eee2d39d4f963a974d50bec855969eda0ec37955c34ba3887090c"
+    },
+    {
+      "path": "tests/dsol_paper1/test_finalize_canonical_match_v1.py",
+      "sha256": "30e80a31f0ec8e65a4d5a2c1226c4cb71ce9ef0de26e6d0cfa01e9e567c6eaa4"
+    },
+    {
+      "path": "tests/dsol_paper1/test_freeze_constructed_task_pairs.py",
+      "sha256": "1a120a2a5af0637240bdebadacc24be0ceb6f7810f3f24e9d0ee4f4a42efbe6b"
+    },
+    {
+      "path": "tests/dsol_paper1/test_full64_view_landscape_v2.py",
+      "sha256": "36b4534c5d21ebef7ab68e0d439c318557b35f1187d0982aa8f99dc2acd6f4fc"
+    },
+    {
+      "path": "tests/dsol_paper1/test_libero_constructed_view.py",
+      "sha256": "cf1f08980efe036406d1f425ab9ca19b02a8fee15c78a85d8ee0c25a9e48ba36"
+    },
+    {
+      "path": "tests/dsol_paper1/test_libero_view_catalog.py",
+      "sha256": "fca84159dbabd54187871aaf069d8495b2635ca4902433741cf3dd9cbbfb44eb"
+    },
+    {
+      "path": "tests/dsol_paper1/test_matched_view_landscape_controller_v1.py",
+      "sha256": "060ad8cac037b0a6fa17aa105cef4082555ed6241f5a3637bcf9a44b3f6f9868"
+    },
+    {
+      "path": "tests/dsol_paper1/test_plan_precision_power.py",
+      "sha256": "ffbd73693950e624b7c3ad40938fd076d288a0b0dd2418e28bf14b4565750ca5"
+    },
+    {
+      "path": "tests/dsol_paper1/test_render_bridge_recovery_v1.py",
+      "sha256": "5cfc60200d66d958417b4b0f2d040ccb1a734a705aa63ba94422ff4392066846"
+    },
+    {
+      "path": "tests/dsol_paper1/test_render_protocol_bridge_v1.py",
+      "sha256": "6e84874a09a516956ba72a17af3c7fb5347e27c6f8b1bc6ae4470372ad0dd031"
+    },
+    {
+      "path": "tests/dsol_paper1/test_run_protocol_smoke.py",
+      "sha256": "fdd89c8f2e0bfe90da28a2b3a04785b21e781818de352123a761ab374ddb8455"
+    },
+    {
+      "path": "tests/dsol_paper1/test_standard_initial_aa0_v1.py",
+      "sha256": "90fc64550af0e0169b0d77710d76775723280364d828b317d3af2471708673cd"
+    },
+    {
+      "path": "tests/dsol_paper1/test_statewise_view_oracle_v2_analysis.py",
+      "sha256": "0f1808d53078fe04f71ee42b95a74a770da1d1d20519529abb435023c80148af"
+    },
+    {
+      "path": "tests/dsol_paper1/test_statewise_view_oracle_v2_builder.py",
+      "sha256": "061feedfa102a06e474cebe7b126b04e8e979c76db45fc908d3b8fe3ac83e56a"
+    },
+    {
+      "path": "tests/dsol_paper1/test_statewise_view_oracle_v2_controller.py",
+      "sha256": "dd4d5cd64b066c23c87c4da8e1a881973029f84fe046584bcbcfa5c0227d8ad1"
+    },
+    {
+      "path": "tests/dsol_paper1/test_statewise_view_oracle_v2_reserve.py",
+      "sha256": "b33dd2edd89acdc67a993bbe7bf0938175206e1e70b79e00b19889213c67529d"
+    },
+    {
+      "path": "tests/dsol_paper1/test_statewise_view_oracle_v2_stage.py",
+      "sha256": "afd6383dad8477adb2cd63e6c3f0d3584bf3b11145ec4296a2ece11e2b4070ee"
+    },
+    {
+      "path": "tests/dsol_paper1/test_statewise_view_oracle_v2_tail_controller.py",
+      "sha256": "4d2752a7983f0c87d6f37cb836fbfb399b7707da0c5d555ef6b91deebd898061"
+    },
+    {
+      "path": "tests/dsol_paper1/test_statewise_view_selector_v1.py",
+      "sha256": "ce951580575cdc4a16d34e50794807403389490be3e107367a2d429402ced3b7"
+    },
+    {
+      "path": "tests/dsol_paper1/test_summarize_libero_visibility_scan.py",
+      "sha256": "9aba878a241b697e0f8405d47e0407aa5f97bd20c31039867a05dee2a0d28eb9"
+    },
+    {
+      "path": "tests/dsol_paper1/test_unified_research_scope_v1.py",
+      "sha256": "d1b54b158099e7eaf62b1bd5d46407fd5a2c9ee2be27da8df476dfb022dfa1f8"
+    },
+    {
+      "path": "tests/dsol_paper1/test_view_acquisition_executor.py",
+      "sha256": "c111d604b28e01243858760faff9a2c8ced19a72a0d42200828209dd6c1a149b"
+    },
+    {
+      "path": "tests/dsol_paper1/test_view_acquisition_inputs.py",
+      "sha256": "95d2a6d825d976e977d388a96c99618d818105c5fe8ef56e55734ddc909e4b16"
+    },
+    {
+      "path": "tests/dsol_paper1/test_view_acquisition_motion.py",
+      "sha256": "e69961d146405b9ef4c8cae68a1269ca4bb0bb2755bf9e9d462739b6d36c9256"
+    },
+    {
+      "path": "tests/dsol_paper1/test_view_acquisition_protocol.py",
+      "sha256": "dd4411df58a6ea135a4bfc02c50a6528109bf58a8c8a594c297232c4534bd836"
+    },
+    {
+      "path": "tests/dsol_paper1/test_view_repeatability_summary.py",
+      "sha256": "884500a2802632ab29f5646a24e2fc988143a732d49e1568940fd13a93dba761"
+    },
+    {
+      "path": "tests/dsol_paper1/test_view_repeatability_trace_v1.py",
+      "sha256": "ee57721632832c78727f88442d0c1a9d625d78306833cf72679bb920cf726d30"
+    },
+    {
+      "path": "tests/dsol_paper1/test_view_speed_equivalence_v1.py",
+      "sha256": "0ecbaa311ba3195946d8b5f84af100271ff49822e27518631a31006d72a1f32c"
+    },
+    {
+      "path": "tests/dsol_paper1/test_view_value_expectation_calibration_controller.py",
+      "sha256": "028cac78bb706221b572de33adb128339f12a76aa27060363e8d1db977fa9376"
+    },
+    {
+      "path": "tests/dsol_paper1/test_view_value_expectation_calibration_validation.py",
+      "sha256": "d2edbe59d0fb991804628905d87c64f4ad2b6d5d50ef61ac5713dcbfa60f45a8"
+    },
+    {
+      "path": "tests/dsol_paper1/test_view_value_expectation_completion_audit.py",
+      "sha256": "d0dfdb9d2ab5c0a043a405f32d890be407c0a43e1bf857f0af7f2f4e871600fc"
+    },
+    {
+      "path": "tests/dsol_paper1/test_view_value_expectation_heldout.py",
+      "sha256": "81f3548197e6e33fe2ed5965d179df6f71692137277e9b823402423214dfb732"
+    },
+    {
+      "path": "tests/dsol_paper1/test_view_value_expectation_post_controller.py",
+      "sha256": "8fb3e5429e925c8798a6501ca9b417402aec89f5d9c68e56c1600f808fc7cef0"
+    },
+    {
+      "path": "tests/dsol_paper1/test_view_value_expectation_report.py",
+      "sha256": "8a4659b5b182bb0dc7b1eff79e43d6bbaa108d7116bee318168349259f28d521"
+    },
+    {
+      "path": "tests/dsol_paper1/view_repeatability_test.py",
+      "sha256": "4812b916188b96dea61b02db237ac5ba90008ac3b73700882b33200521d6b9e5"
+    },
+    {
+      "path": "tests/dsol_paper1/view_value_discovery_test.py",
+      "sha256": "42a082ede9e4f7502fc86833a21897e234d9b893fb519cef305a232118fce2ca"
+    },
+    {
+      "path": "tests/vla_shared/test_extraction_equivalence.py",
+      "sha256": "8b851a174c1db8e6cd67ef27c409693a93fd10dea86ccc68b4ea97851a920f2a"
+    }
+  ]
+}

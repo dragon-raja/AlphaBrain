@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from scripts.dsol_paper1.summarize_view_repeatability import (
+from scripts.dsol_paper1.analysis.summarize_view_repeatability import (
     source_group_from_pair_key,
     summarize,
 )

@@ -8,7 +8,7 @@ import unittest
 
 import yaml
 
-from scripts.dsol_paper1.audit_dsol_training_match import (
+from scripts.dsol_paper1.training.audit_dsol_training_match import (
     MANIFEST_MATCH_FIELDS, compare_runs, config_differences, inspect_run, propose_canonical,
     sha256_file,
 )

@@ -3,10 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from scripts.dsol_paper1.build_eval_throughput_benchmark import (
+from scripts.dsol_paper1.protocols.build_eval_throughput_benchmark import (
     build_benchmark_protocol,
 )
-from scripts.dsol_paper1.compare_eval_throughput_benchmarks import rollout_signature
+from scripts.dsol_paper1.analysis.compare_eval_throughput_benchmarks import rollout_signature
 
 
 def test_benchmark_protocol_preserves_episode_identity_fields(tmp_path: Path) -> None:

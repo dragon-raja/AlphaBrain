@@ -79,7 +79,7 @@ def get_vla_hidden_states(
             Exposed so callers can, for example, keep action tokens but
             weight their loss differently.
     """
-    from deployment.model_server.tools.image_tools import to_pil_preserve
+    from AlphaBrain.common.images import to_pil_preserve
     from AlphaBrain.training.trainer_utils.trainer_tools import resize_images
 
     batch_images = [to_pil_preserve(imgs) for imgs in batch_images]
@@ -201,7 +201,7 @@ def get_vla_hidden_states_and_action(
     this helper fuses them. Phase-1 pretraining keeps using the simpler
     :func:`get_vla_hidden_states` because it doesn't need ``ã``.
     """
-    from deployment.model_server.tools.image_tools import to_pil_preserve
+    from AlphaBrain.common.images import to_pil_preserve
     from AlphaBrain.training.trainer_utils.trainer_tools import resize_images
 
     batch_images = [to_pil_preserve(imgs) for imgs in batch_images]

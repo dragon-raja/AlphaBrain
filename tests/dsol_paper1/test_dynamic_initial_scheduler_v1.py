@@ -5,7 +5,7 @@ import sys
 import threading
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'scripts/dsol_paper1'))
-import dynamic_initial_scheduler_v1 as scheduler
+import scripts.dsol_paper1.dynamic_initial_scheduler_v1 as scheduler
 
 
 class DynamicQueueTests(unittest.TestCase):

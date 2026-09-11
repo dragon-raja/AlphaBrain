@@ -3,7 +3,7 @@ import json
 import unittest
 from pathlib import Path
 
-from scripts.dsol_paper1.audit_view_value_expectation_protocol import audit
+from scripts.dsol_paper1.diagnostics.audit_view_value_expectation_protocol import audit
 
 
 ROOT = Path(__file__).resolve().parents[2]

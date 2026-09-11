@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import unittest
 
-from scripts.dsol_paper1.select_constructed_m0_candidates import (
+from scripts.dsol_paper1.protocols.select_constructed_m0_candidates import (
     build_selection,
     restrict_task_scope,
 )

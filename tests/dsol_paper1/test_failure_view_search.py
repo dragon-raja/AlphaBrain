@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import pytest
 
-from scripts.dsol_paper1.failure_view_search import choose_confirmation, paired_source_summary, prepare_payload
+from scripts.dsol_paper1.operations.controllers.failure_view_search import choose_confirmation, paired_source_summary, prepare_payload
 
 
 def inputs():

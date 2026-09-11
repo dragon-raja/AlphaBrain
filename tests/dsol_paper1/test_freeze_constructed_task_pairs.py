@@ -10,7 +10,7 @@ import pytest
 SCRIPT_ROOT = Path(__file__).resolve().parents[2] / "scripts" / "dsol_paper1"
 sys.path.insert(0, str(SCRIPT_ROOT))
 
-from freeze_constructed_task_pairs import freeze  # noqa: E402
+from scripts.dsol_paper1.protocols.freeze_constructed_task_pairs import freeze  # noqa: E402
 
 
 def test_freeze_uses_episode_medians_and_selects_direction(tmp_path: Path) -> None:

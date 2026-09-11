@@ -4,9 +4,9 @@ import unittest
 import numpy as np
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'scripts/dsol_paper1'))
-from build_consolidated_view_analysis_v1 import normalized_ranks, empirical_hierarchy
-from run_early_landscape_speed_gate_v1 import process_identity, same_process
-from analyze_view_oracle_comparison_v2 import paired_training_rows, analysis, ORACLES
+from scripts.dsol_paper1.build_consolidated_view_analysis_v1 import normalized_ranks, empirical_hierarchy
+from scripts.dsol_paper1.operations.controllers.run_early_landscape_speed_gate_v1 import process_identity, same_process
+from scripts.dsol_paper1.analyze_view_oracle_comparison_v2 import paired_training_rows, analysis, ORACLES
 from tests.dsol_paper1.test_compare_matched_view_landscapes_v1 import fixtures
 
 

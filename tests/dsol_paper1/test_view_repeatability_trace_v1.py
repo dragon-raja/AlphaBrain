@@ -5,8 +5,8 @@ import unittest
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]/'scripts/dsol_paper1'))
-from trace_view_repeatability_v1 import physical_arrays
-from analyze_view_repeatability_traces_v1 import difference
+from scripts.dsol_paper1.trace_view_repeatability_v1 import physical_arrays
+from scripts.dsol_paper1.analysis.analyze_view_repeatability_traces_v1 import difference
 
 
 class RepeatabilityTraceTest(unittest.TestCase):

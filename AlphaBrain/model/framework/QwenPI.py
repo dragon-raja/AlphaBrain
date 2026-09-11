@@ -25,7 +25,7 @@ from types import SimpleNamespace
 
 
 from AlphaBrain.training.trainer_utils import initialize_overwatch
-from deployment.model_server.tools.image_tools import to_pil_preserve
+from AlphaBrain.common.images import to_pil_preserve
 
 logger = initialize_overwatch(__name__)
 
@@ -348,7 +348,7 @@ class Qwen_PI(BaseFramework):
         if examples is not None:
             if type(examples) is not list:
                 examples = [examples]
-            from deployment.model_server.tools.image_tools import to_pil_preserve
+            from AlphaBrain.common.images import to_pil_preserve
             batch_images = [to_pil_preserve(example["image"]) for example in examples]
             instructions = [example["lang"] for example in examples]
             state = [example["state"] for example in examples] if (self.use_state and "state" in examples[0]) else None

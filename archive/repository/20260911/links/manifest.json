@@ -1,0 +1,61 @@
+{
+  "records": [
+    {
+      "old": "docs/dsol_paper1/HISTORY.md",
+      "new": "docs/dsol_paper1/HISTORY.md",
+      "before": "archive/repository/20260911/links/before/docs/dsol_paper1/HISTORY.md",
+      "before_sha256": "60d9b6d6bc825eb3d966b5eed491ca47ff63eb8f4c8af66595bb109d8d648111",
+      "after_sha256": "6466bea2fd2496cba57ec965989bcd98bcd901fe361fec870de142ebb18c6c74"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/full64_view_landscape_execution_20260908_zh.md",
+      "new": "docs/dsol_paper1/execution/full64_view_landscape_execution_20260908_zh.md",
+      "before": "archive/repository/20260911/links/before/docs/dsol_paper1/execution/full64_view_landscape_execution_20260908_zh.md",
+      "before_sha256": "4ef9d22eaa953a09e2afd4c757bbd58570f547a9122e81cf05140f96935c14ea",
+      "after_sha256": "d4d808c7053b435f2b014c2540600925c9086af76ca2e82959f6c087fcd38238"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/paper_master_plan_v1_20260907_zh.md",
+      "new": "docs/dsol_paper1/planning/paper_master_plan_v1_20260907_zh.md",
+      "before": "archive/repository/20260911/links/before/docs/dsol_paper1/planning/paper_master_plan_v1_20260907_zh.md",
+      "before_sha256": "16960bb28f4441fb3d00e7190a62a1e6ba3071ef03c07421720eda0fb66533f4",
+      "after_sha256": "fcff38f85ae0009a78e9a6e55dfcb5ebfce6c805d3b609c764ac47c9c2338886"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/paper_research_synthesis_20260905_zh.md",
+      "new": "docs/dsol_paper1/planning/paper_research_synthesis_20260905_zh.md",
+      "before": "archive/repository/20260911/links/before/docs/dsol_paper1/planning/paper_research_synthesis_20260905_zh.md",
+      "before_sha256": "6bc6b3a2cb840521a732f3151164623663294212cb1effecdd624bc4f2e49e7e",
+      "after_sha256": "63e7fd7db8bd943d8440d21dcba85fbd83c8cffccd17387e0795ee386f90abf2"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/paper_master_plan_v2_active_bridge_20260907_zh.md",
+      "new": "docs/dsol_paper1/planning/paper_master_plan_v2_active_bridge_20260907_zh.md",
+      "before": "archive/repository/20260911/links/before/docs/dsol_paper1/planning/paper_master_plan_v2_active_bridge_20260907_zh.md",
+      "before_sha256": "e8c3b2da9592f2cbdd2c99c18e2429d40b0abde4fccff32cb463465aeaee12aa",
+      "after_sha256": "6ed840907d7e5ee7d99b2fad1a525d369f5668937933f2ad143a38db74bd2df7"
+    },
+    {
+      "old": "docs/dsol_paper1/audits/view_repeatability_root_cause_20260908_zh.md",
+      "new": "docs/dsol_paper1/audits/view_repeatability_root_cause_20260908_zh.md",
+      "before": "archive/repository/20260911/links/before/docs/dsol_paper1/audits/view_repeatability_root_cause_20260908_zh.md",
+      "before_sha256": "d0c4f2670c9955152aeaaeb6975e2d607c0719d4f80212190908b4b81c1cf7a1",
+      "after_sha256": "3470c507440d7e5eb502f680bf5c43342018e657082e946636f4e6beb700360b"
+    },
+    {
+      "old": "docs/dsol_paper1/audits/render_protocol_bridge_and_historical_validity_20260908_zh.md",
+      "new": "docs/dsol_paper1/audits/render_protocol_bridge_and_historical_validity_20260908_zh.md",
+      "before": "archive/repository/20260911/links/before/docs/dsol_paper1/audits/render_protocol_bridge_and_historical_validity_20260908_zh.md",
+      "before_sha256": "6c6c179c7c550fda7d8df6cdb31a72618bd47babc59efbc89b00d9a9019f11a7",
+      "after_sha256": "d7dccadfaaa5d2fbe2694f3d4544fb2b55cdc58d09124b4cbb0873b1f30c29f1"
+    },
+    {
+      "old": "docs/dsol_paper1/results/view_metric_interpretation_revision_20260908_zh.md",
+      "new": "docs/dsol_paper1/results/view_metric_interpretation_revision_20260908_zh.md",
+      "before": "archive/repository/20260911/links/before/docs/dsol_paper1/results/view_metric_interpretation_revision_20260908_zh.md",
+      "before_sha256": "fc53fb38a8d3f9cf688aa89cc71dd4d9334fcab9748777e25df36b49d20d71ab",
+      "after_sha256": "c67dabe773d2f8ec9dbeb016d711267e519e6004f5c84e3a4010e2e6366eba37"
+    }
+  ],
+  "scope": "Link-only follow-up through all previous code/document relocations; colon line targets converted to GitHub anchors"
+}

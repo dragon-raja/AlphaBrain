@@ -7,7 +7,7 @@ from pathlib import Path
 SCRIPT_ROOT = Path(__file__).resolve().parents[2] / "scripts" / "dsol_paper1"
 sys.path.insert(0, str(SCRIPT_ROOT))
 
-from build_strong_information_gate_plan import build  # noqa: E402
+from scripts.dsol_paper1.protocols.build_strong_information_gate_plan import build  # noqa: E402
 
 
 def test_build_is_outcome_blind_and_early(tmp_path: Path) -> None:

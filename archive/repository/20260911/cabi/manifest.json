@@ -1,0 +1,1406 @@
+{
+  "records": [
+    {
+      "old": "scripts/cabi_vla/accelerate_kyc_gate_with_tail_shards.sh",
+      "new": "archive/research/code/scripts/cabi_vla/accelerate_kyc_gate_with_tail_shards.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/accelerate_kyc_gate_with_tail_shards.sh",
+      "before_sha256": "88235237d044d24099373a38e61add0c3fe2a8ee133e35c1af6d1f32b5a751da",
+      "after_sha256": "88235237d044d24099373a38e61add0c3fe2a8ee133e35c1af6d1f32b5a751da"
+    },
+    {
+      "old": "scripts/cabi_vla/analyze_libero_bind_camera_viewpoints.py",
+      "new": "archive/research/code/scripts/cabi_vla/analyze_libero_bind_camera_viewpoints.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/analyze_libero_bind_camera_viewpoints.py",
+      "before_sha256": "22d0c16d9783b8ae0e9f2058be63da3007766fc24cd3e8229e0f1add0fc1185d",
+      "after_sha256": "22d0c16d9783b8ae0e9f2058be63da3007766fc24cd3e8229e0f1add0fc1185d"
+    },
+    {
+      "old": "scripts/cabi_vla/analyze_libero_bind_camera_viewpoints_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/analyze_libero_bind_camera_viewpoints_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/analyze_libero_bind_camera_viewpoints_test.py",
+      "before_sha256": "9c90c34341918dc3dd080f8b26c3d1b4211189311a14d1ea541527046d207411",
+      "after_sha256": "9c90c34341918dc3dd080f8b26c3d1b4211189311a14d1ea541527046d207411"
+    },
+    {
+      "old": "scripts/cabi_vla/analyze_libero_camera_viewpoint_study.py",
+      "new": "archive/research/code/scripts/cabi_vla/analyze_libero_camera_viewpoint_study.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/analyze_libero_camera_viewpoint_study.py",
+      "before_sha256": "81c6875f653e2666ebf0429da829f1665bc910a10438dd58335c78f345207efa",
+      "after_sha256": "81c6875f653e2666ebf0429da829f1665bc910a10438dd58335c78f345207efa"
+    },
+    {
+      "old": "scripts/cabi_vla/analyze_libero_camera_viewpoint_study_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/analyze_libero_camera_viewpoint_study_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/analyze_libero_camera_viewpoint_study_test.py",
+      "before_sha256": "de60145869661e668426b85f366a6b99c38b3aa64039f92035b3d24c77600456",
+      "after_sha256": "de60145869661e668426b85f366a6b99c38b3aa64039f92035b3d24c77600456"
+    },
+    {
+      "old": "scripts/cabi_vla/analyze_libero_original_full_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/analyze_libero_original_full_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/analyze_libero_original_full_test.py",
+      "before_sha256": "77e33f90f73cd284a3dd3e0dba2f3fcafd432a6edf489a2aa1ae5b7805e5d51a",
+      "after_sha256": "77e33f90f73cd284a3dd3e0dba2f3fcafd432a6edf489a2aa1ae5b7805e5d51a"
+    },
+    {
+      "old": "scripts/cabi_vla/analyze_libero_plus_camera_full_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/analyze_libero_plus_camera_full_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/analyze_libero_plus_camera_full_test.py",
+      "before_sha256": "cf8b988bcdbd2aff23a9b6e3d3c4eac864d5f906cafd356383d8ee3bfafb6514",
+      "after_sha256": "cf8b988bcdbd2aff23a9b6e3d3c4eac864d5f906cafd356383d8ee3bfafb6514"
+    },
+    {
+      "old": "scripts/cabi_vla/analyze_pi05_libero_plus_composition.py",
+      "new": "archive/research/code/scripts/cabi_vla/analyze_pi05_libero_plus_composition.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/analyze_pi05_libero_plus_composition.py",
+      "before_sha256": "bbf215ecbf83e33bf98f88a773e0f84ca7ce77312347cf0e5dbd0f927b277c98",
+      "after_sha256": "bbf215ecbf83e33bf98f88a773e0f84ca7ce77312347cf0e5dbd0f927b277c98"
+    },
+    {
+      "old": "scripts/cabi_vla/analyze_pi05_libero_plus_composition_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/analyze_pi05_libero_plus_composition_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/analyze_pi05_libero_plus_composition_test.py",
+      "before_sha256": "33a4d8f8a221a67d31fe650c19de4f366b9cf70d394348fd41187ee509bd0e07",
+      "after_sha256": "33a4d8f8a221a67d31fe650c19de4f366b9cf70d394348fd41187ee509bd0e07"
+    },
+    {
+      "old": "scripts/cabi_vla/analyze_pi05_libero_plus_kyc_matched.py",
+      "new": "archive/research/code/scripts/cabi_vla/analyze_pi05_libero_plus_kyc_matched.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/analyze_pi05_libero_plus_kyc_matched.py",
+      "before_sha256": "b3e88fe8afb359b31d6150571c0eb3367eef833048f88f8720d6d2b137d1093d",
+      "after_sha256": "b3e88fe8afb359b31d6150571c0eb3367eef833048f88f8720d6d2b137d1093d"
+    },
+    {
+      "old": "scripts/cabi_vla/analyze_pi05_libero_plus_kyc_matched_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/analyze_pi05_libero_plus_kyc_matched_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/analyze_pi05_libero_plus_kyc_matched_test.py",
+      "before_sha256": "2e12afd442e0861d2aad290dd9d16de4ff172845e3500420a759da84e8256b19",
+      "after_sha256": "2e12afd442e0861d2aad290dd9d16de4ff172845e3500420a759da84e8256b19"
+    },
+    {
+      "old": "scripts/cabi_vla/analyze_pi05_libero_plus_views_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/analyze_pi05_libero_plus_views_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/analyze_pi05_libero_plus_views_test.py",
+      "before_sha256": "bfa3e25cf6799bc6da5b586730ea96e3e46f636c02f87bd4d2ac87e7eb72cfa5",
+      "after_sha256": "bfa3e25cf6799bc6da5b586730ea96e3e46f636c02f87bd4d2ac87e7eb72cfa5"
+    },
+    {
+      "old": "scripts/cabi_vla/audit_libero_plus_goal_archive.py",
+      "new": "archive/research/code/scripts/cabi_vla/audit_libero_plus_goal_archive.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/audit_libero_plus_goal_archive.py",
+      "before_sha256": "cfe2a0e5bed6dfeed41ef7824af36a00b927c0a4dc06d5a2831ab72e112e28b3",
+      "after_sha256": "cfe2a0e5bed6dfeed41ef7824af36a00b927c0a4dc06d5a2831ab72e112e28b3"
+    },
+    {
+      "old": "scripts/cabi_vla/audit_libero_plus_goal_archive_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/audit_libero_plus_goal_archive_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/audit_libero_plus_goal_archive_test.py",
+      "before_sha256": "20655d5fa7369f89dbda71437783650743c424eecb4053db25368140d23feb13",
+      "after_sha256": "20655d5fa7369f89dbda71437783650743c424eecb4053db25368140d23feb13"
+    },
+    {
+      "old": "scripts/cabi_vla/audit_pi05_libero_plus_composition_isolation.py",
+      "new": "archive/research/code/scripts/cabi_vla/audit_pi05_libero_plus_composition_isolation.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/audit_pi05_libero_plus_composition_isolation.py",
+      "before_sha256": "c96d5f8c1e27109319729dfd360f5705d804a7bd44cd10f4c732f52a5739818d",
+      "after_sha256": "c96d5f8c1e27109319729dfd360f5705d804a7bd44cd10f4c732f52a5739818d"
+    },
+    {
+      "old": "scripts/cabi_vla/audit_pi05_libero_plus_composition_isolation_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/audit_pi05_libero_plus_composition_isolation_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/audit_pi05_libero_plus_composition_isolation_test.py",
+      "before_sha256": "8521d1bb919ece06843015fb302aaa3cccc4a936faf97db95678f4b58c4d617f",
+      "after_sha256": "8521d1bb919ece06843015fb302aaa3cccc4a936faf97db95678f4b58c4d617f"
+    },
+    {
+      "old": "scripts/cabi_vla/build_kyc_scaling_data_view.sh",
+      "new": "archive/research/code/scripts/cabi_vla/build_kyc_scaling_data_view.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_kyc_scaling_data_view.sh",
+      "before_sha256": "0d600c770d3577a48784ced0f8019d6c5d37932ee0c485cdb89f689cf80e8c5b",
+      "after_sha256": "0d600c770d3577a48784ced0f8019d6c5d37932ee0c485cdb89f689cf80e8c5b"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_bind_balanced_view.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_bind_balanced_view.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_bind_balanced_view.py",
+      "before_sha256": "11b44c77ec0f614e8b993a48e2e39a4980d6c36aa206271f193a221ff0247add",
+      "after_sha256": "11b44c77ec0f614e8b993a48e2e39a4980d6c36aa206271f193a221ff0247add"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_bind_balanced_view_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_bind_balanced_view_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_bind_balanced_view_test.py",
+      "before_sha256": "f47285ca2e16782bba735b0f334908a093e4e32598aa483841f1eebdd7a23af8",
+      "after_sha256": "f47285ca2e16782bba735b0f334908a093e4e32598aa483841f1eebdd7a23af8"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_bind_decision_view.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_bind_decision_view.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_bind_decision_view.py",
+      "before_sha256": "6147bde539aebb141ae0443796dac8c7e3d67a566ede49239399d32abd7c8e7d",
+      "after_sha256": "6147bde539aebb141ae0443796dac8c7e3d67a566ede49239399d32abd7c8e7d"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_bind_decision_view_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_bind_decision_view_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_bind_decision_view_test.py",
+      "before_sha256": "146fee1a891cf2fdd13fef80ba85e4d6fbce4d0e48699fcbaca99e97c9e42052",
+      "after_sha256": "146fee1a891cf2fdd13fef80ba85e4d6fbce4d0e48699fcbaca99e97c9e42052"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_bind_dual_camera_view.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_bind_dual_camera_view.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_bind_dual_camera_view.py",
+      "before_sha256": "719a5df949c3619036c9d5a44b15e5a70bf1d77b2fe95c046e5d19361b6da976",
+      "after_sha256": "719a5df949c3619036c9d5a44b15e5a70bf1d77b2fe95c046e5d19361b6da976"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_bind_horizon_view.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_bind_horizon_view.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_bind_horizon_view.py",
+      "before_sha256": "5a7317580b16aaa637be6f59d36e230888ee22c16fcb5a7bb6da19251d3b65fb",
+      "after_sha256": "5a7317580b16aaa637be6f59d36e230888ee22c16fcb5a7bb6da19251d3b65fb"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_bind_horizon_view_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_bind_horizon_view_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_bind_horizon_view_test.py",
+      "before_sha256": "af6845edd8127315af67dadf0fb610f60e9679ee575a90553b87eaf7d6c131a2",
+      "after_sha256": "af6845edd8127315af67dadf0fb610f60e9679ee575a90553b87eaf7d6c131a2"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_bind_suite.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_bind_suite.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_bind_suite.py",
+      "before_sha256": "b366abaf98a0b08906efc97a150283ce450a55125bf92474a6a4620b12db8d21",
+      "after_sha256": "b366abaf98a0b08906efc97a150283ce450a55125bf92474a6a4620b12db8d21"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_bind_suite_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_bind_suite_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_bind_suite_test.py",
+      "before_sha256": "2b7f169510725cf9e86aede6ecc77bb548e8f2a302fda0e76218f8dd5aaeb2db",
+      "after_sha256": "2b7f169510725cf9e86aede6ecc77bb548e8f2a302fda0e76218f8dd5aaeb2db"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_bind_training_view.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_bind_training_view.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_bind_training_view.py",
+      "before_sha256": "650aef64c40cb2ab6123a105294e54f0983fd6cb95d2e6880f1b7e7e9b98ff81",
+      "after_sha256": "650aef64c40cb2ab6123a105294e54f0983fd6cb95d2e6880f1b7e7e9b98ff81"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_bind_training_view_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_bind_training_view_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_bind_training_view_test.py",
+      "before_sha256": "82738272b8fab1a1862ef14c66ac8356da54c3674b76709e904daf21d6b033ce",
+      "after_sha256": "82738272b8fab1a1862ef14c66ac8356da54c3674b76709e904daf21d6b033ce"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_plus_composition_protocol.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_plus_composition_protocol.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_plus_composition_protocol.py",
+      "before_sha256": "f37024a3cb0e223ad6e9b7fe3011490918581db700553d6ef0a10deac98bd443",
+      "after_sha256": "f37024a3cb0e223ad6e9b7fe3011490918581db700553d6ef0a10deac98bd443"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_plus_composition_protocol_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_plus_composition_protocol_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_plus_composition_protocol_test.py",
+      "before_sha256": "b3c0a6f95cdcf4682f30dd440805821c091b1b225628deb5e2f98ed499e52d2d",
+      "after_sha256": "b3c0a6f95cdcf4682f30dd440805821c091b1b225628deb5e2f98ed499e52d2d"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_plus_factor_separated_view.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_plus_factor_separated_view.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_plus_factor_separated_view.py",
+      "before_sha256": "820162aa05fbc50bb6ad9c1b64b6ddd659de28d07ff5cbaae3ad6414a94995e3",
+      "after_sha256": "820162aa05fbc50bb6ad9c1b64b6ddd659de28d07ff5cbaae3ad6414a94995e3"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_plus_factor_separated_view_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_plus_factor_separated_view_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_plus_factor_separated_view_test.py",
+      "before_sha256": "79a03045f6bc48621cca598e549d5978eb95e2ddb48e45d0cf8cb234fc3656f2",
+      "after_sha256": "79a03045f6bc48621cca598e549d5978eb95e2ddb48e45d0cf8cb234fc3656f2"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_plus_training_view.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_plus_training_view.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_plus_training_view.py",
+      "before_sha256": "685dc15ad91865a9f02fadf1f30bd492ce0c4a37dd3dd1afe9e5d1f4bca0284f",
+      "after_sha256": "685dc15ad91865a9f02fadf1f30bd492ce0c4a37dd3dd1afe9e5d1f4bca0284f"
+    },
+    {
+      "old": "scripts/cabi_vla/build_libero_plus_training_view_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/build_libero_plus_training_view_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/build_libero_plus_training_view_test.py",
+      "before_sha256": "373064c3f77fd297cfb9f9b1506f071aa6bbe5743f91ce56c29102585e6d8767",
+      "after_sha256": "373064c3f77fd297cfb9f9b1506f071aa6bbe5743f91ce56c29102585e6d8767"
+    },
+    {
+      "old": "scripts/cabi_vla/calibrate_libero_wrist_camera.py",
+      "new": "archive/research/code/scripts/cabi_vla/calibrate_libero_wrist_camera.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/calibrate_libero_wrist_camera.py",
+      "before_sha256": "958021e3b624d71c99d2e4bf2bc224cd01a80d167b50adb7f27c05cf32a460b7",
+      "after_sha256": "958021e3b624d71c99d2e4bf2bc224cd01a80d167b50adb7f27c05cf32a460b7"
+    },
+    {
+      "old": "scripts/cabi_vla/collect_libero_bind_teacher.py",
+      "new": "archive/research/code/scripts/cabi_vla/collect_libero_bind_teacher.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/collect_libero_bind_teacher.py",
+      "before_sha256": "58ebd739f2d1df8fc426800950c048bf552fea342a4dc53f8b1150896e43789f",
+      "after_sha256": "58ebd739f2d1df8fc426800950c048bf552fea342a4dc53f8b1150896e43789f"
+    },
+    {
+      "old": "scripts/cabi_vla/collect_libero_bind_teacher_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/collect_libero_bind_teacher_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/collect_libero_bind_teacher_test.py",
+      "before_sha256": "34efffdda5fe6787ff2ffc60a7c9c03f5648e0d705a1301a01d58613313a27a6",
+      "after_sha256": "34efffdda5fe6787ff2ffc60a7c9c03f5648e0d705a1301a01d58613313a27a6"
+    },
+    {
+      "old": "scripts/cabi_vla/compare_kyc_camera_evaluations.py",
+      "new": "archive/research/code/scripts/cabi_vla/compare_kyc_camera_evaluations.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/compare_kyc_camera_evaluations.py",
+      "before_sha256": "dc2c8a554c090fff645e1eda95928a8971d27ceb8ac416906cd92cef0ada362e",
+      "after_sha256": "dc2c8a554c090fff645e1eda95928a8971d27ceb8ac416906cd92cef0ada362e"
+    },
+    {
+      "old": "scripts/cabi_vla/compare_kyc_camera_evaluations_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/compare_kyc_camera_evaluations_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/compare_kyc_camera_evaluations_test.py",
+      "before_sha256": "2919ca23a4f2da6909255774fc7f0d445eddf83c5816feb14c87d6d790d8a1b4",
+      "after_sha256": "2919ca23a4f2da6909255774fc7f0d445eddf83c5816feb14c87d6d790d8a1b4"
+    },
+    {
+      "old": "scripts/cabi_vla/compare_libero_bind_policies.py",
+      "new": "archive/research/code/scripts/cabi_vla/compare_libero_bind_policies.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/compare_libero_bind_policies.py",
+      "before_sha256": "e36899f08c610c4dcb5802a91953654a752dee4329c8fc8741018c48aa0af142",
+      "after_sha256": "e36899f08c610c4dcb5802a91953654a752dee4329c8fc8741018c48aa0af142"
+    },
+    {
+      "old": "scripts/cabi_vla/compare_libero_bind_policies_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/compare_libero_bind_policies_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/compare_libero_bind_policies_test.py",
+      "before_sha256": "7059e9e3778554b53c5df84bf1040e127faccdc37622186cbbe5c19a96f19703",
+      "after_sha256": "7059e9e3778554b53c5df84bf1040e127faccdc37622186cbbe5c19a96f19703"
+    },
+    {
+      "old": "scripts/cabi_vla/compare_pi05_libero_plus_multiview_gate.py",
+      "new": "archive/research/code/scripts/cabi_vla/compare_pi05_libero_plus_multiview_gate.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/compare_pi05_libero_plus_multiview_gate.py",
+      "before_sha256": "3e7707b457ebfb7cc8c3c9e56506cf3fa2bccb96edc7c2b9fe1148b2149c0402",
+      "after_sha256": "3e7707b457ebfb7cc8c3c9e56506cf3fa2bccb96edc7c2b9fe1148b2149c0402"
+    },
+    {
+      "old": "scripts/cabi_vla/compare_pi05_libero_plus_multiview_gate_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/compare_pi05_libero_plus_multiview_gate_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/compare_pi05_libero_plus_multiview_gate_test.py",
+      "before_sha256": "ea5517ba18594dc013fdec1cbec796bc60e0d61ea56e125419e4ad9148c1b5ff",
+      "after_sha256": "ea5517ba18594dc013fdec1cbec796bc60e0d61ea56e125419e4ad9148c1b5ff"
+    },
+    {
+      "old": "scripts/cabi_vla/create_libero_plus_data_env.sh",
+      "new": "archive/research/code/scripts/cabi_vla/create_libero_plus_data_env.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/create_libero_plus_data_env.sh",
+      "before_sha256": "a611fdf5cfedad3e10d2810d1862daf944839e14e6e5b35a9cfd9ea9201d283d",
+      "after_sha256": "a611fdf5cfedad3e10d2810d1862daf944839e14e6e5b35a9cfd9ea9201d283d"
+    },
+    {
+      "old": "scripts/cabi_vla/create_libero_plus_runtime_overlay.sh",
+      "new": "archive/research/code/scripts/cabi_vla/create_libero_plus_runtime_overlay.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/create_libero_plus_runtime_overlay.sh",
+      "before_sha256": "db65ca93be75b1f78f2a7a6ffdcf350e560d5fd0c4d3cb436a77dbf600f5d8fe",
+      "after_sha256": "db65ca93be75b1f78f2a7a6ffdcf350e560d5fd0c4d3cb436a77dbf600f5d8fe"
+    },
+    {
+      "old": "scripts/cabi_vla/decide_cafc_gate.py",
+      "new": "archive/research/code/scripts/cabi_vla/decide_cafc_gate.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/decide_cafc_gate.py",
+      "before_sha256": "c85cf2198852d0cb4082852567cf168337d7150bf443029f4e75a33367852d66",
+      "after_sha256": "c85cf2198852d0cb4082852567cf168337d7150bf443029f4e75a33367852d66"
+    },
+    {
+      "old": "scripts/cabi_vla/decide_cafc_gate_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/decide_cafc_gate_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/decide_cafc_gate_test.py",
+      "before_sha256": "b82183f4d1c3941c7844ce5c25effd42348c3ad3400476a0f2dcfd9c821b8821",
+      "after_sha256": "b82183f4d1c3941c7844ce5c25effd42348c3ad3400476a0f2dcfd9c821b8821"
+    },
+    {
+      "old": "scripts/cabi_vla/decide_h20_cafc_gate.py",
+      "new": "archive/research/code/scripts/cabi_vla/decide_h20_cafc_gate.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/decide_h20_cafc_gate.py",
+      "before_sha256": "1f43e59783147e0026663cec5623f76ed3294fa138060cbdef0643298a82ac15",
+      "after_sha256": "1f43e59783147e0026663cec5623f76ed3294fa138060cbdef0643298a82ac15"
+    },
+    {
+      "old": "scripts/cabi_vla/decide_h20_cafc_gate_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/decide_h20_cafc_gate_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/decide_h20_cafc_gate_test.py",
+      "before_sha256": "390ede005a0e609dd230eb2695f1c0f92469f4afb0b5c8ab062f88976e29bec6",
+      "after_sha256": "390ede005a0e609dd230eb2695f1c0f92469f4afb0b5c8ab062f88976e29bec6"
+    },
+    {
+      "old": "scripts/cabi_vla/diagnose_binding_geometry.py",
+      "new": "archive/research/code/scripts/cabi_vla/diagnose_binding_geometry.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/diagnose_binding_geometry.py",
+      "before_sha256": "93dc623f3358f043315a1606906432bccd87f4e4a91b4a04c32aec65fa9e41b3",
+      "after_sha256": "93dc623f3358f043315a1606906432bccd87f4e4a91b4a04c32aec65fa9e41b3"
+    },
+    {
+      "old": "scripts/cabi_vla/diagnose_kyc_ray_use.py",
+      "new": "archive/research/code/scripts/cabi_vla/diagnose_kyc_ray_use.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/diagnose_kyc_ray_use.py",
+      "before_sha256": "f9440bc1b2c62286186bda5b2acdbd22766dde4427d71bf035528ef64ca609ce",
+      "after_sha256": "f9440bc1b2c62286186bda5b2acdbd22766dde4427d71bf035528ef64ca609ce"
+    },
+    {
+      "old": "scripts/cabi_vla/diagnose_kyc_ray_use_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/diagnose_kyc_ray_use_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/diagnose_kyc_ray_use_test.py",
+      "before_sha256": "73bc3f84efededdd6351d879fb407122ee9b8de4dffdc70da33292b50216a805",
+      "after_sha256": "73bc3f84efededdd6351d879fb407122ee9b8de4dffdc70da33292b50216a805"
+    },
+    {
+      "old": "scripts/cabi_vla/diagnose_libero_bind_policy.py",
+      "new": "archive/research/code/scripts/cabi_vla/diagnose_libero_bind_policy.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/diagnose_libero_bind_policy.py",
+      "before_sha256": "7369e40078a7db4747e2f08e0c939979ca3048254570a2f85dbcd00433058480",
+      "after_sha256": "7369e40078a7db4747e2f08e0c939979ca3048254570a2f85dbcd00433058480"
+    },
+    {
+      "old": "scripts/cabi_vla/diagnose_libero_bind_policy_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/diagnose_libero_bind_policy_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/diagnose_libero_bind_policy_test.py",
+      "before_sha256": "ba1dc1563f2520ca16cf20c284226c78dccc47da0961b0b1f4b0f8df2c967f37",
+      "after_sha256": "ba1dc1563f2520ca16cf20c284226c78dccc47da0961b0b1f4b0f8df2c967f37"
+    },
+    {
+      "old": "scripts/cabi_vla/download_libero_plus_resources.sh",
+      "new": "archive/research/code/scripts/cabi_vla/download_libero_plus_resources.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/download_libero_plus_resources.sh",
+      "before_sha256": "23c7e77d721c6b35a0ff6a39c1f71afa3136869b97129d150055b8a8a8ded036",
+      "after_sha256": "23c7e77d721c6b35a0ff6a39c1f71afa3136869b97129d150055b8a8a8ded036"
+    },
+    {
+      "old": "scripts/cabi_vla/download_verified_ranges.py",
+      "new": "archive/research/code/scripts/cabi_vla/download_verified_ranges.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/download_verified_ranges.py",
+      "before_sha256": "a98048a6af03a9450687ff8ee1a2152bb77ca5758b516816ce72d0cf3400d598",
+      "after_sha256": "a98048a6af03a9450687ff8ee1a2152bb77ca5758b516816ce72d0cf3400d598"
+    },
+    {
+      "old": "scripts/cabi_vla/download_verified_ranges_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/download_verified_ranges_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/download_verified_ranges_test.py",
+      "before_sha256": "afab60898fc56a71a9435e0e32c14ec8517f187bfb07e85db84eab293d63dff5",
+      "after_sha256": "afab60898fc56a71a9435e0e32c14ec8517f187bfb07e85db84eab293d63dff5"
+    },
+    {
+      "old": "scripts/cabi_vla/evaluate_libero_bind_camera_rule.py",
+      "new": "archive/research/code/scripts/cabi_vla/evaluate_libero_bind_camera_rule.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/evaluate_libero_bind_camera_rule.py",
+      "before_sha256": "080b0eaf8d8151849be2d1fd40acc56578f40fec7391fc9342285714edeee05a",
+      "after_sha256": "080b0eaf8d8151849be2d1fd40acc56578f40fec7391fc9342285714edeee05a"
+    },
+    {
+      "old": "scripts/cabi_vla/evaluate_libero_bind_camera_rule_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/evaluate_libero_bind_camera_rule_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/evaluate_libero_bind_camera_rule_test.py",
+      "before_sha256": "313c9f7a84aaa0fbe346b4998d08efa97ed47b3f289270a3e6626a6254ccc88b",
+      "after_sha256": "313c9f7a84aaa0fbe346b4998d08efa97ed47b3f289270a3e6626a6254ccc88b"
+    },
+    {
+      "old": "scripts/cabi_vla/evaluate_libero_bind_camera_viewpoints.py",
+      "new": "archive/research/code/scripts/cabi_vla/evaluate_libero_bind_camera_viewpoints.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/evaluate_libero_bind_camera_viewpoints.py",
+      "before_sha256": "57b4544dc3b37f82b82872a37f20147a7ab0ccf3cf5d4a05eb79aed3fbb414f4",
+      "after_sha256": "57b4544dc3b37f82b82872a37f20147a7ab0ccf3cf5d4a05eb79aed3fbb414f4"
+    },
+    {
+      "old": "scripts/cabi_vla/evaluate_libero_bind_closed_loop.py",
+      "new": "archive/research/code/scripts/cabi_vla/evaluate_libero_bind_closed_loop.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/evaluate_libero_bind_closed_loop.py",
+      "before_sha256": "fc76574df4e2f15e7653f875a8a3c27e0598ca95d7af61652148c9702a4acfd2",
+      "after_sha256": "fc76574df4e2f15e7653f875a8a3c27e0598ca95d7af61652148c9702a4acfd2"
+    },
+    {
+      "old": "scripts/cabi_vla/evaluate_libero_bind_closed_loop_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/evaluate_libero_bind_closed_loop_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/evaluate_libero_bind_closed_loop_test.py",
+      "before_sha256": "a5fa8ae3810ccd91996fd6026141143e71ed36c1248136abb3b0f27b958b8138",
+      "after_sha256": "a5fa8ae3810ccd91996fd6026141143e71ed36c1248136abb3b0f27b958b8138"
+    },
+    {
+      "old": "scripts/cabi_vla/evaluate_libero_bind_offline.py",
+      "new": "archive/research/code/scripts/cabi_vla/evaluate_libero_bind_offline.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/evaluate_libero_bind_offline.py",
+      "before_sha256": "3ce6d3faf06064059ebdaed3692a68fa4d9b513a29d247e31b3b7851e43c7409",
+      "after_sha256": "3ce6d3faf06064059ebdaed3692a68fa4d9b513a29d247e31b3b7851e43c7409"
+    },
+    {
+      "old": "scripts/cabi_vla/evaluate_libero_bind_offline_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/evaluate_libero_bind_offline_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/evaluate_libero_bind_offline_test.py",
+      "before_sha256": "4f473621bfa08bceb974fb8996e525fe58e3f29e8ea406b4378e7d053ad215eb",
+      "after_sha256": "4f473621bfa08bceb974fb8996e525fe58e3f29e8ea406b4378e7d053ad215eb"
+    },
+    {
+      "old": "scripts/cabi_vla/evaluate_libero_bind_target_handoff.py",
+      "new": "archive/research/code/scripts/cabi_vla/evaluate_libero_bind_target_handoff.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/evaluate_libero_bind_target_handoff.py",
+      "before_sha256": "2a28386a2ff65b1a369bbf1fa5d548c0ea05cba0ec93903d8505036248a9894d",
+      "after_sha256": "2a28386a2ff65b1a369bbf1fa5d548c0ea05cba0ec93903d8505036248a9894d"
+    },
+    {
+      "old": "scripts/cabi_vla/evaluate_libero_bind_target_handoff_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/evaluate_libero_bind_target_handoff_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/evaluate_libero_bind_target_handoff_test.py",
+      "before_sha256": "8d36d43472c02eb96e69c3ec7ae27b406d4bf3e89c54554ad7bfa0fb06543a3e",
+      "after_sha256": "8d36d43472c02eb96e69c3ec7ae27b406d4bf3e89c54554ad7bfa0fb06543a3e"
+    },
+    {
+      "old": "scripts/cabi_vla/finalize_pi05_libero_plus_kyc_study.py",
+      "new": "archive/research/code/scripts/cabi_vla/finalize_pi05_libero_plus_kyc_study.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/finalize_pi05_libero_plus_kyc_study.py",
+      "before_sha256": "4d5dea5a1a32f4dec255893de65ed091610f920c95f40bf62fbfd44b58ee6dbd",
+      "after_sha256": "4d5dea5a1a32f4dec255893de65ed091610f920c95f40bf62fbfd44b58ee6dbd"
+    },
+    {
+      "old": "scripts/cabi_vla/finalize_pi05_libero_plus_kyc_study_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/finalize_pi05_libero_plus_kyc_study_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/finalize_pi05_libero_plus_kyc_study_test.py",
+      "before_sha256": "686ecb937226b48558e89714a55ae82d946e13f25a413a977e85c095704308ad",
+      "after_sha256": "686ecb937226b48558e89714a55ae82d946e13f25a413a977e85c095704308ad"
+    },
+    {
+      "old": "scripts/cabi_vla/generate_libero_bind_camera_training_fragment.py",
+      "new": "archive/research/code/scripts/cabi_vla/generate_libero_bind_camera_training_fragment.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/generate_libero_bind_camera_training_fragment.py",
+      "before_sha256": "54ceac75f71db4d7b9f56c9add33ab675d1d9e1a1dc512693c2c0ea1868beca5",
+      "after_sha256": "54ceac75f71db4d7b9f56c9add33ab675d1d9e1a1dc512693c2c0ea1868beca5"
+    },
+    {
+      "old": "scripts/cabi_vla/generate_libero_bind_camera_training_fragment_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/generate_libero_bind_camera_training_fragment_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/generate_libero_bind_camera_training_fragment_test.py",
+      "before_sha256": "b6e3c8735c03104437bfae747dd45aae7f1eebdaf4bbe021f27ff85f28336469",
+      "after_sha256": "b6e3c8735c03104437bfae747dd45aae7f1eebdaf4bbe021f27ff85f28336469"
+    },
+    {
+      "old": "scripts/cabi_vla/inspect_libero_plus_camparam_rlds.py",
+      "new": "archive/research/code/scripts/cabi_vla/inspect_libero_plus_camparam_rlds.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/inspect_libero_plus_camparam_rlds.py",
+      "before_sha256": "6998eeb279d1b6d64bbbf428b8cd620c55b9e8f2e75d7ab398ebac49188c1a4a",
+      "after_sha256": "6998eeb279d1b6d64bbbf428b8cd620c55b9e8f2e75d7ab398ebac49188c1a4a"
+    },
+    {
+      "old": "scripts/cabi_vla/inspect_libero_plus_camparam_rlds_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/inspect_libero_plus_camparam_rlds_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/inspect_libero_plus_camparam_rlds_test.py",
+      "before_sha256": "38758a5d7528460fbd5227b86ceb074ac091551ce2ed0d709314b0e8cac2ddd8",
+      "after_sha256": "38758a5d7528460fbd5227b86ceb074ac091551ce2ed0d709314b0e8cac2ddd8"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_cafc_seed41.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_cafc_seed41.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_cafc_seed41.sh",
+      "before_sha256": "ef0162dcf854de8a0bf26005772c5c8fb5f685651fa632940d87a3cef5a73888",
+      "after_sha256": "ef0162dcf854de8a0bf26005772c5c8fb5f685651fa632940d87a3cef5a73888"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_h20_cafc_seed41.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_h20_cafc_seed41.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_h20_cafc_seed41.sh",
+      "before_sha256": "b8cd30762b69bed74c41b8eb36534e65b32844e849c58afb332a66aca316572e",
+      "after_sha256": "b8cd30762b69bed74c41b8eb36534e65b32844e849c58afb332a66aca316572e"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_camera_eval_matrix.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_camera_eval_matrix.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_camera_eval_matrix.sh",
+      "before_sha256": "5f970e3cee20a1db27ebaf946a6191b72caa2424dbf79bdc274a84ec73f3cfd2",
+      "after_sha256": "5f970e3cee20a1db27ebaf946a6191b72caa2424dbf79bdc274a84ec73f3cfd2"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_camera_generalization_pipeline.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_camera_generalization_pipeline.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_camera_generalization_pipeline.sh",
+      "before_sha256": "ffd011eae4f454e17fc7d6f23a6e2558bb467ce3f94515770d5f4bf8adeac787",
+      "after_sha256": "ffd011eae4f454e17fc7d6f23a6e2558bb467ce3f94515770d5f4bf8adeac787"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_dense_fov_then_training.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_dense_fov_then_training.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_dense_fov_then_training.sh",
+      "before_sha256": "fb2254a7c518678c7e477300a73ac5d28f047cd599d7344af137a87453320698",
+      "after_sha256": "fb2254a7c518678c7e477300a73ac5d28f047cd599d7344af137a87453320698"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_dual_camera_diagnostics.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_dual_camera_diagnostics.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_dual_camera_diagnostics.sh",
+      "before_sha256": "40784c443743421e8093d0ea68fc4e18eca683b8e752ce48f02ac5add047f001",
+      "after_sha256": "40784c443743421e8093d0ea68fc4e18eca683b8e752ce48f02ac5add047f001"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_dual_camera_screen.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_dual_camera_screen.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_dual_camera_screen.sh",
+      "before_sha256": "2d28599ed3b238e3d7075e56431cdd61161f1151d7a8ffd274c62dbcaefb0fe5",
+      "after_sha256": "2d28599ed3b238e3d7075e56431cdd61161f1151d7a8ffd274c62dbcaefb0fe5"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_factorial_confirmation_eval.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_factorial_confirmation_eval.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_factorial_confirmation_eval.sh",
+      "before_sha256": "2921260b1841eb6301d8bd5c2cf2d56a7accbeac0907a473fed3dcde0e78cf27",
+      "after_sha256": "2921260b1841eb6301d8bd5c2cf2d56a7accbeac0907a473fed3dcde0e78cf27"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_factorial_confirmation_pipeline.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_factorial_confirmation_pipeline.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_factorial_confirmation_pipeline.sh",
+      "before_sha256": "782ed1fe5429f3e1feceeca4597ab5498f26c437c5c01226fbce08c3abd545e4",
+      "after_sha256": "782ed1fe5429f3e1feceeca4597ab5498f26c437c5c01226fbce08c3abd545e4"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_factorial_confirmation_train.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_factorial_confirmation_train.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_factorial_confirmation_train.sh",
+      "before_sha256": "f047b4df6fd573f0f5f091bf5db029159825b60f343843f5661b4a2158746368",
+      "after_sha256": "f047b4df6fd573f0f5f091bf5db029159825b60f343843f5661b4a2158746368"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_factorial_eval.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_factorial_eval.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_factorial_eval.sh",
+      "before_sha256": "70638bfb07f0a595610b837234c0a2c231e87035a2e049725dab0c476dcc7983",
+      "after_sha256": "70638bfb07f0a595610b837234c0a2c231e87035a2e049725dab0c476dcc7983"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_factorial_pipeline.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_factorial_pipeline.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_factorial_pipeline.sh",
+      "before_sha256": "324ca60a7f0874fab014eac66b67d493bfe346327bf4a61e71043d06c93d0e11",
+      "after_sha256": "324ca60a7f0874fab014eac66b67d493bfe346327bf4a61e71043d06c93d0e11"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_factorial_train.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_factorial_train.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_factorial_train.sh",
+      "before_sha256": "272a39f4dba4992db083723704f8fc742efa23bc99d6c75ace31fb63c5f43d32",
+      "after_sha256": "272a39f4dba4992db083723704f8fc742efa23bc99d6c75ace31fb63c5f43d32"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_full_train_matrix.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_full_train_matrix.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_full_train_matrix.sh",
+      "before_sha256": "1e31abc4e2e47f91a166eaf9981993a1adf3f2b604d50f91a57f15afaa919d1d",
+      "after_sha256": "1e31abc4e2e47f91a166eaf9981993a1adf3f2b604d50f91a57f15afaa919d1d"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_official_act_matrix.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_official_act_matrix.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_official_act_matrix.sh",
+      "before_sha256": "0215794c032dbc522e360dc32165f1eacfe4d3cbc9cde394a22627a42272575f",
+      "after_sha256": "0215794c032dbc522e360dc32165f1eacfe4d3cbc9cde394a22627a42272575f"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_scaling_stage_b1.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_scaling_stage_b1.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_scaling_stage_b1.sh",
+      "before_sha256": "810506726bee5a769fec7b5e5060b96373c8528bc30a9d07b7692ea0bda3112a",
+      "after_sha256": "810506726bee5a769fec7b5e5060b96373c8528bc30a9d07b7692ea0bda3112a"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_scaling_stage_b1_eval.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_scaling_stage_b1_eval.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_scaling_stage_b1_eval.sh",
+      "before_sha256": "a0b26930d531b337133d5e1eabcd6277cd6958f8b3aa143c26b557eca3eb5603",
+      "after_sha256": "a0b26930d531b337133d5e1eabcd6277cd6958f8b3aa143c26b557eca3eb5603"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_scaling_stage_b1_prefetch_eval.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_scaling_stage_b1_prefetch_eval.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_scaling_stage_b1_prefetch_eval.sh",
+      "before_sha256": "58a34113739c19153badb2cb92e016ab088f997f8448d5aa0d5596dedb096fcc",
+      "after_sha256": "58a34113739c19153badb2cb92e016ab088f997f8448d5aa0d5596dedb096fcc"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_scaling_stage_b2_eval.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_scaling_stage_b2_eval.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_scaling_stage_b2_eval.sh",
+      "before_sha256": "791a6a49c8922131a26bed1f52587683c01c1340d9616228d0c3bbdc0828d84e",
+      "after_sha256": "791a6a49c8922131a26bed1f52587683c01c1340d9616228d0c3bbdc0828d84e"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_scaling_stage_b2_pipeline.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_scaling_stage_b2_pipeline.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_scaling_stage_b2_pipeline.sh",
+      "before_sha256": "f078274b5bc9cf5860b1449ad4a1b5db5262f92a72f79c9b84a1e429be7d50f5",
+      "after_sha256": "f078274b5bc9cf5860b1449ad4a1b5db5262f92a72f79c9b84a1e429be7d50f5"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_scaling_stage_b2_train.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_scaling_stage_b2_train.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_scaling_stage_b2_train.sh",
+      "before_sha256": "475df1c5dce04c1308616d9a837aeebed17a225f764604a11ca2f84e46a2ac00",
+      "after_sha256": "475df1c5dce04c1308616d9a837aeebed17a225f764604a11ca2f84e46a2ac00"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_kyc_visual_alignment_screen.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_kyc_visual_alignment_screen.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_kyc_visual_alignment_screen.sh",
+      "before_sha256": "1efbd19d1c9d8291d64b1c01c7505b7b1a6ebe1dd98044666d79ea513cfa3382",
+      "after_sha256": "1efbd19d1c9d8291d64b1c01c7505b7b1a6ebe1dd98044666d79ea513cfa3382"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_libero_plus_goal_archive_audit.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_libero_plus_goal_archive_audit.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_libero_plus_goal_archive_audit.sh",
+      "before_sha256": "b18d848da02c4664dd9c2b390006e3091612b1a3ef2b7d9d95c3539d5f56c189",
+      "after_sha256": "b18d848da02c4664dd9c2b390006e3091612b1a3ef2b7d9d95c3539d5f56c189"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_libero_plus_prepare.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_libero_plus_prepare.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_libero_plus_prepare.sh",
+      "before_sha256": "3ff361eb791108dbd1166078aa0f4e9a73900743bfe00f7f359a83d3e621bef4",
+      "after_sha256": "3ff361eb791108dbd1166078aa0f4e9a73900743bfe00f7f359a83d3e621bef4"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_pi05_libero_plus_composition_gate.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_pi05_libero_plus_composition_gate.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_pi05_libero_plus_composition_gate.sh",
+      "before_sha256": "919fbbf5c19992ac128d95371ba9166edd0fc600693870217bdaad12976f0de1",
+      "after_sha256": "919fbbf5c19992ac128d95371ba9166edd0fc600693870217bdaad12976f0de1"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_pi05_libero_plus_kyc_factor_separated_gate.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_pi05_libero_plus_kyc_factor_separated_gate.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_pi05_libero_plus_kyc_factor_separated_gate.sh",
+      "before_sha256": "cccd4cfdf4cd1a555bee150c5d83602bbd8902ddc59f97815cc99944efef3744",
+      "after_sha256": "cccd4cfdf4cd1a555bee150c5d83602bbd8902ddc59f97815cc99944efef3744"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_pi05_libero_plus_kyc_finalizer.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_pi05_libero_plus_kyc_finalizer.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_pi05_libero_plus_kyc_finalizer.sh",
+      "before_sha256": "3c5ff71b0c8c6f62632db1e5bdd56f3bd9476d727a07602c5d1d1ae85c407603",
+      "after_sha256": "3c5ff71b0c8c6f62632db1e5bdd56f3bd9476d727a07602c5d1d1ae85c407603"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_pi05_libero_plus_kyc_matched_gate.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_pi05_libero_plus_kyc_matched_gate.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_pi05_libero_plus_kyc_matched_gate.sh",
+      "before_sha256": "45f4f93f62baacbcffdc24af4740c40cb7820d0566e2dc3e1085cadec2d29330",
+      "after_sha256": "45f4f93f62baacbcffdc24af4740c40cb7820d0566e2dc3e1085cadec2d29330"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_pi05_libero_plus_multiview_gate.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_pi05_libero_plus_multiview_gate.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_pi05_libero_plus_multiview_gate.sh",
+      "before_sha256": "cd6e3291dfbd283f4485455922698ad042e3becbf3ae4946e1d335ff2f568164",
+      "after_sha256": "cd6e3291dfbd283f4485455922698ad042e3becbf3ae4946e1d335ff2f568164"
+    },
+    {
+      "old": "scripts/cabi_vla/launch_pi05_libero_plus_multiview_wave.sh",
+      "new": "archive/research/code/scripts/cabi_vla/launch_pi05_libero_plus_multiview_wave.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/launch_pi05_libero_plus_multiview_wave.sh",
+      "before_sha256": "1f8d507cefcc6523524fc347fee44bf63835602ee363907e97982bf600f3b97b",
+      "after_sha256": "1f8d507cefcc6523524fc347fee44bf63835602ee363907e97982bf600f3b97b"
+    },
+    {
+      "old": "scripts/cabi_vla/libero_plus_tfrecord_dataset_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/libero_plus_tfrecord_dataset_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/libero_plus_tfrecord_dataset_test.py",
+      "before_sha256": "e1f19996ddf7ed18a8f9eeee6b80c873467890ae362c73d41b2bd45f28b63fd0",
+      "after_sha256": "e1f19996ddf7ed18a8f9eeee6b80c873467890ae362c73d41b2bd45f28b63fd0"
+    },
+    {
+      "old": "scripts/cabi_vla/libero_scene_cues.py",
+      "new": "archive/research/code/scripts/cabi_vla/libero_scene_cues.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/libero_scene_cues.py",
+      "before_sha256": "f01a252bc573e214dbf5ab4faa3063aa396a5d7eaa5e5a1f5c5b476559c9374e",
+      "after_sha256": "f01a252bc573e214dbf5ab4faa3063aa396a5d7eaa5e5a1f5c5b476559c9374e"
+    },
+    {
+      "old": "scripts/cabi_vla/libero_scene_cues_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/libero_scene_cues_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/libero_scene_cues_test.py",
+      "before_sha256": "3dee25a7761ee1175f950511b7eec96bdc77fa19bab882414fa2b243299f32c8",
+      "after_sha256": "3dee25a7761ee1175f950511b7eec96bdc77fa19bab882414fa2b243299f32c8"
+    },
+    {
+      "old": "scripts/cabi_vla/merge_kyc_camera_eval_shards.py",
+      "new": "archive/research/code/scripts/cabi_vla/merge_kyc_camera_eval_shards.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/merge_kyc_camera_eval_shards.py",
+      "before_sha256": "243f54ff11e44a2dd38eb2e793d525a831e0dbefe0106cc5a925c6faafe315fa",
+      "after_sha256": "243f54ff11e44a2dd38eb2e793d525a831e0dbefe0106cc5a925c6faafe315fa"
+    },
+    {
+      "old": "scripts/cabi_vla/merge_kyc_camera_eval_shards_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/merge_kyc_camera_eval_shards_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/merge_kyc_camera_eval_shards_test.py",
+      "before_sha256": "9716bd126b872ad2474bd693f281b9925091f5dac903fe5be725f83a18f2384d",
+      "after_sha256": "9716bd126b872ad2474bd693f281b9925091f5dac903fe5be725f83a18f2384d"
+    },
+    {
+      "old": "scripts/cabi_vla/merge_libero_bind_camera_training_fragments.py",
+      "new": "archive/research/code/scripts/cabi_vla/merge_libero_bind_camera_training_fragments.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/merge_libero_bind_camera_training_fragments.py",
+      "before_sha256": "49455ff53003759460eb60a6639e8deed45b86de33d43e081ecad7bb630a5575",
+      "after_sha256": "49455ff53003759460eb60a6639e8deed45b86de33d43e081ecad7bb630a5575"
+    },
+    {
+      "old": "scripts/cabi_vla/merge_libero_bind_camera_training_fragments_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/merge_libero_bind_camera_training_fragments_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/merge_libero_bind_camera_training_fragments_test.py",
+      "before_sha256": "9bef3e9f707ceb130554d6a316f3c22d9d6dcdcf1d7f7f667a71bfba842c448c",
+      "after_sha256": "9bef3e9f707ceb130554d6a316f3c22d9d6dcdcf1d7f7f667a71bfba842c448c"
+    },
+    {
+      "old": "scripts/cabi_vla/prepare_libero_plus_camparam_rlds.py",
+      "new": "archive/research/code/scripts/cabi_vla/prepare_libero_plus_camparam_rlds.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/prepare_libero_plus_camparam_rlds.py",
+      "before_sha256": "8debf86589b2d0055299894823f59f405c6e425137d1c7e6bc4e9e6a2bd6ad68",
+      "after_sha256": "8debf86589b2d0055299894823f59f405c6e425137d1c7e6bc4e9e6a2bd6ad68"
+    },
+    {
+      "old": "scripts/cabi_vla/prepare_libero_plus_camparam_rlds_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/prepare_libero_plus_camparam_rlds_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/prepare_libero_plus_camparam_rlds_test.py",
+      "before_sha256": "2954c7061ee55e70abfdf0766e5bbd8fc8bb2453418711929f1e71ad58e000d5",
+      "after_sha256": "2954c7061ee55e70abfdf0766e5bbd8fc8bb2453418711929f1e71ad58e000d5"
+    },
+    {
+      "old": "scripts/cabi_vla/prepare_libero_plus_runtime.py",
+      "new": "archive/research/code/scripts/cabi_vla/prepare_libero_plus_runtime.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/prepare_libero_plus_runtime.py",
+      "before_sha256": "595b3812807aa2ab9dda50e25e57525ce2942ece4af7e006a3c222cd29051f76",
+      "after_sha256": "595b3812807aa2ab9dda50e25e57525ce2942ece4af7e006a3c222cd29051f76"
+    },
+    {
+      "old": "scripts/cabi_vla/prepare_libero_plus_runtime_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/prepare_libero_plus_runtime_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/prepare_libero_plus_runtime_test.py",
+      "before_sha256": "b381fa9fa788d55e99c4bb85b8d2139c6f780a9db1414f1cc1e79f97c86d663a",
+      "after_sha256": "b381fa9fa788d55e99c4bb85b8d2139c6f780a9db1414f1cc1e79f97c86d663a"
+    },
+    {
+      "old": "scripts/cabi_vla/probe_libero_camera_pose_leakage.py",
+      "new": "archive/research/code/scripts/cabi_vla/probe_libero_camera_pose_leakage.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/probe_libero_camera_pose_leakage.py",
+      "before_sha256": "9d09f43330ecc714286708916dfa729c8d222a363b3b656beb36f28017d6a903",
+      "after_sha256": "9d09f43330ecc714286708916dfa729c8d222a363b3b656beb36f28017d6a903"
+    },
+    {
+      "old": "scripts/cabi_vla/probe_libero_camera_pose_leakage_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/probe_libero_camera_pose_leakage_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/probe_libero_camera_pose_leakage_test.py",
+      "before_sha256": "588b2a12d9c088617633b815d2bc3d2b99d9d6cec788cf75efac67ea14307468",
+      "after_sha256": "588b2a12d9c088617633b815d2bc3d2b99d9d6cec788cf75efac67ea14307468"
+    },
+    {
+      "old": "scripts/cabi_vla/render_camera_pose_response_curves.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_camera_pose_response_curves.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_camera_pose_response_curves.py",
+      "before_sha256": "6f8b6100699128e73d66600b395d32af32225d6aa456123be757afa21aeb8e5f",
+      "after_sha256": "6f8b6100699128e73d66600b395d32af32225d6aa456123be757afa21aeb8e5f"
+    },
+    {
+      "old": "scripts/cabi_vla/render_camera_robustness_report.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_camera_robustness_report.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_camera_robustness_report.py",
+      "before_sha256": "ff93d28c97a56c3473d7c9c0a05f7bcac66f83cd46ae3ba6ba7bf4bb6d100e07",
+      "after_sha256": "ff93d28c97a56c3473d7c9c0a05f7bcac66f83cd46ae3ba6ba7bf4bb6d100e07"
+    },
+    {
+      "old": "scripts/cabi_vla/render_kyc_camera_gate_summary.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_kyc_camera_gate_summary.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_kyc_camera_gate_summary.py",
+      "before_sha256": "492820ea73a4c8a5730ddad79334be67c97a7097c3a0f03b0ec457fac00241c2",
+      "after_sha256": "492820ea73a4c8a5730ddad79334be67c97a7097c3a0f03b0ec457fac00241c2"
+    },
+    {
+      "old": "scripts/cabi_vla/render_kyc_camera_generalization_completed.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_kyc_camera_generalization_completed.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_kyc_camera_generalization_completed.py",
+      "before_sha256": "c79efad67687e6e8033921980b41c9c481e448baaa4f7500ea9889973ab7581a",
+      "after_sha256": "c79efad67687e6e8033921980b41c9c481e448baaa4f7500ea9889973ab7581a"
+    },
+    {
+      "old": "scripts/cabi_vla/render_kyc_camera_generalization_interim.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_kyc_camera_generalization_interim.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_kyc_camera_generalization_interim.py",
+      "before_sha256": "10aad2c13c44d244b6a35769cbe865f5df4ac2aac265952539be9d6269ca5abe",
+      "after_sha256": "10aad2c13c44d244b6a35769cbe865f5df4ac2aac265952539be9d6269ca5abe"
+    },
+    {
+      "old": "scripts/cabi_vla/render_kyc_dual_camera_diagnostics.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_kyc_dual_camera_diagnostics.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_kyc_dual_camera_diagnostics.py",
+      "before_sha256": "7982f7e8ece8bf379b9e4b2da628b26a600561bb945d97c34cb8a68b0fe71b87",
+      "after_sha256": "7982f7e8ece8bf379b9e4b2da628b26a600561bb945d97c34cb8a68b0fe71b87"
+    },
+    {
+      "old": "scripts/cabi_vla/render_kyc_dual_camera_diagnostics_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_kyc_dual_camera_diagnostics_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_kyc_dual_camera_diagnostics_test.py",
+      "before_sha256": "ea515e550fe7b13c29b8016eb5d1e0aa111dadb067f2c96f7d925e21aecdf312",
+      "after_sha256": "ea515e550fe7b13c29b8016eb5d1e0aa111dadb067f2c96f7d925e21aecdf312"
+    },
+    {
+      "old": "scripts/cabi_vla/render_kyc_dual_camera_screen.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_kyc_dual_camera_screen.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_kyc_dual_camera_screen.py",
+      "before_sha256": "ce286bd5bacfb7e734b96834a318e8a939e14c4ba74153be44f7b9f0050b76cb",
+      "after_sha256": "ce286bd5bacfb7e734b96834a318e8a939e14c4ba74153be44f7b9f0050b76cb"
+    },
+    {
+      "old": "scripts/cabi_vla/render_kyc_dual_camera_screen_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_kyc_dual_camera_screen_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_kyc_dual_camera_screen_test.py",
+      "before_sha256": "44fd2d2e1e629c20694d7da34857acccf57be3da7d3ec5645d687d42c5e8248a",
+      "after_sha256": "44fd2d2e1e629c20694d7da34857acccf57be3da7d3ec5645d687d42c5e8248a"
+    },
+    {
+      "old": "scripts/cabi_vla/render_kyc_visual_alignment_screen.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_kyc_visual_alignment_screen.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_kyc_visual_alignment_screen.py",
+      "before_sha256": "3bf90efa97addaf6709b4e75fea15c4ff8ed3a26c79eb619517517c1d420a1eb",
+      "after_sha256": "3bf90efa97addaf6709b4e75fea15c4ff8ed3a26c79eb619517517c1d420a1eb"
+    },
+    {
+      "old": "scripts/cabi_vla/render_kyc_visual_alignment_screen_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_kyc_visual_alignment_screen_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_kyc_visual_alignment_screen_test.py",
+      "before_sha256": "bd79be68d4b067d16b78d8513d55160cb7af4d9ad43b8c386977e06ae4d0f263",
+      "after_sha256": "bd79be68d4b067d16b78d8513d55160cb7af4d9ad43b8c386977e06ae4d0f263"
+    },
+    {
+      "old": "scripts/cabi_vla/render_libero_bind_eval_frames.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_libero_bind_eval_frames.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_libero_bind_eval_frames.py",
+      "before_sha256": "27ae6bc18d454f6b104fb06dd35c67c29dd535a76c042a327cf2bce7d0638629",
+      "after_sha256": "27ae6bc18d454f6b104fb06dd35c67c29dd535a76c042a327cf2bce7d0638629"
+    },
+    {
+      "old": "scripts/cabi_vla/render_libero_bind_eval_frames_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_libero_bind_eval_frames_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_libero_bind_eval_frames_test.py",
+      "before_sha256": "5b1eab85cd7fb228d4e4ae039340b631f30b49e96fbd81a7c3a2668bad91bcd7",
+      "after_sha256": "5b1eab85cd7fb228d4e4ae039340b631f30b49e96fbd81a7c3a2668bad91bcd7"
+    },
+    {
+      "old": "scripts/cabi_vla/render_libero_bind_paired_videos.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_libero_bind_paired_videos.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_libero_bind_paired_videos.py",
+      "before_sha256": "8e3e4b867c53865891aba181e97597852110ff81bad3a3b0149a00559b007f3e",
+      "after_sha256": "8e3e4b867c53865891aba181e97597852110ff81bad3a3b0149a00559b007f3e"
+    },
+    {
+      "old": "scripts/cabi_vla/render_libero_bind_paired_videos_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_libero_bind_paired_videos_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_libero_bind_paired_videos_test.py",
+      "before_sha256": "077cb71d5d91dac6aa293de75ee4d818b6297b7451848dacc6f72a120bab9ae0",
+      "after_sha256": "077cb71d5d91dac6aa293de75ee4d818b6297b7451848dacc6f72a120bab9ae0"
+    },
+    {
+      "old": "scripts/cabi_vla/render_libero_bind_videos.py",
+      "new": "archive/research/code/scripts/cabi_vla/render_libero_bind_videos.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/render_libero_bind_videos.py",
+      "before_sha256": "a989ebf4e97dea39661dbf6df8233776c4a85e9997b56de127463357f9666150",
+      "after_sha256": "a989ebf4e97dea39661dbf6df8233776c4a85e9997b56de127463357f9666150"
+    },
+    {
+      "old": "scripts/cabi_vla/requirements_libero_plus_multiview.txt",
+      "new": "archive/research/code/scripts/cabi_vla/requirements_libero_plus_multiview.txt",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/requirements_libero_plus_multiview.txt",
+      "before_sha256": "55196f492cbe8f1e211178d8f66d11b09cc03e9f08f79fcb825b25febb23f970",
+      "after_sha256": "55196f492cbe8f1e211178d8f66d11b09cc03e9f08f79fcb825b25febb23f970"
+    },
+    {
+      "old": "scripts/cabi_vla/resume_aria2_ranges.py",
+      "new": "archive/research/code/scripts/cabi_vla/resume_aria2_ranges.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/resume_aria2_ranges.py",
+      "before_sha256": "16bde24160c847a657692b3aaac010b429f6b42de7939ef4d5312bd773d8d73e",
+      "after_sha256": "16bde24160c847a657692b3aaac010b429f6b42de7939ef4d5312bd773d8d73e"
+    },
+    {
+      "old": "scripts/cabi_vla/resume_aria2_ranges_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/resume_aria2_ranges_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/resume_aria2_ranges_test.py",
+      "before_sha256": "79c378578a3cf13f1836380d770dfbd81f7c10a6065da128f76dcc0ce954b591",
+      "after_sha256": "79c378578a3cf13f1836380d770dfbd81f7c10a6065da128f76dcc0ce954b591"
+    },
+    {
+      "old": "scripts/cabi_vla/run_action_bridge_rescue_gate.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_action_bridge_rescue_gate.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_action_bridge_rescue_gate.sh",
+      "before_sha256": "e831f2c0739988fe2f68cdb2639e83c66f8c3f48a897bf75b74376a5e3653638",
+      "after_sha256": "e831f2c0739988fe2f68cdb2639e83c66f8c3f48a897bf75b74376a5e3653638"
+    },
+    {
+      "old": "scripts/cabi_vla/run_cafc_migration_gate.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_cafc_migration_gate.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_cafc_migration_gate.sh",
+      "before_sha256": "29c199113930c63f1fc1e49933aa4aafffff23b6fa4afc328b10ff347d229a3d",
+      "after_sha256": "29c199113930c63f1fc1e49933aa4aafffff23b6fa4afc328b10ff347d229a3d"
+    },
+    {
+      "old": "scripts/cabi_vla/run_checkpoint_gate.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_checkpoint_gate.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_checkpoint_gate.sh",
+      "before_sha256": "5ba82cf22662d1a3c219cc45c229335bf6c6b9cda3ee089fdeaf785e2551b744",
+      "after_sha256": "5ba82cf22662d1a3c219cc45c229335bf6c6b9cda3ee089fdeaf785e2551b744"
+    },
+    {
+      "old": "scripts/cabi_vla/run_conditional_decision_closure_gate.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_conditional_decision_closure_gate.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_conditional_decision_closure_gate.sh",
+      "before_sha256": "617582896951ec9026e3836e264d90f1079c989630e5ef2a1cf96406c0440db4",
+      "after_sha256": "617582896951ec9026e3836e264d90f1079c989630e5ef2a1cf96406c0440db4"
+    },
+    {
+      "old": "scripts/cabi_vla/run_conditional_static_replications.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_conditional_static_replications.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_conditional_static_replications.sh",
+      "before_sha256": "3e188d0b779766cbfead7430bb2e763b27b449ada2bb5e97c14c0225187c1486",
+      "after_sha256": "3e188d0b779766cbfead7430bb2e763b27b449ada2bb5e97c14c0225187c1486"
+    },
+    {
+      "old": "scripts/cabi_vla/run_h20_cafc_migration_gate.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_h20_cafc_migration_gate.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_h20_cafc_migration_gate.sh",
+      "before_sha256": "cad61ab98787e5a64d85c0e9d0cba53457d1ca1962a51ba7236e1c53395dae01",
+      "after_sha256": "cad61ab98787e5a64d85c0e9d0cba53457d1ca1962a51ba7236e1c53395dae01"
+    },
+    {
+      "old": "scripts/cabi_vla/run_h20_target_handoff_wave.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_h20_target_handoff_wave.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_h20_target_handoff_wave.sh",
+      "before_sha256": "65da08f5b432a30a2c31ad150ef488222efafdfeed89c46650a4dbe8d95c80e1",
+      "after_sha256": "65da08f5b432a30a2c31ad150ef488222efafdfeed89c46650a4dbe8d95c80e1"
+    },
+    {
+      "old": "scripts/cabi_vla/run_kyc_camera_eval.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_kyc_camera_eval.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_kyc_camera_eval.sh",
+      "before_sha256": "327b9c73fb291fbc57bdc64e9dc9ec9bd3ccb7a2bb02640f51bf1fd2997972c2",
+      "after_sha256": "327b9c73fb291fbc57bdc64e9dc9ec9bd3ccb7a2bb02640f51bf1fd2997972c2"
+    },
+    {
+      "old": "scripts/cabi_vla/run_kyc_camera_fragment.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_kyc_camera_fragment.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_kyc_camera_fragment.sh",
+      "before_sha256": "c47aeaad925ff681e7c445d765b93e203391db0ea4d29a62229c6ea8ddca6f71",
+      "after_sha256": "c47aeaad925ff681e7c445d765b93e203391db0ea4d29a62229c6ea8ddca6f71"
+    },
+    {
+      "old": "scripts/cabi_vla/run_kyc_factorial_eval.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_kyc_factorial_eval.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_kyc_factorial_eval.sh",
+      "before_sha256": "b1f7a28f0dcd727305722ba97b2bc9012134d7c89bc946f9240282f0b0f1d7f2",
+      "after_sha256": "b1f7a28f0dcd727305722ba97b2bc9012134d7c89bc946f9240282f0b0f1d7f2"
+    },
+    {
+      "old": "scripts/cabi_vla/run_kyc_factorial_train.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_kyc_factorial_train.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_kyc_factorial_train.sh",
+      "before_sha256": "dc7e137357ab85d35498fdc1ed7e47c833c1c12894d9552e39c2ad7ccc213b60",
+      "after_sha256": "dc7e137357ab85d35498fdc1ed7e47c833c1c12894d9552e39c2ad7ccc213b60"
+    },
+    {
+      "old": "scripts/cabi_vla/run_kyc_fov_fragment.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_kyc_fov_fragment.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_kyc_fov_fragment.sh",
+      "before_sha256": "b40b0099be57960015234c8ae79f591f39233fc7725a503192bc334f70b61201",
+      "after_sha256": "b40b0099be57960015234c8ae79f591f39233fc7725a503192bc334f70b61201"
+    },
+    {
+      "old": "scripts/cabi_vla/run_kyc_gate_tail_shard.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_kyc_gate_tail_shard.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_kyc_gate_tail_shard.sh",
+      "before_sha256": "bb409faaa99106977da17388e796131a8a8171c6a68900184bb73adc77a1fba8",
+      "after_sha256": "bb409faaa99106977da17388e796131a8a8171c6a68900184bb73adc77a1fba8"
+    },
+    {
+      "old": "scripts/cabi_vla/run_kyc_official_act.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_kyc_official_act.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_kyc_official_act.sh",
+      "before_sha256": "be9bb902b660e1124c9c283b726de215fcf4f627764d6759786755ccbbd6f9f8",
+      "after_sha256": "be9bb902b660e1124c9c283b726de215fcf4f627764d6759786755ccbbd6f9f8"
+    },
+    {
+      "old": "scripts/cabi_vla/run_kyc_ray_diagnostic.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_kyc_ray_diagnostic.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_kyc_ray_diagnostic.sh",
+      "before_sha256": "0e04fb699a45505dd4cdc1730a3b5b9ed1c2c7d5227e6dbf864c272ac57ca69e",
+      "after_sha256": "0e04fb699a45505dd4cdc1730a3b5b9ed1c2c7d5227e6dbf864c272ac57ca69e"
+    },
+    {
+      "old": "scripts/cabi_vla/run_kyc_scaling_eval.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_kyc_scaling_eval.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_kyc_scaling_eval.sh",
+      "before_sha256": "4d761a09da81720c090d4d185e0358a1250367b15150e17e6dcbe09f227b7444",
+      "after_sha256": "4d761a09da81720c090d4d185e0358a1250367b15150e17e6dcbe09f227b7444"
+    },
+    {
+      "old": "scripts/cabi_vla/run_kyc_train.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_kyc_train.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_kyc_train.sh",
+      "before_sha256": "398a5fbb567434c45888b8c772eff2054abc64057e73702280f4eaae0bedb402",
+      "after_sha256": "398a5fbb567434c45888b8c772eff2054abc64057e73702280f4eaae0bedb402"
+    },
+    {
+      "old": "scripts/cabi_vla/run_libero_bind_camera_sweep.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_libero_bind_camera_sweep.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_libero_bind_camera_sweep.sh",
+      "before_sha256": "3baf290438fd329fa7936df3cb7212fd4a8f49cf642e8b46575020cea1a3ffde",
+      "after_sha256": "3baf290438fd329fa7936df3cb7212fd4a8f49cf642e8b46575020cea1a3ffde"
+    },
+    {
+      "old": "scripts/cabi_vla/run_libero_bind_eval.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_libero_bind_eval.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_libero_bind_eval.sh",
+      "before_sha256": "8c8c1ea2f25555dda1d552761d55db4b05e9fd1c9bb68c2a9754f979b62d271f",
+      "after_sha256": "8c8c1ea2f25555dda1d552761d55db4b05e9fd1c9bb68c2a9754f979b62d271f"
+    },
+    {
+      "old": "scripts/cabi_vla/run_libero_bind_offline_eval.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_libero_bind_offline_eval.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_libero_bind_offline_eval.sh",
+      "before_sha256": "bcd51b2a8cc350df863c035fd5ccdc704f490dd227d1800c33aa5506031db88f",
+      "after_sha256": "bcd51b2a8cc350df863c035fd5ccdc704f490dd227d1800c33aa5506031db88f"
+    },
+    {
+      "old": "scripts/cabi_vla/run_libero_bind_policy_diagnosis.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_libero_bind_policy_diagnosis.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_libero_bind_policy_diagnosis.sh",
+      "before_sha256": "20bad43c05236b1193ba1aa8347d7fd2891094fd26b5b3971c43be7759316969",
+      "after_sha256": "20bad43c05236b1193ba1aa8347d7fd2891094fd26b5b3971c43be7759316969"
+    },
+    {
+      "old": "scripts/cabi_vla/run_libero_bind_target_handoff.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_libero_bind_target_handoff.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_libero_bind_target_handoff.sh",
+      "before_sha256": "d31484f293be124e5d0f690a43fa1675f8d3e379f5981e5dfea18bf493537a6c",
+      "after_sha256": "d31484f293be124e5d0f690a43fa1675f8d3e379f5981e5dfea18bf493537a6c"
+    },
+    {
+      "old": "scripts/cabi_vla/run_paired_migration_gate.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_paired_migration_gate.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_paired_migration_gate.sh",
+      "before_sha256": "0d18c925bec7b6e150dd21011c05c12a1b18b976196a7913e51c6c6ba0370b5d",
+      "after_sha256": "0d18c925bec7b6e150dd21011c05c12a1b18b976196a7913e51c6c6ba0370b5d"
+    },
+    {
+      "old": "scripts/cabi_vla/run_pi05_libero_plus_multiview_train.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_pi05_libero_plus_multiview_train.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_pi05_libero_plus_multiview_train.sh",
+      "before_sha256": "eae491624ea3446cb83a58496265c4b0e62fc5bafefa0ce692f373c15cafc3e3",
+      "after_sha256": "eae491624ea3446cb83a58496265c4b0e62fc5bafefa0ce692f373c15cafc3e3"
+    },
+    {
+      "old": "scripts/cabi_vla/run_pi05_libero_plus_multiview_train_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/run_pi05_libero_plus_multiview_train_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_pi05_libero_plus_multiview_train_test.py",
+      "before_sha256": "df6c34b1fdbf649a979d6d8b236b3c6148d8620077d6894173c49e0862e5b4cf",
+      "after_sha256": "df6c34b1fdbf649a979d6d8b236b3c6148d8620077d6894173c49e0862e5b4cf"
+    },
+    {
+      "old": "scripts/cabi_vla/run_pilot_train.sh",
+      "new": "archive/research/code/scripts/cabi_vla/run_pilot_train.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/run_pilot_train.sh",
+      "before_sha256": "27c190eb5a455ab960a94206cc2dc0a9b355d88dfb520caa15f514d3463ff3f6",
+      "after_sha256": "27c190eb5a455ab960a94206cc2dc0a9b355d88dfb520caa15f514d3463ff3f6"
+    },
+    {
+      "old": "scripts/cabi_vla/scan_libero_camera_visibility.py",
+      "new": "archive/research/code/scripts/cabi_vla/scan_libero_camera_visibility.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/scan_libero_camera_visibility.py",
+      "before_sha256": "e7c42780b8b959cad2cf7d5842c4d7c597bbc57b8a5092cd02a0d5b190e3337a",
+      "after_sha256": "e7c42780b8b959cad2cf7d5842c4d7c597bbc57b8a5092cd02a0d5b190e3337a"
+    },
+    {
+      "old": "scripts/cabi_vla/select_kyc_scaling_stage_b2.py",
+      "new": "archive/research/code/scripts/cabi_vla/select_kyc_scaling_stage_b2.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/select_kyc_scaling_stage_b2.py",
+      "before_sha256": "5858be82e60c3606165a354beede0b2fbb2201531bb3787b747cc17c1b2df9cf",
+      "after_sha256": "5858be82e60c3606165a354beede0b2fbb2201531bb3787b747cc17c1b2df9cf"
+    },
+    {
+      "old": "scripts/cabi_vla/select_kyc_scaling_stage_b2_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/select_kyc_scaling_stage_b2_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/select_kyc_scaling_stage_b2_test.py",
+      "before_sha256": "edd54db9ff0d4243d82338cec18ddcc2f28c712bd5c9c6f1a6d1dfb36bba121a",
+      "after_sha256": "edd54db9ff0d4243d82338cec18ddcc2f28c712bd5c9c6f1a6d1dfb36bba121a"
+    },
+    {
+      "old": "scripts/cabi_vla/serve_openpi_deterministic_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/serve_openpi_deterministic_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/serve_openpi_deterministic_test.py",
+      "before_sha256": "47403702958b439b887d8bffa6f8011fd12173347254fcad9c079ecc52563db6",
+      "after_sha256": "47403702958b439b887d8bffa6f8011fd12173347254fcad9c079ecc52563db6"
+    },
+    {
+      "old": "scripts/cabi_vla/smoke_libero_plus_runtime.py",
+      "new": "archive/research/code/scripts/cabi_vla/smoke_libero_plus_runtime.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/smoke_libero_plus_runtime.py",
+      "before_sha256": "ba9c939da4622cfcb53c980c048e8345ecfa8fb7ba967e267b958ae529e672c6",
+      "after_sha256": "ba9c939da4622cfcb53c980c048e8345ecfa8fb7ba967e267b958ae529e672c6"
+    },
+    {
+      "old": "scripts/cabi_vla/smoke_libero_plus_runtime_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/smoke_libero_plus_runtime_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/smoke_libero_plus_runtime_test.py",
+      "before_sha256": "24d5766e84fe3d9d599162beea59b9058a1f92fb2203fc3266152298ac10fe2f",
+      "after_sha256": "24d5766e84fe3d9d599162beea59b9058a1f92fb2203fc3266152298ac10fe2f"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_camera_seeds.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_camera_seeds.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_camera_seeds.py",
+      "before_sha256": "f8967118402f5c4940c62d128ed9114259a5269e9742d84e63ca528bbc07959b",
+      "after_sha256": "f8967118402f5c4940c62d128ed9114259a5269e9742d84e63ca528bbc07959b"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_camera_seeds_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_camera_seeds_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_camera_seeds_test.py",
+      "before_sha256": "502768ca61a2d6532f1922afeee7bf725761265e6982319158242563fdf843de",
+      "after_sha256": "502768ca61a2d6532f1922afeee7bf725761265e6982319158242563fdf843de"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_dual_camera_diagnostics.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_dual_camera_diagnostics.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_dual_camera_diagnostics.py",
+      "before_sha256": "17b2deffdccc10ba1bc9a57ae70e78f1e65a1b57b2ade71e5c19d9c5e2e838c0",
+      "after_sha256": "17b2deffdccc10ba1bc9a57ae70e78f1e65a1b57b2ade71e5c19d9c5e2e838c0"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_dual_camera_diagnostics_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_dual_camera_diagnostics_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_dual_camera_diagnostics_test.py",
+      "before_sha256": "a3867268e55550fe4f2efbdbaead46bc50d8ac4bcf8b3e8c2ee6fb8b0cb825c7",
+      "after_sha256": "a3867268e55550fe4f2efbdbaead46bc50d8ac4bcf8b3e8c2ee6fb8b0cb825c7"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_dual_camera_screen.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_dual_camera_screen.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_dual_camera_screen.py",
+      "before_sha256": "d4cff8e345a6bb412d1eeaf58ec3e0b6cbe11309f5edd7c75259151adea3c9bc",
+      "after_sha256": "d4cff8e345a6bb412d1eeaf58ec3e0b6cbe11309f5edd7c75259151adea3c9bc"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_dual_camera_screen_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_dual_camera_screen_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_dual_camera_screen_test.py",
+      "before_sha256": "a73b63fb68403e8a480b6ca152d9be9db349064cb15e997221a4971d0dc1c163",
+      "after_sha256": "a73b63fb68403e8a480b6ca152d9be9db349064cb15e997221a4971d0dc1c163"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_factorial.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_factorial.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_factorial.py",
+      "before_sha256": "6fac4ffe44cb5793d9f858970bb5a2231c1df0f31895ef83bb6e5cf12250393b",
+      "after_sha256": "6fac4ffe44cb5793d9f858970bb5a2231c1df0f31895ef83bb6e5cf12250393b"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_factorial_confirmed.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_factorial_confirmed.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_factorial_confirmed.py",
+      "before_sha256": "71201560b2985bec888ff9703884053322df700a5840a1c3178c702fbee30809",
+      "after_sha256": "71201560b2985bec888ff9703884053322df700a5840a1c3178c702fbee30809"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_factorial_confirmed_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_factorial_confirmed_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_factorial_confirmed_test.py",
+      "before_sha256": "9813089f20d30b99f91584b736901be0e7ffe915c9bf23134b92286d33c1d08a",
+      "after_sha256": "9813089f20d30b99f91584b736901be0e7ffe915c9bf23134b92286d33c1d08a"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_factorial_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_factorial_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_factorial_test.py",
+      "before_sha256": "40cc2962ade85ca3e3cc12cc033673d39244302897a8f8e149fccc523601862d",
+      "after_sha256": "40cc2962ade85ca3e3cc12cc033673d39244302897a8f8e149fccc523601862d"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_official_act.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_official_act.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_official_act.py",
+      "before_sha256": "5a2ace2b79cde16f5cbfabc5785201f7bed3b7b939678aef82e95788e47200e9",
+      "after_sha256": "5a2ace2b79cde16f5cbfabc5785201f7bed3b7b939678aef82e95788e47200e9"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_official_act_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_official_act_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_official_act_test.py",
+      "before_sha256": "666848279dc7fcd404a36541412ea35691c2c3ad8219274a27f828b7c75fa9de",
+      "after_sha256": "666848279dc7fcd404a36541412ea35691c2c3ad8219274a27f828b7c75fa9de"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_scaling_stage_b1.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_scaling_stage_b1.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_scaling_stage_b1.py",
+      "before_sha256": "9aa3b665d25d738969566dab8f4552bdcf40f2de82cffde358ee291f7b58fce5",
+      "after_sha256": "9aa3b665d25d738969566dab8f4552bdcf40f2de82cffde358ee291f7b58fce5"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_scaling_stage_b1_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_scaling_stage_b1_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_scaling_stage_b1_test.py",
+      "before_sha256": "334346b6f2e738f175c0460d8ebe6d7a97748c9ffb9ab0b86b80581585e41fa5",
+      "after_sha256": "334346b6f2e738f175c0460d8ebe6d7a97748c9ffb9ab0b86b80581585e41fa5"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_scaling_stage_b2.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_scaling_stage_b2.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_scaling_stage_b2.py",
+      "before_sha256": "90cf1e1a621619db2a3ac70d0aa275a538247312666c5f9921492e9a88f35dfb",
+      "after_sha256": "90cf1e1a621619db2a3ac70d0aa275a538247312666c5f9921492e9a88f35dfb"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_scaling_stage_b2_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_scaling_stage_b2_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_scaling_stage_b2_test.py",
+      "before_sha256": "f8100170a3b861f2ec3a5d5bda3d9874393a0faeeef5c0bcba46778528618131",
+      "after_sha256": "f8100170a3b861f2ec3a5d5bda3d9874393a0faeeef5c0bcba46778528618131"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_visual_alignment_screen.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_visual_alignment_screen.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_visual_alignment_screen.py",
+      "before_sha256": "02a757386ddc178a0c9e47e90a3a5b5bd08cdf3f62a8e3924b0a6f34ccaab129",
+      "after_sha256": "02a757386ddc178a0c9e47e90a3a5b5bd08cdf3f62a8e3924b0a6f34ccaab129"
+    },
+    {
+      "old": "scripts/cabi_vla/summarize_kyc_visual_alignment_screen_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/summarize_kyc_visual_alignment_screen_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/summarize_kyc_visual_alignment_screen_test.py",
+      "before_sha256": "1d827965f99b7b592cdabfea1fcb858a3bdfc33762d77b5bfc8a8a522a9b1a22",
+      "after_sha256": "1d827965f99b7b592cdabfea1fcb858a3bdfc33762d77b5bfc8a8a522a9b1a22"
+    },
+    {
+      "old": "scripts/cabi_vla/transcode_kyc_official_final_videos.sh",
+      "new": "archive/research/code/scripts/cabi_vla/transcode_kyc_official_final_videos.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/transcode_kyc_official_final_videos.sh",
+      "before_sha256": "82c7f082a3559749a2f362bc52b7f1c6cc19c7e0c4328af89732e33288bbfa22",
+      "after_sha256": "82c7f082a3559749a2f362bc52b7f1c6cc19c7e0c4328af89732e33288bbfa22"
+    },
+    {
+      "old": "scripts/cabi_vla/transcode_to_av1_webm.py",
+      "new": "archive/research/code/scripts/cabi_vla/transcode_to_av1_webm.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/transcode_to_av1_webm.py",
+      "before_sha256": "dc49f0f9f932516a13e85d32adca6d22391b7fa5090c36201638f7d2d8cf2147",
+      "after_sha256": "dc49f0f9f932516a13e85d32adca6d22391b7fa5090c36201638f7d2d8cf2147"
+    },
+    {
+      "old": "scripts/cabi_vla/transcode_to_av1_webm_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/transcode_to_av1_webm_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/transcode_to_av1_webm_test.py",
+      "before_sha256": "05b42b80b8065e6e33dac5829d5370ae13ce19e879fe02f74f33017b3e8d5cc8",
+      "after_sha256": "05b42b80b8065e6e33dac5829d5370ae13ce19e879fe02f74f33017b3e8d5cc8"
+    },
+    {
+      "old": "scripts/cabi_vla/validate_kyc_scaling_views.py",
+      "new": "archive/research/code/scripts/cabi_vla/validate_kyc_scaling_views.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/validate_kyc_scaling_views.py",
+      "before_sha256": "2553fceb9ab5567abfb36d1f5bf823b958f39e73747b3ec4509a505b6b67a6b6",
+      "after_sha256": "2553fceb9ab5567abfb36d1f5bf823b958f39e73747b3ec4509a505b6b67a6b6"
+    },
+    {
+      "old": "scripts/cabi_vla/validate_kyc_scaling_views_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/validate_kyc_scaling_views_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/validate_kyc_scaling_views_test.py",
+      "before_sha256": "b4a42bbaac5370afc6839295b0ea9c45a5169cb1b35beb0cc31d959628dd81bc",
+      "after_sha256": "b4a42bbaac5370afc6839295b0ea9c45a5169cb1b35beb0cc31d959628dd81bc"
+    },
+    {
+      "old": "scripts/cabi_vla/validate_libero_plus_composition_protocol.py",
+      "new": "archive/research/code/scripts/cabi_vla/validate_libero_plus_composition_protocol.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/validate_libero_plus_composition_protocol.py",
+      "before_sha256": "fd745333c4e43ea0fa03e9320c7f4d694435a530f3c63abe743542a637faa0dd",
+      "after_sha256": "fd745333c4e43ea0fa03e9320c7f4d694435a530f3c63abe743542a637faa0dd"
+    },
+    {
+      "old": "scripts/cabi_vla/validate_libero_plus_ray_alignment.py",
+      "new": "archive/research/code/scripts/cabi_vla/validate_libero_plus_ray_alignment.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/validate_libero_plus_ray_alignment.py",
+      "before_sha256": "e20d319c9b9f88099d09f35b1d24faea52e1ad77f7b4f68cefde4eb6ed9863c4",
+      "after_sha256": "e20d319c9b9f88099d09f35b1d24faea52e1ad77f7b4f68cefde4eb6ed9863c4"
+    },
+    {
+      "old": "scripts/cabi_vla/validate_libero_plus_ray_alignment_test.py",
+      "new": "archive/research/code/scripts/cabi_vla/validate_libero_plus_ray_alignment_test.py",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/validate_libero_plus_ray_alignment_test.py",
+      "before_sha256": "2e905b85c4cb1447ab2354821348629799ea8a52e02c2c3ceb88a82fdb43bf89",
+      "after_sha256": "2e905b85c4cb1447ab2354821348629799ea8a52e02c2c3ceb88a82fdb43bf89"
+    },
+    {
+      "old": "scripts/cabi_vla/verify_policy_reload.sh",
+      "new": "archive/research/code/scripts/cabi_vla/verify_policy_reload.sh",
+      "before": "archive/repository/20260911/cabi/before/scripts/cabi_vla/verify_policy_reload.sh",
+      "before_sha256": "ac0c0a2f84cfa31346fc2f7dfb3f9cb60a16075914eafad6c632545b6cb6833e",
+      "after_sha256": "ac0c0a2f84cfa31346fc2f7dfb3f9cb60a16075914eafad6c632545b6cb6833e"
+    }
+  ],
+  "protected": [
+    {
+      "path": "scripts/cabi_vla/__init__.py",
+      "sha256": "54799864c4f13f0a180d7f7cb4ca464d280356ab8963a812ab3180288f8f3c4a"
+    },
+    {
+      "path": "scripts/cabi_vla/analyze_libero_original_full.py",
+      "sha256": "628b7fb907b03b000b28a68ce52bd2f512e201bfee378b72e041d045715eaf85"
+    },
+    {
+      "path": "scripts/cabi_vla/analyze_libero_plus_camera_full.py",
+      "sha256": "9a8463bb6439c0c0e7a3c03ec8f99497f5210a9c17755d3b728ce26401614f63"
+    },
+    {
+      "path": "scripts/cabi_vla/analyze_pi05_libero_plus_views.py",
+      "sha256": "01ab3dc9706b0b25f91e8c6bf9951e7ccdd0d29b95d4c49e729ae3f11f73b889"
+    },
+    {
+      "path": "scripts/cabi_vla/build_libero_plus_view_protocol.py",
+      "sha256": "cf5cc771ab3db309453b1946d4097cfe5db96b65cfac582eff330e35c5353620"
+    },
+    {
+      "path": "scripts/cabi_vla/evaluate_pi05_libero_plus_views.py",
+      "sha256": "df897dc2cf503fa51b84522060f8a5cafaf23a9df50cdcf340d5643b02338231"
+    },
+    {
+      "path": "scripts/cabi_vla/libero_camera_pose.py",
+      "sha256": "d276ed5a231d81dc489d0c500cc10f9403170b12669f364958f710e26e248e8f"
+    },
+    {
+      "path": "scripts/cabi_vla/libero_wrist_camera.py",
+      "sha256": "f773a19c7ff9fa0599aaf7437ba76808cbe2ab28ca11ca352d22195e595f15ff"
+    },
+    {
+      "path": "scripts/cabi_vla/run_alphabrain_pi05_libero_plus_view_eval.sh",
+      "sha256": "ee2d3a337cfe90a173db5c645aa17092b4c5de095dc7cc9cda2f454f821c4079"
+    },
+    {
+      "path": "scripts/cabi_vla/run_pi05_libero_plus_view_study.sh",
+      "sha256": "e0fc9c37ee7b68fa00214ee08ff6c635a40c9431c7d3e275716ab9e34ec88b42"
+    },
+    {
+      "path": "scripts/cabi_vla/serve_alphabrain_pi05_websocket.py",
+      "sha256": "c420295fa21e08c107c752669a50d186a55f0118dd3c8e79c89b59f5c79eecbe"
+    },
+    {
+      "path": "scripts/cabi_vla/serve_openpi_deterministic.py",
+      "sha256": "b86749c5bb6ebd5f3008d4a1489dedb7ed403e7236500160804076fd11766abb"
+    }
+  ],
+  "scope": "Historical CABI/KYC utilities; currently referenced compatibility/benchmark chain retained"
+}

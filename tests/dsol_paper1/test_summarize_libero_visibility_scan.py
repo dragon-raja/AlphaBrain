@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 
-from scripts.dsol_paper1.summarize_libero_visibility_scan import diagnostic_plot_data
+from scripts.dsol_paper1.analysis.summarize_libero_visibility_scan import diagnostic_plot_data
 
 
 def test_diagnostic_plot_data_uses_protocol_split_names() -> None:

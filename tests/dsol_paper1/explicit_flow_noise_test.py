@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
-from explicit_flow_noise import ExplicitFlowNoiseBank, materialize_bank, tensor_sha256
+from scripts.dsol_paper1.explicit_flow_noise import ExplicitFlowNoiseBank, materialize_bank, tensor_sha256
 
 
 class ExplicitFlowNoiseTest(unittest.TestCase):

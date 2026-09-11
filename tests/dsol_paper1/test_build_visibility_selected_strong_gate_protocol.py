@@ -8,7 +8,7 @@ from pathlib import Path
 SCRIPT_ROOT = Path(__file__).resolve().parents[2] / "scripts" / "dsol_paper1"
 sys.path.insert(0, str(SCRIPT_ROOT))
 
-from build_visibility_selected_strong_gate_protocol import build  # noqa: E402
+from scripts.dsol_paper1.protocols.build_visibility_selected_strong_gate_protocol import build  # noqa: E402
 
 
 def record(pose_id: str, delta: float, pair_id: str, member: str) -> dict:

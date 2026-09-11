@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from scripts.dsol_paper1.build_dense_test_selector_protocol import (
+from scripts.dsol_paper1.protocols.build_dense_test_selector_protocol import (
     SELECTOR_METHODS,
     build,
 )

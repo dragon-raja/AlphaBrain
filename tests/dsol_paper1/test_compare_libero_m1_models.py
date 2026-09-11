@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import pytest
 
-from scripts.dsol_paper1.compare_dsol_libero_m1_models import (
+from scripts.dsol_paper1.analysis.compare_dsol_libero_m1_models import (
     grouped_model_difference,
     validate_same_protocol,
 )
-from scripts.dsol_paper1.summarize_dsol_libero_m1_visibility import (
+from scripts.dsol_paper1.analysis.summarize_dsol_libero_m1_visibility import (
     EXPECTED_CONDITIONS,
     PHYSICS_STATE_STAGE,
 )

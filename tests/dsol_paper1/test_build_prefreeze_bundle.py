@@ -9,7 +9,7 @@ import pytest
 
 SCRIPT = (
     Path(__file__).parents[2]
-    / "scripts/dsol_paper1/build_prefreeze_bundle.py"
+    / "scripts/dsol_paper1/protocols/build_prefreeze_bundle.py"
 )
 SPEC = importlib.util.spec_from_file_location("build_prefreeze_bundle", SCRIPT)
 assert SPEC and SPEC.loader

@@ -1,0 +1,146 @@
+{
+  "records": [
+    {
+      "old": "scripts/dsol_paper1/diagnostics/audit_taskcentric_support_pair.py",
+      "new": "scripts/dsol_paper1/diagnostics/audit_taskcentric_support_pair.py",
+      "before": "archive/repository/20260911/core/before/scripts/dsol_paper1/diagnostics/audit_taskcentric_support_pair.py",
+      "before_sha256": "bcb939345125b77dea7dfc936f99a2c48d47d59f90aef38e8dc98b5593a44451",
+      "after_sha256": "862a198f2a7be1d5fdab7d05c5ac43f076a4c9ff446031b01d014e02bd51360e"
+    },
+    {
+      "old": "scripts/dsol_paper1/training/audit_libero_pair_collection.py",
+      "new": "scripts/dsol_paper1/training/audit_libero_pair_collection.py",
+      "before": "archive/repository/20260911/core/before/scripts/dsol_paper1/training/audit_libero_pair_collection.py",
+      "before_sha256": "963f9a72af49b6fda86ae4feb4c33decb0bf9661081e201f22729cb186d95f22",
+      "after_sha256": "4a260120556102e63ea8199c88313762d909149db41e8d96d22105d8100a66e3"
+    },
+    {
+      "old": "scripts/dsol_paper1/training/libero_pair_records.py",
+      "new": "AlphaBrain/common/pair_records.py",
+      "before": "archive/repository/20260911/core/before/scripts/dsol_paper1/training/libero_pair_records.py",
+      "before_sha256": "69ab72d3b71d409c2dee8b3f92709d98488238fd224a26e126765ebe89bdf592",
+      "after_sha256": "f1be08df11da8c985f14c5f6350382a8d49397543e96c3c46bdb9ce621ccccb4"
+    },
+    {
+      "old": "scripts/dsol_paper1/training/generate_libero_hdf5_view_pairs.py",
+      "new": "scripts/dsol_paper1/training/generate_libero_hdf5_view_pairs.py",
+      "before": "archive/repository/20260911/core/before/scripts/dsol_paper1/training/generate_libero_hdf5_view_pairs.py",
+      "before_sha256": "3643613ccc8d674da5ce8156b231dd34f458a16d0351ef9be939ca0c855c14e5",
+      "after_sha256": "1b2ff408ca1661ff3719720a6b76482797baf1bbd822b53da2ff9ff8192d96b9"
+    },
+    {
+      "old": "AlphaBrain/dataloader/paligemma_datasets_test.py",
+      "new": "tests/dataloader/test_paligemma_datasets.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/dataloader/paligemma_datasets_test.py",
+      "before_sha256": "3a56906dada8c4764f510cad86eefd75453408b1b7d0b3fb7f6acc1884c59a95",
+      "after_sha256": "2c3a37cb74256d38af17da55eabca119c9424d4214b5195c7ce99702c7cde1e3"
+    },
+    {
+      "old": "AlphaBrain/dataloader/paligemma_datasets.py",
+      "new": "AlphaBrain/dataloader/paligemma_datasets.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/dataloader/paligemma_datasets.py",
+      "before_sha256": "1d946f0bc6ef5f2812393bbd83974f672f11280e67bf3196cde2a60c3902d0fb",
+      "after_sha256": "c01c8d1d019477a00e9b54e95b6c24d81e63190c80d94a15414581f0e2e0567e"
+    },
+    {
+      "old": "AlphaBrain/model/framework/QwenOFT.py",
+      "new": "AlphaBrain/model/framework/QwenOFT.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/model/framework/QwenOFT.py",
+      "before_sha256": "077fdc5ae8154cdbcc3c92584a96a4418ac01d2dd76c4c5a2f2be80ad261aece",
+      "after_sha256": "2035e92d288a8b3566e917e2e98de1be5d657d1ba7b94f5851e363decad6af9a"
+    },
+    {
+      "old": "AlphaBrain/model/framework/base_framework_test.py",
+      "new": "tests/model/test_base_framework.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/model/framework/base_framework_test.py",
+      "before_sha256": "45979ce8cf598c2bad54df723da04dbc03be753887bbd3d437bc0e8a8cb03740",
+      "after_sha256": "45979ce8cf598c2bad54df723da04dbc03be753887bbd3d437bc0e8a8cb03740"
+    },
+    {
+      "old": "AlphaBrain/model/framework/QwenGR00T.py",
+      "new": "AlphaBrain/model/framework/QwenGR00T.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/model/framework/QwenGR00T.py",
+      "before_sha256": "349d506dcf6050ef05f58a94c27e71790a19503b2c83514b8398a861fa3dd08f",
+      "after_sha256": "a897f95e0d8ab02b7e7e3f1abca26f9c441c01ac468c6721bd11c97d5a05294f"
+    },
+    {
+      "old": "AlphaBrain/model/framework/WorldModelVLA.py",
+      "new": "AlphaBrain/model/framework/WorldModelVLA.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/model/framework/WorldModelVLA.py",
+      "before_sha256": "f5ba814b206ed6b0d81f4c2b66090e26cf09d66508e69c6d9f3610a0aa484ad1",
+      "after_sha256": "c01dab73ac626fb35e14eaf0bd49fab825f1cda05ddc884081a4a19375b64e9f"
+    },
+    {
+      "old": "AlphaBrain/model/framework/PaliGemmaOFT.py",
+      "new": "AlphaBrain/model/framework/PaliGemmaOFT.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/model/framework/PaliGemmaOFT.py",
+      "before_sha256": "6eac349ad8f8b31582d45103b0d345a8123cbcd74088bb95f02f2cc507dca2e9",
+      "after_sha256": "d95e9e6dd037836534451ebe1c9e714221e7db0fc7af0b01cd886eddf42f3ac7"
+    },
+    {
+      "old": "AlphaBrain/model/framework/LlamaOFT.py",
+      "new": "AlphaBrain/model/framework/LlamaOFT.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/model/framework/LlamaOFT.py",
+      "before_sha256": "e136f6dc1415b741b0ded88dbefeecfe5ad431d0fc3c4ec55eff2e96a864cc40",
+      "after_sha256": "059ca3762d2c6c3fe71ec5680dd5e1b3fcba96c9c872139312e90af7cf364505"
+    },
+    {
+      "old": "AlphaBrain/model/framework/QwenPI.py",
+      "new": "AlphaBrain/model/framework/QwenPI.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/model/framework/QwenPI.py",
+      "before_sha256": "349028051278cef81923f549c3d47698bf33307ebb1d4df4ec1ed06051d66763",
+      "after_sha256": "b2cd01f06841e0b796374a2f6a621fa2d178c605e32bc1c04b2ed5d4ce8361ad"
+    },
+    {
+      "old": "AlphaBrain/model/modules/vlm/camera_conditioning_test.py",
+      "new": "tests/model/test_pi05_camera_conditioning.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/model/modules/vlm/camera_conditioning_test.py",
+      "before_sha256": "1bfee0bd1b104d11332da87432b0af5ce2ddd20f06fb95d5e5ab9b25880e9fec",
+      "after_sha256": "1bfee0bd1b104d11332da87432b0af5ce2ddd20f06fb95d5e5ab9b25880e9fec"
+    },
+    {
+      "old": "AlphaBrain/model/modules/vlm/vision_low_rank_adapter_test.py",
+      "new": "tests/model/test_vision_low_rank_adapter.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/model/modules/vlm/vision_low_rank_adapter_test.py",
+      "before_sha256": "a81edebda333d9e48e983df12337952fdc8d68dc45f11085db8c9627d6f84893",
+      "after_sha256": "a81edebda333d9e48e983df12337952fdc8d68dc45f11085db8c9627d6f84893"
+    },
+    {
+      "old": "AlphaBrain/model/modules/action_model/fresh_loss_test.py",
+      "new": "tests/model/test_fresh_loss.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/model/modules/action_model/fresh_loss_test.py",
+      "before_sha256": "89b8440155df228e54002468758eedbbbdc27830b6ca81308d4759a09892a3a8",
+      "after_sha256": "89b8440155df228e54002468758eedbbbdc27830b6ca81308d4759a09892a3a8"
+    },
+    {
+      "old": "AlphaBrain/model/modules/action_model/pi0_flow_matching_head/pair_consistency_test.py",
+      "new": "tests/model/test_pair_consistency.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/model/modules/action_model/pi0_flow_matching_head/pair_consistency_test.py",
+      "before_sha256": "1b3e3235673717c6c78cfb91a1eb3c80357a2cdbba147f1a2320825328d98218",
+      "after_sha256": "1b3e3235673717c6c78cfb91a1eb3c80357a2cdbba147f1a2320825328d98218"
+    },
+    {
+      "old": "AlphaBrain/model/modules/action_model/pi0_flow_matching_head/weight_bridge_test.py",
+      "new": "tests/model/test_weight_bridge.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/model/modules/action_model/pi0_flow_matching_head/weight_bridge_test.py",
+      "before_sha256": "08de9b379fe8c13ed218e065e0eb2df73557d9ab64488060cd2d7e5fd799709b",
+      "after_sha256": "08de9b379fe8c13ed218e065e0eb2df73557d9ab64488060cd2d7e5fd799709b"
+    },
+    {
+      "old": "AlphaBrain/training/reinforcement_learning/algos/RLT/vla_features.py",
+      "new": "AlphaBrain/training/reinforcement_learning/algos/RLT/vla_features.py",
+      "before": "archive/repository/20260911/core/before/AlphaBrain/training/reinforcement_learning/algos/RLT/vla_features.py",
+      "before_sha256": "221bdfcb4c6a6aa32c4c48bda12ca1a05247a845783797793c642eb3890f9541",
+      "after_sha256": "a0bee03b344c28c188eb3a949d40fe6e1c98ec6924889bd7afa896fdddb1504f"
+    },
+    {
+      "old": "deployment/model_server/tools/image_tools.py",
+      "new": "AlphaBrain/common/images.py",
+      "before": "archive/repository/20260911/core/before/deployment/model_server/tools/image_tools.py",
+      "before_sha256": "e0f87ef8fff5af55b5098c88abd86e4702daddc1e74870a702e43b8c9588c13b",
+      "after_sha256": "e0f87ef8fff5af55b5098c88abd86e4702daddc1e74870a702e43b8c9588c13b"
+    }
+  ],
+  "scope": "Core image and paired-record primitives; explicit inbound imports; seven framework tests relocated",
+  "recovery_note": "Destination collision detected before overwrite; preexisting camera test preserved and migrated test given distinct pi05 name"
+}

@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CONTROLLER = ROOT / "scripts/dsol_paper1/run_statewise_view_oracle_v2_development_O.sh"
+CONTROLLER = ROOT / "scripts/dsol_paper1/operations/launchers/run_statewise_view_oracle_v2_development_O.sh"
 
 
 def test_controller_requires_smoke_before_formal_O() -> None:

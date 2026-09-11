@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from run_accel_checkpoint_smoke import CANDIDATE_IDS, build_fixed_state_candidates
+from scripts.dsol_paper1.operations.controllers.run_accel_checkpoint_smoke import CANDIDATE_IDS, build_fixed_state_candidates
 
 
 def _sample(pose: str) -> dict:

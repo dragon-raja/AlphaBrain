@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from scripts.dsol_paper1.build_statewise_view_oracle_v2_stage import (
+from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2_stage import (
     rank_key,
     select_noncanonical,
     summarize_rows,

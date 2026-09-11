@@ -26,6 +26,18 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+paper1-analysis = [
+    "numpy",
+    "scipy",
+    "torch",
+    "torchvision",
+    "matplotlib",
+    "pillow",
+    "pymupdf",
+]
+paper1-test = ["pytest", "numpy", "scipy", "matplotlib", "pillow", "pymupdf", "pyyaml"]
+test-portable = ["pytest", "numpy", "scipy", "matplotlib", "pillow", "pyyaml"]
+report = ["matplotlib", "numpy", "pillow", "pymupdf", "python-docx"]
 dev = [
     "black>=24.2.0",
     "gpustat",
@@ -41,6 +53,7 @@ sagemaker = [
 
 [tool.setuptools.packages.find]
 where = ["."]
+include = ["AlphaBrain*"]
 exclude = [
     "tests",         # test directory
     "cache",         # cache directory
@@ -59,6 +72,10 @@ exclude = [
     "*.pyo",          # optimized Python file
 
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["archive", ".git", ".pytest_cache", "__pycache__"]
 
 [tool.black]
 line-length = 121

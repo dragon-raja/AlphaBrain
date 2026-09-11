@@ -4,8 +4,8 @@ Source path: `AlphaBrain/training/`
 
 Generic training entrypoints and shared utilities for VLA models. Continual Learning and Reinforcement Learning have their own pages:
 
-- [Continual Learning](./training_continual_learning.md)
-- [Reinforcement Learning](./training_reinforcement_learning.md)
+- [Continual Learning](training_continual_learning.md)
+- [Reinforcement Learning](training_reinforcement_learning.md)
 
 ---
 

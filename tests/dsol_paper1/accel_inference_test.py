@@ -4,10 +4,7 @@ import unittest
 
 import numpy as np
 
-from accel_inference import (
-    rank_fixed_state_candidates,
-    rank_fixed_state_candidates_chunked,
-)
+from scripts.dsol_paper1.accel_inference import rank_fixed_state_candidates, rank_fixed_state_candidates_chunked
 
 
 class FakeTraceModel:

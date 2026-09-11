@@ -79,7 +79,7 @@ def test_old_and_new_policy_adapter_have_identical_inputs_actions_and_hashes(see
 
 
 def test_shared_path_resolver_only_falls_back_to_verified_frozen_release(tmp_path):
-    from shared_runtime_paths import shared_scripts
+    from scripts.dsol_paper1.shared_runtime_paths import shared_scripts
     repo=tmp_path/'repo';shared=repo/'scripts/vla_shared';shared.mkdir(parents=True)
     assert shared_scripts(repo)==shared
     shared.rmdir()
@@ -93,7 +93,7 @@ def test_shared_path_resolver_only_falls_back_to_verified_frozen_release(tmp_pat
 
 
 def test_new_runner_receipts_cover_shared_implementation_not_only_shims():
-    from shared_runtime_paths import SHARED_SOURCE_NAMES, shared_code_paths
+    from scripts.dsol_paper1.shared_runtime_paths import SHARED_SOURCE_NAMES, shared_code_paths
     paths=shared_code_paths(ROOT)
     assert len(paths)==6
     assert {p.name for p in paths} == {*SHARED_SOURCE_NAMES,'shared_runtime_paths.py'}

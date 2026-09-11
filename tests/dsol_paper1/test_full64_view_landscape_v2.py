@@ -7,12 +7,12 @@ import unittest
 import numpy as np
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'scripts/dsol_paper1'))
-from build_full64_view_landscape_v2 import partition_states, protocol_for
+from scripts.dsol_paper1.build_full64_view_landscape_v2 import partition_states, protocol_for
 from build_matched_view_landscape_protocol_v1_test import population_fixture, protocol_fixture
-from build_matched_view_landscape_protocol_v1 import select_development_states, expanded_specs
-from run_full64_view_landscape_v2 import select_mode
-from analyze_view_oracle_comparison_v2 import oracle_rows, ORACLES
-from finalize_full64_view_landscape_v2 import link_existing
+from scripts.dsol_paper1.build_matched_view_landscape_protocol_v1 import select_development_states, expanded_specs
+from scripts.dsol_paper1.run_full64_view_landscape_v2 import select_mode
+from scripts.dsol_paper1.analyze_view_oracle_comparison_v2 import oracle_rows, ORACLES
+from scripts.dsol_paper1.finalize_full64_view_landscape_v2 import link_existing
 
 
 def full_population():

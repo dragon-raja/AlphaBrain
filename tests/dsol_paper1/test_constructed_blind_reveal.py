@@ -5,19 +5,19 @@ from pathlib import Path
 
 import pytest
 
-from scripts.dsol_paper1.audit_constructed_blind_reveal import (
+from scripts.dsol_paper1.diagnostics.audit_constructed_blind_reveal import (
     audit_collection,
     audit_snapshot,
     main as audit_main,
 )
-from scripts.dsol_paper1.constructed_blind_reveal import (
+from scripts.dsol_paper1.operations.controllers.constructed_blind_reveal import (
     VISIBILITY_DEFINITION,
     build_snapshot_identity,
     masked_visibility,
     recompute_equal_weight_visibility,
     sha256_file,
 )
-from scripts.dsol_paper1.package_constructed_blind_reveal import package
+from scripts.dsol_paper1.protocols.package_constructed_blind_reveal import package
 
 
 CAMERAS = ("agentview", "robot0_eye_in_hand")

@@ -33,7 +33,7 @@ from PIL import Image
 
 from AlphaBrain.training.trainer_utils import initialize_overwatch
 from AlphaBrain.model.tools import FRAMEWORK_REGISTRY
-from deployment.model_server.tools.image_tools import to_pil_preserve
+from AlphaBrain.common.images import to_pil_preserve
 
 logger = initialize_overwatch(__name__)
 
@@ -226,7 +226,7 @@ class Qwenvl_OFT(BaseFramework):
         Returns:
             action_queries: (B, chunk_len, H) tensor on model device
         """
-        from deployment.model_server.tools.image_tools import to_pil_preserve
+        from AlphaBrain.common.images import to_pil_preserve
         batch_images = [to_pil_preserve(imgs) for imgs in batch_images]
 
         train_obs_image_size = getattr(self.config.datasets.vla_data, "image_size", None)

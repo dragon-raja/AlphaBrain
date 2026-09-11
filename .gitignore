@@ -321,3 +321,51 @@ configs/continual_learning/*_widepool_*.yaml
 configs/continual_learning/*_aligned_*.yaml
 *_sweep.py
 results/
+
+# Paper 1 maintained source is not an experiment data directory.
+!/AGENTS.md
+!/AlphaBrain/research/dsol/data/
+!/AlphaBrain/research/dsol/data/*.py
+!/archive/research/code/scripts/**/*.py
+!/archive/research/code/scripts/**/*.sh
+!/archive/research/code/scripts/**/*.md
+!/archive/research/code/scripts/**/*.json
+!/tests/dsol_paper1/analysis/
+!/tests/dsol_paper1/analysis/*.py
+!/tests/dsol_paper1/reporting/
+!/tests/dsol_paper1/reporting/*.py
+
+# Reviewed repository/framework test suites. Other local test exclusions remain.
+!/tests/README.md
+!/tests/repository/
+!/tests/repository/*.py
+!/tests/cabi_vla/
+!/tests/cabi_vla/*.py
+!/tests/verify_vla/
+!/tests/verify_vla/*.py
+!/tests/model/test_base_framework.py
+!/tests/model/test_weight_bridge.py
+!/tests/model/test_pair_consistency.py
+!/tests/model/test_fresh_loss.py
+!/tests/model/test_pi05_camera_conditioning.py
+!/tests/model/test_vision_low_rank_adapter.py
+!/tests/dataloader/test_paligemma_datasets.py
+
+# Existing, previously tracked report evidence remains versioned after relocation.
+!/docs/dsol_paper1/reports/archive/imported/accel_expanded_diagnostic_20260824_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_interim_brief_20260821_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_report_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_final_brief_20260824_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_value_new_experiments_zh.pdf
+# Recovery-only binary copies stay local; one preserved payload plus hashes suffices in Git.
+/archive/repository/20260911/docs/before/**/*.pdf
+/archive/repository/20260911/docs/before/**/*.png
+/archive/repository/20260911/docs-attempt-before-symlink-guard/
+# Human result narratives are not the globally ignored raw-results cache.
+!/docs/dsol_paper1/results/
+!/docs/dsol_paper1/results/*.md

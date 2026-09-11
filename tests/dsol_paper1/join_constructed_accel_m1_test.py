@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from join_constructed_accel_m1 import join_state, summarize
+from scripts.dsol_paper1.analysis.join_constructed_accel_m1 import join_state, summarize
 
 
 def _accel() -> dict:

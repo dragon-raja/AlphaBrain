@@ -29,7 +29,7 @@ import numpy as np
 from PIL import Image
 
 from AlphaBrain.training.trainer_utils import initialize_overwatch
-from deployment.model_server.tools.image_tools import to_pil_preserve
+from AlphaBrain.common.images import to_pil_preserve
 
 logger = initialize_overwatch(__name__)
 

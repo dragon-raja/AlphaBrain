@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CONTROLLER = ROOT / "scripts/dsol_paper1/run_statewise_view_oracle_v2_tail.sh"
+CONTROLLER = ROOT / "scripts/dsol_paper1/operations/launchers/run_statewise_view_oracle_v2_tail.sh"
 
 
 def test_tail_freezes_selector_before_test_dense_execution() -> None:

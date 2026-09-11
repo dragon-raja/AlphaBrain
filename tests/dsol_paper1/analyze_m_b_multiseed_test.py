@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from scripts.dsol_paper1.analyze_m_b_multiseed import summarize
+from scripts.dsol_paper1.analysis.analyze_m_b_multiseed import summarize
 
 
 def _rows(successes: list[int]) -> list[dict[str, object]]:

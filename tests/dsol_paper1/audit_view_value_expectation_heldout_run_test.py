@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.dsol_paper1.audit_view_value_expectation_heldout_run import audit
+from scripts.dsol_paper1.diagnostics.audit_view_value_expectation_heldout_run import audit
 from scripts.dsol_paper1.explicit_flow_noise import materialize_bank, sha256_file
 
 

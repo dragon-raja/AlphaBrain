@@ -4,7 +4,7 @@ from pathlib import Path
 
 from matplotlib.backends.backend_pdf import PdfPages
 
-import scripts.dsol_paper1.build_view_value_expectation_final_report as report
+import reports.paper1.historical.build_view_value_expectation_final_report as report
 
 
 def _method(success: float, gain: float) -> dict:

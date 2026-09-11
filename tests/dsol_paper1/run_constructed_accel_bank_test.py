@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from run_constructed_accel_bank import build_candidate_bank, summarize
+from scripts.dsol_paper1.operations.controllers.run_constructed_accel_bank import build_candidate_bank, summarize
 
 
 def _pose(pose_id: str) -> dict:

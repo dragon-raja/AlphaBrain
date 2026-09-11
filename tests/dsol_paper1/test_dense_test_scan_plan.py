@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.dsol_paper1.build_dense_test_scan_plan import build
+from scripts.dsol_paper1.protocols.build_dense_test_scan_plan import build
 
 
 def _protocol(split: str = "test") -> dict:

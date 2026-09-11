@@ -6,8 +6,8 @@ from unittest.mock import patch
 import numpy as np
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'scripts/dsol_paper1'))
-from render_bridge_common_v1 import render_protocol,array_identity,cell_key
-from analyze_render_protocol_bridge_v1 import interval,signatures_equal,rank_comparison
+from scripts.dsol_paper1.render_bridge_common_v1 import render_protocol, array_identity, cell_key
+from scripts.dsol_paper1.analysis.analyze_render_protocol_bridge_v1 import interval, signatures_equal, rank_comparison
 
 class BridgeTest(unittest.TestCase):
     def test_noaa_is_opt_in_and_context_hook_restored(self):

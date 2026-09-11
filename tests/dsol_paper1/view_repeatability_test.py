@@ -2,12 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from build_view_repeatability_protocols import (
-    categorize_all_states,
-    choose_candidates,
-    normalized_pose_distance,
-    select_state_categories,
-)
+from scripts.dsol_paper1.protocols.build_view_repeatability_protocols import categorize_all_states, choose_candidates, normalized_pose_distance, select_state_categories
 
 
 class ViewRepeatabilityTest(unittest.TestCase):

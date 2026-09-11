@@ -16,7 +16,7 @@ from PIL import Image
 
 import logging
 from AlphaBrain.model.tools import FRAMEWORK_REGISTRY
-from deployment.model_server.tools.image_tools import to_pil_preserve
+from AlphaBrain.common.images import to_pil_preserve
 
 logger = logging.getLogger(__name__)
 

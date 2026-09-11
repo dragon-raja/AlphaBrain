@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from scripts.dsol_paper1.analyze_matched_view_metric_rules_v1 import (
+from scripts.dsol_paper1.analysis.analyze_matched_view_metric_rules_v1 import (
     RULES, analyze, match_reports, pair_rule_results, require_new_output,
 )
 from tests.dsol_paper1.test_compare_matched_view_landscapes_v1 import fixtures

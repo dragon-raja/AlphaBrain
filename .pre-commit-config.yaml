@@ -1,0 +1,15 @@
+repos:
+  - repo: local
+    hooks:
+      - id: repository-boundaries
+        name: Repository boundaries and source ownership
+        entry: python tools/repository/check.py
+        language: system
+        pass_filenames: false
+        types: [python]
+      - id: staged-artifact-guard
+        name: Staged credential and artifact guard
+        entry: python tools/repository/check.py --staged
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from scripts.dsol_paper1.summarize_dense_test_selectors import summarize
+from scripts.dsol_paper1.analysis.summarize_dense_test_selectors import summarize
 
 
 def _rows(

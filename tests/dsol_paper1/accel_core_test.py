@@ -4,13 +4,7 @@ import unittest
 
 import numpy as np
 
-from accel_core import (
-    analyze_selected_relations,
-    audit_shared_flow_noise,
-    compute_accel_scores,
-    rank_accel_candidates,
-    shared_flow_noise,
-)
+from scripts.dsol_paper1.accel_core import analyze_selected_relations, audit_shared_flow_noise, compute_accel_scores, rank_accel_candidates, shared_flow_noise
 
 
 class AccelCoreTest(unittest.TestCase):

@@ -6,6 +6,7 @@ Shared implementations used by Paper 1 and retained historical callers:
 - `evaluate_pi05_libero_plus_views.py`: observation preparation and LIBERO-Plus evaluation utilities.
 - `libero_camera_pose.py`: camera geometry, installation and calibration.
 - `build_libero_plus_view_protocol.py`: candidate/task naming and protocol helpers.
+- `historical_video_io.py`, `historical_pi05_policy_server.py`: byte-preserved utilities still used by historical CABI callers after FRESH archival; not the active Paper 1 policy service.
 
 These are extracted implementations, not a new model or evaluation protocol. Function/class bodies, model loading, noise handling, image conventions and action clipping are unchanged. Both module execution and direct script execution are supported where a CLI existed.
 

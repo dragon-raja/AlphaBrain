@@ -1,0 +1,26 @@
+{
+  "records": [
+    {
+      "old": "docs/dsol_paper1/reports/biweekly/20260909/build_report.py",
+      "new": "reports/paper1/historical/biweekly_20260909.py",
+      "before": "archive/repository/20260911/reports/before/docs/dsol_paper1/reports/biweekly/20260909/build_report.py",
+      "before_sha256": "105b7d1f3152693b65dab377c9edee2712082b2f8e386c2dace327cb063c3ea7",
+      "after_sha256": "c7d976345d8132e002f230fb1aa6e2308437f6e33f31379aa88df37cc7b9a2f7"
+    },
+    {
+      "old": "docs/dsol_paper1/README.md",
+      "new": "docs/dsol_paper1/README.md",
+      "before": "archive/repository/20260911/reports/before/docs/dsol_paper1/README.md",
+      "before_sha256": "c72429b215e92baef00092be64b801189da59a78304b38ce7511201d6209f9c7",
+      "after_sha256": "901149fe4339aa42f2e62c15113174bd0d2ab021c093c2d2c652fc34f5180e5e"
+    },
+    {
+      "old": "docs/dsol_paper1/reports/biweekly/20260909/export_download_copy.py",
+      "new": "reports/paper1/historical/export_biweekly_20260909.py",
+      "before": "archive/repository/20260911/reports/before/docs/dsol_paper1/reports/biweekly/20260909/export_download_copy.py",
+      "before_sha256": "f11e3c4988659f600de18366a94401a130788d850699f60010708dc9becd3a4e",
+      "after_sha256": "380897c1801fe32318c28cb8096e5f4821573e70af9290cbe05a886150e2d8a4"
+    }
+  ],
+  "scope": "Two report recipes moved out of docs and made import-safe; no report executed"
+}

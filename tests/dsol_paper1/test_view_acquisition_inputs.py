@@ -13,11 +13,7 @@ import numpy as np
 SCRIPT_ROOT = Path(__file__).resolve().parents[2] / "scripts" / "dsol_paper1"
 sys.path.insert(0, str(SCRIPT_ROOT))
 
-from view_acquisition_inputs import (  # noqa: E402
-    InputContractError,
-    build_input_bundle,
-    supported_input_contract,
-)
+from AlphaBrain.research.dsol.acquisition.inputs import InputContractError, build_input_bundle, supported_input_contract
 
 
 def observation() -> dict:

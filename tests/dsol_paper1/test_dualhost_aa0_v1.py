@@ -3,8 +3,8 @@ from pathlib import Path
 import sys
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'scripts/dsol_paper1'))
-from dualhost_aa0_v1 import ROOT,output_path
-from evaluate_dsol_libero_hdf5_views import protocol_spec_at,protocol_spec_count
+from scripts.dsol_paper1.dualhost_aa0_v1 import ROOT, output_path
+from scripts.dsol_paper1.evaluate_dsol_libero_hdf5_views import protocol_spec_at, protocol_spec_count
 
 
 class FrozenDualhostTest(unittest.TestCase):

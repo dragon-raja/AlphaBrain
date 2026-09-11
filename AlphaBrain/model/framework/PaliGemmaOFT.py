@@ -404,7 +404,7 @@ class PaliGemmaOFT_v2(BaseFramework):
         **kwargs,
     ) -> dict:
         """Inference: predict actions from images + instruction."""
-        from deployment.model_server.tools.image_tools import to_pil_preserve
+        from AlphaBrain.common.images import to_pil_preserve
         from AlphaBrain.training.trainer_utils.trainer_tools import resize_images
 
         if examples is not None:

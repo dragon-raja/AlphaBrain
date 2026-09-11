@@ -4,7 +4,7 @@ from copy import deepcopy
 
 import pytest
 
-from scripts.dsol_paper1.build_view_value_expectation_calibration_stage import (
+from scripts.dsol_paper1.protocols.build_view_value_expectation_calibration_stage import (
     validate_explicit_pairing,
 )
 

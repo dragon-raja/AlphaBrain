@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from build_constructed_view_oracle_protocol import group_for_pose, select_stages
+from scripts.dsol_paper1.protocols.build_constructed_view_oracle_protocol import group_for_pose, select_stages
 
 
 class ConstructedViewOracleProtocolTest(unittest.TestCase):

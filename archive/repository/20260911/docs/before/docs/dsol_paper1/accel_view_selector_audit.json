@@ -1,0 +1,1318 @@
+{
+  "evaluated_roles": [
+    "canonical",
+    "strong_info",
+    "matched_control",
+    "blind"
+  ],
+  "interpretation": {
+    "local_v1": "Paper equation on normalized action velocity traces.",
+    "reference_scaled": "Sensitivity audit using the official reference code's path-coordinate z-score, estimated within each fixed-state candidate bank.",
+    "restriction": "No prefix may be selected post hoc from M1 outcomes; p=3 remains the frozen primary result."
+  },
+  "models": {
+    "Broad paired FM": {
+      "accel_root": "/share/longjunyu/alphabrain/experiments/dsol-accel-constructed-v2/broad64-paired-fm-seed41-full",
+      "checkpoint_label": "Broad paired FM",
+      "m1_join_root": "/share/longjunyu/alphabrain/experiments/dsol-accel-constructed-v2/m1-joins/broad64-paired-fm",
+      "variants": {
+        "local_v1": [
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5333333333333333,
+            "prefix": 2,
+            "selected_in_success_set_rate_when_any_success": 0.6666666666666666,
+            "selected_minus_canonical_source_macro_pp": -2.5000000000000004,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 14,
+              "matched_control": 4,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.47619047619047616,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5333333333333333,
+            "prefix": 3,
+            "selected_in_success_set_rate_when_any_success": 0.6666666666666666,
+            "selected_minus_canonical_source_macro_pp": -2.5000000000000004,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "canonical": 15,
+              "matched_control": 4,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.47619047619047616,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.4666666666666667,
+            "prefix": 4,
+            "selected_in_success_set_rate_when_any_success": 0.6,
+            "selected_minus_canonical_source_macro_pp": -6.666666666666667,
+            "selected_minus_canonical_state_pp": -9.523809523809524,
+            "selected_role_counts": {
+              "canonical": 17,
+              "matched_control": 2,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.42857142857142855,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.6666666666666666,
+            "prefix": 5,
+            "selected_in_success_set_rate_when_any_success": 0.8,
+            "selected_minus_canonical_source_macro_pp": 4.166666666666666,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "canonical": 16,
+              "matched_control": 3,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.7333333333333333,
+            "prefix": 6,
+            "selected_in_success_set_rate_when_any_success": 0.9333333333333333,
+            "selected_minus_canonical_source_macro_pp": 10.833333333333334,
+            "selected_minus_canonical_state_pp": 14.285714285714286,
+            "selected_role_counts": {
+              "canonical": 17,
+              "matched_control": 1,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.6666666666666666,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.7333333333333333,
+            "prefix": 7,
+            "selected_in_success_set_rate_when_any_success": 0.9333333333333333,
+            "selected_minus_canonical_source_macro_pp": 10.833333333333334,
+            "selected_minus_canonical_state_pp": 14.285714285714286,
+            "selected_role_counts": {
+              "canonical": 17,
+              "matched_control": 1,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.6666666666666666,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.7333333333333333,
+            "prefix": 8,
+            "selected_in_success_set_rate_when_any_success": 0.8666666666666667,
+            "selected_minus_canonical_source_macro_pp": 7.5,
+            "selected_minus_canonical_state_pp": 9.523809523809524,
+            "selected_role_counts": {
+              "canonical": 17,
+              "matched_control": 2,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.6190476190476191,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.7333333333333333,
+            "prefix": 9,
+            "selected_in_success_set_rate_when_any_success": 0.8666666666666667,
+            "selected_minus_canonical_source_macro_pp": 7.5,
+            "selected_minus_canonical_state_pp": 9.523809523809524,
+            "selected_role_counts": {
+              "canonical": 17,
+              "matched_control": 2,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.6190476190476191,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.6,
+            "prefix": 10,
+            "selected_in_success_set_rate_when_any_success": 0.7333333333333333,
+            "selected_minus_canonical_source_macro_pp": 0.8333333333333331,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 17,
+              "matched_control": 3,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          }
+        ],
+        "reference_scaled": [
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.4,
+            "prefix": 2,
+            "selected_in_success_set_rate_when_any_success": 0.6666666666666666,
+            "selected_minus_canonical_source_macro_pp": -3.3333333333333335,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 15,
+              "matched_control": 2,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.47619047619047616,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5333333333333333,
+            "prefix": 3,
+            "selected_in_success_set_rate_when_any_success": 0.6666666666666666,
+            "selected_minus_canonical_source_macro_pp": -3.3333333333333335,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 19
+            },
+            "selected_success_rate": 0.47619047619047616,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5333333333333333,
+            "prefix": 4,
+            "selected_in_success_set_rate_when_any_success": 0.7333333333333333,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 19,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5333333333333333,
+            "prefix": 5,
+            "selected_in_success_set_rate_when_any_success": 0.7333333333333333,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 19,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5333333333333333,
+            "prefix": 6,
+            "selected_in_success_set_rate_when_any_success": 0.7333333333333333,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 19,
+              "matched_control": 1,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.6666666666666666,
+            "prefix": 7,
+            "selected_in_success_set_rate_when_any_success": 0.8,
+            "selected_minus_canonical_source_macro_pp": 3.3333333333333335,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 18,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.6666666666666666,
+            "prefix": 8,
+            "selected_in_success_set_rate_when_any_success": 0.8,
+            "selected_minus_canonical_source_macro_pp": 3.3333333333333335,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "canonical": 17,
+              "matched_control": 1,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.6,
+            "prefix": 9,
+            "selected_in_success_set_rate_when_any_success": 0.8,
+            "selected_minus_canonical_source_macro_pp": 3.3333333333333335,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "canonical": 16,
+              "strong_info": 5
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7142857142857143,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5333333333333333,
+            "prefix": 10,
+            "selected_in_success_set_rate_when_any_success": 0.7333333333333333,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 17,
+              "matched_control": 1,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          }
+        ]
+      }
+    },
+    "Broad paired consistency": {
+      "accel_root": "/share/longjunyu/alphabrain/experiments/dsol-accel-constructed-v2/broad64-paired-consistency-seed41-full",
+      "checkpoint_label": "Broad paired consistency",
+      "m1_join_root": "/share/longjunyu/alphabrain/experiments/dsol-accel-constructed-v2/m1-joins/broad64-paired-consistency",
+      "variants": {
+        "local_v1": [
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3125,
+            "prefix": 2,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": -5.0,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "blind": 3,
+              "canonical": 15,
+              "matched_control": 2,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.375,
+            "prefix": 3,
+            "selected_in_success_set_rate_when_any_success": 0.75,
+            "selected_minus_canonical_source_macro_pp": -0.8333333333333331,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 18,
+              "matched_control": 1
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.375,
+            "prefix": 4,
+            "selected_in_success_set_rate_when_any_success": 0.75,
+            "selected_minus_canonical_source_macro_pp": -0.8333333333333331,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 17,
+              "matched_control": 3
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.4375,
+            "prefix": 5,
+            "selected_in_success_set_rate_when_any_success": 0.75,
+            "selected_minus_canonical_source_macro_pp": -0.8333333333333331,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 15,
+              "matched_control": 4,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.4375,
+            "prefix": 6,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": -4.166666666666666,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 17,
+              "matched_control": 2,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.4375,
+            "prefix": 7,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": -4.166666666666666,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "canonical": 17,
+              "matched_control": 3,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3125,
+            "prefix": 8,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": -4.166666666666666,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "canonical": 17,
+              "matched_control": 3,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3125,
+            "prefix": 9,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": -4.166666666666666,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "canonical": 16,
+              "matched_control": 4,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.375,
+            "prefix": 10,
+            "selected_in_success_set_rate_when_any_success": 0.8125,
+            "selected_minus_canonical_source_macro_pp": 2.5000000000000004,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 14,
+              "matched_control": 5,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.6190476190476191,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          }
+        ],
+        "reference_scaled": [
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.1875,
+            "prefix": 2,
+            "selected_in_success_set_rate_when_any_success": 0.5,
+            "selected_minus_canonical_source_macro_pp": -14.16666666666667,
+            "selected_minus_canonical_state_pp": -19.047619047619047,
+            "selected_role_counts": {
+              "blind": 7,
+              "canonical": 11,
+              "matched_control": 1,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.38095238095238093,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.5,
+            "prefix": 3,
+            "selected_in_success_set_rate_when_any_success": 0.75,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 3,
+              "canonical": 13,
+              "matched_control": 1,
+              "strong_info": 4
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.4375,
+            "prefix": 4,
+            "selected_in_success_set_rate_when_any_success": 0.75,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 4,
+              "canonical": 11,
+              "matched_control": 2,
+              "strong_info": 4
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.5,
+            "prefix": 5,
+            "selected_in_success_set_rate_when_any_success": 0.75,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 15,
+              "matched_control": 1,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.5,
+            "prefix": 6,
+            "selected_in_success_set_rate_when_any_success": 0.75,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 15,
+              "matched_control": 1,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.5,
+            "prefix": 7,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": -4.166666666666666,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 15,
+              "matched_control": 2,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.4375,
+            "prefix": 8,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": -4.166666666666666,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 14,
+              "matched_control": 2,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.4375,
+            "prefix": 9,
+            "selected_in_success_set_rate_when_any_success": 0.75,
+            "selected_minus_canonical_source_macro_pp": -0.8333333333333331,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 3,
+              "canonical": 15,
+              "matched_control": 2,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3125,
+            "prefix": 10,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": -4.166666666666666,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "blind": 4,
+              "canonical": 13,
+              "matched_control": 1,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          }
+        ]
+      }
+    },
+    "Broad practical": {
+      "accel_root": "/share/longjunyu/alphabrain/experiments/dsol-accel-constructed-v2/broad64-practical-seed41-full",
+      "checkpoint_label": "Broad practical",
+      "m1_join_root": "/share/longjunyu/alphabrain/experiments/dsol-accel-constructed-v2/m1-joins/broad64-practical",
+      "variants": {
+        "local_v1": [
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.4444444444444444,
+            "prefix": 2,
+            "selected_in_success_set_rate_when_any_success": 0.6666666666666666,
+            "selected_minus_canonical_source_macro_pp": 0.8333333333333331,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 16,
+              "matched_control": 3
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3888888888888889,
+            "prefix": 3,
+            "selected_in_success_set_rate_when_any_success": 0.6666666666666666,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 18,
+              "matched_control": 2,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.4444444444444444,
+            "prefix": 4,
+            "selected_in_success_set_rate_when_any_success": 0.6666666666666666,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 17,
+              "matched_control": 3,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3888888888888889,
+            "prefix": 5,
+            "selected_in_success_set_rate_when_any_success": 0.6111111111111112,
+            "selected_minus_canonical_source_macro_pp": -3.3333333333333335,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 16,
+              "matched_control": 2,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3888888888888889,
+            "prefix": 6,
+            "selected_in_success_set_rate_when_any_success": 0.6111111111111112,
+            "selected_minus_canonical_source_macro_pp": -3.3333333333333335,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 16,
+              "matched_control": 2,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3888888888888889,
+            "prefix": 7,
+            "selected_in_success_set_rate_when_any_success": 0.6666666666666666,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 17,
+              "matched_control": 1,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.4444444444444444,
+            "prefix": 8,
+            "selected_in_success_set_rate_when_any_success": 0.7222222222222222,
+            "selected_minus_canonical_source_macro_pp": 3.3333333333333335,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 15,
+              "matched_control": 1,
+              "strong_info": 4
+            },
+            "selected_success_rate": 0.6190476190476191,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.4444444444444444,
+            "prefix": 9,
+            "selected_in_success_set_rate_when_any_success": 0.7222222222222222,
+            "selected_minus_canonical_source_macro_pp": 3.3333333333333335,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 15,
+              "matched_control": 1,
+              "strong_info": 4
+            },
+            "selected_success_rate": 0.6190476190476191,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.4444444444444444,
+            "prefix": 10,
+            "selected_in_success_set_rate_when_any_success": 0.7222222222222222,
+            "selected_minus_canonical_source_macro_pp": 3.3333333333333335,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 15,
+              "matched_control": 1,
+              "strong_info": 4
+            },
+            "selected_success_rate": 0.6190476190476191,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          }
+        ],
+        "reference_scaled": [
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3888888888888889,
+            "prefix": 2,
+            "selected_in_success_set_rate_when_any_success": 0.6666666666666666,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 14,
+              "matched_control": 3,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3888888888888889,
+            "prefix": 3,
+            "selected_in_success_set_rate_when_any_success": 0.6111111111111112,
+            "selected_minus_canonical_source_macro_pp": -3.3333333333333335,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 15,
+              "matched_control": 1,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3333333333333333,
+            "prefix": 4,
+            "selected_in_success_set_rate_when_any_success": 0.5555555555555556,
+            "selected_minus_canonical_source_macro_pp": -6.666666666666667,
+            "selected_minus_canonical_state_pp": -9.523809523809524,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 16,
+              "matched_control": 2,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.47619047619047616,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3888888888888889,
+            "prefix": 5,
+            "selected_in_success_set_rate_when_any_success": 0.6111111111111112,
+            "selected_minus_canonical_source_macro_pp": -3.3333333333333335,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 15,
+              "matched_control": 1,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3888888888888889,
+            "prefix": 6,
+            "selected_in_success_set_rate_when_any_success": 0.7222222222222222,
+            "selected_minus_canonical_source_macro_pp": 3.3333333333333335,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 16,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.6190476190476191,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3333333333333333,
+            "prefix": 7,
+            "selected_in_success_set_rate_when_any_success": 0.6666666666666666,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 20
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3888888888888889,
+            "prefix": 8,
+            "selected_in_success_set_rate_when_any_success": 0.7222222222222222,
+            "selected_minus_canonical_source_macro_pp": 3.3333333333333335,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "canonical": 19,
+              "matched_control": 1,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.6190476190476191,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.3888888888888889,
+            "prefix": 9,
+            "selected_in_success_set_rate_when_any_success": 0.7222222222222222,
+            "selected_minus_canonical_source_macro_pp": 3.3333333333333335,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 16,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.6190476190476191,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.8571428571428571,
+            "canonical_success_rate": 0.5714285714285714,
+            "exact_efficiency_oracle_match_rate": 0.4444444444444444,
+            "prefix": 10,
+            "selected_in_success_set_rate_when_any_success": 0.7222222222222222,
+            "selected_minus_canonical_source_macro_pp": 3.3333333333333335,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "canonical": 15,
+              "matched_control": 2,
+              "strong_info": 4
+            },
+            "selected_success_rate": 0.6190476190476191,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          }
+        ]
+      }
+    },
+    "Broad state-matched": {
+      "accel_root": "/share/longjunyu/alphabrain/experiments/dsol-accel-constructed-v2/broad64-state-matched-seed41-full",
+      "checkpoint_label": "Broad state-matched",
+      "m1_join_root": "/share/longjunyu/alphabrain/experiments/dsol-accel-constructed-v2/m1-joins/broad64-state-matched",
+      "variants": {
+        "local_v1": [
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.4375,
+            "prefix": 2,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 14,
+              "matched_control": 4,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5,
+            "prefix": 3,
+            "selected_in_success_set_rate_when_any_success": 0.75,
+            "selected_minus_canonical_source_macro_pp": 3.3333333333333335,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "canonical": 16,
+              "matched_control": 3,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5,
+            "prefix": 4,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 16,
+              "matched_control": 2,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.4375,
+            "prefix": 5,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 16,
+              "matched_control": 2,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5,
+            "prefix": 6,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 16,
+              "matched_control": 1,
+              "strong_info": 4
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5,
+            "prefix": 7,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 17,
+              "matched_control": 1,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5,
+            "prefix": 8,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 16,
+              "matched_control": 2,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5,
+            "prefix": 9,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 17,
+              "matched_control": 1,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.4375,
+            "prefix": 10,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 16,
+              "matched_control": 2,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          }
+        ],
+        "reference_scaled": [
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.4375,
+            "prefix": 2,
+            "selected_in_success_set_rate_when_any_success": 0.5625,
+            "selected_minus_canonical_source_macro_pp": -6.666666666666667,
+            "selected_minus_canonical_state_pp": -9.523809523809524,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 16,
+              "matched_control": 3,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.42857142857142855,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5625,
+            "prefix": 3,
+            "selected_in_success_set_rate_when_any_success": 0.625,
+            "selected_minus_canonical_source_macro_pp": -3.3333333333333335,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "canonical": 18,
+              "matched_control": 2,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.47619047619047616,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5625,
+            "prefix": 4,
+            "selected_in_success_set_rate_when_any_success": 0.625,
+            "selected_minus_canonical_source_macro_pp": -3.3333333333333335,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "blind": 1,
+              "canonical": 18,
+              "matched_control": 1,
+              "strong_info": 1
+            },
+            "selected_success_rate": 0.47619047619047616,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5625,
+            "prefix": 5,
+            "selected_in_success_set_rate_when_any_success": 0.625,
+            "selected_minus_canonical_source_macro_pp": -3.3333333333333335,
+            "selected_minus_canonical_state_pp": -4.761904761904762,
+            "selected_role_counts": {
+              "canonical": 18,
+              "matched_control": 1,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.47619047619047616,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.6875,
+            "prefix": 6,
+            "selected_in_success_set_rate_when_any_success": 0.75,
+            "selected_minus_canonical_source_macro_pp": 3.3333333333333335,
+            "selected_minus_canonical_state_pp": 4.761904761904762,
+            "selected_role_counts": {
+              "canonical": 18,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5714285714285714,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.625,
+            "prefix": 7,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 18,
+              "strong_info": 3
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.625,
+            "prefix": 8,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 19,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.625,
+            "prefix": 9,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "canonical": 17,
+              "strong_info": 4
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          },
+          {
+            "any_evaluated_view_success_rate": 0.7619047619047619,
+            "canonical_success_rate": 0.5238095238095238,
+            "exact_efficiency_oracle_match_rate": 0.5625,
+            "prefix": 10,
+            "selected_in_success_set_rate_when_any_success": 0.6875,
+            "selected_minus_canonical_source_macro_pp": 0.0,
+            "selected_minus_canonical_state_pp": 0.0,
+            "selected_role_counts": {
+              "blind": 2,
+              "canonical": 17,
+              "strong_info": 2
+            },
+            "selected_success_rate": 0.5238095238095238,
+            "source_episode_group_count": 6,
+            "state_count": 21
+          }
+        ]
+      }
+    }
+  },
+  "prefixes": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "primary_prefix": 3,
+  "schema": "dsol_accel_view_selector_audit_v1",
+  "scope": "fixed-state cross-view selection, not original failure-detection reproduction"
+}

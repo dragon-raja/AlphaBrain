@@ -1,0 +1,19 @@
+{
+  "records": [
+    {
+      "old": "scripts/verify_vla/probe_gate_common_test.py",
+      "new": "tests/verify_vla/test_probe_gate_common.py",
+      "before": "archive/repository/20260911/verify-tests/before/scripts/verify_vla/probe_gate_common_test.py",
+      "before_sha256": "3464409bb39295a3f1c5e1f4b93045de2e4a76c1a1710308fa973a422f0b7fa8",
+      "after_sha256": "3464409bb39295a3f1c5e1f4b93045de2e4a76c1a1710308fa973a422f0b7fa8"
+    },
+    {
+      "old": "scripts/verify_vla/summarize_probe_gate_test.py",
+      "new": "tests/verify_vla/test_summarize_probe_gate.py",
+      "before": "archive/repository/20260911/verify-tests/before/scripts/verify_vla/summarize_probe_gate_test.py",
+      "before_sha256": "e403715898165a9b435585bf3f4b50fc43c0a553aa12ebe62527328f50a9d267",
+      "after_sha256": "e403715898165a9b435585bf3f4b50fc43c0a553aa12ebe62527328f50a9d267"
+    }
+  ],
+  "scope": "Two framework verification tests moved to tests without source changes"
+}

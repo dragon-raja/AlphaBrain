@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-from build_constructed_m1_protocol import build
+from scripts.dsol_paper1.protocols.build_constructed_m1_protocol import build
 
 
 def _condition(role: str, pose: str, group: str, delta: float) -> dict:

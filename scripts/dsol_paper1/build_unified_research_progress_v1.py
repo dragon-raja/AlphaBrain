@@ -231,6 +231,12 @@ class ResearchBrief(Brief):
 
 
 def build():
+    # New initial-condition evidence takes precedence. Historical builders remain
+    # reproducible, but automatic public refresh must not restore stale claims.
+    initial_latest=Path('/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/research-v1/latest.json')
+    if initial_latest.exists():
+        from report_standard_initial_results_v1 import build as build_current
+        return build_current()
     latest=read_json(ROOT/'consolidated-analysis-v1/latest.json')
     landscape=Path(latest['archive'])/'consolidated_view_analysis.pdf'
     require(sha256(landscape)==latest['sha256'],'Archived landscape input changed')

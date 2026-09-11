@@ -1,0 +1,59 @@
+{
+  "date_utc": "2026-09-11",
+  "scope": "Repository maintenance only; no scientific protocol change",
+  "baseline_commit": "f7f8eacef233ccebfa42c83ab04db77d2e7c1151",
+  "archival": {
+    "directories": 8,
+    "files": 208,
+    "manifest": "archive/research/code/manifest.json",
+    "all_original_bytes_verified": true,
+    "shared_exceptions": [
+      "scripts/vla_shared/historical_video_io.py",
+      "scripts/vla_shared/historical_pi05_policy_server.py"
+    ],
+    "recovery": "Use the manifest to restore original paths in a separate recovery checkout; do not overlay the active repository."
+  },
+  "organization": {
+    "core": "AlphaBrain/research/dsol/{data,metrics,selectors,analysis,plotting}",
+    "reports": "reports/paper1",
+    "configuration": "configs/dsol_paper1/analysis/standard_initial_v1.json",
+    "compatibility_entries": [
+      "scripts/dsol_paper1/analyze_standard_initial_results_v1.py",
+      "scripts/dsol_paper1/report_standard_initial_results_v1.py",
+      "scripts/dsol_paper1/build_view_research_focus_brief.py"
+    ],
+    "rules": ["AGENTS.md", "CONTRIBUTING.md"],
+    "legacy_registry": "tools/paper1/architecture_registry.json"
+  },
+  "verification": {
+    "cpu_tests_passed": 458,
+    "cpu_subtests_passed": 179,
+    "architecture_check": "PASS",
+    "layout_check": "PASS",
+    "git_diff_check": "PASS",
+    "numerical_function_ast_equivalence": "PASS",
+    "published_statistics_and_selections_exact": true,
+    "same_environment_old_new_predictions_exact": true,
+    "published_prediction_tolerance": {
+      "rtol": 0.000001,
+      "atol": 0.000001,
+      "reason": "Float32 PCA/BLAS roundoff across original two-thread run and one-thread CPU tests. Same-environment old/new predictions are separately required to match exactly."
+    },
+    "temporary_report_render": {
+      "pages": 12,
+      "pixel_different_pages": [],
+      "published_pdf_unchanged": true,
+      "published_pdf_sha256": "dbd9c2b6906fee9a120734291dda9dc4b56a16a9194e1852074fb796bfdb95a7"
+    },
+    "release_json_sha256_unchanged": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899",
+    "ci": "Workflow configured; not executed on an external CI service during this maintenance."
+  },
+  "preserved": [
+    "Existing unrelated worktree changes",
+    "Raw results, model checkpoints and shared frozen source releases",
+    "Published PDF and historical research receipts",
+    "Active full64 controller and consolidated-analysis watcher"
+  ],
+  "not_performed": ["New rollouts", "VLA training", "Job interruption", "Git commit", "Deletion of unique archived source"],
+  "remaining_legacy": "The registered historical DSOL runtime/evaluation chain is not fully modularized. Further runtime moves require caller checks and input/trajectory equivalence validation; current passing CPU tests do not establish that equivalence."
+}

@@ -4,7 +4,7 @@ import sys
 import unittest
 import numpy as np
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'scripts/dsol_paper1'))
-from recover_render_bridge_analysis_v1 import json_value
+from scripts.dsol_paper1.operations.controllers.recover_render_bridge_analysis_v1 import json_value
 
 
 class RecoveryTest(unittest.TestCase):

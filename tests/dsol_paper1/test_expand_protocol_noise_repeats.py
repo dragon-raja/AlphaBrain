@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.dsol_paper1.expand_protocol_noise_repeats import build
+from scripts.dsol_paper1.protocols.expand_protocol_noise_repeats import build
 
 
 def test_build_records_each_noise_seed_and_unique_episode(tmp_path: Path) -> None:

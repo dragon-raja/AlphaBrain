@@ -1,0 +1,5 @@
+{
+  "experiment_root": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908",
+  "analysis_output": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/research-v1",
+  "encoder_weights": "/root/.cache/torch/hub/checkpoints/resnet18-f37072fd.pth"
+}

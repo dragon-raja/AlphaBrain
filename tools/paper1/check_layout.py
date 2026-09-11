@@ -77,11 +77,15 @@ def runtime_closure(graph):
 def navigation():
     closure = runtime_closure(dependencies())
     groups = defaultdict(list)
-    for p in sorted(SCRIPTS.iterdir()):
+    for p in sorted(SCRIPTS.rglob("*")):
         if p.suffix not in {".py", ".sh"}:
             continue
+        if p.name == "__init__.py":
+            continue
         n = p.name
-        if p in closure:
+        if p.parent != SCRIPTS:
+            group = "organized_" + p.relative_to(SCRIPTS).parts[0]
+        elif p in closure:
             group = "runtime_dependencies_conservative"
         elif "view_acquisition" in n:
             group = "proposed_acquisition_not_current_experiment"
@@ -97,6 +101,10 @@ def navigation():
     groups["cross_directory_runtime_dependencies"] = [
         str(p.relative_to(ROOT)) for p in sorted(closure) if p.parent != SCRIPTS
     ]
+    groups["historical_report_builders"] = [str(p.relative_to(ROOT)) for p in
+        sorted((ROOT / "reports/paper1/historical").glob("*.py")) if p.name != "__init__.py"]
+    groups["acquisition_engineering_not_current_evaluator"] = [str(p.relative_to(ROOT)) for p in
+        sorted((ROOT / "AlphaBrain/research/dsol/acquisition").glob("*.py")) if p.name != "__init__.py"]
     return dict(groups)
 
 

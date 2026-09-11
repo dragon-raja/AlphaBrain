@@ -4,7 +4,7 @@ import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts/dsol_paper1'))
-from audit_view_speed_equivalence_v1 import compare
+from scripts.dsol_paper1.diagnostics.audit_view_speed_equivalence_v1 import compare
 
 
 class SpeedEquivalenceAuditTest(unittest.TestCase):

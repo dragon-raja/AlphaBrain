@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from scripts.dsol_paper1.analyze_view_value_expectation_heldout import (
+from scripts.dsol_paper1.analysis.analyze_view_value_expectation_heldout import (
     cross_checkpoint_gate,
     state_method_rows,
     validate_protocol_membership,

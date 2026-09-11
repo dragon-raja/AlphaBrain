@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CONTROLLER = ROOT / "scripts/dsol_paper1/run_view_value_expectation_calibration_tail.sh"
+CONTROLLER = ROOT / "scripts/dsol_paper1/operations/launchers/run_view_value_expectation_calibration_tail.sh"
 
 
 def _count_rows_function() -> str:

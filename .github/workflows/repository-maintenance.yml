@@ -1,0 +1,26 @@
+name: Repository architecture and portable regression
+on:
+  push:
+    branches: ['exp/dsol-paper1-v0']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portable:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install '.[test-portable]'
+      - run: python tools/repository/check.py
+      - run: python tools/paper1/check_architecture.py
+      - run: python tools/paper1/check_layout.py
+      - run: python tools/repository/test.py --profile portable
+      - run: python -m pip wheel . --no-deps --wheel-dir /tmp/repository-wheel

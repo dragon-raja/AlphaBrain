@@ -1,0 +1,2154 @@
+{
+  "schema": "dsol_legacy_report_evidence_v1",
+  "date": "2026-09-07",
+  "audit_status": "COMPLETE_READ_ONLY_NO_EXPERIMENT",
+  "scope": "两份指定旧PDF、同项目builder与原始归档；未读取FRESH研究、未运行PDF生成/训练/评测；唯一写入此JSON",
+  "pdfs": [
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh.pdf",
+      "sha256": "ccbf1185a56750ccacd5e864dbb6108c1ad4412d24b6fa603853a338a74790db",
+      "page_count": 16,
+      "actual_pdf_text_read_all_pages": true,
+      "pdf_created_local": "2026-08-26 18:56:56 +08:00",
+      "per_page_topics": [
+        {
+          "page": 1,
+          "topic": "研究目标与阶段一摘要"
+        },
+        {
+          "page": 2,
+          "topic": "Coverage→Pairing→Information use证据链"
+        },
+        {
+          "page": 3,
+          "topic": "Broad64数据与视角catalog"
+        },
+        {
+          "page": 4,
+          "topic": "七臂训练组织对照"
+        },
+        {
+          "page": 5,
+          "topic": "七臂exact-state+旧seed41 Camera suite图"
+        },
+        {
+          "page": 6,
+          "topic": "三训练seed Camera/Original正式结果"
+        },
+        {
+          "page": 7,
+          "topic": "M0同状态可见性测量与四角色"
+        },
+        {
+          "page": 8,
+          "topic": "三任务M1-v2双相机continuation"
+        },
+        {
+          "page": 9,
+          "topic": "M1分任务异质性"
+        },
+        {
+          "page": 10,
+          "topic": "Accel公式级实现与原文复现边界"
+        },
+        {
+          "page": 11,
+          "topic": "97候选train64/heldout32/canonical定义"
+        },
+        {
+          "page": 12,
+          "topic": "Accel六flow噪声排名可靠性"
+        },
+        {
+          "page": 13,
+          "topic": "A97六冻结规则完整闭环"
+        },
+        {
+          "page": 14,
+          "topic": "15canonical失败states的97view穷举"
+        },
+        {
+          "page": 15,
+          "topic": "KYC/CVC设置边界"
+        },
+        {
+          "page": 16,
+          "topic": "阶段完成范围与后置验证"
+        }
+      ],
+      "builder_source_match": {
+        "requested_builder": "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/build_view_revalidation_integrated_v2_pdf.py",
+        "requested_builder_main_pages": 18,
+        "actual_v5_matches": "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/build_view_revalidation_brief_pdf.py",
+        "actual_matching_main_pages": 16,
+        "note": "integrated_v2当前main非v5布局。v5实际16页，9–16页与brief main逐页相符；不能运行v2 main冒充原v5重建。第5页数字来自嵌入raster，另查plot source+metrics。"
+      }
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/view_value_new_experiments_zh.pdf",
+      "sha256": "9c10918c428575271bb5c725ea8c9d3260e06434472111a90e9bb5ac60129670",
+      "page_count": 10,
+      "actual_pdf_text_read_all_pages": true,
+      "pdf_created_local": "2026-09-01 14:43:24 +08:00",
+      "per_page_topics": [
+        {
+          "page": 1,
+          "topic": "18新source/36states/1080rollout补充设计"
+        },
+        {
+          "page": 2,
+          "topic": "6规则原/新/合并成功率"
+        },
+        {
+          "page": 3,
+          "topic": "分任务与五flow噪声差异"
+        },
+        {
+          "page": 4,
+          "topic": "parent-region像素代理反例审计"
+        },
+        {
+          "page": 5,
+          "topic": "补充结论及证据边界"
+        },
+        {
+          "page": 6,
+          "topic": "20困难states/97views发现与8view确认"
+        },
+        {
+          "page": 7,
+          "topic": "28/29/50结果与事后上限边界"
+        },
+        {
+          "page": 8,
+          "topic": "困难池任务异质性"
+        },
+        {
+          "page": 9,
+          "topic": "可见性/几何AUC描述"
+        },
+        {
+          "page": 10,
+          "topic": "旧阶段结论与后续建议（现已需更新）"
+        }
+      ],
+      "builder": "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/build_view_value_new_experiments_pdf.py",
+      "contains_failure_pool_pages_6_to_10": true
+    }
+  ],
+  "checkpoint_identity": {
+    "legacy_broad64_quick": {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_broad64-quick-gate-v1_seed41_g8_gb32_steps2000/final_model",
+      "sha256": "49a190814a46abd2837b90e63aa862548ddb0bd3401e9ef9970faa0764d327b5",
+      "seed": 41,
+      "gpus": 8,
+      "steps": 2000,
+      "scheduler_steps": 3000,
+      "used_by": [
+        "旧Camera suite panel",
+        "M1-v2 broad64-practical",
+        "A97 shortlist/failure oracle",
+        "48state original selector",
+        "36state independent-source extension",
+        "20state failure pool"
+      ],
+      "evidence_manifests": [
+        "/share/longjunyu/alphabrain/experiments/libero-plus-camera-full-v1/broad64-seed41-camera1599/run_manifest.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m1-v2/broad64-practical/run_manifest.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-accel-gate-a97-v1/shortlist/broad64-practical/run_manifest.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/dense-test-selector-eval/run-five-noise/run_manifest.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/failure-pool-v1-20260831/discovery/run_manifest.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/failure-pool-v1-20260831/confirmation/run_manifest.json"
+      ]
+    },
+    "formal_mb_seed41": {
+      "path": "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_m-b-formal-v1_seed41_g2_gb32_steps2000/final_model",
+      "seed": 41,
+      "gpus": 2,
+      "steps": 2000,
+      "scheduler_steps": 2000,
+      "used_by": [
+        "M-B正式三seed之一",
+        "后来的statewise oracle v2主锚"
+      ],
+      "evidence": [
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/training_match_anchor_audit_20260907_zh.md"
+      ]
+    },
+    "warning": "方法标签同叫Broad64 practical，不代表同权重；旧补充与后来v2不能当同模型纵向重复。旧七臂是Broad32 g8/schedule3000同族，不要混成Broad64 M-B matched controls。",
+    "policy_contract": "这些DSOL Pi05 normal训练/评测使用external+wrist+language；pi05=true/discrete_state_input=false时不消费robotstate。旧KYC输入/动作horizon不同，单列。外部位姿每rollout固定，外部图像随物理世界变化，腕部图像随动作实时更新；不是静态单帧策略。"
+  },
+  "tables": [
+    {
+      "id": "T01_training_arms",
+      "title": "七臂训练组织（不得写成七臂均三seed）",
+      "columns": [
+        "arm",
+        "label",
+        "model_examples_per_item",
+        "unique_source_items_per_update",
+        "cross_view_pair",
+        "consistency",
+        "seeds",
+        "actual_steps",
+        "scheduler_steps",
+        "gpus"
+      ],
+      "rows": [
+        [
+          "canonical_unique",
+          "Canonical-unique",
+          1,
+          32,
+          false,
+          false,
+          [
+            41
+          ],
+          2000,
+          3000,
+          8
+        ],
+        [
+          "canonical_repeat",
+          "Canonical-repeat",
+          2,
+          16,
+          false,
+          false,
+          [
+            41
+          ],
+          2000,
+          3000,
+          8
+        ],
+        [
+          "image_augmentation_unique",
+          "ImageAug-unique",
+          1,
+          32,
+          false,
+          false,
+          [
+            41
+          ],
+          2000,
+          3000,
+          8
+        ],
+        [
+          "broad_unpaired_practical",
+          "Broad practical",
+          1,
+          32,
+          false,
+          false,
+          [
+            41
+          ],
+          2000,
+          3000,
+          8
+        ],
+        [
+          "broad_unpaired_state_matched",
+          "Broad state-matched",
+          2,
+          16,
+          false,
+          false,
+          [
+            41
+          ],
+          2000,
+          3000,
+          8
+        ],
+        [
+          "broad_paired_fm",
+          "Broad paired FM",
+          2,
+          16,
+          true,
+          false,
+          [
+            41
+          ],
+          2000,
+          3000,
+          8
+        ],
+        [
+          "broad_paired_consistency",
+          "Broad paired consistency",
+          2,
+          16,
+          true,
+          true,
+          [
+            41
+          ],
+          2000,
+          3000,
+          8
+        ]
+      ],
+      "evidence_paths": [
+        "/workspace/projects/alphabrain-dsol-paper1/configs/experiments/dsol_libero_broad_pairing.yaml",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/training_match_anchor_audit_20260907_zh.md",
+        "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs"
+      ],
+      "scope": "Broad32 quick-gate family; only two finalist families later expanded to3seeds",
+      "notes": [
+        "独立状态数量是每update的source exposure，不是数据集中状态总数变小。",
+        "paired FM是已经存在的同paired data无consistency对照，不应说从未做过；正式三seed benchmark未完整扩展它。"
+      ]
+    },
+    {
+      "id": "T02_seven_arm_exact_state",
+      "title": "七臂exact-state主结果",
+      "columns": [
+        "arm",
+        "canonical_successes",
+        "heldout_successes",
+        "wide_successes",
+        "denominator_each",
+        "canonical_pct",
+        "heldout_pct",
+        "wide_pct"
+      ],
+      "rows": [
+        [
+          "canonical_unique",
+          22,
+          8,
+          6,
+          24,
+          91.66666666666666,
+          33.33333333333333,
+          25
+        ],
+        [
+          "canonical_repeat",
+          20,
+          8,
+          4,
+          24,
+          83.33333333333334,
+          33.33333333333333,
+          16.666666666666664
+        ],
+        [
+          "image_augmentation_unique",
+          22,
+          6,
+          4,
+          24,
+          91.66666666666666,
+          25,
+          16.666666666666664
+        ],
+        [
+          "broad_unpaired_practical",
+          22,
+          21,
+          22,
+          24,
+          91.66666666666666,
+          87.5,
+          91.66666666666666
+        ],
+        [
+          "broad_unpaired_state_matched",
+          23,
+          20,
+          20,
+          24,
+          95.83333333333334,
+          83.33333333333334,
+          83.33333333333334
+        ],
+        [
+          "broad_paired_fm",
+          23,
+          19,
+          19,
+          24,
+          95.83333333333334,
+          79.16666666666666,
+          79.16666666666666
+        ],
+        [
+          "broad_paired_consistency",
+          22,
+          20,
+          20,
+          24,
+          91.66666666666666,
+          83.33333333333334,
+          83.33333333333334
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/analysis/fixed_condition_seed41_v1/metrics.json"
+      ],
+      "scope": "24source/pair groups ×7condition ×7arms=1176闭环；每柱n24",
+      "notes": [
+        "训练seed41单次；不是官方benchmark；Broad32训练，不要因旁边Broad64数据图而改称Broad64七臂。",
+        "Broad practical−canonical heldout +54.1667pp、wide+66.6667pp；小型诊断强信号，不外推全任务。"
+      ]
+    },
+    {
+      "id": "T03_old_camera_suite",
+      "title": "旧Camera seed41分suite（均为LIBERO-Plus Camera扰动子集）",
+      "columns": [
+        "suite",
+        "denominator",
+        "official_successes",
+        "official_pct",
+        "broad64_quick_successes",
+        "broad64_quick_pct"
+      ],
+      "rows": [
+        [
+          "libero_10",
+          419,
+          233,
+          55.60859188544153,
+          270,
+          64.43914081145584
+        ],
+        [
+          "libero_goal",
+          408,
+          326,
+          79.90196078431373,
+          350,
+          85.7843137254902
+        ],
+        [
+          "libero_object",
+          396,
+          351,
+          88.63636363636364,
+          361,
+          91.16161616161617
+        ],
+        [
+          "libero_spatial",
+          376,
+          303,
+          80.58510638297872,
+          340,
+          90.42553191489363
+        ],
+        [
+          "pooled",
+          1599,
+          1213,
+          75.8599124452783,
+          1321,
+          82.61413383364604
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/libero-plus-camera-full-v1/official-pi05-frozen-camera1599/metrics.json",
+        "/share/longjunyu/alphabrain/experiments/libero-plus-camera-full-v1/broad64-seed41-camera1599/metrics.json"
+      ],
+      "scope": "旧PDF第5页raster panel C；broad64-quick checkpoint",
+      "notes": [
+        "Goal79.9/Spatial80.6/Object88.6/LIBERO10 55.6都是Camera track的suite子集，不是Original。",
+        "All=1599相机扰动总分，不是全部10030扰动。",
+        "Broad旧seed41为1321/1599=82.6141%，不同于正式M-B seed41的1345/1599=84.1151%。"
+      ]
+    },
+    {
+      "id": "T04_formal_benchmarks",
+      "title": "三训练seed正式Benchmark（分清pooled score与task-equal delta）",
+      "columns": [
+        "benchmark",
+        "method",
+        "episode_pooled_seedmean_pct",
+        "base_task_equal_delta_vs_official_pp",
+        "95ci_pp",
+        "training_seed_count",
+        "episodes_per_model_seed"
+      ],
+      "rows": [
+        [
+          "camera",
+          "official_frozen",
+          75.8599124452783,
+          null,
+          null,
+          1,
+          1599
+        ],
+        [
+          "camera",
+          "broad64_practical",
+          82.15551386283093,
+          5.152473030512835,
+          [
+            0.9892341878669499,
+            9.619271861270825
+          ],
+          3,
+          1599
+        ],
+        [
+          "camera",
+          "broad64_paired_consistency",
+          77.77777777777779,
+          0.4010116635597086,
+          [
+            -5.15469782821953,
+            6.161157157227639
+          ],
+          3,
+          1599
+        ],
+        [
+          "original",
+          "official_frozen",
+          96.45,
+          null,
+          null,
+          1,
+          2000
+        ],
+        [
+          "original",
+          "broad64_practical",
+          93.91666666666666,
+          -2.5333333333333328,
+          [
+            -4.05,
+            -1.15
+          ],
+          3,
+          2000
+        ],
+        [
+          "original",
+          "broad64_paired_consistency",
+          84.66666666666667,
+          -11.783333333333331,
+          [
+            -17.066666666666666,
+            -7.283333333333333
+          ],
+          3,
+          2000
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/camera_full/multiseed_metrics.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/original_full/multiseed_metrics.json"
+      ],
+      "scope": "Camera1599变体/40base tasks；Original40tasks×50=2000；2方法×3训练seed",
+      "notes": [
+        "灰色Official是冻结参考，不是3次独立训练。",
+        "Camera82.1555−75.8599=6.2956pp是pooled柱高差，主配对效应5.15247pp以40base tasks等权，两者不是算错。",
+        "Original每task分母相同，pooled差与task等权差相同。",
+        "相对Official既增加后训练又增加视角覆盖，不是单独识别coverage因果的matched canonical对照。"
+      ]
+    },
+    {
+      "id": "T05_formal_per_seed",
+      "title": "正式Benchmark逐训练seed",
+      "columns": [
+        "benchmark",
+        "method",
+        "training_seed",
+        "successes",
+        "episodes",
+        "pooled_pct",
+        "task_equal_delta_vs_official_pp",
+        "task_cluster_95ci_pp"
+      ],
+      "rows": [
+        [
+          "camera",
+          "broad64_practical",
+          41,
+          1345,
+          1599,
+          84.11507191994997,
+          7.146763914559842,
+          [
+            2.728672606743777,
+            12.05283252067495
+          ]
+        ],
+        [
+          "camera",
+          "broad64_practical",
+          42,
+          1312,
+          1599,
+          82.05128205128204,
+          4.865058490699299,
+          [
+            0.3472401295882326,
+            9.64659916769265
+          ]
+        ],
+        [
+          "camera",
+          "broad64_practical",
+          43,
+          1284,
+          1599,
+          80.30018761726079,
+          3.4455966862793606,
+          [
+            -1.0261424584393064,
+            8.065371160659554
+          ]
+        ],
+        [
+          "camera",
+          "broad64_paired_consistency",
+          41,
+          1271,
+          1599,
+          79.48717948717949,
+          2.137751707060593,
+          [
+            -3.1598397589342917,
+            7.785416903356395
+          ]
+        ],
+        [
+          "camera",
+          "broad64_paired_consistency",
+          42,
+          1232,
+          1599,
+          77.04815509693559,
+          -0.4509906328414741,
+          [
+            -6.6141349290150115,
+            5.996831928152307
+          ]
+        ],
+        [
+          "camera",
+          "broad64_paired_consistency",
+          43,
+          1228,
+          1599,
+          76.79799874921827,
+          -0.4837260835399921,
+          [
+            -6.01217442196043,
+            5.175406931337887
+          ]
+        ],
+        [
+          "original",
+          "broad64_practical",
+          41,
+          1883,
+          2000,
+          94.15,
+          -2.3000000000000003,
+          [
+            -3.75,
+            -0.9999999999999999
+          ]
+        ],
+        [
+          "original",
+          "broad64_practical",
+          42,
+          1877,
+          2000,
+          93.85,
+          -2.6,
+          [
+            -4.35,
+            -1.0499999999999998
+          ]
+        ],
+        [
+          "original",
+          "broad64_practical",
+          43,
+          1875,
+          2000,
+          93.75,
+          -2.7,
+          [
+            -4.75,
+            -0.8999999999999999
+          ]
+        ],
+        [
+          "original",
+          "broad64_paired_consistency",
+          41,
+          1729,
+          2000,
+          86.45,
+          -10,
+          [
+            -15.6,
+            -5.4
+          ]
+        ],
+        [
+          "original",
+          "broad64_paired_consistency",
+          42,
+          1724,
+          2000,
+          86.2,
+          -10.25,
+          [
+            -15.6,
+            -5.700000000000001
+          ]
+        ],
+        [
+          "original",
+          "broad64_paired_consistency",
+          43,
+          1627,
+          2000,
+          81.35,
+          -15.1,
+          [
+            -20.6,
+            -10.25
+          ]
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/camera_full/multiseed_metrics.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/original_full/multiseed_metrics.json"
+      ],
+      "scope": "正式完成结果",
+      "notes": []
+    },
+    {
+      "id": "T06_formal_recipe_contrast",
+      "title": "正式paired-consistency相对practical",
+      "columns": [
+        "benchmark",
+        "task_equal_delta_pp",
+        "95ci_pp",
+        "seed41_pp",
+        "seed42_pp",
+        "seed43_pp"
+      ],
+      "rows": [
+        [
+          "camera",
+          -4.751461366953126,
+          [
+            -7.849069328705085,
+            -1.7269797400256777
+          ],
+          -5.009012207499251,
+          -5.316049123540774,
+          -3.9293227698193522
+        ],
+        [
+          "original",
+          -9.25,
+          [
+            -13.317083333333334,
+            -5.800000000000001
+          ],
+          -7.700000000000001,
+          -7.650000000000001,
+          -12.400000000000002
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/camera_full/multiseed_metrics.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/original_full/multiseed_metrics.json"
+      ],
+      "scope": "当前组合recipe对比",
+      "notes": [
+        "Camera77.7778−82.1555=-4.3777pp，不应标作-4.75146的同口径直接减法。",
+        "与practical还改变source items/update32→16、重复/配对结构；不能仅归因于consistency loss，更不能证明需要evidence responsiveness。"
+      ]
+    },
+    {
+      "id": "T07_m0_measurement",
+      "title": "M0可见性扫描（非policy结果）",
+      "columns": [
+        "group",
+        "test_candidate_records",
+        "positive_fraction",
+        "max_delta_pp",
+        "median_delta_pp"
+      ],
+      "rows": [
+        [
+          "test::broad_heldout_32",
+          2880,
+          0.24166666666666667,
+          3.6650988520408156,
+          -0.8323202327806124
+        ],
+        [
+          "test::canonical",
+          90,
+          0,
+          0,
+          0
+        ],
+        [
+          "test::diagnostic_crossed_orbit",
+          1440,
+          0.2604166666666667,
+          20.845125159438776,
+          -1.5311104910714288
+        ],
+        [
+          "test::diagnostic_extreme_orbit",
+          720,
+          0.10138888888888889,
+          4.459303252551022,
+          -2.1539182079081627
+        ],
+        [
+          "test::diagnostic_look_away",
+          360,
+          0,
+          -1.1220503826530615,
+          -3.3830915178571423
+        ],
+        [
+          "test::sensor_controls",
+          270,
+          0,
+          0,
+          -4.306341677295919
+        ],
+        [
+          "test::wide_extrapolation_24",
+          2160,
+          0.14537037037037037,
+          6.053192761479592,
+          -1.2894610969387765
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m0-v1/operational-three-task-scan-v2/analysis/summary.json"
+      ],
+      "scope": "3tasks×30states×2splits(val/test)=180 states；88candidates/state；15840渲染",
+      "notes": [
+        "+20.8451pp是test crossed-orbit最大值；全val+test最大值实际22.5735pp，旧PDF不标test容易误读。",
+        "可见性=entities×cameras等权visible_pixels/(224²)，并非任务信息互信息或充分性。",
+        "同状态初始wrist图固定，不代表rollout wrist不更新。"
+      ]
+    },
+    {
+      "id": "T08_m1_operational",
+      "title": "三任务M1-v2四视角+主聚类效应",
+      "columns": [
+        "model",
+        "canonical_successes",
+        "info_successes",
+        "control_successes",
+        "blind_successes",
+        "states_each",
+        "source_groups",
+        "source_equal_info_minus_control_pp",
+        "95ci_pp"
+      ],
+      "rows": [
+        [
+          "official",
+          13,
+          9,
+          4,
+          2,
+          21,
+          6,
+          16.666666666666664,
+          [
+            0,
+            36.66666666666667
+          ]
+        ],
+        [
+          "broad64-practical",
+          12,
+          15,
+          11,
+          5,
+          21,
+          6,
+          13.333333333333334,
+          [
+            3.3333333333333335,
+            26.666666666666668
+          ]
+        ],
+        [
+          "broad64-state-matched",
+          11,
+          10,
+          9,
+          7,
+          21,
+          6,
+          4.166666666666666,
+          [
+            -6.666666666666667,
+            15.833333333333332
+          ]
+        ],
+        [
+          "broad64-paired-fm",
+          11,
+          11,
+          11,
+          4,
+          21,
+          6,
+          -1.6666666666666663,
+          [
+            -21.666666666666668,
+            13.333333333333334
+          ]
+        ],
+        [
+          "broad64-paired-consistency",
+          12,
+          13,
+          10,
+          7,
+          21,
+          6,
+          11.666666666666666,
+          [
+            -6.666666666666667,
+            30
+          ]
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m1-v2/cross-model-analysis/metrics.json"
+      ],
+      "scope": "development_quick_gate_not_final_confirmatory；5models×21states×10conditions=1050闭环",
+      "notes": [
+        "Broad主四原始率12/21、15/21、11/21、5/21；6source等权率42.5%、52.5%、39.1667%、18.3333%。",
+        "Info−Control原始19.0476pp vs source等权13.3333pp，不能混算。",
+        "仅有限等幅pose控制，仍是相机干预总效应，不能称已孤立“新增证据利用”的因果量。",
+        "所有模型external-only四条件皆0，是测试时屏蔽wrist造成的地板/输入OOD消融；不是有效external-only训练基线，更不能证明腕部机制。"
+      ]
+    },
+    {
+      "id": "T09_m1_task",
+      "title": "三任务M1-v2 Broad practical任务分解",
+      "columns": [
+        "task",
+        "states",
+        "canonical_successes",
+        "info_successes",
+        "control_successes",
+        "blind_successes",
+        "info_minus_canonical_pp",
+        "info_minus_control_pp"
+      ],
+      "rows": [
+        [
+          "goal_wine_rack",
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          "libero10_bowl_bottom_drawer",
+          10,
+          5,
+          9,
+          7,
+          0,
+          40,
+          20
+        ],
+        [
+          "libero10_mug_microwave",
+          9,
+          7,
+          6,
+          4,
+          5,
+          -11.11111111111111,
+          22.22222222222222
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m1-v2/cross-model-analysis/metrics.json",
+        "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/build_view_revalidation_brief_pdf.py"
+      ],
+      "scope": "旧PDF第9页",
+      "notes": [
+        "3task macro canonical42.5926/info52.2222/control38.1481/blind18.5185%；Info−Control14.0741pp不同于6source主统计13.3333pp。"
+      ]
+    },
+    {
+      "id": "T10_natural_support",
+      "title": "另一个两任务自然M1联合support gate（不在旧PDF正文，需补入修正解释）",
+      "columns": [
+        "model",
+        "canonical_successes",
+        "info_successes",
+        "control_successes",
+        "blind_successes",
+        "n_each",
+        "source_equal_info_minus_canonical_pp",
+        "source_equal_info_minus_control_pp",
+        "info_control_95ci_pp"
+      ],
+      "rows": [
+        [
+          "Broad32",
+          15,
+          9,
+          11,
+          7,
+          21,
+          -29.1666666667,
+          -6.9444444444,
+          [
+            -29.2,
+            12.5
+          ]
+        ],
+        [
+          "Info-only",
+          14,
+          15,
+          10,
+          13,
+          21,
+          5.5555555556,
+          26.3888888889,
+          [
+            9.7,
+            43.1
+          ]
+        ],
+        [
+          "Info+Control",
+          16,
+          14,
+          14,
+          12,
+          21,
+          -9.7222222222,
+          0,
+          [
+            0,
+            0
+          ]
+        ]
+      ],
+      "evidence_paths": [
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/libero_m1_visibility_joint_support_gate_v1_zh.md",
+        "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/m1_visibility/cross_model_development_v2"
+      ],
+      "scope": "2tasks(goal_wine_rack/libero10_mug_microwave)；21frames/6demo；3models×210=630闭环；seed41",
+      "notes": [
+        "与三任务M1-v2不是同cohort；不能相减。",
+        "共同support使本gate正差消失，说明support是重要替代解释；有限训练不能证明所有pose OOD解释已完全排除，也不能证明信息没有价值。"
+      ]
+    },
+    {
+      "id": "T11_accel_diagnostics",
+      "title": "Accel97视角×6flow噪声测量审计",
+      "columns": [
+        "model",
+        "states",
+        "flow_noise_repeats",
+        "rank_spearman",
+        "all6_top1_agreement_pct",
+        "mean_top1_margin_pct",
+        "ensemble_canonical_pct",
+        "ensemble_train64_pct",
+        "ensemble_holdout32_pct",
+        "info_minus_control_mean_rank"
+      ],
+      "rows": [
+        [
+          "broad64_practical",
+          96,
+          6,
+          0.4123316852514201,
+          2.083333333333333,
+          3.2098777486793217,
+          21.875,
+          37.5,
+          40.625,
+          2.7777777777777786
+        ],
+        [
+          "broad64_state_matched",
+          96,
+          6,
+          0.4163355892185052,
+          3.125,
+          2.944783870590065,
+          32.29166666666667,
+          32.29166666666667,
+          35.41666666666667,
+          5.670138888888893
+        ],
+        [
+          "broad64_paired_fm",
+          96,
+          6,
+          0.43006427227248284,
+          4.166666666666666,
+          3.6863355350548113,
+          33.33333333333333,
+          39.58333333333333,
+          27.083333333333332,
+          4.729166666666664
+        ],
+        [
+          "broad64_paired_consistency",
+          96,
+          6,
+          0.28725592900390395,
+          2.083333333333333,
+          1.6791401050700154,
+          29.166666666666668,
+          45.83333333333333,
+          25,
+          -0.4791666666666714
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-accel-expanded-diagnostic-v1/analysis/summary.json"
+      ],
+      "scope": "24source demos×4stages=96；97正常候选(1+64+32)，额外角色/blackout参与诊断",
+      "notes": [
+        "这里的百分比是选中区域概率，不是成功率；97候选组基数必须校正。",
+        "公式实现及跨视角扩展，不是Accel原文完整failure detector复现；排名不稳定本身不证明行为无效。"
+      ]
+    },
+    {
+      "id": "T12_a97_closed_loop",
+      "title": "A97六规则闭环",
+      "columns": [
+        "condition",
+        "successes",
+        "states",
+        "success_pct",
+        "source_equal_delta_pp",
+        "source_cluster_95ci_pp"
+      ],
+      "rows": [
+        [
+          "canonical",
+          81,
+          96,
+          84.375,
+          0,
+          null
+        ],
+        [
+          "accel_single_noise",
+          81,
+          96,
+          84.375,
+          0,
+          [
+            -6.25,
+            6.25
+          ]
+        ],
+        [
+          "accel_ensemble",
+          80,
+          96,
+          83.33333333333334,
+          -1.0416666666666665,
+          [
+            -7.291666666666667,
+            5.208333333333334
+          ]
+        ],
+        [
+          "visibility_top1",
+          79,
+          96,
+          82.29166666666666,
+          -2.083333333333333,
+          [
+            -7.291666666666667,
+            3.125
+          ]
+        ],
+        [
+          "accel_top10_visibility",
+          83,
+          96,
+          86.45833333333334,
+          2.083333333333333,
+          [
+            -3.125,
+            7.291666666666667
+          ]
+        ],
+        [
+          "random_operational",
+          77,
+          96,
+          80.20833333333334,
+          -4.166666666666666,
+          [
+            -11.458333333333332,
+            2.083333333333333
+          ]
+        ],
+        [
+          "oracle_at6_posthoc",
+          88,
+          96,
+          91.66666666666666,
+          null,
+          null
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-accel-gate-a97-v1/shortlist/broad64-practical/analysis.json"
+      ],
+      "scope": "每模型96×6=576闭环，97候选只评分而非全执行；4models共2304闭环",
+      "notes": [
+        "Oracle@6是六规则任一成功的事后联合率，不是选出最优视角后独立评估。",
+        "统计单位24demo；普通A97 cohort不设最小可见增量准入阈值，不代表Blind-Reveal强信息cohort。"
+      ]
+    },
+    {
+      "id": "T13_a97_failure_pool",
+      "title": "原96中15个canonical失败状态的97候选穷举",
+      "columns": [
+        "method",
+        "successes",
+        "conditional_states",
+        "conditional_pct"
+      ],
+      "rows": [
+        [
+          "canonical_replay",
+          1,
+          15,
+          6.666666666666667
+        ],
+        [
+          "accel_single_noise",
+          6,
+          15,
+          40
+        ],
+        [
+          "accel_ensemble",
+          5,
+          15,
+          33.333333333333336
+        ],
+        [
+          "visibility_top1",
+          5,
+          15,
+          33.333333333333336
+        ],
+        [
+          "accel_top10_visibility",
+          6,
+          15,
+          40
+        ],
+        [
+          "random_operational",
+          5,
+          15,
+          33.333333333333336
+        ],
+        [
+          "oracle97_posthoc",
+          12,
+          15,
+          80
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-accel-gate-a97-v1/oracle97-canonical-failures/broad64-practical/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-accel-gate-a97-v1/protocols/broad64-practical-canonical-failure-oracle.json"
+      ],
+      "scope": "15states×97views=1455闭环，失败条件化小样本",
+      "notes": [
+        "成功候选数分箱0/1–24/25–49/50–97分别3/4/4/4states。",
+        "single-run any-view上限，受选择最大值与重放随机性影响；canonical重放1/15，不能宣称12/15已经证明期望成功率稳定headroom。"
+      ]
+    },
+    {
+      "id": "T14_selector_cohort_sizes",
+      "title": "新增来源设计",
+      "columns": [
+        "cohort",
+        "source_trajectories",
+        "states",
+        "tasks",
+        "frozen_rules",
+        "flow_repeats",
+        "rollouts",
+        "per_rule_denominator"
+      ],
+      "rows": [
+        [
+          "initial",
+          24,
+          48,
+          8,
+          6,
+          5,
+          1440,
+          240
+        ],
+        [
+          "extension",
+          18,
+          36,
+          7,
+          6,
+          5,
+          1080,
+          180
+        ],
+        [
+          "combined",
+          42,
+          84,
+          8,
+          6,
+          5,
+          2520,
+          420
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/dense-test-selector-eval/analysis/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/dense-test-selector-eval/analysis/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/combined-analysis/analysis.json"
+      ],
+      "scope": "静态遮挡构造；相同旧quick checkpoint；无新增训练/任务种类/遮挡方案",
+      "notes": [
+        "18条新source仅相对原24条不重叠；合并不是第三个独立实验，不可重复累加1440+1080+2520。",
+        "97是静态评分候选数，不是每state执行97条闭环。"
+      ]
+    },
+    {
+      "id": "T15_selector_success",
+      "title": "6选择规则在原/新增/合并批次",
+      "columns": [
+        "method",
+        "label",
+        "initial_successes_240",
+        "initial_pct",
+        "extension_successes_180",
+        "extension_pct",
+        "combined_successes_420",
+        "combined_pct"
+      ],
+      "rows": [
+        [
+          "canonical",
+          "规范视角",
+          160,
+          66.66666666666666,
+          151,
+          83.88888888888889,
+          311,
+          74.04761904761904
+        ],
+        [
+          "validation_global_fixed",
+          "验证集固定视角",
+          149,
+          62.08333333333332,
+          135,
+          75,
+          284,
+          67.6190476190476
+        ],
+        [
+          "visibility_gain_gated",
+          "可见性增量门控",
+          163,
+          67.91666666666667,
+          130,
+          72.22222222222221,
+          293,
+          69.76190476190476
+        ],
+        [
+          "visibility_hmean_entity",
+          "实体调和平均",
+          159,
+          66.25,
+          134,
+          74.44444444444443,
+          293,
+          69.76190476190476
+        ],
+        [
+          "visibility_mean",
+          "实体算术平均",
+          162,
+          67.5,
+          128,
+          71.1111111111111,
+          290,
+          69.04761904761905
+        ],
+        [
+          "visibility_min_entity",
+          "最小实体可见性",
+          156,
+          65,
+          130,
+          72.22222222222221,
+          286,
+          68.0952380952381
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/dense-test-selector-eval/analysis/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/dense-test-selector-eval/analysis/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/combined-analysis/analysis.json"
+      ],
+      "scope": "每状态5噪声平均，再聚合；每source2states使state/source汇总一致",
+      "notes": []
+    },
+    {
+      "id": "T16_selector_main_effect",
+      "title": "可见性门控配对差值",
+      "columns": [
+        "cohort",
+        "state_source_equal_delta_pp",
+        "source_cluster_95ci_pp",
+        "task_macro_delta_pp",
+        "task_macro_95ci_pp"
+      ],
+      "rows": [
+        [
+          "initial",
+          1.2500000000000002,
+          [
+            -2.9166666666666665,
+            5.833333333333333
+          ],
+          1.25,
+          [
+            -2.0833333333333335,
+            5
+          ]
+        ],
+        [
+          "extension",
+          -11.666666666666664,
+          [
+            -18.88888888888889,
+            -4.444444444444445
+          ],
+          -12.142857142857142,
+          [
+            -15.952380952380953,
+            -7.857142857142857
+          ]
+        ],
+        [
+          "combined",
+          -4.285714285714286,
+          [
+            -8.571428571428571,
+            0
+          ],
+          -3.604166666666667,
+          [
+            -7.542187499999999,
+            0.5000000000000002
+          ]
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/dense-test-selector-eval/analysis/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/dense-test-selector-eval/analysis/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/combined-analysis/analysis.json"
+      ],
+      "scope": "新source复验无增益；合并不是独立确认",
+      "notes": [
+        "门槛增量不足0.5pp则canonical；候选按等权entity像素评分。"
+      ]
+    },
+    {
+      "id": "T17_selector_tasks",
+      "title": "原/新增任务差异",
+      "columns": [
+        "task",
+        "label",
+        "extension_states",
+        "initial_gated_minus_canonical_pp",
+        "extension_gated_minus_canonical_pp"
+      ],
+      "rows": [
+        [
+          "goal_cream_cheese_bowl",
+          "奶酪放碗",
+          2,
+          0,
+          0
+        ],
+        [
+          "goal_top_drawer_bowl",
+          "碗放上层抽屉",
+          6,
+          -6.666666666666665,
+          -6.666666666666677
+        ],
+        [
+          "goal_wine_rack",
+          "酒瓶放酒架",
+          4,
+          -9.999999999999993,
+          -5.000000000000004
+        ],
+        [
+          "libero10_book_caddy",
+          "书放收纳盒后格",
+          6,
+          10.000000000000009,
+          -26.66666666666666
+        ],
+        [
+          "libero10_bowl_bottom_drawer",
+          "碗放底层抽屉",
+          6,
+          6.6666666666666705,
+          -26.666666666666668
+        ],
+        [
+          "libero10_mug_microwave",
+          "杯子放微波炉",
+          2,
+          3.3333333333333437,
+          -19.999999999999996
+        ],
+        [
+          "object_cream_cheese_basket",
+          "奶酪放篮子",
+          10,
+          0,
+          0
+        ],
+        [
+          "spatial_drawer_bowl_plate",
+          "抽屉取碗放盘",
+          0,
+          6.666666666666665,
+          null
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/dense-test-selector-eval/analysis/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/dense-test-selector-eval/analysis/analysis.json"
+      ],
+      "scope": "小样本异质性，不做任务级显著性声明",
+      "notes": []
+    },
+    {
+      "id": "T18_selector_noise",
+      "title": "新增36states逐推理噪声",
+      "columns": [
+        "flow_evaluation_seed",
+        "canonical_successes",
+        "gated_successes",
+        "states",
+        "delta_pp"
+      ],
+      "rows": [
+        [
+          20260841,
+          31,
+          29,
+          36,
+          -5.555555555555555
+        ],
+        [
+          20260842,
+          30,
+          24,
+          36,
+          -16.666666666666668
+        ],
+        [
+          20260843,
+          30,
+          28,
+          36,
+          -5.555555555555555
+        ],
+        [
+          20260844,
+          31,
+          24,
+          36,
+          -19.444444444444443
+        ],
+        [
+          20260845,
+          29,
+          25,
+          36,
+          -11.11111111111111
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/dense-test-selector-eval/run-five-noise"
+      ],
+      "scope": "5次都是推理重复，不是5训练seed",
+      "notes": []
+    },
+    {
+      "id": "T19_proxy_audit",
+      "title": "像素代理反例：goal_top_drawer_bowl demo10 stage02",
+      "columns": [
+        "measured_entity",
+        "pixel_gain_pp",
+        "closed_loop"
+      ],
+      "rows": [
+        [
+          "target bowl",
+          0,
+          "canonical5/5"
+        ],
+        [
+          "parent cabinet",
+          3.078164859693877,
+          "selected3/5"
+        ],
+        [
+          "equal mean two entities",
+          1.5390824298469385,
+          "total score rises without target visibility increase"
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/common-failure-audit-20260831/common_failure_audit.json"
+      ],
+      "scope": "已有结果的事后审计，非新selector/新训练",
+      "notes": [
+        "84states/42sources中55换位；10目标像素不增；其中8由parent fallback增益主导。",
+        "145个same-view state/noise比较0成功冲突、physics mismatch0；正式manual_audit_verified_states=0，不可写已全面人工确认。"
+      ]
+    },
+    {
+      "id": "T20_failure_search_design",
+      "title": "困难池候选存在/独立噪声确认设计",
+      "columns": [
+        "phase",
+        "states",
+        "sources",
+        "tasks",
+        "views_per_state",
+        "noise_repeats",
+        "rollouts"
+      ],
+      "rows": [
+        [
+          "discovery",
+          20,
+          17,
+          6,
+          97,
+          3,
+          5820
+        ],
+        [
+          "confirmation",
+          20,
+          17,
+          6,
+          8,
+          5,
+          800
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/failure-pool-v1-20260831/progress.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/failure-pool-v1-20260831/protocols/discovery-three-noise.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/failure-pool-v1-20260831/protocols/confirmation-five-noise.json"
+      ],
+      "scope": "此前canonical5次至少失败3次；posthoc inspected failure-enriched sources",
+      "notes": [
+        "冻结短名单为behavior top4+canonical+低成功+2几何对照；Top1在confirmation前冻结。",
+        "只跨新推理噪声，不是新source或新任务泛化。"
+      ]
+    },
+    {
+      "id": "T21_failure_search_results",
+      "title": "困难池冻结Top1与事后max-mean",
+      "columns": [
+        "method",
+        "state_mean_success_pct",
+        "state_mean_delta_vs_canonical_pp",
+        "source_equal_delta_pp",
+        "source_bootstrap95ci_pp"
+      ],
+      "rows": [
+        [
+          "canonical",
+          27.999999999999996,
+          0,
+          null,
+          null
+        ],
+        [
+          "frozen_top1",
+          28.999999999999996,
+          1,
+          1.764705882352941,
+          [
+            -10,
+            14.117647058823533
+          ]
+        ],
+        [
+          "posthoc_best_of8_mean",
+          50,
+          22,
+          null,
+          null
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/failure-pool-v1-20260831/analysis/final_analysis.json",
+        "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/failure_view_search.py"
+      ],
+      "scope": "20states×5noise each selectedmethod；17source cluster",
+      "notes": [
+        "28%、29%分别28/100与29/100；Best-of8是mean_state max_view mean_noise success=50%，不是mean_state,noise any_view success。",
+        "Top1 improved/tied/harmed=8/5/7；12/20有事后均值更好的候选；不是12个通过多重检验的确定正例。",
+        "50−29=21pp为事后估计差距，不能作已确认可学习headroom。"
+      ]
+    },
+    {
+      "id": "T22_failure_tasks",
+      "title": "困难池任务分解",
+      "columns": [
+        "task",
+        "states",
+        "source_groups",
+        "canonical_pct",
+        "frozen_top1_pct",
+        "state_delta_pp",
+        "exploratory_positive_states"
+      ],
+      "rows": [
+        [
+          "goal_top_drawer_bowl",
+          3,
+          3,
+          20,
+          26.666666666666668,
+          6.66666666666667,
+          0
+        ],
+        [
+          "goal_wine_rack",
+          4,
+          3,
+          10,
+          10,
+          0,
+          0
+        ],
+        [
+          "libero10_book_caddy",
+          3,
+          2,
+          46.666666666666664,
+          66.66666666666666,
+          20,
+          2
+        ],
+        [
+          "libero10_bowl_bottom_drawer",
+          4,
+          3,
+          25,
+          20,
+          -4.999999999999999,
+          1
+        ],
+        [
+          "libero10_mug_microwave",
+          3,
+          3,
+          33.33333333333333,
+          6.666666666666667,
+          -26.666666666666668,
+          0
+        ],
+        [
+          "spatial_drawer_bowl_plate",
+          3,
+          3,
+          40.00000000000001,
+          53.333333333333336,
+          13.333333333333334,
+          1
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/failure-pool-v1-20260831/analysis/final_analysis.json"
+      ],
+      "scope": "每任务仅2–3source，无任务级显著性主张",
+      "notes": []
+    },
+    {
+      "id": "T23_failure_features",
+      "title": "困难池粗特征within-state AUC",
+      "columns": [
+        "feature",
+        "auc",
+        "eligible_states"
+      ],
+      "rows": [
+        [
+          "azimuth_deg",
+          0.4875378082843396,
+          13
+        ],
+        [
+          "elevation_deg",
+          0.6146940215963235,
+          13
+        ],
+        [
+          "radius_scale",
+          0.44721022300813706,
+          13
+        ],
+        [
+          "visibility_agent",
+          0.5171159328529449,
+          13
+        ],
+        [
+          "visibility_entity_hmean",
+          0.5179319916729864,
+          13
+        ],
+        [
+          "visibility_entity_min",
+          0.5351811391043655,
+          13
+        ],
+        [
+          "visibility_score",
+          0.5171159328529449,
+          13
+        ]
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/failure-pool-v1-20260831/analysis/final_analysis.json",
+        "/workspace/projects/alphabrain-dsol-paper1/scripts/dsol_paper1/failure_view_search.py:366"
+      ],
+      "scope": "13eligible states；发现阶段标签，不是20全states确认AUC",
+      "notes": [
+        "排除canonical；positive=发现SR≥2/3且比canonical高≥1/3；negative=SR≤1/3。",
+        "可见性0.517是当前实体像素代理的局部描述，不是所有信息/几何表示预测上限；elevation0.615只是弱描述信号。"
+      ]
+    },
+    {
+      "id": "T24_kyc_boundaries",
+      "title": "旧KYC不同协议（只作设置边界）",
+      "columns": [
+        "experiment",
+        "control_pct",
+        "kyc_pct",
+        "delta_pp",
+        "95ci_pp",
+        "denominator"
+      ],
+      "rows": [
+        [
+          "matched Pi05",
+          44.49,
+          43.33,
+          -1.16,
+          [
+            -7.03,
+            4.43
+          ],
+          "每方法/seed520episode；fully-supported386/seed；3training seed×10snapshot等权"
+        ],
+        [
+          "dual-ray Pi05",
+          20.71,
+          15.71,
+          -5,
+          [
+            -10.71,
+            0
+          ],
+          "seed41；5snapshot×4task×7view=140/method"
+        ],
+        [
+          "official ACT positive control",
+          24.67,
+          62.67,
+          38,
+          [
+            28,
+            48
+          ],
+          "3training seeds；官方ACT/RoboSuite设置，非Pi05"
+        ]
+      ],
+      "evidence_paths": [
+        "/workspace/projects/alphabrain-dsol-paper1/docs/cabi_vla/kyc_camera_conditioning_validation.md",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/cabi_vla/kyc_dual_camera_validation_result_zh.md",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/cabi_vla/kyc_camera_generalization_completed_report_zh.md"
+      ],
+      "scope": "前两行在旧PDF15页；第三行建议补入防止误称KYC普遍无效",
+      "notes": [
+        "matched旧KYC与dual-ray不是samecohort；原始horizon20/K3，DSOL当前horizon10/K5。",
+        "两个负结果不证明共同视觉捷径机制；旧场景×wrist因子off训练评测都屏蔽但地板失效，不能说完整未做也不能说因果已识别。"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "C1",
+      "plain_conclusion": "宽视角训练在旧匹配开发对照里明显改善了换视角后的成功率。",
+      "evidence_status": "established_within_small_development_protocol",
+      "table_ids": [
+        "T01_training_arms",
+        "T02_seven_arm_exact_state"
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/analysis/fixed_condition_seed41_v1/metrics.json"
+      ],
+      "limits": "seed41/24groups小诊断；三seed正式相对Official同时包含后训练收益，单独coverage因果需要canonical匹配；不能将历史Broad32对照直接配上M-B Broad64。"
+    },
+    {
+      "id": "C2",
+      "plain_conclusion": "正式Broad64相机成绩更高，但原始任务成绩略有损失。",
+      "evidence_status": "formal_completed_observed_recipe_tradeoff",
+      "table_ids": [
+        "T04_formal_benchmarks",
+        "T05_formal_per_seed"
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/camera_full/multiseed_metrics.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/original_full/multiseed_metrics.json"
+      ],
+      "limits": "Camera1599而非全Plus；Base-task等权效应和pooled分数分开报告。"
+    },
+    {
+      "id": "C3",
+      "plain_conclusion": "当前配对一致性整套训练方案不如实用非配对方案。",
+      "evidence_status": "formal_completed_recipe_level",
+      "table_ids": [
+        "T06_formal_recipe_contrast"
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/camera_full/multiseed_metrics.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-revalidation-m-b-v1/original_full/multiseed_metrics.json"
+      ],
+      "limits": "不可孤立归因loss；已有paired-FM控制在小开发gate中没有普遍损害证据。"
+    },
+    {
+      "id": "C4",
+      "plain_conclusion": "看见更多目标实体像素，有时伴随更好闭环结果，但还不是稳定选视角规则。",
+      "evidence_status": "conditional_development_signal",
+      "table_ids": [
+        "T08_m1_operational",
+        "T09_m1_task",
+        "T10_natural_support",
+        "T15_selector_success"
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-libero-constructed-m1-v2/cross-model-analysis/metrics.json",
+        "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/libero_m1_visibility_joint_support_gate_v1_zh.md",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/dense-test-selector-eval/analysis/analysis.json"
+      ],
+      "limits": "cohort不同；6demo方向性信号不能称机制证明；pose/appearance/support/source分布都可能影响。"
+    },
+    {
+      "id": "C5",
+      "plain_conclusion": "Accel在这里没有稳定选出更好的视角。",
+      "evidence_status": "established_for_local_extension_not_original_method_refutation",
+      "table_ids": [
+        "T11_accel_diagnostics",
+        "T12_a97_closed_loop",
+        "T13_a97_failure_pool"
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-accel-expanded-diagnostic-v1/analysis/summary.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-accel-gate-a97-v1/shortlist/broad64-practical/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-accel-gate-a97-v1/oracle97-canonical-failures/broad64-practical/analysis.json"
+      ],
+      "limits": "不是原文failure detector复现；6噪声排序ensemble与闭环噪声重复是不同层。"
+    },
+    {
+      "id": "C6",
+      "plain_conclusion": "原先可见性门控那一点收益，换一批轨迹后没有复现。",
+      "evidence_status": "completed_source_disjoint_replication_negative",
+      "table_ids": [
+        "T14_selector_cohort_sizes",
+        "T15_selector_success",
+        "T16_selector_main_effect",
+        "T17_selector_tasks",
+        "T18_selector_noise"
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/dense-test-selector-eval/analysis/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/dense-test-selector-eval/analysis/analysis.json",
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/constructed-all8-v1/independent-source-extension/combined-analysis/analysis.json"
+      ],
+      "limits": "18新source来自7已知任务，不是新任务/新遮挡机制；不否定全部视角选择。"
+    },
+    {
+      "id": "C7",
+      "plain_conclusion": "旧困难池里能找到成功候选，但先选好的Top1在新噪声上几乎没增益。",
+      "evidence_status": "exploratory_posthoc_upper_with_frozen_noise_confirmation",
+      "table_ids": [
+        "T20_failure_search_design",
+        "T21_failure_search_results",
+        "T22_failure_tasks"
+      ],
+      "evidence_paths": [
+        "/share/longjunyu/alphabrain/experiments/dsol-view-value-discovery-v1/failure-pool-v1-20260831/analysis/final_analysis.json"
+      ],
+      "limits": "状态来源已看过；事后max只有有限噪声，不能作稳定期望上限或可学习性证明；后来v2回答更严格问题须独立汇报。"
+    }
+  ],
+  "required_corrections": [
+    {
+      "priority": "MUST",
+      "issue": "旧PDF15页称KYC和consistency暴露相同稳定视觉捷径问题",
+      "replace_with": "当前两类适配在各自协议下未显示稳定增量；视觉捷径/多传感器冗余只是候选解释，尚未被有效传感器因果对照确定。"
+    },
+    {
+      "priority": "MUST",
+      "issue": "旧PDF16页“足以否定稳定普适增益”过宽",
+      "replace_with": "未观察到当前具体recipe在这些协议中的稳定增量；不否定方法家族普遍有效性，保留官方ACT正控制。"
+    },
+    {
+      "priority": "MUST",
+      "issue": "旧PDF8页“关键因果量Info-Control”及用formal门为当前具体M1权重背书",
+      "replace_with": "这是6source等权的选定视角干预对比；M1实际是quick checkpoint，不是M-B formal权重，不能用后者基准门直接替代前者身份。"
+    },
+    {
+      "priority": "MUST",
+      "issue": "三seed和七臂写一起；MB和quick混用",
+      "replace_with": "七臂仅seed41/Broad32 g8 schedule3000；正式只有practical/consistency三seed/Broad64 g2 schedule2000；旧选择用Broad64 quick g8。"
+    },
+    {
+      "priority": "MUST",
+      "issue": "Camera All和suite名字误读",
+      "replace_with": "All1599是Plus Camera track全部；四suite是Camera扰动子集，不是Original四suite成绩，也不是Plus10030全部。"
+    },
+    {
+      "priority": "MUST",
+      "issue": "pooled柱高差与task-equal配对差混算",
+      "replace_with": "显式分列score与estimand；82.16−75.86不等于5.15，77.78−82.16不等于−4.75并非算错。M1亦分21frame与6source等权。"
+    },
+    {
+      "priority": "MUST",
+      "issue": "把新来源selector gate当97views全闭环",
+      "replace_with": "97评分候选→6冻结规则×5噪声；只有failurepool发现才97views全闭环。"
+    },
+    {
+      "priority": "MUST",
+      "issue": "oracle上限类型混淆",
+      "replace_with": "旧A97任一成功、failurepool max跨5噪声均值、v2 cross-fitted独立噪声选择是不同estimand；事后上限不能证明可靠可学习headroom。"
+    },
+    {
+      "priority": "MUST",
+      "issue": "“当前Top1对新噪声过拟合”当已证因果",
+      "replace_with": "发现Top1在独立噪声上未稳定迁移，符合有限重复选择偏差/排名噪声等解释；未单独确定过拟合机制。"
+    },
+    {
+      "priority": "MUST",
+      "issue": "external-only全0说明融合/腕部必要性",
+      "replace_with": "测试置黑/失配输入有地板，不能替代能力有效且训练匹配的external-only。"
+    },
+    {
+      "priority": "MUST",
+      "issue": "M0最大ΔI20.85pp缺split",
+      "replace_with": "test crossed-orbit最大20.8451pp；val最大22.5735pp，不应写全扫描最大20.85。"
+    },
+    {
+      "priority": "MUST",
+      "issue": "AUC0.517被当所有20states/全部候选的general预测能力",
+      "replace_with": "13eligible states、发现阶段阈值定义正负样本、排除canonical的within-state描述性AUC。"
+    },
+    {
+      "priority": "SHOULD",
+      "issue": "rank Spearman页文字0.42与主数字0.41不同",
+      "replace_with": "主practical精确0.4123317，统一显示0.41；0.416属于state-matched近似0.42。"
+    },
+    {
+      "priority": "SHOULD",
+      "issue": "源/噪声独立性表述过强",
+      "replace_with": "旧42source均已被看过，failurepool只新噪声，不是新source；旧记录配对seed不等于当前v2显式stateless per-replan-noise张量契约，不能无审计宣称全部去噪噪声逐项完全对齐。"
+    }
+  ],
+  "do_not_double_count": [
+    "旧PDF16页和10页是报告页数，不是独立实验数。",
+    "1440原批次+1080新增=2520合并，合并不是额外2520rollouts。",
+    "M1-v2 1050总量含五模型×10条件，不能再将主图84或其子集叠加计入总数。",
+    "失败池5820发现+800确认=6620；不是两个PDF外又一份未执行计划。",
+    "旧21states与自然21states为不同cohort；96A97、84constructed、20failurepool存在筛选/来源依赖，不能简单相加成独立source量。",
+    "训练seed41/42/43与推理噪声20260841–45、或六Accel噪声不是同一层重复。"
+  ],
+  "retention_recommendation": {
+    "main_report": [
+      "T02",
+      "T04",
+      "T06",
+      "T08+T09局限",
+      "T10简短support控制",
+      "T12",
+      "T14+T15+T16",
+      "T19",
+      "T20+T21",
+      "后来v2由另审计接续，明确换checkpoint/协议"
+    ],
+    "appendix": [
+      "T01全部训练字段",
+      "T03旧Camera四suite",
+      "T05逐seed",
+      "T07M0分布",
+      "T11四模型全部rank诊断",
+      "T13单噪声失败池",
+      "T17+T18分解",
+      "T22+T23探索特征",
+      "T24KYC背景与正控制"
+    ],
+    "avoid": "不把旧PDF的未来计划原样保留为当前待办；当前训练匹配、v2完结、主动工程状态由新source ledger更新；不把旧研究负结果包装成已完成新算法贡献。"
+  }
+}
+

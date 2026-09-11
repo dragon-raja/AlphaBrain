@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CONTROLLER = ROOT / "scripts/dsol_paper1/run_view_value_expectation_post_calibration.sh"
+CONTROLLER = ROOT / "scripts/dsol_paper1/operations/launchers/run_view_value_expectation_post_calibration.sh"
 
 
 def test_accel_render_exposes_openpi_client_to_sim_python() -> None:

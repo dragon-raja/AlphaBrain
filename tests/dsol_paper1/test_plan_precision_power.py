@@ -4,7 +4,7 @@ import importlib.util
 from pathlib import Path
 
 
-SCRIPT = Path(__file__).parents[2] / "scripts/dsol_paper1/plan_precision_power.py"
+SCRIPT = Path(__file__).parents[2] / "scripts/dsol_paper1/protocols/plan_precision_power.py"
 SPEC = importlib.util.spec_from_file_location("plan_precision_power", SCRIPT)
 assert SPEC and SPEC.loader
 MODULE = importlib.util.module_from_spec(SPEC)

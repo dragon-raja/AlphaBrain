@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from scripts.dsol_paper1.train_statewise_view_selector_v1 import (
+from scripts.dsol_paper1.training.train_statewise_view_selector_v1 import (
     apply_pca,
     fit_pca,
     fit_ridge,

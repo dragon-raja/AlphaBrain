@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.dsol_paper1.audit_dense_selector_common_failures import entity_deltas, evaluation_seed, grouped_summary
+from scripts.dsol_paper1.diagnostics.audit_dense_selector_common_failures import entity_deltas, evaluation_seed, grouped_summary
 
 
 def test_evaluation_seed_is_not_the_state_specific_policy_noise():

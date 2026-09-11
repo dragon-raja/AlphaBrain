@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.dsol_paper1.finalize_canonical_match_v1 import finalize, inspect_weight_header, validate_metrics
+from scripts.dsol_paper1.operations.controllers.finalize_canonical_match_v1 import finalize, inspect_weight_header, validate_metrics
 
 
 class FinalizeCanonicalMatchTest(unittest.TestCase):

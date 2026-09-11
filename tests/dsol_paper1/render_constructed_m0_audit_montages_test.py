@@ -2,14 +2,8 @@ from __future__ import annotations
 
 import unittest
 
-from render_constructed_m0_audit_montages import (
-    select_balanced_audit_groups,
-    selected_pose_ids,
-)
-from scan_libero_hdf5_views import (
-    _filter_catalog_poses,
-    _remove_materialized_canonical,
-)
+from scripts.dsol_paper1.operations.controllers.render_constructed_m0_audit_montages import select_balanced_audit_groups, selected_pose_ids
+from scripts.dsol_paper1.scan_libero_hdf5_views import _filter_catalog_poses, _remove_materialized_canonical
 
 
 def _row(task: str, episode: str, frame: int) -> dict:

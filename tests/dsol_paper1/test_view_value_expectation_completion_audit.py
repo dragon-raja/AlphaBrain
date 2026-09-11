@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from scripts.dsol_paper1.audit_view_value_expectation_completion import (
+from scripts.dsol_paper1.diagnostics.audit_view_value_expectation_completion import (
     EXPECTED_CLAIM_SCOPE,
     validate_final_decision,
     validate_population,

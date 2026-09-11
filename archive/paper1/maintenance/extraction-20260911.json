@@ -1,0 +1,66 @@
+{
+  "original_source": "scripts/dsol_paper1/analyze_standard_initial_results_v1.py",
+  "original_sha256": "cba8e4b33fdaa0d8af7f84fa851333844e4a57836a52c2add1cf97f7e8fdb700",
+  "moves": [
+    {
+      "module": "AlphaBrain/research/dsol/data/artifacts.py",
+      "functions": [
+        "read",
+        "sha",
+        "write"
+      ],
+      "sha256": "a073d48de6f335737802f856c3cbc1a0d654658670e4c01d29cda7993539ca96"
+    },
+    {
+      "module": "AlphaBrain/research/dsol/metrics/view_rules.py",
+      "functions": [
+        "metric_choices"
+      ],
+      "sha256": "6c8f5438eeaab6f5ffa0b8b4ec2f9c962ae4a8fe87109bb3ff88d5ed150a507b"
+    },
+    {
+      "module": "AlphaBrain/research/dsol/selectors/specification.py",
+      "functions": [],
+      "sha256": "cbfd72497ac1b777b66cdc7bf93b4bfdd2647d0a84b311ee8bb5c359ee8915cd"
+    },
+    {
+      "module": "AlphaBrain/research/dsol/selectors/ridge.py",
+      "functions": [
+        "pca_fit",
+        "feature_matrix",
+        "ridge_predict",
+        "fit_ranker"
+      ],
+      "sha256": "9267be6dc5158457826a5d02a4b3ef53e9e5b5f86590c3172650e87dbff660a5"
+    },
+    {
+      "module": "AlphaBrain/research/dsol/analysis/statistics.py",
+      "functions": [
+        "hierarchy",
+        "paired_interval"
+      ],
+      "sha256": "5e53346d1eafc9e029b375784a3216d1e41348fbd1833dd73f6646f36ecc4473"
+    },
+    {
+      "module": "AlphaBrain/research/dsol/analysis/initial_study.py",
+      "functions": [
+        "summarize"
+      ],
+      "sha256": "3b8dc06f7d628902470b23b0352e6d4b5c5a3efc82054bd4eb06a12b14e86829"
+    },
+    {
+      "module": "AlphaBrain/research/dsol/data/initial_matrix.py",
+      "functions": [
+        "audit_and_load"
+      ],
+      "sha256": "368cdf07a2270811f846ecca6f7e30b6df9362930ba20f1af270a1765da8dc9d"
+    },
+    {
+      "module": "AlphaBrain/research/dsol/selectors/visual_features.py",
+      "functions": [
+        "encode_assets"
+      ],
+      "sha256": "c7c2a1110e0ec2163bd1fb2a2ea402c79dcde99a686de8814ae4650bad60129e"
+    }
+  ]
+}

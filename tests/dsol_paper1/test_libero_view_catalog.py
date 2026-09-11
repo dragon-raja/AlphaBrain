@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from scripts.dsol_paper1.build_libero_view_catalog import build
+from scripts.dsol_paper1.protocols.build_libero_view_catalog import build
 
 
 ROOT = Path(__file__).parents[2]

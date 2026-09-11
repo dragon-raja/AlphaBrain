@@ -9,18 +9,7 @@ from pathlib import Path
 SCRIPT_ROOT = Path(__file__).resolve().parents[2] / "scripts" / "dsol_paper1"
 sys.path.insert(0, str(SCRIPT_ROOT))
 
-from view_acquisition_motion import (  # noqa: E402
-    BudgetExceeded,
-    BudgetLedger,
-    LedgerTerminated,
-    MotionLimits,
-    MotionValidationError,
-    Pose,
-    WorldAABB,
-    no_acquisition,
-    plan_camera_motion,
-    plan_matched_hold,
-)
+from AlphaBrain.research.dsol.acquisition.motion import BudgetExceeded, BudgetLedger, LedgerTerminated, MotionLimits, MotionValidationError, Pose, WorldAABB, no_acquisition, plan_camera_motion, plan_matched_hold
 
 
 def limits(**overrides: object) -> MotionLimits:

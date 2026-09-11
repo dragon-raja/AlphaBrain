@@ -550,7 +550,7 @@ class DsolLiberoPairDataset:
         arm: str = "canonical_unique",
         shard_cache_size: int = 2,
     ) -> None:
-        from scripts.dsol_paper1.libero_pair_records import FILE_MAGIC
+        from AlphaBrain.common.pair_records import FILE_MAGIC
 
         self.root = Path(root)
         self.arm = str(arm)
@@ -653,7 +653,7 @@ class DsolLiberoPairDataset:
         return result
 
     def __getitem__(self, index: int) -> dict[str, Any] | list[dict[str, Any]]:
-        from scripts.dsol_paper1.libero_pair_records import read_record
+        from AlphaBrain.common.pair_records import read_record
 
         row = self.records[index]
         if self.arm.startswith("canonical") or self.arm == "image_augmentation_unique":

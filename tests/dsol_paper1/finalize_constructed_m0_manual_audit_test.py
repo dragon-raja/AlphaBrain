@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from finalize_constructed_m0_manual_audit import CHECKS, finalize
+from scripts.dsol_paper1.operations.controllers.finalize_constructed_m0_manual_audit import CHECKS, finalize
 
 
 def _manifest(count: int = 2) -> dict:

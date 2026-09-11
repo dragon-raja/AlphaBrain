@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import unittest
 
-from build_accel_gate_a97_protocol import build, selection_for_state
-from summarize_accel_gate_a97 import summarize_oracle, summarize_shortlist
+from scripts.dsol_paper1.protocols.build_accel_gate_a97_protocol import build, selection_for_state
+from scripts.dsol_paper1.analysis.summarize_accel_gate_a97 import summarize_oracle, summarize_shortlist
 
 
 class GateA97ProtocolTest(unittest.TestCase):

@@ -1,0 +1,1231 @@
+"""
+PaliGemmaOFT Data Pipeline
+
+Adapts VLAE's existing LeRobot data loading to PaliGemmaOFT format.
+Reuses the existing lerobot_datasets.py infrastructure, adding Pi0-specific transforms.
+
+Pi0 expects:
+  - images: dict of {camera_name: [B, H, W, 3] uint8 tensors}
+  - image_masks: dict of {camera_name: [B] bool tensors} 
+  - state: [B, state_dim] float32
+  - tokenized_prompt: [B, max_token_len] int32
+  - tokenized_prompt_mask: [B, max_token_len] bool
+  - actions: [B, action_horizon, action_dim] float32
+"""
+
+import bisect
+import io
+import json
+import logging
+import struct
+from collections import OrderedDict
+from typing import Any, Mapping, Optional, Dict, List
+from pathlib import Path
+from dataclasses import dataclass
+
+import numpy as np
+import torch
+from PIL import Image
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class Pi0DataConfig:
+    """Configuration for Pi0-specific data processing."""
+    image_resolution: tuple = (224, 224)  # H, W for SigLIP
+    max_token_len: int = 200  # max language token length (pi05 default)
+    action_horizon: int = 50
+    action_dim: int = 7
+    camera_names: tuple = ("image_0",)  # maps to observation camera keys
+    include_state: bool = True
+    state_dim: int = 7
+    feedback_horizon_key: str = "feedback_horizon"
+    use_image_augmentation: bool = False
+    image_augmentation_crop_scale: tuple = (0.95, 1.0)
+    image_augmentation_crop_ratio: tuple = (0.98, 1.02)
+    image_augmentation_brightness: float = 0.3
+    image_augmentation_contrast: float = 0.4
+    image_augmentation_saturation: float = 0.5
+    image_augmentation_hue: float = 0.08
+
+
+class Pi0DataTransform:
+    """
+    Transform VLAE LeRobot data samples into PaliGemmaOFT format.
+    
+    Input (from LeRobot dataloader):
+        dict with keys: image (List[PIL.Image]), lang (str), action (np.ndarray), state (np.ndarray)
+        
+    Output (for PaliGemmaOFT.forward()):
+        dict with same keys, but images resized and ready for Pi0 processing
+    """
+    
+    def __init__(self, config: Pi0DataConfig, tokenizer=None):
+        self.config = config
+        self.tokenizer = tokenizer  # PaliGemma/Gemma tokenizer
+
+    def _augment_image(self, image: np.ndarray) -> np.ndarray:
+        """Apply the registered ImageAug baseline without action-breaking flips."""
+        from torchvision import transforms as T
+        from torchvision.transforms import functional as F
+
+        pil_image = Image.fromarray(np.asarray(image, dtype=np.uint8), mode="RGB")
+        top, left, height, width = T.RandomResizedCrop.get_params(
+            pil_image,
+            scale=self.config.image_augmentation_crop_scale,
+            ratio=self.config.image_augmentation_crop_ratio,
+        )
+        pil_image = F.resized_crop(
+            pil_image,
+            top,
+            left,
+            height,
+            width,
+            list(self.config.image_resolution),
+            interpolation=T.InterpolationMode.BILINEAR,
+            antialias=True,
+        )
+        pil_image = T.ColorJitter(
+            brightness=self.config.image_augmentation_brightness,
+            contrast=self.config.image_augmentation_contrast,
+            saturation=self.config.image_augmentation_saturation,
+            hue=self.config.image_augmentation_hue,
+        )(pil_image)
+        return np.asarray(pil_image, dtype=np.uint8)
+        
+    def __call__(self, sample: dict) -> dict:
+        """Transform a single sample."""
+        result = {}
+        
+        # ── Images ──
+        images = sample.get("image", [])
+        if isinstance(images, (list, tuple)):
+            processed_images = []
+            for img in images:
+                if isinstance(img, Image.Image):
+                    img = img.resize(
+                        (self.config.image_resolution[1], self.config.image_resolution[0]),
+                        Image.BILINEAR
+                    )
+                    img = np.array(img)
+                elif isinstance(img, np.ndarray):
+                    # Resize numpy image
+                    pil_img = Image.fromarray(img)
+                    pil_img = pil_img.resize(
+                        (self.config.image_resolution[1], self.config.image_resolution[0]),
+                        Image.BILINEAR
+                    )
+                    img = np.array(pil_img)
+                elif isinstance(img, torch.Tensor):
+                    img = img.numpy()
+                if self.config.use_image_augmentation:
+                    img = self._augment_image(img)
+                processed_images.append(img)
+            result["image"] = processed_images
+        else:
+            result["image"] = images
+        
+        # ── Language ──
+        result["lang"] = sample.get("lang", "")
+        
+        # ── Actions ──
+        action = sample.get("action", None)
+        if action is not None:
+            if isinstance(action, np.ndarray):
+                action = action.astype(np.float32)
+            elif isinstance(action, torch.Tensor):
+                action = action.float().numpy()
+            
+            # Ensure shape is [action_horizon, action_dim]
+            if action.ndim == 1:
+                action = action.reshape(1, -1)
+            
+            # Pad/truncate to action_horizon
+            if action.shape[0] < self.config.action_horizon:
+                pad = np.zeros(
+                    (self.config.action_horizon - action.shape[0], action.shape[1]),
+                    dtype=np.float32
+                )
+                action = np.concatenate([action, pad], axis=0)
+            elif action.shape[0] > self.config.action_horizon:
+                action = action[:self.config.action_horizon]
+                
+            result["action"] = action
+        
+        # ── State ──
+        if self.config.include_state and "state" in sample:
+            state = sample["state"]
+            if isinstance(state, np.ndarray):
+                state = state.astype(np.float32)
+            elif isinstance(state, torch.Tensor):
+                state = state.float().numpy()
+            result["state"] = state
+
+        feedback_key = self.config.feedback_horizon_key
+        if feedback_key in sample:
+            result[feedback_key] = int(sample[feedback_key])
+
+        for key in (
+            "action_supervised",
+            "cabi_tetrad_id",
+            "cabi_corner",
+            "cabi_transport_roles",
+            "cabi_decision_point",
+            "sample_id",
+            "episode_id",
+            "frame_index",
+            "edge_id",
+            "canonical_state_index",
+            "camera_pose",
+            "dsol_pair_id",
+            "dsol_pair_role",
+            "dsol_pair_objective",
+            "dsol_pair_shared_flow",
+            "dsol_image_augmentation",
+        ):
+            if key in sample:
+                result[key] = sample[key]
+        for key in (
+            "camera_intrinsics",
+            "camera_to_world_opencv",
+            "camera_intrinsics_by_view",
+            "camera_to_world_opencv_by_view",
+        ):
+            if key in sample:
+                result[key] = np.asarray(sample[key], dtype=np.float32)
+        
+        return result
+
+
+class FreshSnapshotDataset:
+    """Read pre-chunked counterfactual samples without inventing future frames."""
+
+    def __init__(
+        self,
+        root: Path | str,
+        *,
+        split: str = "train",
+        feedback_label: str = "oracle_feedback_horizon",
+        feedback_output_key: str = "oracle_feedback_horizon",
+        tasks: tuple[str, ...] = ("grasp_slip",),
+    ):
+        self.root = Path(root)
+        manifest_path = self.root / "manifest.json"
+        records_path = self.root / "records.jsonl"
+        splits_path = self.root / "splits.json"
+        labels_path = self.root / "training_labels.json"
+        self.snapshots_path = self.root / "policy_observation_snapshots.npz"
+        required = (manifest_path, records_path, splits_path, labels_path, self.snapshots_path)
+        missing = [str(path) for path in required if not path.is_file()]
+        if missing:
+            raise FileNotFoundError(f"incomplete FRESH snapshot dataset; missing: {missing}")
+
+        self.manifest = json.loads(manifest_path.read_text())
+        split_map = json.loads(splits_path.read_text())["pair_splits"]
+        labels = json.loads(labels_path.read_text())["records"]
+        pair_tasks = {row["pair_id"]: row["task"] for row in self.manifest["pairs"]}
+        allowed_tasks = set(tasks)
+        rows = [json.loads(line) for line in records_path.read_text().splitlines() if line.strip()]
+
+        selected = []
+        record_ids = set()
+        for row in rows:
+            pair_id = row["pair_id"]
+            if split_map.get(pair_id) != split or pair_tasks.get(pair_id) not in allowed_tasks:
+                continue
+            record_id = f"{pair_id}::{row['branch_id']}"
+            if record_id in record_ids:
+                raise ValueError(f"duplicate snapshot record: {record_id}")
+            record_ids.add(record_id)
+            if record_id not in labels or feedback_label not in labels[record_id]:
+                raise KeyError(f"missing label {feedback_label!r} for {record_id}")
+            selected.append((row, int(labels[record_id][feedback_label]), pair_tasks[pair_id]))
+        if not selected:
+            raise ValueError(f"no FRESH snapshot records for split={split!r}, tasks={sorted(allowed_tasks)}")
+
+        with np.load(self.snapshots_path, allow_pickle=False) as snapshots:
+            snapshot_keys = set(snapshots.files)
+        for row, _, _ in selected:
+            snapshot_key = row["observation"]["snapshot_key"]
+            expected = {f"{snapshot_key}_agentview", f"{snapshot_key}_wrist"}
+            missing_keys = sorted(expected - snapshot_keys)
+            if missing_keys:
+                raise KeyError(f"missing image arrays for {row['pair_id']}: {missing_keys}")
+
+        self.rows = selected
+        self.feedback_output_key = feedback_output_key
+        self._snapshots = None
+
+    def __len__(self):
+        return len(self.rows)
+
+    def __getitem__(self, idx):
+        if self._snapshots is None:
+            self._snapshots = np.load(self.snapshots_path, allow_pickle=False)
+        row, feedback_horizon, task = self.rows[idx]
+        snapshot_key = row["observation"]["snapshot_key"]
+        return {
+            "image": [
+                np.asarray(self._snapshots[f"{snapshot_key}_agentview"]),
+                np.asarray(self._snapshots[f"{snapshot_key}_wrist"]),
+            ],
+            "fresh_sample_id": f"{row['pair_id']}::{row['branch_id']}",
+            "pair_id": row["pair_id"],
+            "branch_id": row["branch_id"],
+            "branch_outcome": row.get("branch_outcome", row["branch_id"]),
+            "task": task,
+            "oracle_feedback_horizon": int(row["oracle_feedback_horizon"]),
+            "lang": row["language_instruction"],
+            "language": row["language_instruction"],
+            "action": np.asarray(row["action_chunk"], dtype=np.float32),
+            "state": np.asarray(row["robot_state"], dtype=np.float32),
+            self.feedback_output_key: feedback_horizon,
+        }
+
+
+class FreshEpisodeWindowDataset:
+    """Read full-episode sliding windows while keeping oracle labels loss-only."""
+
+    def __init__(
+        self,
+        root: Path | str,
+        *,
+        split: str = "train",
+        feedback_label: str = "oracle_feedback_horizon",
+        feedback_output_key: str = "oracle_feedback_horizon",
+        tasks: tuple[str, ...] = ("grasp_slip_full_episode",),
+    ):
+        self.root = Path(root)
+        records_path = self.root / "records.jsonl"
+        labels_path = self.root / "training_labels.json"
+        missing = [str(path) for path in (records_path, labels_path) if not path.is_file()]
+        if missing:
+            raise FileNotFoundError(f"incomplete FRESH episode-window dataset; missing: {missing}")
+        labels = json.loads(labels_path.read_text())["records"]
+        allowed_tasks = set(tasks)
+        rows = []
+        for line in records_path.read_text().splitlines():
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            if row["split"] != split or row["task"] not in allowed_tasks:
+                continue
+            sample_id = row["sample_id"]
+            if sample_id not in labels or feedback_label not in labels[sample_id]:
+                raise KeyError(f"missing label {feedback_label!r} for {sample_id}")
+            rows.append((row, int(labels[sample_id][feedback_label])))
+        if not rows:
+            raise ValueError(f"no FRESH episode windows for split={split!r}, tasks={sorted(allowed_tasks)}")
+        self.rows = rows
+        self.feedback_output_key = feedback_output_key
+
+    def __len__(self):
+        return len(self.rows)
+
+    def __getitem__(self, idx):
+        from PIL import Image
+
+        row, feedback_horizon = self.rows[idx]
+        observation = row["observation"]
+        agent = np.asarray(Image.open(self.root / observation["agentview_path"]).convert("RGB"))
+        wrist = np.asarray(Image.open(self.root / observation["wrist_path"]).convert("RGB"))
+        return {
+            "image": [agent, wrist],
+            "fresh_sample_id": row["sample_id"],
+            "pair_id": row["pair_id"],
+            "branch_id": row["branch_id"],
+            "branch_outcome": row["branch_outcome"],
+            "frame_index": int(row["frame_index"]),
+            "task": row["task"],
+            "oracle_feedback_horizon": int(row["oracle_feedback_horizon"]),
+            "lang": row["language_instruction"],
+            "language": row["language_instruction"],
+            "action": np.asarray(row["action_chunk"], dtype=np.float32),
+            "state": np.asarray(row["robot_state"], dtype=np.float32),
+            self.feedback_output_key: feedback_horizon,
+        }
+
+
+class LiberoPlusTFRecordDataset:
+    """Random-access Pi0.5 windows over indexed LIBERO-Plus episode TFRecords."""
+
+    _FEATURES = (
+        "steps/action",
+        "steps/observation/image",
+        "steps/observation/wrist_image",
+        "steps/observation/state",
+    )
+
+    def __init__(
+        self,
+        root: Path | str,
+        *,
+        split: str = "train",
+        action_horizon: int = 10,
+        budget_fraction: float = 1.0,
+        source_data_root: Path | str | None = None,
+        episode_cache_size: int = 2,
+    ) -> None:
+        self.root = Path(root)
+        manifest_path = self.root / "manifest.json"
+        if not manifest_path.is_file():
+            raise FileNotFoundError(f"missing LIBERO-Plus training view: {manifest_path}")
+        self.manifest = json.loads(manifest_path.read_text())
+        if self.manifest.get("status") != "complete":
+            raise ValueError("LIBERO-Plus training view is incomplete")
+        if action_horizon <= 0:
+            raise ValueError("action_horizon must be positive")
+        if not 0.0 < budget_fraction <= 1.0:
+            raise ValueError("budget_fraction must be in (0, 1]")
+        if episode_cache_size <= 0:
+            raise ValueError("episode_cache_size must be positive")
+
+        self.dataset_root = Path(
+            source_data_root
+            if source_data_root is not None
+            else self.manifest["dataset_root"]
+        )
+        self.action_horizon = int(action_horizon)
+        self.action_dim = int(self.manifest["action_schema"]["action_dim"])
+        self.camera_intrinsics = self.manifest["image_schema"][
+            "external_camera_intrinsics_224"
+        ]
+        self.episode_cache_size = int(episode_cache_size)
+        self._episode_cache: OrderedDict[str, dict[str, Any]] = OrderedDict()
+
+        valid_splits = {"train", "val", "test", "all"}
+        if split not in valid_splits:
+            raise ValueError(f"unsupported split {split!r}; expected one of {sorted(valid_splits)}")
+        episodes = []
+        for row in self.manifest["episodes"]:
+            if split != "all" and row["split"] != split:
+                continue
+            if split == "train" and float(row["budget_percentile"]) > budget_fraction:
+                continue
+            episodes.append(row)
+        if not episodes:
+            raise ValueError(
+                f"no LIBERO-Plus episodes for split={split!r}, "
+                f"budget_fraction={budget_fraction}"
+            )
+        self.episodes = episodes
+        self.cumulative_steps = []
+        total = 0
+        for row in episodes:
+            total += int(row["step_count"])
+            self.cumulative_steps.append(total)
+
+    def __len__(self) -> int:
+        return self.cumulative_steps[-1]
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["_episode_cache"] = OrderedDict()
+        return state
+
+    @staticmethod
+    def _read_exact(stream, length: int, *, name: str) -> bytes:
+        value = stream.read(length)
+        if len(value) != length:
+            raise ValueError(f"truncated {name}: expected {length} bytes, got {len(value)}")
+        return value
+
+    def _load_episode(self, row: Mapping[str, Any]) -> dict[str, Any]:
+        episode_id = str(row["episode_id"])
+        cached = self._episode_cache.pop(episode_id, None)
+        if cached is not None:
+            self._episode_cache[episode_id] = cached
+            return cached
+
+        path = self.dataset_root / str(row["shard"])
+        with path.open("rb") as stream:
+            stream.seek(int(row["record_offset"]))
+            length_bytes = self._read_exact(stream, 8, name="TFRecord length")
+            (payload_length,) = struct.unpack("<Q", length_bytes)
+            expected_total = 8 + 4 + int(payload_length) + 4
+            if expected_total != int(row["record_total_bytes"]):
+                raise ValueError(
+                    f"TFRecord size changed for {episode_id}: "
+                    f"manifest={row['record_total_bytes']} actual={expected_total}"
+                )
+            self._read_exact(stream, 4, name="TFRecord length CRC")
+            payload = self._read_exact(stream, int(payload_length), name="TFRecord payload")
+            self._read_exact(stream, 4, name="TFRecord payload CRC")
+
+        try:
+            from tfrecord import example_pb2
+            from tfrecord.reader import extract_feature_dict
+        except ImportError as error:
+            raise RuntimeError(
+                "LIBERO-Plus TFRecord training requires tfrecord==1.14.6 and crc32c"
+            ) from error
+        example = example_pb2.Example()
+        example.ParseFromString(payload)
+        record = extract_feature_dict(
+            example.features,
+            list(self._FEATURES),
+            {"byte": "bytes_list", "float": "float_list", "int": "int64_list"},
+        )
+        step_count = int(row["step_count"])
+        action = np.asarray(record["steps/action"], dtype=np.float32).reshape(
+            step_count, self.action_dim
+        )
+        state = np.asarray(record["steps/observation/state"], dtype=np.float32).reshape(
+            step_count, -1
+        )
+        agent = np.asarray(record["steps/observation/image"]).reshape(-1)
+        wrist = np.asarray(record["steps/observation/wrist_image"]).reshape(-1)
+        if len(agent) != step_count or len(wrist) != step_count or len(state) != step_count:
+            raise ValueError(f"episode arrays do not match step_count for {episode_id}")
+        decoded = {"action": action, "state": state, "agent": agent, "wrist": wrist}
+        self._episode_cache[episode_id] = decoded
+        while len(self._episode_cache) > self.episode_cache_size:
+            self._episode_cache.popitem(last=False)
+        return decoded
+
+    @staticmethod
+    def _decode_jpeg(value: Any) -> np.ndarray:
+        with Image.open(io.BytesIO(bytes(value))) as image:
+            return np.asarray(image.convert("RGB"))
+
+    def __getitem__(self, index: int) -> dict[str, Any]:
+        if index < 0:
+            index += len(self)
+        if not 0 <= index < len(self):
+            raise IndexError(index)
+        episode_index = bisect.bisect_right(self.cumulative_steps, index)
+        episode_start = 0 if episode_index == 0 else self.cumulative_steps[episode_index - 1]
+        frame_index = index - episode_start
+        row = self.episodes[episode_index]
+        episode = self._load_episode(row)
+        action = episode["action"][frame_index : frame_index + self.action_horizon]
+        if len(action) < self.action_horizon:
+            action = np.concatenate(
+                [
+                    action,
+                    np.zeros(
+                        (self.action_horizon - len(action), self.action_dim),
+                        dtype=np.float32,
+                    ),
+                ],
+                axis=0,
+            )
+        return {
+            "image": [
+                self._decode_jpeg(episode["agent"][frame_index]),
+                self._decode_jpeg(episode["wrist"][frame_index]),
+            ],
+            "lang": row["language_instruction"],
+            "action": np.asarray(action, dtype=np.float32),
+            "state": np.asarray(episode["state"][frame_index], dtype=np.float32),
+            "action_supervised": True,
+            "sample_id": f"{row['episode_id']}::frame-{frame_index:05d}",
+            "episode_id": row["episode_id"],
+            "frame_index": frame_index,
+            "camera_pose_group_id": row["camera_pose_group_id"],
+            "camera_intrinsics": self.camera_intrinsics,
+            "camera_to_world_opencv": row["camera_to_world_opencv"],
+        }
+
+
+class DsolLiberoPairDataset:
+    """Read exact-state DSOL view pairs and derive budget-matched training arms."""
+
+    _ARMS = {
+        "canonical_unique",
+        "image_augmentation_unique",
+        "canonical_repeat",
+        "broad_unpaired_practical",
+        "broad_unpaired_state_matched",
+        "broad_paired_fm",
+        "broad_paired_consistency",
+    }
+
+    def __init__(
+        self,
+        root: Path | str,
+        *,
+        split: str = "train",
+        arm: str = "canonical_unique",
+        shard_cache_size: int = 2,
+    ) -> None:
+        from scripts.dsol_paper1.libero_pair_records import FILE_MAGIC
+
+        self.root = Path(root)
+        self.arm = str(arm)
+        if self.arm not in self._ARMS:
+            raise ValueError(f"unsupported DSOL pair arm {self.arm!r}")
+        if split not in {"train", "val", "test", "all"}:
+            raise ValueError(f"unsupported DSOL pair split {split!r}")
+        if shard_cache_size <= 0:
+            raise ValueError("shard_cache_size must be positive")
+        self.shard_cache_size = int(shard_cache_size)
+        self._shard_cache: OrderedDict[str, Any] = OrderedDict()
+        self._file_magic = FILE_MAGIC
+
+        manifest_path = self.root / "manifest.json"
+        if not manifest_path.is_file():
+            raise FileNotFoundError(f"missing DSOL pair manifest: {manifest_path}")
+        root_manifest = json.loads(manifest_path.read_text())
+        if root_manifest.get("schema") == "dsol_libero_hdf5_view_pair_shard_v1":
+            shard_roots = [self.root]
+        elif root_manifest.get("schema") == "dsol_libero_hdf5_view_pair_collection_v1":
+            shard_roots = [self.root / row["path"] for row in root_manifest["shards"]]
+        else:
+            raise ValueError(f"unsupported DSOL pair manifest schema: {manifest_path}")
+
+        records = []
+        for shard_root in shard_roots:
+            shard_manifest = json.loads((shard_root / "manifest.json").read_text())
+            if shard_manifest.get("status") != "VERIFIED":
+                raise ValueError(f"DSOL pair shard is not verified: {shard_root}")
+            shard_path = shard_root / shard_manifest["shard"]
+            with shard_path.open("rb") as handle:
+                if handle.read(len(FILE_MAGIC)) != FILE_MAGIC:
+                    raise ValueError(f"invalid DSOL pair shard magic: {shard_path}")
+            for line in (shard_root / shard_manifest["records"]).read_text().splitlines():
+                if not line.strip():
+                    continue
+                row = json.loads(line)
+                if split != "all" and row["split"] != split:
+                    continue
+                records.append({**row, "shard_path": str(shard_path)})
+        if not records:
+            raise ValueError(f"no DSOL pair records for split={split!r}")
+        self.records = records
+
+    def __len__(self) -> int:
+        return len(self.records)
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["_shard_cache"] = OrderedDict()
+        return state
+
+    def _open_shard(self, path: str):
+        handle = self._shard_cache.pop(path, None)
+        if handle is None:
+            handle = Path(path).open("rb")
+            if handle.read(len(self._file_magic)) != self._file_magic:
+                handle.close()
+                raise ValueError(f"invalid DSOL pair shard magic: {path}")
+        self._shard_cache[path] = handle
+        while len(self._shard_cache) > self.shard_cache_size:
+            _, old_handle = self._shard_cache.popitem(last=False)
+            old_handle.close()
+        return handle
+
+    @staticmethod
+    def _sample(
+        *,
+        header: Mapping[str, Any],
+        images: Mapping[str, np.ndarray],
+        external_name: str,
+        pair_role: str,
+        pair_objective: bool,
+        pair_shared_flow: bool,
+    ) -> dict[str, Any]:
+        camera_key = {
+            "canonical": "canonical_camera_to_world_opencv",
+            "broad_a": "camera_a_to_world_opencv",
+            "broad_b": "camera_b_to_world_opencv",
+        }[external_name]
+        result = {
+            "image": [images[external_name], images["wrist"]],
+            "lang": header["language_instruction"],
+            "action": np.asarray(header["action_chunk"], dtype=np.float32),
+            "state": np.asarray(header["robot_state"], dtype=np.float32),
+            "action_supervised": True,
+            "sample_id": f"{header['sample_id']}::{pair_role}",
+            "episode_id": header["episode_id"],
+            "frame_index": int(header["frame"]),
+            "camera_pose": external_name,
+            "camera_intrinsics": header.get("camera_intrinsics"),
+            "camera_to_world_opencv": header[camera_key],
+            "dsol_pair_id": header["sample_id"],
+            "dsol_pair_role": pair_role,
+            "dsol_pair_objective": bool(pair_objective),
+            "dsol_pair_shared_flow": bool(pair_shared_flow),
+        }
+        if result["camera_intrinsics"] is None:
+            result.pop("camera_intrinsics")
+        return result
+
+    def __getitem__(self, index: int) -> dict[str, Any] | list[dict[str, Any]]:
+        from scripts.dsol_paper1.libero_pair_records import read_record
+
+        row = self.records[index]
+        if self.arm.startswith("canonical") or self.arm == "image_augmentation_unique":
+            external_names = ("canonical",)
+        elif self.arm in {"broad_paired_fm", "broad_paired_consistency"}:
+            external_names = ("broad_a", "broad_b")
+        else:
+            external_names = ("broad_a",)
+        record = read_record(
+            self._open_shard(row["shard_path"]),
+            offset=int(row["offset"]),
+            image_names=(*external_names, "wrist"),
+        )
+        header = record["header"]
+        images = record["images"]
+        paired_objective = self.arm == "broad_paired_consistency"
+        paired_shared_flow = self.arm in {
+            "broad_unpaired_state_matched",
+            "broad_paired_fm",
+            "broad_paired_consistency",
+        }
+
+        if self.arm in {"canonical_unique", "image_augmentation_unique"}:
+            sample = self._sample(
+                header=header,
+                images=images,
+                external_name="canonical",
+                pair_role="unique",
+                pair_objective=False,
+                pair_shared_flow=False,
+            )
+            sample["dsol_image_augmentation"] = self.arm == "image_augmentation_unique"
+            return sample
+        if self.arm == "broad_unpaired_practical":
+            external_name = "broad_a"
+            return self._sample(
+                header=header,
+                images=images,
+                external_name=external_name,
+                pair_role="unique",
+                pair_objective=False,
+                pair_shared_flow=False,
+            )
+
+        if self.arm == "canonical_repeat":
+            names = ("canonical", "canonical")
+        elif self.arm == "broad_unpaired_state_matched":
+            names = ("broad_a", "broad_a")
+        else:
+            names = ("broad_a", "broad_b")
+        return [
+            self._sample(
+                header=header,
+                images=images,
+                external_name=name,
+                pair_role=f"pair_{role}",
+                pair_objective=paired_objective,
+                pair_shared_flow=paired_shared_flow,
+            )
+            for role, name in zip(("a", "b"), names)
+        ]
+
+
+class LiberoBindTrainingDataset:
+    """Mix full-trajectory BC windows with action-free fourth-corner tetrads."""
+
+    def __init__(
+        self,
+        root: Path | str,
+        *,
+        split: str = "train",
+        anchor_period: int = 1,
+    ) -> None:
+        self.root = Path(root)
+        manifest_path = self.root / "manifest.json"
+        records_path = self.root / "records.jsonl"
+        anchors_path = self.root / "anchors.npz"
+        missing = [str(path) for path in (manifest_path, records_path, anchors_path) if not path.is_file()]
+        if missing:
+            raise FileNotFoundError(f"incomplete LIBERO-Bind training view: {missing}")
+        if anchor_period <= 0:
+            raise ValueError("anchor_period must be positive")
+
+        self.manifest = json.loads(manifest_path.read_text())
+        self.source_collection = Path(self.manifest["source_collection"])
+        self.action_horizon = int(self.manifest["action_horizon"])
+        self.action_dim = int(self.manifest.get("action_dim", 7))
+        self.anchor_period = int(anchor_period)
+        self.edge_instructions = dict(self.manifest["edge_instructions"])
+        self.records = [
+            json.loads(line)
+            for line in records_path.read_text().splitlines()
+            if line.strip() and json.loads(line)["split"] == split
+        ]
+        self.tetrads = [row for row in self.manifest["tetrads"] if row["split"] == split]
+        if not self.records:
+            raise ValueError(f"no LIBERO-Bind action windows for split={split!r}")
+        if not self.tetrads:
+            raise ValueError(f"no LIBERO-Bind tetrads for split={split!r}")
+        self.anchors_path = anchors_path
+        self._anchors = None
+        self._episode_path = None
+        self._episode = None
+        self._camera_view_path = None
+        self._camera_view = None
+        self.camera_training_view = self.manifest.get("camera_training_view")
+        if self.camera_training_view is not None:
+            self._validate_camera_training_records()
+
+    def _validate_camera_training_records(self) -> None:
+        """Fail before training if randomized images and calibration disagree."""
+
+        rows_by_shard: dict[str, list[Mapping[str, Any]]] = {}
+        for index, row in enumerate(self.records):
+            required = {
+                "camera_view_file",
+                "camera_view_index",
+                "camera_intrinsics",
+                "camera_to_world_opencv",
+            }
+            missing = sorted(required - set(row))
+            if missing:
+                raise ValueError(
+                    f"camera training record {index} is missing fields: {missing}"
+                )
+            intrinsics = np.asarray(row["camera_intrinsics"], dtype=np.float64)
+            camera_to_world = np.asarray(
+                row["camera_to_world_opencv"],
+                dtype=np.float64,
+            )
+            if (
+                intrinsics.shape != (3, 3)
+                or camera_to_world.shape != (4, 4)
+                or not np.all(np.isfinite(intrinsics))
+                or not np.all(np.isfinite(camera_to_world))
+            ):
+                raise ValueError(
+                    f"camera training record {index} has invalid calibration"
+                )
+            rotation = camera_to_world[:3, :3]
+            if (
+                not np.allclose(rotation.T @ rotation, np.eye(3), atol=1e-5)
+                or not np.isclose(np.linalg.det(rotation), 1.0, atol=1e-5)
+                or not np.allclose(
+                    camera_to_world[3],
+                    [0.0, 0.0, 0.0, 1.0],
+                )
+            ):
+                raise ValueError(
+                    f"camera training record {index} has an invalid rigid transform"
+                )
+            for key, shape in (
+                ("camera_intrinsics_by_view", (3, 3)),
+                ("camera_to_world_opencv_by_view", (4, 4)),
+            ):
+                if key not in row:
+                    continue
+                matrices = np.asarray(row[key], dtype=np.float64)
+                if (
+                    matrices.ndim != 3
+                    or matrices.shape[1:] != shape
+                    or len(matrices) < 1
+                    or not np.all(np.isfinite(matrices))
+                ):
+                    raise ValueError(
+                        f"camera training record {index} has invalid {key}"
+                    )
+                if key == "camera_to_world_opencv_by_view":
+                    for matrix in matrices:
+                        rotation = matrix[:3, :3]
+                        if (
+                            not np.allclose(
+                                rotation.T @ rotation,
+                                np.eye(3),
+                                atol=1e-5,
+                            )
+                            or not np.isclose(
+                                np.linalg.det(rotation),
+                                1.0,
+                                atol=1e-5,
+                            )
+                            or not np.allclose(
+                                matrix[3],
+                                [0.0, 0.0, 0.0, 1.0],
+                            )
+                        ):
+                            raise ValueError(
+                                f"camera training record {index} has a non-rigid "
+                                f"matrix in {key}"
+                            )
+            if (
+                ("camera_intrinsics_by_view" in row)
+                != ("camera_to_world_opencv_by_view" in row)
+            ):
+                raise ValueError(
+                    f"camera training record {index} has incomplete by-view calibration"
+                )
+            if "camera_intrinsics_by_view" in row and len(
+                row["camera_intrinsics_by_view"]
+            ) != len(row["camera_to_world_opencv_by_view"]):
+                raise ValueError(
+                    f"camera training record {index} has mismatched by-view calibration"
+                )
+            relative = Path(str(row["camera_view_file"]))
+            if relative.is_absolute() or ".." in relative.parts:
+                raise ValueError(
+                    f"camera training record {index} has an unsafe shard path"
+                )
+            rows_by_shard.setdefault(str(relative), []).append(row)
+
+        for relative, rows in sorted(rows_by_shard.items()):
+            path = self.root / relative
+            if not path.is_file():
+                raise FileNotFoundError(f"missing camera training shard: {path}")
+            with np.load(path, allow_pickle=False) as archive:
+                required_arrays = {"agentview", "wrist", "robot_state"}
+                if set(archive.files) != required_arrays:
+                    raise ValueError(
+                        f"camera training shard {path} has unexpected arrays: "
+                        f"{sorted(archive.files)}"
+                    )
+                agentview = archive["agentview"]
+                wrist = archive["wrist"]
+                robot_state = archive["robot_state"]
+                count = len(agentview)
+                if (
+                    agentview.shape != (count, 224, 224, 3)
+                    or wrist.shape != (count, 224, 224, 3)
+                    or robot_state.shape != (count, 8)
+                    or agentview.dtype != np.uint8
+                    or wrist.dtype != np.uint8
+                    or not np.all(np.isfinite(robot_state))
+                ):
+                    raise ValueError(
+                        f"camera training shard {path} has invalid array schema"
+                    )
+                for row in rows:
+                    camera_index = int(row["camera_view_index"])
+                    if not 0 <= camera_index < count:
+                        raise IndexError(
+                            f"camera index {camera_index} is outside "
+                            f"{path} length {count}"
+                        )
+        logger.info(
+            "Validated %d randomized-camera records across %d shards",
+            len(self.records),
+            len(rows_by_shard),
+        )
+
+    @staticmethod
+    def _anchor_key(
+        edge_id: str,
+        state_index: int,
+        field: str,
+        decision_point: str | None = None,
+    ) -> str:
+        decision = "" if decision_point is None else f"{decision_point}__"
+        return f"{edge_id}__state_{state_index:02d}__{decision}{field}"
+
+    def _load_episode(self, relative_path: str) -> dict[str, np.ndarray]:
+        path = self.source_collection / relative_path
+        if path != self._episode_path:
+            if self._episode is not None:
+                self._episode.close()
+            self._episode = np.load(path, allow_pickle=False)
+            self._episode_path = path
+        return self._episode
+
+    def _load_camera_view(self, relative_path: str) -> dict[str, np.ndarray]:
+        path = self.root / relative_path
+        if path != self._camera_view_path:
+            if self._camera_view is not None:
+                self._camera_view.close()
+            self._camera_view = np.load(path, allow_pickle=False)
+            self._camera_view_path = path
+        return self._camera_view
+
+    @staticmethod
+    def _camera_metadata(row: Mapping[str, Any]) -> dict[str, Any]:
+        keys = (
+            "camera_pose",
+            "camera_intrinsics",
+            "camera_to_world_opencv",
+            "camera_intrinsics_by_view",
+            "camera_to_world_opencv_by_view",
+            "camera_azimuth_deg",
+            "camera_elevation_deg",
+            "camera_radius_scale",
+        )
+        return {key: row[key] for key in keys if key in row}
+
+    def _action_chunk(self, actions: np.ndarray, start: int) -> np.ndarray:
+        chunk = np.asarray(actions[start : start + self.action_horizon], dtype=np.float32)
+        if len(chunk) < self.action_horizon:
+            chunk = np.concatenate(
+                [
+                    chunk,
+                    np.zeros(
+                        (self.action_horizon - len(chunk), actions.shape[1]),
+                        dtype=np.float32,
+                    ),
+                ]
+            )
+        return chunk
+
+    def _action_example(self, row: Mapping[str, Any]) -> dict:
+        episode = self._load_episode(row["episode_file"])
+        frame = int(row["frame_index"])
+        agentview = np.asarray(episode["agentview"][frame])
+        wrist = np.asarray(episode["wrist"][frame])
+        state = np.asarray(episode["robot_state"][frame], dtype=np.float32)
+        if "camera_view_file" in row:
+            camera_view = self._load_camera_view(str(row["camera_view_file"]))
+            camera_index = int(row["camera_view_index"])
+            agentview = np.asarray(camera_view["agentview"][camera_index])
+            wrist = np.asarray(camera_view["wrist"][camera_index])
+            state = np.asarray(
+                camera_view["robot_state"][camera_index],
+                dtype=np.float32,
+            )
+        return {
+            "image": [agentview, wrist],
+            "lang": row["language_instruction"],
+            "action": self._action_chunk(episode["actions"], frame),
+            "state": state,
+            "action_supervised": True,
+            "sample_id": row["sample_id"],
+            "edge_id": row["edge_id"],
+            "canonical_state_index": int(row["canonical_state_index"]),
+            **self._camera_metadata(row),
+        }
+
+    def _anchor_example(
+        self,
+        tetrad: Mapping[str, Any],
+        corner_name: str,
+        *,
+        instance_id: str,
+    ) -> dict:
+        if self._anchors is None:
+            self._anchors = np.load(self.anchors_path, allow_pickle=False)
+        corner = tetrad["corners"][corner_name]
+        physical_edge = corner["physical_edge"]
+        instruction_edge = corner["instruction_edge"]
+        state_index = int(tetrad["canonical_state_index"])
+        decision_point = tetrad.get("decision_point")
+        field = lambda name: self._anchors[
+            self._anchor_key(
+                physical_edge,
+                state_index,
+                name,
+                None if decision_point is None else str(decision_point),
+            )
+        ]
+        supervised = bool(corner["action_supervised"])
+        action = (
+            np.asarray(field("action"), dtype=np.float32)
+            if supervised
+            else np.zeros((self.action_horizon, self.action_dim), dtype=np.float32)
+        )
+        example = {
+            "image": [np.asarray(field("agentview")), np.asarray(field("wrist"))],
+            "lang": self.edge_instructions[instruction_edge],
+            "action": action,
+            "state": np.asarray(field("state"), dtype=np.float32),
+            "action_supervised": supervised,
+            "cabi_tetrad_id": instance_id,
+            "cabi_corner": corner_name,
+            "sample_id": f"{instance_id}--{corner_name}",
+            "edge_id": instruction_edge,
+            "canonical_state_index": state_index,
+            **(
+                {"cabi_transport_roles": list(tetrad["transport_roles"])}
+                if "transport_roles" in tetrad
+                else {}
+            ),
+            **(
+                {"cabi_decision_point": str(tetrad["decision_point"])}
+                if "decision_point" in tetrad
+                else {}
+            ),
+        }
+        camera_training_view = getattr(self, "camera_training_view", None)
+        if camera_training_view is not None:
+            anchor_key = f"{physical_edge}__state_{state_index:02d}"
+            if decision_point is not None:
+                anchor_key += f"__{decision_point}"
+            baselines_by_anchor = camera_training_view.get(
+                "baseline_cameras_by_anchor",
+                {},
+            )
+            baseline = baselines_by_anchor.get(
+                anchor_key,
+                camera_training_view["baseline_camera"],
+            )
+            example.update(
+                {
+                    "camera_pose": "baseline",
+                    "camera_intrinsics": baseline["camera_intrinsics"],
+                    "camera_to_world_opencv": baseline[
+                        "camera_to_world_opencv"
+                    ],
+                    "camera_azimuth_deg": 0.0,
+                    "camera_elevation_deg": 0.0,
+                    "camera_radius_scale": 1.0,
+                    **{
+                        key: baseline[key]
+                        for key in (
+                            "camera_intrinsics_by_view",
+                            "camera_to_world_opencv_by_view",
+                        )
+                        if key in baseline
+                    },
+                }
+            )
+        return example
+
+    def __len__(self) -> int:
+        return len(self.records)
+
+    def __getitem__(self, index: int) -> list[dict]:
+        bundle = [self._action_example(self.records[index])]
+        if index % self.anchor_period == 0:
+            tetrad = self.tetrads[(index // self.anchor_period) % len(self.tetrads)]
+            instance_id = f"{tetrad['tetrad_id']}--item-{index:07d}"
+            for corner in ("base", "source_anchor", "target_anchor", "fourth_anchor"):
+                bundle.append(
+                    self._anchor_example(tetrad, corner, instance_id=instance_id)
+                )
+        return bundle
+
+
+def get_pi0_dataset(data_cfg, mode="train", **kwargs):
+    """
+    Get dataset for PaliGemmaOFT training.
+    
+    Reuses VLAE's existing LeRobot data loading, wrapping it with Pi0-specific transforms.
+    
+    Args:
+        data_cfg: dataset config (same as used by other VLAE frameworks)
+        mode: "train" or "eval"
+        
+    Returns:
+        dataset wrapped with Pi0DataTransform
+    """
+    dataset_format = getattr(data_cfg, 'dataset_format', 'lerobot')
+    action_horizon = getattr(data_cfg, 'action_horizon', 50)
+    if dataset_format == 'libero_bind':
+        base_dataset = LiberoBindTrainingDataset(
+            getattr(data_cfg, 'data_root_dir'),
+            split=getattr(data_cfg, 'split', mode),
+            anchor_period=int(getattr(data_cfg, 'cabi_anchor_period', 1)),
+        )
+    elif dataset_format == 'libero_plus_tfrecord':
+        source_data_root = getattr(data_cfg, 'source_data_root', None)
+        base_dataset = LiberoPlusTFRecordDataset(
+            getattr(data_cfg, 'data_root_dir'),
+            split=getattr(data_cfg, 'split', mode),
+            action_horizon=action_horizon,
+            budget_fraction=float(getattr(data_cfg, 'budget_fraction', 1.0)),
+            source_data_root=source_data_root,
+            episode_cache_size=int(getattr(data_cfg, 'episode_cache_size', 2)),
+        )
+    elif dataset_format == 'dsol_libero_pairs':
+        base_dataset = DsolLiberoPairDataset(
+            getattr(data_cfg, 'data_root_dir'),
+            split=getattr(data_cfg, 'split', mode),
+            arm=getattr(data_cfg, 'dsol_arm', 'canonical_unique'),
+            shard_cache_size=int(getattr(data_cfg, 'shard_cache_size', 2)),
+        )
+    elif dataset_format in {'fresh_snapshot', 'fresh_episode_window'}:
+        configured_tasks = getattr(data_cfg, 'snapshot_tasks', ('grasp_slip',))
+        dataset_class = FreshSnapshotDataset if dataset_format == 'fresh_snapshot' else FreshEpisodeWindowDataset
+        base_dataset = dataset_class(
+            getattr(data_cfg, 'data_root_dir'),
+            split=getattr(data_cfg, 'split', mode),
+            feedback_label=getattr(data_cfg, 'feedback_horizon_column', 'oracle_feedback_horizon'),
+            feedback_output_key=getattr(data_cfg, 'feedback_horizon_key', 'oracle_feedback_horizon'),
+            tasks=tuple(configured_tasks),
+        )
+    else:
+        from AlphaBrain.dataloader.lerobot_datasets import get_vla_dataset
+        from AlphaBrain.dataloader.gr00t_lerobot.data_config import ROBOT_TYPE_CONFIG_MAP
+
+        # Override action_indices in LIBERO data config if action_horizon > default
+        libero_cfg = ROBOT_TYPE_CONFIG_MAP.get("libero_franka", None)
+        if libero_cfg is not None:
+            if action_horizon > 8:  # default LIBERO action_indices is range(8)
+                libero_cfg.action_indices = list(range(action_horizon))
+                logger.info(f"[pi0_data] Overriding action_indices to range({action_horizon})")
+
+            # Skip data-level q99 normalization; Pi0 handles MEAN_STD in the model.
+            skip_action_norm = getattr(data_cfg, 'skip_action_norm', True)
+            if skip_action_norm:
+                from AlphaBrain.dataloader.gr00t_lerobot.transform.state_action import StateActionToTensor
+                from AlphaBrain.dataloader.gr00t_lerobot.transform.base import ComposedModalityTransform
+
+                def raw_transform(self=libero_cfg):
+                    transforms = [StateActionToTensor(apply_to=self.action_keys)]
+                    return ComposedModalityTransform(transforms=transforms)
+
+                libero_cfg.transform = raw_transform
+                logger.info("[pi0_data] Disabled data-level action normalization (model handles MEAN_STD)")
+        # Get the base LeRobot dataset
+        base_dataset = get_vla_dataset(data_cfg, mode=mode, **kwargs)
+    
+    # Create Pi0 transform config from data_cfg
+    pi0_config = Pi0DataConfig(
+        action_horizon=getattr(data_cfg, 'action_horizon', 50),
+        action_dim=getattr(data_cfg, 'action_dim', 7),
+        include_state=getattr(data_cfg, 'include_state', True),
+        state_dim=getattr(data_cfg, 'state_dim', 7),
+        feedback_horizon_key=getattr(data_cfg, 'feedback_horizon_key', 'feedback_horizon'),
+        use_image_augmentation=bool(getattr(data_cfg, 'use_image_augmentation', False)),
+        image_augmentation_crop_scale=tuple(getattr(data_cfg, 'image_augmentation_crop_scale', (0.95, 1.0))),
+        image_augmentation_crop_ratio=tuple(getattr(data_cfg, 'image_augmentation_crop_ratio', (0.98, 1.02))),
+        image_augmentation_brightness=float(getattr(data_cfg, 'image_augmentation_brightness', 0.3)),
+        image_augmentation_contrast=float(getattr(data_cfg, 'image_augmentation_contrast', 0.4)),
+        image_augmentation_saturation=float(getattr(data_cfg, 'image_augmentation_saturation', 0.5)),
+        image_augmentation_hue=float(getattr(data_cfg, 'image_augmentation_hue', 0.08)),
+    )
+    
+    transform = Pi0DataTransform(config=pi0_config)
+    
+    # Wrap the dataset with Pi0 transforms
+    return Pi0DatasetWrapper(base_dataset, transform)
+
+
+class Pi0DatasetWrapper:
+    """Wraps a LeRobot dataset with Pi0-specific transforms."""
+    
+    def __init__(self, base_dataset, transform):
+        self.base_dataset = base_dataset
+        self.transform = transform
+    
+    def __len__(self):
+        return len(self.base_dataset)
+    
+    def __getitem__(self, idx):
+        sample = self.base_dataset[idx]
+        if isinstance(sample, list):
+            return [self.transform(value) for value in sample]
+        return self.transform(sample)
+    
+    def __iter__(self):
+        for sample in self.base_dataset:
+            if isinstance(sample, list):
+                yield [self.transform(value) for value in sample]
+            else:
+                yield self.transform(sample)
+
+
+def pi0_collate_fn(batch):
+    """Flatten optional CABI bundles while preserving normal Pi0 batches."""
+
+    flattened = []
+    for item in batch:
+        if isinstance(item, list):
+            flattened.extend(item)
+        else:
+            flattened.append(item)
+    return flattened
+
+
+# ── LIBERO-specific config ──
+
+LIBERO_PI0_CONFIG = Pi0DataConfig(
+    image_resolution=(224, 224),
+    max_token_len=200,
+    action_horizon=10,     # LIBERO uses shorter horizon
+    action_dim=7,          # 6 DOF + gripper
+    camera_names=("image_0",),
+    include_state=True,
+    state_dim=7,
+)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from scripts.dsol_paper1.build_statewise_view_oracle_v2 import (
+from scripts.dsol_paper1.protocols.build_statewise_view_oracle_v2 import (
     build_dense_protocol,
     candidate_sort_key,
 )

@@ -52,8 +52,10 @@ def test_archived_document_bytes_match_relocation_receipt():
     assert len(records) == 95
     for record in records:
         assert not (layout.ROOT/record['old']).exists()
-        target=layout.ROOT/record['new']
-        assert hashlib.sha256(target.read_bytes()).hexdigest()==record['after_sha256']
+        from tools.repository.evidence import current_expected_hash
+        relative, expected = current_expected_hash(record['new'], record['after_sha256'])
+        target=layout.ROOT/relative
+        assert hashlib.sha256(target.read_bytes()).hexdigest()==expected
 
 
 def test_archival_does_not_introduce_broken_markdown_file_links():

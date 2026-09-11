@@ -7,8 +7,8 @@ from pathlib import Path
 
 import numpy as np
 
-from analyze_accel_relations import main as relation_main
-from rank_accel_candidates import main as ranking_main
+from scripts.dsol_paper1.analysis.analyze_accel_relations import main as relation_main
+from scripts.dsol_paper1.rank_accel_candidates import main as ranking_main
 
 
 class AccelCliTest(unittest.TestCase):

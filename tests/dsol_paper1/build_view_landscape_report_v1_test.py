@@ -8,7 +8,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from build_view_landscape_report_v1 import catalog_bank, clustered_summary, load_dense, ranks, read_json, sha256, spearman, state_metrics, wilson
+from scripts.dsol_paper1.build_view_landscape_report_v1 import catalog_bank, clustered_summary, load_dense, ranks, read_json, sha256, spearman, state_metrics, wilson
 
 
 class ViewLandscapeTests(unittest.TestCase):

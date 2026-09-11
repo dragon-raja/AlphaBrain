@@ -8,14 +8,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-import audit_statewise_view_oracle_v2_run as old_auditor
-from explicit_flow_noise import sha256_file
+import scripts.dsol_paper1.audit_statewise_view_oracle_v2_run as old_auditor
+from scripts.dsol_paper1.explicit_flow_noise import sha256_file
 
-from build_matched_view_landscape_protocol_v1 import (
-    DEFAULT_SALT, DIAGNOSTIC_ROLE, EXPECTED_CANDIDATES, PREFIX, SMOKE_CANDIDATES,
-    build, expanded_specs, make_protocol, matching_blocks, select_development_states,
-    selection_digest, verify_reuse_partition, write_new_json,
-)
+from scripts.dsol_paper1.build_matched_view_landscape_protocol_v1 import DEFAULT_SALT, DIAGNOSTIC_ROLE, EXPECTED_CANDIDATES, PREFIX, SMOKE_CANDIDATES, build, expanded_specs, make_protocol, matching_blocks, select_development_states, selection_digest, verify_reuse_partition, write_new_json
 
 
 def population_fixture():

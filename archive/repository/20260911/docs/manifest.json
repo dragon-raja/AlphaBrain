@@ -1,0 +1,1273 @@
+{
+  "records": [
+    {
+      "old": "docs/dsol_paper1/aa0_dualhost_execution_20260908.md",
+      "new": "docs/dsol_paper1/execution/aa0_dualhost_execution_20260908.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/aa0_dualhost_execution_20260908.md",
+      "before_sha256": "b3c239f70215824df84cca3dc472a591e2a184a0ef0c632e71a2b7ce1d57bc08",
+      "after_sha256": "b3c239f70215824df84cca3dc472a591e2a184a0ef0c632e71a2b7ce1d57bc08"
+    },
+    {
+      "old": "docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh.pdf",
+      "new": "docs/dsol_paper1/reports/archive/imported/accel_expanded_diagnostic_20260824_zh.pdf",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh.pdf",
+      "before_sha256": "7cf0ca97fda952abda8185f6a220f5e6a836c224f5ff41f70f2f6b1fd488d03b",
+      "after_sha256": "7cf0ca97fda952abda8185f6a220f5e6a836c224f5ff41f70f2f6b1fd488d03b"
+    },
+    {
+      "old": "docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh_previews/page-01.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/accel_expanded_diagnostic_20260824_zh_previews/page-01.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh_previews/page-01.png",
+      "before_sha256": "f797be7aa8418272496c419c37762ae2af3c3b0f240e16700f23a006efd4b84d",
+      "after_sha256": "f797be7aa8418272496c419c37762ae2af3c3b0f240e16700f23a006efd4b84d"
+    },
+    {
+      "old": "docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh_previews/page-02.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/accel_expanded_diagnostic_20260824_zh_previews/page-02.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh_previews/page-02.png",
+      "before_sha256": "54ba5022fe86fa689398d5ba5240d4cb3f418524515eb81d626d13985771ea78",
+      "after_sha256": "54ba5022fe86fa689398d5ba5240d4cb3f418524515eb81d626d13985771ea78"
+    },
+    {
+      "old": "docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh_previews/page-03.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/accel_expanded_diagnostic_20260824_zh_previews/page-03.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh_previews/page-03.png",
+      "before_sha256": "05a32c43b0a1b10eeb585aae415f80f5adac9fa5cfe267df0f5607fcec80a7bb",
+      "after_sha256": "05a32c43b0a1b10eeb585aae415f80f5adac9fa5cfe267df0f5607fcec80a7bb"
+    },
+    {
+      "old": "docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh_previews/page-04.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/accel_expanded_diagnostic_20260824_zh_previews/page-04.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh_previews/page-04.png",
+      "before_sha256": "b05619293a9c0a03370209485384389ee9266a8f4cdbfbc915be17bfa6ff375b",
+      "after_sha256": "b05619293a9c0a03370209485384389ee9266a8f4cdbfbc915be17bfa6ff375b"
+    },
+    {
+      "old": "docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh_previews/page-05.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/accel_expanded_diagnostic_20260824_zh_previews/page-05.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh_previews/page-05.png",
+      "before_sha256": "c2adbaa5a8680c741bcb1a55113c7f4cdfb8ec5c8c9c2e3e233b458faa608457",
+      "after_sha256": "c2adbaa5a8680c741bcb1a55113c7f4cdfb8ec5c8c9c2e3e233b458faa608457"
+    },
+    {
+      "old": "docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh_previews/page-06.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/accel_expanded_diagnostic_20260824_zh_previews/page-06.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/accel_expanded_diagnostic_20260824_zh_previews/page-06.png",
+      "before_sha256": "d641cede05fbdc1068769baec4a8ab6dbf2cadd6fc2fb29bc21c66f1ec04eb09",
+      "after_sha256": "d641cede05fbdc1068769baec4a8ab6dbf2cadd6fc2fb29bc21c66f1ec04eb09"
+    },
+    {
+      "old": "docs/dsol_paper1/accel_fixed_state_core_v1_zh.md",
+      "new": "docs/dsol_paper1/protocols/accel_fixed_state_core_v1_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/accel_fixed_state_core_v1_zh.md",
+      "before_sha256": "482af6b9f7a58c04c8314ef3de62439b151aa0045efeef617657f9f3027feaab",
+      "after_sha256": "482af6b9f7a58c04c8314ef3de62439b151aa0045efeef617657f9f3027feaab"
+    },
+    {
+      "old": "docs/dsol_paper1/accel_gate_a97_final_20260825_zh.md",
+      "new": "docs/dsol_paper1/results/accel_gate_a97_final_20260825_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/accel_gate_a97_final_20260825_zh.md",
+      "before_sha256": "1b21c152e23237157af6fbbb871b87b41b562e77538fe278eda201d425be90d5",
+      "after_sha256": "1b21c152e23237157af6fbbb871b87b41b562e77538fe278eda201d425be90d5"
+    },
+    {
+      "old": "docs/dsol_paper1/accel_reproduction_audit_20260824_zh.md",
+      "new": "docs/dsol_paper1/audits/accel_reproduction_audit_20260824_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/accel_reproduction_audit_20260824_zh.md",
+      "before_sha256": "83faadc133ed2578b702636928e5605123e4dc958b75ef651e72132c46a0356c",
+      "after_sha256": "1c61ecac3f9643d73b2130a0a1b929f381db5b1fa677575a0577180d1b7722a2"
+    },
+    {
+      "old": "docs/dsol_paper1/accel_view_selector_audit.json",
+      "new": "docs/dsol_paper1/audits/accel_view_selector_audit.json",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/accel_view_selector_audit.json",
+      "before_sha256": "66c9c84aa6b13e8da32f0a8a473c59ecd9c8492a0c44087bf7236748af1fcb9e",
+      "after_sha256": "66c9c84aa6b13e8da32f0a8a473c59ecd9c8492a0c44087bf7236748af1fcb9e"
+    },
+    {
+      "old": "docs/dsol_paper1/failure_view_search_protocol_20260831_zh.md",
+      "new": "docs/dsol_paper1/protocols/failure_view_search_protocol_20260831_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/failure_view_search_protocol_20260831_zh.md",
+      "before_sha256": "7a082e810919e5fb4ab4e74bbd78dc067bc2ddf2421e9c10ef078e0b10b7b31e",
+      "after_sha256": "7a082e810919e5fb4ab4e74bbd78dc067bc2ddf2421e9c10ef078e0b10b7b31e"
+    },
+    {
+      "old": "docs/dsol_paper1/focus_brief_argument_review_20260907_zh.md",
+      "new": "docs/dsol_paper1/audits/focus_brief_argument_review_20260907_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/focus_brief_argument_review_20260907_zh.md",
+      "before_sha256": "2e3e456f0e02eabd3bb25bb5635a3d3d00fd965c40f375e3839207dd7ea605ea",
+      "after_sha256": "2e3e456f0e02eabd3bb25bb5635a3d3d00fd965c40f375e3839207dd7ea605ea"
+    },
+    {
+      "old": "docs/dsol_paper1/full64_view_landscape_execution_20260908_zh.md",
+      "new": "docs/dsol_paper1/execution/full64_view_landscape_execution_20260908_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/full64_view_landscape_execution_20260908_zh.md",
+      "before_sha256": "ecf42fb18b8040f9e28ae3be30aee42a062091938e0b2fc327903a99b7db2ad6",
+      "after_sha256": "4ef9d22eaa953a09e2afd4c757bbd58570f547a9122e81cf05140f96935c14ea"
+    },
+    {
+      "old": "docs/dsol_paper1/libero_expanded_a_constructed_gate_20260827_zh.md",
+      "new": "docs/dsol_paper1/results/libero_expanded_a_constructed_gate_20260827_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/libero_expanded_a_constructed_gate_20260827_zh.md",
+      "before_sha256": "c225114330300724fdce8be6436e82a24a62da4b14ad7ea1cc15fd9908dd39eb",
+      "after_sha256": "cb46615092478e989a961af87b6965266e06aaf24572264922c2f4551a0cbd02"
+    },
+    {
+      "old": "docs/dsol_paper1/libero_expanded_a_gate_status_20260827_zh.md",
+      "new": "docs/dsol_paper1/execution/libero_expanded_a_gate_status_20260827_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/libero_expanded_a_gate_status_20260827_zh.md",
+      "before_sha256": "23f859ccec5db4e95fa9fec3e8fcf2d613549561ae19ffe4ce48fff66ef68775",
+      "after_sha256": "23f859ccec5db4e95fa9fec3e8fcf2d613549561ae19ffe4ce48fff66ef68775"
+    },
+    {
+      "old": "docs/dsol_paper1/libero_m1_visibility_joint_support_gate_v1_zh.md",
+      "new": "docs/dsol_paper1/results/libero_m1_visibility_joint_support_gate_v1_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/libero_m1_visibility_joint_support_gate_v1_zh.md",
+      "before_sha256": "84c6a064ac5d97e955d72123158419f5bbfd3cbe4d4a427723ad6cffdba775ab",
+      "after_sha256": "84c6a064ac5d97e955d72123158419f5bbfd3cbe4d4a427723ad6cffdba775ab"
+    },
+    {
+      "old": "docs/dsol_paper1/libero_plus_revalidation_execution_v1_zh.md",
+      "new": "docs/dsol_paper1/execution/libero_plus_revalidation_execution_v1_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/libero_plus_revalidation_execution_v1_zh.md",
+      "before_sha256": "e7d5e0e2482f5f24e6f1921388ddf2886bc6e36133bb51cddbbe73af5dd17397",
+      "after_sha256": "e7d5e0e2482f5f24e6f1921388ddf2886bc6e36133bb51cddbbe73af5dd17397"
+    },
+    {
+      "old": "docs/dsol_paper1/matched_view_landscape_execution_20260908_zh.md",
+      "new": "docs/dsol_paper1/execution/matched_view_landscape_execution_20260908_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/matched_view_landscape_execution_20260908_zh.md",
+      "before_sha256": "bf1342dd12ac84a377669099803324ed1de86ca9ee6ecd4588c5fcb736a30388",
+      "after_sha256": "bf1342dd12ac84a377669099803324ed1de86ca9ee6ecd4588c5fcb736a30388"
+    },
+    {
+      "old": "docs/dsol_paper1/next_stage_asset_evidence_inventory_20260907_zh.md",
+      "new": "docs/dsol_paper1/planning/next_stage_asset_evidence_inventory_20260907_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/next_stage_asset_evidence_inventory_20260907_zh.md",
+      "before_sha256": "6772c162618b63ecd4fa820bc714e9284efc6115f3deddc4e70681b35669a98d",
+      "after_sha256": "6772c162618b63ecd4fa820bc714e9284efc6115f3deddc4e70681b35669a98d"
+    },
+    {
+      "old": "docs/dsol_paper1/next_stage_scaffold_status_20260907_zh.md",
+      "new": "docs/dsol_paper1/planning/next_stage_scaffold_status_20260907_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/next_stage_scaffold_status_20260907_zh.md",
+      "before_sha256": "23b7699728823ad12d534880c915371e4cd185f2a2d090989e3703b4f578bf8b",
+      "after_sha256": "0a571dd100f7b1df7eee7fb5d4eb576b5a21d393344dc5fbb8e859e8ab4f132b"
+    },
+    {
+      "old": "docs/dsol_paper1/paper_convergence_plan_20260907_zh.md",
+      "new": "docs/dsol_paper1/planning/paper_convergence_plan_20260907_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/paper_convergence_plan_20260907_zh.md",
+      "before_sha256": "c833cedb25a93041f6446cb764338220acc7a0933279edb0d75a5918406f80d1",
+      "after_sha256": "852e4445ec043e9f22b5787b430981f00bafb8468163dd7133f97ea971fcd164"
+    },
+    {
+      "old": "docs/dsol_paper1/paper_master_plan_v1_20260907_zh.md",
+      "new": "docs/dsol_paper1/planning/paper_master_plan_v1_20260907_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/paper_master_plan_v1_20260907_zh.md",
+      "before_sha256": "769d6160a8051f193699c46af86d48dc713758767014ffc6eb93c74be8c1a078",
+      "after_sha256": "16960bb28f4441fb3d00e7190a62a1e6ba3071ef03c07421720eda0fb66533f4"
+    },
+    {
+      "old": "docs/dsol_paper1/paper_master_plan_v2_active_bridge_20260907_zh.md",
+      "new": "docs/dsol_paper1/planning/paper_master_plan_v2_active_bridge_20260907_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/paper_master_plan_v2_active_bridge_20260907_zh.md",
+      "before_sha256": "a7a19ac819a9fa84bd61457214033a702af703b9a0b78110e7e8b646173909bd",
+      "after_sha256": "e8c3b2da9592f2cbdd2c99c18e2429d40b0abde4fccff32cb463465aeaee12aa"
+    },
+    {
+      "old": "docs/dsol_paper1/paper_research_synthesis_20260905_zh.md",
+      "new": "docs/dsol_paper1/planning/paper_research_synthesis_20260905_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/paper_research_synthesis_20260905_zh.md",
+      "before_sha256": "73aa0aa69738844596b940eb55ab528f15be9fd6daa08366414004eab1af6777",
+      "after_sha256": "6bc6b3a2cb840521a732f3151164623663294212cb1effecdd624bc4f2e49e7e"
+    },
+    {
+      "old": "docs/dsol_paper1/render_protocol_bridge_and_historical_validity_20260908_zh.md",
+      "new": "docs/dsol_paper1/audits/render_protocol_bridge_and_historical_validity_20260908_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/render_protocol_bridge_and_historical_validity_20260908_zh.md",
+      "before_sha256": "edde6b3ae551034aa988179a8aa2f70e1c1b948c0bc6a3fe8b8f586a6d37adc7",
+      "after_sha256": "6c6c179c7c550fda7d8df6cdb31a72618bd47babc59efbc89b00d9a9019f11a7"
+    },
+    {
+      "old": "docs/dsol_paper1/report_sources_20260907/focus_brief_build_receipt.json",
+      "new": "docs/dsol_paper1/reports/sources/20260907/focus_brief_build_receipt.json",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/report_sources_20260907/focus_brief_build_receipt.json",
+      "before_sha256": "cced675d4c6ed178587586b865024e72e4d3e2a548ec224341407078fa5b3e42",
+      "after_sha256": "cced675d4c6ed178587586b865024e72e4d3e2a548ec224341407078fa5b3e42"
+    },
+    {
+      "old": "docs/dsol_paper1/report_sources_20260907/legacy_evidence.json",
+      "new": "docs/dsol_paper1/reports/sources/20260907/legacy_evidence.json",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/report_sources_20260907/legacy_evidence.json",
+      "before_sha256": "b074210503602cb89cf1b9a93f6381dedeb5e430d5592868a2c85f5a07dce9d3",
+      "after_sha256": "b074210503602cb89cf1b9a93f6381dedeb5e430d5592868a2c85f5a07dce9d3"
+    },
+    {
+      "old": "docs/dsol_paper1/report_sources_20260907/legacy_slides.json",
+      "new": "docs/dsol_paper1/reports/sources/20260907/legacy_slides.json",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/report_sources_20260907/legacy_slides.json",
+      "before_sha256": "7959f792a145e1fb2b8307b647d0e21d75b9f2bf380591439c11880125166338",
+      "after_sha256": "7959f792a145e1fb2b8307b647d0e21d75b9f2bf380591439c11880125166338"
+    },
+    {
+      "old": "docs/dsol_paper1/report_sources_20260907/new_evidence.json",
+      "new": "docs/dsol_paper1/reports/sources/20260907/new_evidence.json",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/report_sources_20260907/new_evidence.json",
+      "before_sha256": "8d25ef3c3f33cc4fd677844e371db63542f5777167f54a3bea9e8beb24686a8f",
+      "after_sha256": "8d25ef3c3f33cc4fd677844e371db63542f5777167f54a3bea9e8beb24686a8f"
+    },
+    {
+      "old": "docs/dsol_paper1/report_sources_20260907/related_work.json",
+      "new": "docs/dsol_paper1/reports/sources/20260907/related_work.json",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/report_sources_20260907/related_work.json",
+      "before_sha256": "d0de7bf5e489db96f4281d3273c86a12bbabda2ff62873420166dc22b8a9925c",
+      "after_sha256": "d0de7bf5e489db96f4281d3273c86a12bbabda2ff62873420166dc22b8a9925c"
+    },
+    {
+      "old": "docs/dsol_paper1/report_sources_20260907/training_snapshot.json",
+      "new": "docs/dsol_paper1/reports/sources/20260907/training_snapshot.json",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/report_sources_20260907/training_snapshot.json",
+      "before_sha256": "d13f3162e0dc80d1e5608e69693c6d2bf063733a96205bb18573b178b2ab8f05",
+      "after_sha256": "d13f3162e0dc80d1e5608e69693c6d2bf063733a96205bb18573b178b2ab8f05"
+    },
+    {
+      "old": "docs/dsol_paper1/report_sources_20260907/unified_report_build_receipt.json",
+      "new": "docs/dsol_paper1/reports/sources/20260907/unified_report_build_receipt.json",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/report_sources_20260907/unified_report_build_receipt.json",
+      "before_sha256": "bd149776dcd8b3a2f8b12f7b8170404dcec5c2d989112b85eae5f55f0099c4cb",
+      "after_sha256": "bd149776dcd8b3a2f8b12f7b8170404dcec5c2d989112b85eae5f55f0099c4cb"
+    },
+    {
+      "old": "docs/dsol_paper1/report_sources_20260907/unified_report_visual_qa.json",
+      "new": "docs/dsol_paper1/reports/sources/20260907/unified_report_visual_qa.json",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/report_sources_20260907/unified_report_visual_qa.json",
+      "before_sha256": "52e2aad2811d6bd928dd44da130106c78bdc812bd813d18d325e891dd36475d5",
+      "after_sha256": "52e2aad2811d6bd928dd44da130106c78bdc812bd813d18d325e891dd36475d5"
+    },
+    {
+      "old": "docs/dsol_paper1/repository_hygiene_handoff_20260901_zh.md",
+      "new": "docs/dsol_paper1/audits/repository_hygiene_handoff_20260901_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/repository_hygiene_handoff_20260901_zh.md",
+      "before_sha256": "9a2e9688f04f3b45f8aa92dc3f3ab7a3cf9ce1025ccb218083f354c0100cb09a",
+      "after_sha256": "9a2e9688f04f3b45f8aa92dc3f3ab7a3cf9ce1025ccb218083f354c0100cb09a"
+    },
+    {
+      "old": "docs/dsol_paper1/runtime_restore_contract_audit_20260907_zh.md",
+      "new": "docs/dsol_paper1/audits/runtime_restore_contract_audit_20260907_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/runtime_restore_contract_audit_20260907_zh.md",
+      "before_sha256": "c15d591c8f044dde93533a742a26a85c8fb14a1b6b4016f1b7c0c07d122c271a",
+      "after_sha256": "c15d591c8f044dde93533a742a26a85c8fb14a1b6b4016f1b7c0c07d122c271a"
+    },
+    {
+      "old": "docs/dsol_paper1/standard_initial_aa0_execution_20260908_zh.md",
+      "new": "docs/dsol_paper1/execution/standard_initial_aa0_execution_20260908_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/standard_initial_aa0_execution_20260908_zh.md",
+      "before_sha256": "bfe3ea1a52ed38a351221793d8ec2d340ab25486aaf207098afbc4a1e92cedcf",
+      "after_sha256": "bfe3ea1a52ed38a351221793d8ec2d340ab25486aaf207098afbc4a1e92cedcf"
+    },
+    {
+      "old": "docs/dsol_paper1/statewise_view_oracle_v2_execution_status_20260903_zh.md",
+      "new": "docs/dsol_paper1/execution/statewise_view_oracle_v2_execution_status_20260903_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/statewise_view_oracle_v2_execution_status_20260903_zh.md",
+      "before_sha256": "07cb376d5eb668c1c3fc6a46be983a87d47b20b7edbc4770014198dd3d69f70b",
+      "after_sha256": "07cb376d5eb668c1c3fc6a46be983a87d47b20b7edbc4770014198dd3d69f70b"
+    },
+    {
+      "old": "docs/dsol_paper1/statewise_view_oracle_v2_protocol_20260903_zh.md",
+      "new": "docs/dsol_paper1/protocols/statewise_view_oracle_v2_protocol_20260903_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/statewise_view_oracle_v2_protocol_20260903_zh.md",
+      "before_sha256": "57d6adc2a4335fb386c3c3a2636780d7dcdfcbd4721f26487d6239266fb127dd",
+      "after_sha256": "57d6adc2a4335fb386c3c3a2636780d7dcdfcbd4721f26487d6239266fb127dd"
+    },
+    {
+      "old": "docs/dsol_paper1/training_match_anchor_audit_20260907_zh.md",
+      "new": "docs/dsol_paper1/audits/training_match_anchor_audit_20260907_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/training_match_anchor_audit_20260907_zh.md",
+      "before_sha256": "a644282b764bc4d7125678c221aa1686e61809675b23fd149093a4bc6a485fb5",
+      "after_sha256": "a57d0b5dd640ac0c8520908a0fefcb36856444040e5fb7fd3bccb67e1dfe8b5f"
+    },
+    {
+      "old": "docs/dsol_paper1/training_match_execution_status_20260907_zh.md",
+      "new": "docs/dsol_paper1/execution/training_match_execution_status_20260907_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/training_match_execution_status_20260907_zh.md",
+      "before_sha256": "273c1112fc156a43f91d5aa92ca1e3f30174a248879bcbe31a4e6d71d672043e",
+      "after_sha256": "f91df83f5b0b79e2e2071103e0330408894ddba0472e5c1f4f20ac2b2c41b66c"
+    },
+    {
+      "old": "docs/dsol_paper1/view_coverage_pairing_revalidation_v2_zh.md",
+      "new": "docs/dsol_paper1/results/view_coverage_pairing_revalidation_v2_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_coverage_pairing_revalidation_v2_zh.md",
+      "before_sha256": "a867f34c6be17477c3075187c5d3e4604f645af6ee341569590e14daf6a96f37",
+      "after_sha256": "a867f34c6be17477c3075187c5d3e4604f645af6ee341569590e14daf6a96f37"
+    },
+    {
+      "old": "docs/dsol_paper1/view_landscape_broad_20260908_zh.md",
+      "new": "docs/dsol_paper1/results/view_landscape_broad_20260908_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_landscape_broad_20260908_zh.md",
+      "before_sha256": "d115ee3d6871a584627e89320b3bc19d77e0de46dd55fe74be99c631ad3a3df6",
+      "after_sha256": "4892246765e651c50efdb846bd57baf57396e74fa250bfd661f7f1d6a8cff686"
+    },
+    {
+      "old": "docs/dsol_paper1/view_metric_interpretation_revision_20260908_zh.md",
+      "new": "docs/dsol_paper1/results/view_metric_interpretation_revision_20260908_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_metric_interpretation_revision_20260908_zh.md",
+      "before_sha256": "8e57b957d50f4d400f883fe1e35c7f7aab43b6d73ef84841be9ab3fddedbad55",
+      "after_sha256": "fc53fb38a8d3f9cf688aa89cc71dd4d9334fcab9748777e25df36b49d20d71ab"
+    },
+    {
+      "old": "docs/dsol_paper1/view_repeatability_root_cause_20260908_zh.md",
+      "new": "docs/dsol_paper1/audits/view_repeatability_root_cause_20260908_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_repeatability_root_cause_20260908_zh.md",
+      "before_sha256": "1f3ece1b85f34f5cb43c93d21216d415fc97e03209e2a35dfe001c8e1c6f4c32",
+      "after_sha256": "d0c4f2670c9955152aeaaeb6975e2d607c0719d4f80212190908b4b81c1cf7a1"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_full_program_status_20260819_zh.md",
+      "new": "docs/dsol_paper1/execution/view_revalidation_full_program_status_20260819_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_full_program_status_20260819_zh.md",
+      "before_sha256": "8f911d0a0e43c6bb8bb0d9820a487a12b7dbbbbac08d3331b4c64ca70757fa6b",
+      "after_sha256": "b93c57d6c52311022df4677da7049723853840cf51f52ff3cb0cc7a229a2bfec"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_g0_decision_20260820_zh.md",
+      "new": "docs/dsol_paper1/results/view_revalidation_g0_decision_20260820_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_g0_decision_20260820_zh.md",
+      "before_sha256": "181c7fb9714ba1ee0a504c43caebfe265cf804ede757f5af8b667c55dce2131e",
+      "after_sha256": "181c7fb9714ba1ee0a504c43caebfe265cf804ede757f5af8b667c55dce2131e"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_interim_brief_20260821_zh.pdf",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_interim_brief_20260821_zh.pdf",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_interim_brief_20260821_zh.pdf",
+      "before_sha256": "ee3f1998a72612ce3177535c9570e7bac560e64317218d3fa5815b7e774edbde",
+      "after_sha256": "ee3f1998a72612ce3177535c9570e7bac560e64317218d3fa5815b7e774edbde"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_interim_report_20260821_zh.md",
+      "new": "docs/dsol_paper1/results/view_revalidation_interim_report_20260821_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_interim_report_20260821_zh.md",
+      "before_sha256": "afe95ed89358a76759a16c8b8cd9d9b3e5b9a6ac7744467e38a9e9ff06e2df65",
+      "after_sha256": "8a4ff874f451b46f77d6ae1c81bdd8ed0c60d884b0b696366baa121c82b9c917"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_m_a_results_20260820_zh.md",
+      "new": "docs/dsol_paper1/results/view_revalidation_m_a_results_20260820_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_m_a_results_20260820_zh.md",
+      "before_sha256": "e3b6f0430071143af4e7dd2ef04a9e857760850596b6d97b305dfe9e2262a86c",
+      "after_sha256": "e3b6f0430071143af4e7dd2ef04a9e857760850596b6d97b305dfe9e2262a86c"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_master_protocol_v2_zh.md",
+      "new": "docs/dsol_paper1/protocols/view_revalidation_master_protocol_v2_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_master_protocol_v2_zh.md",
+      "before_sha256": "a63f210d0ab056a30f86f4f502df2c4eccc8ac77d46210ad02b00b1af1048479",
+      "after_sha256": "a63f210d0ab056a30f86f4f502df2c4eccc8ac77d46210ad02b00b1af1048479"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_master_protocol_v3_zh.md",
+      "new": "docs/dsol_paper1/protocols/view_revalidation_master_protocol_v3_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_master_protocol_v3_zh.md",
+      "before_sha256": "661627c24f21558984bc872b0792026b695bdbde1af08b8f7c4e3c3bd4fe5f21",
+      "after_sha256": "661627c24f21558984bc872b0792026b695bdbde1af08b8f7c4e3c3bd4fe5f21"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_parallel_execution_v4_zh.md",
+      "new": "docs/dsol_paper1/execution/view_revalidation_parallel_execution_v4_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_parallel_execution_v4_zh.md",
+      "before_sha256": "095cd36cfe815e2e77d98b60643def36fbd328082420bbb0b85ec30e1ddaf0fb",
+      "after_sha256": "095cd36cfe815e2e77d98b60643def36fbd328082420bbb0b85ec30e1ddaf0fb"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_program_progress_20260820_zh.md",
+      "new": "docs/dsol_paper1/execution/view_revalidation_program_progress_20260820_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_program_progress_20260820_zh.md",
+      "before_sha256": "58814f870431d40db394e7522cca54aad243aa2550deed5cdbb780a5eaac8fd5",
+      "after_sha256": "58814f870431d40db394e7522cca54aad243aa2550deed5cdbb780a5eaac8fd5"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_report_zh.pdf",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_report_zh.pdf",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_report_zh.pdf",
+      "before_sha256": "67f34cb06bf2019d4d841925642ce8cd321c2af6efa38d60ab6e9408c351e02b",
+      "after_sha256": "67f34cb06bf2019d4d841925642ce8cd321c2af6efa38d60ab6e9408c351e02b"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_final_20260824_zh.md",
+      "new": "docs/dsol_paper1/results/view_revalidation_stage1_final_20260824_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_final_20260824_zh.md",
+      "before_sha256": "ece5990f91d736bafcd586975795687e73cd8210ebc13641ca319e414615ec4c",
+      "after_sha256": "ece5990f91d736bafcd586975795687e73cd8210ebc13641ca319e414615ec4c"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_final_brief_20260824_zh.pdf",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_final_brief_20260824_zh.pdf",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_final_brief_20260824_zh.pdf",
+      "before_sha256": "631cd01b198dce9d6c3b36a07a77e08b4a6df17f979702662eec6297e2f80dbb",
+      "after_sha256": "631cd01b198dce9d6c3b36a07a77e08b4a6df17f979702662eec6297e2f80dbb"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh.pdf",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh.pdf",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh.pdf",
+      "before_sha256": "da511ea87c18ad08df5f8b3ec4bf3a18fe7074f663c5fd24ffa1bf81b14d100a",
+      "after_sha256": "da511ea87c18ad08df5f8b3ec4bf3a18fe7074f663c5fd24ffa1bf81b14d100a"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-01.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-01.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-01.png",
+      "before_sha256": "ce77a76c3f5e7fd7e2f99f396c1000551cc5c4e7560296946ac369d9e633790b",
+      "after_sha256": "ce77a76c3f5e7fd7e2f99f396c1000551cc5c4e7560296946ac369d9e633790b"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-02.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-02.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-02.png",
+      "before_sha256": "5f0987a598d420aa876c3c78f1e45c22a3c78f940a36f9cb1726a24a94d90462",
+      "after_sha256": "5f0987a598d420aa876c3c78f1e45c22a3c78f940a36f9cb1726a24a94d90462"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-03.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-03.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-03.png",
+      "before_sha256": "01e55e29922861ffcdc121b67ba0c2975dbf2923f49985f9017021783c7d322c",
+      "after_sha256": "01e55e29922861ffcdc121b67ba0c2975dbf2923f49985f9017021783c7d322c"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-04.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-04.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-04.png",
+      "before_sha256": "66f203aa6c87fb41bfcea6df85ebb8dc0b92d88d0846684622c9d4d5095087e1",
+      "after_sha256": "66f203aa6c87fb41bfcea6df85ebb8dc0b92d88d0846684622c9d4d5095087e1"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-05.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-05.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-05.png",
+      "before_sha256": "cdec91beb8f21d7d99ffce5d1c44411395bf86df31a521a41bb7b1ad7572dfa6",
+      "after_sha256": "cdec91beb8f21d7d99ffce5d1c44411395bf86df31a521a41bb7b1ad7572dfa6"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-06.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-06.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-06.png",
+      "before_sha256": "f734559cb6dfb433e080da9ed5b3f3030d86e0d3cb60f16cbb73c8f2ec20cc1f",
+      "after_sha256": "f734559cb6dfb433e080da9ed5b3f3030d86e0d3cb60f16cbb73c8f2ec20cc1f"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-07.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-07.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-07.png",
+      "before_sha256": "6a49c883e0a509d2fdc49a1dbf4283a7dc25ade55c910e808160cc380a7dc640",
+      "after_sha256": "6a49c883e0a509d2fdc49a1dbf4283a7dc25ade55c910e808160cc380a7dc640"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-08.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-08.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-08.png",
+      "before_sha256": "857cffeb9df7e2a96f344b0318bf4d221ca6cbf9536a287eb95eb6193858a013",
+      "after_sha256": "857cffeb9df7e2a96f344b0318bf4d221ca6cbf9536a287eb95eb6193858a013"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-09.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-09.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-09.png",
+      "before_sha256": "ab911e6ac6358ad81f5c023b44f9cbf35274ee96b28763cdd26744a941286d0d",
+      "after_sha256": "ab911e6ac6358ad81f5c023b44f9cbf35274ee96b28763cdd26744a941286d0d"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-10.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-10.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-10.png",
+      "before_sha256": "52c909b5b2c508c2180546162ebdd0d02e98ee868fd613569074ffb50f4fe68d",
+      "after_sha256": "52c909b5b2c508c2180546162ebdd0d02e98ee868fd613569074ffb50f4fe68d"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-11.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-11.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-11.png",
+      "before_sha256": "b6c896fdc6cd92fc437c7e74928bee66b54b75896fc4ad744396665362bb54a0",
+      "after_sha256": "b6c896fdc6cd92fc437c7e74928bee66b54b75896fc4ad744396665362bb54a0"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-12.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-12.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-12.png",
+      "before_sha256": "fa97a5868a193a0bbf2ec319032d868b1070975a6c65d8db688bfba4d8249972",
+      "after_sha256": "fa97a5868a193a0bbf2ec319032d868b1070975a6c65d8db688bfba4d8249972"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-13.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-13.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-13.png",
+      "before_sha256": "79c2d79b87f99601eb40c49815bb8a90d7bd3a3a85236cb2da9e051fd2897867",
+      "after_sha256": "79c2d79b87f99601eb40c49815bb8a90d7bd3a3a85236cb2da9e051fd2897867"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-14.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-14.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-14.png",
+      "before_sha256": "6ba3dd105b34b1c873e62d6b44c023f340f1c3fa943d26ac6ecaa04631f41dfe",
+      "after_sha256": "6ba3dd105b34b1c873e62d6b44c023f340f1c3fa943d26ac6ecaa04631f41dfe"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-15.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-15.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-15.png",
+      "before_sha256": "19ab692c6ef86fddf6ffd9f3af2142eb6ea445790c160731d79c5dff74daaa80",
+      "after_sha256": "19ab692c6ef86fddf6ffd9f3af2142eb6ea445790c160731d79c5dff74daaa80"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-16.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-16.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-16.png",
+      "before_sha256": "45e99edeaa11d9a89e853a9e0b258f29ee28ec187340d5f7b97271fc2a5a7b7e",
+      "after_sha256": "45e99edeaa11d9a89e853a9e0b258f29ee28ec187340d5f7b97271fc2a5a7b7e"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-17.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-17.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-17.png",
+      "before_sha256": "38f7b6a58a6688d6fdcb349c7476fdd867eb90485612bebc5795bde65e2b56a3",
+      "after_sha256": "38f7b6a58a6688d6fdcb349c7476fdd867eb90485612bebc5795bde65e2b56a3"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-18.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-18.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-18.png",
+      "before_sha256": "2ab80a28d1cc60a798baac598af07006dc6315d2568c0673eb263e6ee475a43f",
+      "after_sha256": "2ab80a28d1cc60a798baac598af07006dc6315d2568c0673eb263e6ee475a43f"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-19.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-19.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-19.png",
+      "before_sha256": "e268cdf8c9c39a7487ec6a636593b44df17b4c64fca14edf61c0f78204991df7",
+      "after_sha256": "e268cdf8c9c39a7487ec6a636593b44df17b4c64fca14edf61c0f78204991df7"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-20.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh_previews/page-20.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_20260825_zh_previews/page-20.png",
+      "before_sha256": "7b2ba12935e5c550365e5b835cf66f1d8b8c9ed980512b3700dad0ad9df317cd",
+      "after_sha256": "7b2ba12935e5c550365e5b835cf66f1d8b8c9ed980512b3700dad0ad9df317cd"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh.pdf",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh.pdf",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh.pdf",
+      "before_sha256": "5ce849cb677166e4916355352993ccc2fbb0d45fafaffe9639c3bd6a1f0576a8",
+      "after_sha256": "5ce849cb677166e4916355352993ccc2fbb0d45fafaffe9639c3bd6a1f0576a8"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-01.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-01.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-01.png",
+      "before_sha256": "ce77a76c3f5e7fd7e2f99f396c1000551cc5c4e7560296946ac369d9e633790b",
+      "after_sha256": "ce77a76c3f5e7fd7e2f99f396c1000551cc5c4e7560296946ac369d9e633790b"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-02.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-02.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-02.png",
+      "before_sha256": "5f0987a598d420aa876c3c78f1e45c22a3c78f940a36f9cb1726a24a94d90462",
+      "after_sha256": "5f0987a598d420aa876c3c78f1e45c22a3c78f940a36f9cb1726a24a94d90462"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-03.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-03.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-03.png",
+      "before_sha256": "01e55e29922861ffcdc121b67ba0c2975dbf2923f49985f9017021783c7d322c",
+      "after_sha256": "01e55e29922861ffcdc121b67ba0c2975dbf2923f49985f9017021783c7d322c"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-04.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-04.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-04.png",
+      "before_sha256": "66f203aa6c87fb41bfcea6df85ebb8dc0b92d88d0846684622c9d4d5095087e1",
+      "after_sha256": "66f203aa6c87fb41bfcea6df85ebb8dc0b92d88d0846684622c9d4d5095087e1"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-05.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-05.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-05.png",
+      "before_sha256": "cdec91beb8f21d7d99ffce5d1c44411395bf86df31a521a41bb7b1ad7572dfa6",
+      "after_sha256": "cdec91beb8f21d7d99ffce5d1c44411395bf86df31a521a41bb7b1ad7572dfa6"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-06.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-06.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-06.png",
+      "before_sha256": "f734559cb6dfb433e080da9ed5b3f3030d86e0d3cb60f16cbb73c8f2ec20cc1f",
+      "after_sha256": "f734559cb6dfb433e080da9ed5b3f3030d86e0d3cb60f16cbb73c8f2ec20cc1f"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-07.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-07.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-07.png",
+      "before_sha256": "6a49c883e0a509d2fdc49a1dbf4283a7dc25ade55c910e808160cc380a7dc640",
+      "after_sha256": "6a49c883e0a509d2fdc49a1dbf4283a7dc25ade55c910e808160cc380a7dc640"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-08.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-08.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-08.png",
+      "before_sha256": "857cffeb9df7e2a96f344b0318bf4d221ca6cbf9536a287eb95eb6193858a013",
+      "after_sha256": "857cffeb9df7e2a96f344b0318bf4d221ca6cbf9536a287eb95eb6193858a013"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-09.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-09.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-09.png",
+      "before_sha256": "ab911e6ac6358ad81f5c023b44f9cbf35274ee96b28763cdd26744a941286d0d",
+      "after_sha256": "ab911e6ac6358ad81f5c023b44f9cbf35274ee96b28763cdd26744a941286d0d"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-10.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-10.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-10.png",
+      "before_sha256": "17e02c12c0161f0d5bb8a02732d8adaa7a323b85779c604ddd179b497b78e890",
+      "after_sha256": "17e02c12c0161f0d5bb8a02732d8adaa7a323b85779c604ddd179b497b78e890"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-11.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-11.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-11.png",
+      "before_sha256": "1d69db9e65b4e5db7d1f0c902dbcfb77aeecaa2dfe02d370b9719e47f49a7c5d",
+      "after_sha256": "1d69db9e65b4e5db7d1f0c902dbcfb77aeecaa2dfe02d370b9719e47f49a7c5d"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-12.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-12.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-12.png",
+      "before_sha256": "bfb2611f47861b75a4fcbbf659aaf60900128593bd0338eec1343538b9d05ef9",
+      "after_sha256": "bfb2611f47861b75a4fcbbf659aaf60900128593bd0338eec1343538b9d05ef9"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-13.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-13.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-13.png",
+      "before_sha256": "89ccd22878d0d08e5ff49030db6d6e3d8c5ae3b94bdd82faf423ab2119de4e99",
+      "after_sha256": "89ccd22878d0d08e5ff49030db6d6e3d8c5ae3b94bdd82faf423ab2119de4e99"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-14.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-14.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-14.png",
+      "before_sha256": "62f9bdd30c4121e7fa4961cce752407e6203ca5dea5ddac0ec9998810546e7e6",
+      "after_sha256": "62f9bdd30c4121e7fa4961cce752407e6203ca5dea5ddac0ec9998810546e7e6"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-15.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-15.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-15.png",
+      "before_sha256": "03c57fb20bc9f2e15b245f1d8ea40533d62311a1abd8e5d038338612ea34b81e",
+      "after_sha256": "03c57fb20bc9f2e15b245f1d8ea40533d62311a1abd8e5d038338612ea34b81e"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-16.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-16.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-16.png",
+      "before_sha256": "82ccab69f1af07c4dfe8f02cb9f894c84424433a276ffd6f1a6db899221788ac",
+      "after_sha256": "82ccab69f1af07c4dfe8f02cb9f894c84424433a276ffd6f1a6db899221788ac"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-17.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-17.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-17.png",
+      "before_sha256": "2706551a309c3a4e3d66b4ef94d9b0f392c354200938f8b043c578a6e4fcefe0",
+      "after_sha256": "2706551a309c3a4e3d66b4ef94d9b0f392c354200938f8b043c578a6e4fcefe0"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-18.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-18.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v2_20260825_zh_previews/page-18.png",
+      "before_sha256": "5aad924cbc9fadd3655538261033a3c229ab736bba21bd08beb3535c6a4d4006",
+      "after_sha256": "5aad924cbc9fadd3655538261033a3c229ab736bba21bd08beb3535c6a4d4006"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh.pdf",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh.pdf",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh.pdf",
+      "before_sha256": "eed03ef9880fd80059e3a3236372034e3b4816d98a03eb8665202d6c0b86a452",
+      "after_sha256": "eed03ef9880fd80059e3a3236372034e3b4816d98a03eb8665202d6c0b86a452"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-01.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-01.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-01.png",
+      "before_sha256": "ce77a76c3f5e7fd7e2f99f396c1000551cc5c4e7560296946ac369d9e633790b",
+      "after_sha256": "ce77a76c3f5e7fd7e2f99f396c1000551cc5c4e7560296946ac369d9e633790b"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-02.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-02.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-02.png",
+      "before_sha256": "5f0987a598d420aa876c3c78f1e45c22a3c78f940a36f9cb1726a24a94d90462",
+      "after_sha256": "5f0987a598d420aa876c3c78f1e45c22a3c78f940a36f9cb1726a24a94d90462"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-03.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-03.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-03.png",
+      "before_sha256": "01e55e29922861ffcdc121b67ba0c2975dbf2923f49985f9017021783c7d322c",
+      "after_sha256": "01e55e29922861ffcdc121b67ba0c2975dbf2923f49985f9017021783c7d322c"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-04.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-04.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-04.png",
+      "before_sha256": "66f203aa6c87fb41bfcea6df85ebb8dc0b92d88d0846684622c9d4d5095087e1",
+      "after_sha256": "66f203aa6c87fb41bfcea6df85ebb8dc0b92d88d0846684622c9d4d5095087e1"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-05.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-05.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-05.png",
+      "before_sha256": "cdec91beb8f21d7d99ffce5d1c44411395bf86df31a521a41bb7b1ad7572dfa6",
+      "after_sha256": "cdec91beb8f21d7d99ffce5d1c44411395bf86df31a521a41bb7b1ad7572dfa6"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-06.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-06.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-06.png",
+      "before_sha256": "f734559cb6dfb433e080da9ed5b3f3030d86e0d3cb60f16cbb73c8f2ec20cc1f",
+      "after_sha256": "f734559cb6dfb433e080da9ed5b3f3030d86e0d3cb60f16cbb73c8f2ec20cc1f"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-07.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-07.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-07.png",
+      "before_sha256": "6a49c883e0a509d2fdc49a1dbf4283a7dc25ade55c910e808160cc380a7dc640",
+      "after_sha256": "6a49c883e0a509d2fdc49a1dbf4283a7dc25ade55c910e808160cc380a7dc640"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-08.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-08.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-08.png",
+      "before_sha256": "fa5d02a8568d5bf36f689e4d62763b3555b14cf97100f20f43f3f591fb5c2d1a",
+      "after_sha256": "fa5d02a8568d5bf36f689e4d62763b3555b14cf97100f20f43f3f591fb5c2d1a"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-09.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-09.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-09.png",
+      "before_sha256": "ab911e6ac6358ad81f5c023b44f9cbf35274ee96b28763cdd26744a941286d0d",
+      "after_sha256": "ab911e6ac6358ad81f5c023b44f9cbf35274ee96b28763cdd26744a941286d0d"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-10.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-10.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-10.png",
+      "before_sha256": "17e02c12c0161f0d5bb8a02732d8adaa7a323b85779c604ddd179b497b78e890",
+      "after_sha256": "17e02c12c0161f0d5bb8a02732d8adaa7a323b85779c604ddd179b497b78e890"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-11.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-11.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-11.png",
+      "before_sha256": "1d69db9e65b4e5db7d1f0c902dbcfb77aeecaa2dfe02d370b9719e47f49a7c5d",
+      "after_sha256": "1d69db9e65b4e5db7d1f0c902dbcfb77aeecaa2dfe02d370b9719e47f49a7c5d"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-12.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-12.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-12.png",
+      "before_sha256": "bfb2611f47861b75a4fcbbf659aaf60900128593bd0338eec1343538b9d05ef9",
+      "after_sha256": "bfb2611f47861b75a4fcbbf659aaf60900128593bd0338eec1343538b9d05ef9"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-13.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-13.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-13.png",
+      "before_sha256": "89ccd22878d0d08e5ff49030db6d6e3d8c5ae3b94bdd82faf423ab2119de4e99",
+      "after_sha256": "89ccd22878d0d08e5ff49030db6d6e3d8c5ae3b94bdd82faf423ab2119de4e99"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-14.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-14.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-14.png",
+      "before_sha256": "62f9bdd30c4121e7fa4961cce752407e6203ca5dea5ddac0ec9998810546e7e6",
+      "after_sha256": "62f9bdd30c4121e7fa4961cce752407e6203ca5dea5ddac0ec9998810546e7e6"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-15.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-15.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-15.png",
+      "before_sha256": "03c57fb20bc9f2e15b245f1d8ea40533d62311a1abd8e5d038338612ea34b81e",
+      "after_sha256": "03c57fb20bc9f2e15b245f1d8ea40533d62311a1abd8e5d038338612ea34b81e"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-16.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-16.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-16.png",
+      "before_sha256": "82ccab69f1af07c4dfe8f02cb9f894c84424433a276ffd6f1a6db899221788ac",
+      "after_sha256": "82ccab69f1af07c4dfe8f02cb9f894c84424433a276ffd6f1a6db899221788ac"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-17.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-17.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-17.png",
+      "before_sha256": "2706551a309c3a4e3d66b4ef94d9b0f392c354200938f8b043c578a6e4fcefe0",
+      "after_sha256": "2706551a309c3a4e3d66b4ef94d9b0f392c354200938f8b043c578a6e4fcefe0"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-18.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-18.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v3_20260825_zh_previews/page-18.png",
+      "before_sha256": "5aad924cbc9fadd3655538261033a3c229ab736bba21bd08beb3535c6a4d4006",
+      "after_sha256": "5aad924cbc9fadd3655538261033a3c229ab736bba21bd08beb3535c6a4d4006"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh.pdf",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh.pdf",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh.pdf",
+      "before_sha256": "52177fc85ded3fbe16486db8388025ab50de6a340acb29b3b45f0ba6e69c42f2",
+      "after_sha256": "52177fc85ded3fbe16486db8388025ab50de6a340acb29b3b45f0ba6e69c42f2"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-01.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-01.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-01.png",
+      "before_sha256": "ce77a76c3f5e7fd7e2f99f396c1000551cc5c4e7560296946ac369d9e633790b",
+      "after_sha256": "ce77a76c3f5e7fd7e2f99f396c1000551cc5c4e7560296946ac369d9e633790b"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-02.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-02.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-02.png",
+      "before_sha256": "5f0987a598d420aa876c3c78f1e45c22a3c78f940a36f9cb1726a24a94d90462",
+      "after_sha256": "5f0987a598d420aa876c3c78f1e45c22a3c78f940a36f9cb1726a24a94d90462"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-03.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-03.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-03.png",
+      "before_sha256": "01e55e29922861ffcdc121b67ba0c2975dbf2923f49985f9017021783c7d322c",
+      "after_sha256": "01e55e29922861ffcdc121b67ba0c2975dbf2923f49985f9017021783c7d322c"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-04.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-04.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-04.png",
+      "before_sha256": "66f203aa6c87fb41bfcea6df85ebb8dc0b92d88d0846684622c9d4d5095087e1",
+      "after_sha256": "66f203aa6c87fb41bfcea6df85ebb8dc0b92d88d0846684622c9d4d5095087e1"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-05.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-05.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-05.png",
+      "before_sha256": "cdec91beb8f21d7d99ffce5d1c44411395bf86df31a521a41bb7b1ad7572dfa6",
+      "after_sha256": "cdec91beb8f21d7d99ffce5d1c44411395bf86df31a521a41bb7b1ad7572dfa6"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-06.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-06.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-06.png",
+      "before_sha256": "f734559cb6dfb433e080da9ed5b3f3030d86e0d3cb60f16cbb73c8f2ec20cc1f",
+      "after_sha256": "f734559cb6dfb433e080da9ed5b3f3030d86e0d3cb60f16cbb73c8f2ec20cc1f"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-07.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-07.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-07.png",
+      "before_sha256": "6a49c883e0a509d2fdc49a1dbf4283a7dc25ade55c910e808160cc380a7dc640",
+      "after_sha256": "6a49c883e0a509d2fdc49a1dbf4283a7dc25ade55c910e808160cc380a7dc640"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-08.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-08.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-08.png",
+      "before_sha256": "fa5d02a8568d5bf36f689e4d62763b3555b14cf97100f20f43f3f591fb5c2d1a",
+      "after_sha256": "fa5d02a8568d5bf36f689e4d62763b3555b14cf97100f20f43f3f591fb5c2d1a"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-09.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-09.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-09.png",
+      "before_sha256": "ab911e6ac6358ad81f5c023b44f9cbf35274ee96b28763cdd26744a941286d0d",
+      "after_sha256": "ab911e6ac6358ad81f5c023b44f9cbf35274ee96b28763cdd26744a941286d0d"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-10.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-10.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-10.png",
+      "before_sha256": "52c909b5b2c508c2180546162ebdd0d02e98ee868fd613569074ffb50f4fe68d",
+      "after_sha256": "52c909b5b2c508c2180546162ebdd0d02e98ee868fd613569074ffb50f4fe68d"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-11.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-11.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-11.png",
+      "before_sha256": "674b9d553bf0c95548634ac1865865df2a3881710b8081c96ffd9ecd49e55dcb",
+      "after_sha256": "674b9d553bf0c95548634ac1865865df2a3881710b8081c96ffd9ecd49e55dcb"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-12.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-12.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-12.png",
+      "before_sha256": "a7ca5858ee2bfdd79056f811758b40790096eec3dfac780cfad81773d769706b",
+      "after_sha256": "a7ca5858ee2bfdd79056f811758b40790096eec3dfac780cfad81773d769706b"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-13.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-13.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-13.png",
+      "before_sha256": "79c2d79b87f99601eb40c49815bb8a90d7bd3a3a85236cb2da9e051fd2897867",
+      "after_sha256": "79c2d79b87f99601eb40c49815bb8a90d7bd3a3a85236cb2da9e051fd2897867"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-14.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-14.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-14.png",
+      "before_sha256": "6ba3dd105b34b1c873e62d6b44c023f340f1c3fa943d26ac6ecaa04631f41dfe",
+      "after_sha256": "6ba3dd105b34b1c873e62d6b44c023f340f1c3fa943d26ac6ecaa04631f41dfe"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-15.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-15.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-15.png",
+      "before_sha256": "19ab692c6ef86fddf6ffd9f3af2142eb6ea445790c160731d79c5dff74daaa80",
+      "after_sha256": "19ab692c6ef86fddf6ffd9f3af2142eb6ea445790c160731d79c5dff74daaa80"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-16.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-16.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-16.png",
+      "before_sha256": "45e99edeaa11d9a89e853a9e0b258f29ee28ec187340d5f7b97271fc2a5a7b7e",
+      "after_sha256": "45e99edeaa11d9a89e853a9e0b258f29ee28ec187340d5f7b97271fc2a5a7b7e"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-17.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-17.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-17.png",
+      "before_sha256": "38f7b6a58a6688d6fdcb349c7476fdd867eb90485612bebc5795bde65e2b56a3",
+      "after_sha256": "38f7b6a58a6688d6fdcb349c7476fdd867eb90485612bebc5795bde65e2b56a3"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-18.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-18.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-18.png",
+      "before_sha256": "2ab80a28d1cc60a798baac598af07006dc6315d2568c0673eb263e6ee475a43f",
+      "after_sha256": "2ab80a28d1cc60a798baac598af07006dc6315d2568c0673eb263e6ee475a43f"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-19.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-19.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-19.png",
+      "before_sha256": "7d6ee4d0c6231b4b470de0f5fd7e9e82b2cbda96ecc26bada0cef098a38a024f",
+      "after_sha256": "7d6ee4d0c6231b4b470de0f5fd7e9e82b2cbda96ecc26bada0cef098a38a024f"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-20.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-20.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-20.png",
+      "before_sha256": "bad614e7eadfd0968dca209c57ca6286bc3e70fc7fc3a0b64afaa558ae059319",
+      "after_sha256": "bad614e7eadfd0968dca209c57ca6286bc3e70fc7fc3a0b64afaa558ae059319"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-21.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-21.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-21.png",
+      "before_sha256": "66db18e3f5edea6bdf6ecf1d0ffd54cd36f2260ea502454dd5ad05e057c3d3ae",
+      "after_sha256": "66db18e3f5edea6bdf6ecf1d0ffd54cd36f2260ea502454dd5ad05e057c3d3ae"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-22.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-22.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v4_20260825_zh_previews/page-22.png",
+      "before_sha256": "596d25290f31137f2578f773babba076769e986cafddd33072141bd1f5c3e314",
+      "after_sha256": "596d25290f31137f2578f773babba076769e986cafddd33072141bd1f5c3e314"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh.pdf",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh.pdf",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh.pdf",
+      "before_sha256": "ccbf1185a56750ccacd5e864dbb6108c1ad4412d24b6fa603853a338a74790db",
+      "after_sha256": "ccbf1185a56750ccacd5e864dbb6108c1ad4412d24b6fa603853a338a74790db"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-01.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-01.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-01.png",
+      "before_sha256": "7687e1602199fa5b63a07cd9da0aec954f79f985103132ce1c15dba11080d04d",
+      "after_sha256": "7687e1602199fa5b63a07cd9da0aec954f79f985103132ce1c15dba11080d04d"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-02.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-02.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-02.png",
+      "before_sha256": "001426e9c9c6d81de0f2410e8e308ae98928c8cad17e280574743e9eb1a51d1f",
+      "after_sha256": "001426e9c9c6d81de0f2410e8e308ae98928c8cad17e280574743e9eb1a51d1f"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-03.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-03.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-03.png",
+      "before_sha256": "7512b0dcfe11cd5f0604cbef66f9768c40d632c0cc7027d08e484f20367ef448",
+      "after_sha256": "7512b0dcfe11cd5f0604cbef66f9768c40d632c0cc7027d08e484f20367ef448"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-04.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-04.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-04.png",
+      "before_sha256": "a88ff16a5647218474c42603d72f930378325bea335548bd0508649cd1147347",
+      "after_sha256": "a88ff16a5647218474c42603d72f930378325bea335548bd0508649cd1147347"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-05.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-05.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-05.png",
+      "before_sha256": "755b43d56e94c2587e10142d935efe8f06469278020184a43d3973759b4182bf",
+      "after_sha256": "755b43d56e94c2587e10142d935efe8f06469278020184a43d3973759b4182bf"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-06.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-06.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-06.png",
+      "before_sha256": "a9ba12c95ed3f60defeaeabaebb9c8860bb7445bb57db70ee20f3d30fd263134",
+      "after_sha256": "a9ba12c95ed3f60defeaeabaebb9c8860bb7445bb57db70ee20f3d30fd263134"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-07.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-07.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-07.png",
+      "before_sha256": "1cc9b1e793dceaeed61d8d4cadc8f4cce9701d03e9eefe31839963a773bb6f7d",
+      "after_sha256": "1cc9b1e793dceaeed61d8d4cadc8f4cce9701d03e9eefe31839963a773bb6f7d"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-08.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-08.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-08.png",
+      "before_sha256": "281bec9efea3b3aafdf54e8f172e22e50b999b437d516fa9d309706b8cd0dc00",
+      "after_sha256": "281bec9efea3b3aafdf54e8f172e22e50b999b437d516fa9d309706b8cd0dc00"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-09.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-09.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-09.png",
+      "before_sha256": "c1af084897fc0a1bc98cdc0ce19d5956e0cdaeb28455688615f3abe896ae2315",
+      "after_sha256": "c1af084897fc0a1bc98cdc0ce19d5956e0cdaeb28455688615f3abe896ae2315"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-10.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-10.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-10.png",
+      "before_sha256": "81b0e25476f47c3fbbde81cb51a6039230005563a4c341902fad0f298e0af95c",
+      "after_sha256": "81b0e25476f47c3fbbde81cb51a6039230005563a4c341902fad0f298e0af95c"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-11.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-11.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-11.png",
+      "before_sha256": "c5f2c896e4963b8957eeb8da32e28ce96a4ffc312eb5f01e06ccbb6a9a223f4e",
+      "after_sha256": "c5f2c896e4963b8957eeb8da32e28ce96a4ffc312eb5f01e06ccbb6a9a223f4e"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-12.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-12.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-12.png",
+      "before_sha256": "11301816a4c5ce65837747f38aea486d7cc114f66df05f51b6a89923b0146d59",
+      "after_sha256": "11301816a4c5ce65837747f38aea486d7cc114f66df05f51b6a89923b0146d59"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-13.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-13.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-13.png",
+      "before_sha256": "2dd5530c69df4a46d8e6ab933c59e318f7ee50afd1332b83d1015bb6042d9eef",
+      "after_sha256": "2dd5530c69df4a46d8e6ab933c59e318f7ee50afd1332b83d1015bb6042d9eef"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-14.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-14.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-14.png",
+      "before_sha256": "a2e1d2170b0889542fbf855f25fc67508687ad748b299166f07b2693ba352822",
+      "after_sha256": "a2e1d2170b0889542fbf855f25fc67508687ad748b299166f07b2693ba352822"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-15.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-15.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-15.png",
+      "before_sha256": "9ca38fe2250af3418dd2f41b73bb6cdc33921579dceda3c29c9d8728dc99f01f",
+      "after_sha256": "9ca38fe2250af3418dd2f41b73bb6cdc33921579dceda3c29c9d8728dc99f01f"
+    },
+    {
+      "old": "docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-16.png",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-16.png",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_revalidation_stage1_integrated_v5_20260826_zh_previews/page-16.png",
+      "before_sha256": "a45e045bc36c6f69387d9b23d2dcd73c6d71d682c2bbac0b4a566e7beb6dd4bd",
+      "after_sha256": "a45e045bc36c6f69387d9b23d2dcd73c6d71d682c2bbac0b4a566e7beb6dd4bd"
+    },
+    {
+      "old": "docs/dsol_paper1/view_value_expectation_protocol_v1_audit.json",
+      "new": "docs/dsol_paper1/audits/view_value_expectation_protocol_v1_audit.json",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_value_expectation_protocol_v1_audit.json",
+      "before_sha256": "0c1fe233e3319279623a14ccd2846bce770ad10b4a2b7267fed39c52f5f3c508",
+      "after_sha256": "0c1fe233e3319279623a14ccd2846bce770ad10b4a2b7267fed39c52f5f3c508"
+    },
+    {
+      "old": "docs/dsol_paper1/view_value_expectation_protocol_v1_zh.md",
+      "new": "docs/dsol_paper1/protocols/view_value_expectation_protocol_v1_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_value_expectation_protocol_v1_zh.md",
+      "before_sha256": "0729dd7aaa7fdb3f002d2a201bb680bd54638776e58486cfc7fab9f47126847e",
+      "after_sha256": "0729dd7aaa7fdb3f002d2a201bb680bd54638776e58486cfc7fab9f47126847e"
+    },
+    {
+      "old": "docs/dsol_paper1/view_value_expectation_takeover_20260902_zh.md",
+      "new": "docs/dsol_paper1/execution/view_value_expectation_takeover_20260902_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_value_expectation_takeover_20260902_zh.md",
+      "before_sha256": "52f17a9d2e24fc7934a83cf4c40fcfde2b92faf141944a54f3b8ff626eb6988a",
+      "after_sha256": "52f17a9d2e24fc7934a83cf4c40fcfde2b92faf141944a54f3b8ff626eb6988a"
+    },
+    {
+      "old": "docs/dsol_paper1/view_value_new_experiments_zh.pdf",
+      "new": "docs/dsol_paper1/reports/archive/imported/view_value_new_experiments_zh.pdf",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_value_new_experiments_zh.pdf",
+      "before_sha256": "9c10918c428575271bb5c725ea8c9d3260e06434472111a90e9bb5ac60129670",
+      "after_sha256": "9c10918c428575271bb5c725ea8c9d3260e06434472111a90e9bb5ac60129670"
+    },
+    {
+      "old": "docs/dsol_paper1/view_value_reverse_discovery_pilot_20260827_zh.md",
+      "new": "docs/dsol_paper1/results/view_value_reverse_discovery_pilot_20260827_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/view_value_reverse_discovery_pilot_20260827_zh.md",
+      "before_sha256": "afdd74a7d2bae33f9854427a423fcdac28b533640ad1a52a1ea6aee9c1cbbfd9",
+      "after_sha256": "e15c9f568c2f92b0265c83ab68ed1b7eb40991cceeb6127dee771cf4bd931a63"
+    },
+    {
+      "old": "docs/dsol_paper1/vla_view_landscape_and_metrics_20260908_zh.md",
+      "new": "docs/dsol_paper1/reports/notes/vla_view_landscape_and_metrics_20260908_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/vla_view_landscape_and_metrics_20260908_zh.md",
+      "before_sha256": "5caed2cc32756d890bef29df0a9ebfa19369ec602346c4882687383a053730c7",
+      "after_sha256": "a60b3208d875ff4e171ee8a3d45e8a86b30df72ba81ace3407efc8afed888cfe"
+    },
+    {
+      "old": "docs/dsol_paper1/vla_view_research_focus_20260907_zh.md",
+      "new": "docs/dsol_paper1/reports/notes/vla_view_research_focus_20260907_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/vla_view_research_focus_20260907_zh.md",
+      "before_sha256": "48188ac1e5e855246fc6e6ac74fc1c630c2ba44ace56361a51d753f69fb063c3",
+      "after_sha256": "e75b6e58350acf5338b41d12d711c969fc4390b5835c4aed447b26a955d817b3"
+    },
+    {
+      "old": "docs/dsol_paper1/vla_view_research_unified_20260907_zh.json",
+      "new": "docs/dsol_paper1/reports/sources/vla_view_research_unified_20260907_zh.json",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/vla_view_research_unified_20260907_zh.json",
+      "before_sha256": "04d37a22fc4f9176f547f1dc95ba2b512dcf823310dfb4f4286016e5ddb11ad0",
+      "after_sha256": "04d37a22fc4f9176f547f1dc95ba2b512dcf823310dfb4f4286016e5ddb11ad0"
+    },
+    {
+      "old": "docs/dsol_paper1/vla_view_research_unified_20260907_zh.md",
+      "new": "docs/dsol_paper1/reports/notes/vla_view_research_unified_20260907_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/vla_view_research_unified_20260907_zh.md",
+      "before_sha256": "2a622d944e04229b96c6cb574aa9ae5d35ff5e13b074b01f5a6287905cb768ad",
+      "after_sha256": "cef86f24a0c617f44f3156515b6614f689dc1ec2c7deed1255f499b2c6484019"
+    },
+    {
+      "old": "docs/dsol_paper1/vla_view_research_unified_20260907_zh.pdf",
+      "new": "docs/dsol_paper1/reports/archive/imported/vla_view_research_unified_20260907_zh.pdf",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/vla_view_research_unified_20260907_zh.pdf",
+      "before_sha256": "25a0ab8f61f84a7774975aaee4c802ef343ac52489fedb16fdc909a86bf5bd5d",
+      "after_sha256": "25a0ab8f61f84a7774975aaee4c802ef343ac52489fedb16fdc909a86bf5bd5d"
+    },
+    {
+      "old": "docs/dsol_paper1/HISTORY.md",
+      "new": "docs/dsol_paper1/HISTORY.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/HISTORY.md",
+      "before_sha256": "27acadc4f55430379a3cdd17794a0821d143ef3d59d96c168519a2bf0d3089d1",
+      "after_sha256": "60d9b6d6bc825eb3d966b5eed491ca47ff63eb8f4c8af66595bb109d8d648111"
+    },
+    {
+      "old": "docs/dsol_paper1/README.md",
+      "new": "docs/dsol_paper1/README.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/README.md",
+      "before_sha256": "a9c81fb47ca049ade808fa099cbffe7434c4cbed47494614b8f0f13b2fa32b3d",
+      "after_sha256": "c72429b215e92baef00092be64b801189da59a78304b38ce7511201d6209f9c7"
+    },
+    {
+      "old": "docs/cabi_vla/README.md",
+      "new": "docs/cabi_vla/README.md",
+      "before": "archive/repository/20260911/docs/before/docs/cabi_vla/README.md",
+      "before_sha256": "2351af3a23b7a7d320aee8cc37453e89ea494eba48c20c12668375d7ebd96a3e",
+      "after_sha256": "6221e2af8cb1f4931f87468030daccd564a6659243e2ed9aefd0178bd70ae558"
+    },
+    {
+      "old": "docs/api/index.md",
+      "new": "docs/api/index.md",
+      "before": "archive/repository/20260911/docs/before/docs/api/index.md",
+      "before_sha256": "e39e3b945a3b71edc96e18cf12693b4bb5aa6fee9b79239e59ecb23902bd7f13",
+      "after_sha256": "96d138e86e7b43f1c942949d24bbb79bf9aaa32bfabe22f288bcdc386f630a1b"
+    },
+    {
+      "old": "docs/api/training.md",
+      "new": "docs/api/training.md",
+      "before": "archive/repository/20260911/docs/before/docs/api/training.md",
+      "before_sha256": "8d959448f79f52aae8a74dffb00bb1fd7d1f53610987c30108f6f05b5379f7f0",
+      "after_sha256": "5a4bbd2c83c195d73290da2021ef44efb221e849bf23a24fbfb8ab44aa7a6bea"
+    },
+    {
+      "old": "docs/dsol_paper1/reports/archive/README.md",
+      "new": "docs/dsol_paper1/reports/archive/README.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/reports/archive/README.md",
+      "before_sha256": "1a905f58f88b90b75ed7706bcd165320f9a7c9367631d933a99bf14139fecb96",
+      "after_sha256": "25358f9a9c81b9fa27954b43841fe47564e779f0672da39430ee0a7432bcdafb"
+    },
+    {
+      "old": "docs/dsol_paper1/reports/current/vla_view_research_progress_zh.md",
+      "new": "docs/dsol_paper1/reports/current/vla_view_research_progress_zh.md",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/reports/current/vla_view_research_progress_zh.md",
+      "before_sha256": "48188ac1e5e855246fc6e6ac74fc1c630c2ba44ace56361a51d753f69fb063c3",
+      "after_sha256": "e75b6e58350acf5338b41d12d711c969fc4390b5835c4aed447b26a955d817b3"
+    },
+    {
+      "old": "scripts/dsol_paper1/diagnostics/audit_accel_view_selector.py",
+      "new": "scripts/dsol_paper1/diagnostics/audit_accel_view_selector.py",
+      "before": "archive/repository/20260911/docs/before/scripts/dsol_paper1/diagnostics/audit_accel_view_selector.py",
+      "before_sha256": "078a327eaedd1d4443a25e749869c41d81e5681bafa125dc531d182c993869c5",
+      "after_sha256": "b1ba24bf9e03b81ef5fdc88e078b867600a5273362390dede8df838f48a46537"
+    },
+    {
+      "old": "reports/paper1/historical/build_unified_view_research_report.py",
+      "new": "reports/paper1/historical/build_unified_view_research_report.py",
+      "before": "archive/repository/20260911/docs/before/reports/paper1/historical/build_unified_view_research_report.py",
+      "before_sha256": "9f0e5c39b3f77c3541ec9384a3f1373490c5d4e0e15dcfdfb910cb3d50a1e046",
+      "after_sha256": "4aa788b1a23c7050098f86b4ab5c91659625cce64fddd72db8242ba08509ee31"
+    },
+    {
+      "old": "reports/paper1/historical/build_view_revalidation_integrated_v2_pdf.py",
+      "new": "reports/paper1/historical/build_view_revalidation_integrated_v2_pdf.py",
+      "before": "archive/repository/20260911/docs/before/reports/paper1/historical/build_view_revalidation_integrated_v2_pdf.py",
+      "before_sha256": "4b3067c4733de8effb758a54a843274471d95dc22e016198e0478b16518e9f55",
+      "after_sha256": "4bdba26bbd622a89b1da804f85138fa372e8d7f9f5bdfe1705011ef4652fb5cd"
+    },
+    {
+      "old": "reports/paper1/historical/build_view_value_new_experiments_pdf.py",
+      "new": "reports/paper1/historical/build_view_value_new_experiments_pdf.py",
+      "before": "archive/repository/20260911/docs/before/reports/paper1/historical/build_view_value_new_experiments_pdf.py",
+      "before_sha256": "9097a6556f79b4ba57f45eec519b0fd16bd1a432b088d1103348bac2225559c9",
+      "after_sha256": "37fe1407f0a855c8817129831b6578205867610823c50160a2feb1d4bd64f3dd"
+    },
+    {
+      "old": "reports/paper1/historical/build_view_revalidation_report_pdf.py",
+      "new": "reports/paper1/historical/build_view_revalidation_report_pdf.py",
+      "before": "archive/repository/20260911/docs/before/reports/paper1/historical/build_view_revalidation_report_pdf.py",
+      "before_sha256": "61c8d151039b2dcf288decc6584755995b0f5492ed7e6e2246fb9911b2718f5a",
+      "after_sha256": "77cc8bfa5f7da0abd941be0df8d6b1d8d6f780bab92275a447815569577d222e"
+    },
+    {
+      "old": "reports/paper1/historical/build_view_revalidation_brief_pdf.py",
+      "new": "reports/paper1/historical/build_view_revalidation_brief_pdf.py",
+      "before": "archive/repository/20260911/docs/before/reports/paper1/historical/build_view_revalidation_brief_pdf.py",
+      "before_sha256": "36d637adc7600123a9455fdd299ea4f3af3344ce0e7516b9caa4cf1d3d6758bd",
+      "after_sha256": "e08da406dd885ab39c64e600408d48bb46e287148cee64632b26f8e2c780e57d"
+    },
+    {
+      "old": "docs/dsol_paper1/reports/biweekly/20260909/build_report.py",
+      "new": "docs/dsol_paper1/reports/biweekly/20260909/build_report.py",
+      "before": "archive/repository/20260911/docs/before/docs/dsol_paper1/reports/biweekly/20260909/build_report.py",
+      "before_sha256": "a9b9f6540c1d1c81d3d202055cadf480ea96cddb3fdbf642f6ff5818ded06dea",
+      "after_sha256": "105b7d1f3152693b65dab377c9edee2712082b2f8e386c2dace327cb063c3ea7"
+    }
+  ],
+  "scope": "Human documents classified; scientific prose unchanged except relative Markdown links; report/source payload bytes preserved",
+  "compatibility_pdf_paths_retained": 2
+}

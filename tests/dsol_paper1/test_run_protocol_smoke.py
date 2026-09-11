@@ -5,7 +5,7 @@ from pathlib import Path
 import unittest
 
 
-SCRIPT = Path(__file__).parents[2] / "scripts/dsol_paper1/run_protocol_smoke.py"
+SCRIPT = Path(__file__).parents[2] / "scripts/dsol_paper1/operations/controllers/run_protocol_smoke.py"
 SPEC = importlib.util.spec_from_file_location("run_protocol_smoke", SCRIPT)
 assert SPEC and SPEC.loader
 MODULE = importlib.util.module_from_spec(SPEC)

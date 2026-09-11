@@ -10,13 +10,7 @@ SCRIPT_ROOT = Path(__file__).resolve().parents[2] / "scripts" / "dsol_paper1"
 SHARED_ROOT = Path(__file__).resolve().parents[2] / "scripts" / "vla_shared"
 sys.path[:0] = [str(SCRIPT_ROOT), str(SHARED_ROOT)]
 
-from libero_constructed_view import (  # noqa: E402
-    CONSTRUCTION_SCHEMA,
-    explicit_task_orbit_pose,
-    inject_static_visual_occluder,
-    paired_task_orbit_poses,
-    task_orbit_pose_from_specification,
-)
+from scripts.dsol_paper1.libero_constructed_view import CONSTRUCTION_SCHEMA, explicit_task_orbit_pose, inject_static_visual_occluder, paired_task_orbit_poses, task_orbit_pose_from_specification
 
 
 def construction() -> dict:

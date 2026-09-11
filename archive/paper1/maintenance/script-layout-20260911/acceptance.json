@@ -1,0 +1,43 @@
+{
+  "date_utc": "2026-09-11",
+  "scope": "Script organization, explicit imports, path plumbing and four import-safety guards; no scientific protocol or evaluator change",
+  "flat_files_before": 186,
+  "flat_files_after": 37,
+  "relocated_files": 149,
+  "groups": {
+    "historical_analysis": 30,
+    "protocol_construction": 30,
+    "training_and_data": 12,
+    "diagnostics": 14,
+    "historical_execution_recipes": 49,
+    "report_finalization_shell": 1,
+    "historical_report_builders": 9,
+    "acquisition_core_modules": 4
+  },
+  "deferred_relocations": {
+    "count": 2,
+    "reason": "Additional original path/hash dependencies found in active experiment release identities; originals restored and proposed transformations preserved separately"
+  },
+  "verification": {
+    "full_cpu_tests_passed": 469,
+    "subtests_passed": 179,
+    "architecture_check": "PASS",
+    "layout_check": "PASS",
+    "git_diff_check": "PASS",
+    "path_independent_function_and_class_ast_comparison": "PASS; more than 700 definitions compared; import locations and relocated path strings normalized, numerical expressions/control flow/defaults retained",
+    "protected_runtime_source_bytes": "EXACT",
+    "moved_local_import_paths": "PASS",
+    "shell_syntax_and_repository_root": "PASS; syntax-only, no recipes executed",
+    "reviewed_cli_help_from_unrelated_cwd": "PASS; five parser-first entrypoints only",
+    "existing_full_matrix_statistics_and_selector_golden": "PASS as part of full CPU suite",
+    "new_simulation_trajectory_gate": "NOT RUN; current evaluator, policy service, noise runtime and active controller source paths were not migrated or changed",
+    "external_ci": "Configured, not externally executed during maintenance"
+  },
+  "unchanged_artifacts": {
+    "published_pdf_sha256": "dbd9c2b6906fee9a120734291dda9dc4b56a16a9194e1852074fb796bfdb95a7",
+    "standard_initial_release_json_sha256": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899"
+  },
+  "job_control": "No jobs started, stopped or signalled; existing full64 controller and consolidated-analysis watcher remain running",
+  "recovery": "manifest.json records original sources and old/new paths; accepted-sources.json records final migrated content identity. Historical release replay uses its own frozen checkout, not the transformed workspace files.",
+  "remaining_work": "The 37 protected flat entries/dependencies still require a separately versioned runtime refactor and input/full-trajectory equivalence gates. Grouped historical scripts are not claimed to be fully redesigned reusable APIs."
+}

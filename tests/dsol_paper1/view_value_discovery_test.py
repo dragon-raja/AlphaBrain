@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from analyze_view_value_discovery import analyze, pairwise_auc, random_hit_probability
+from scripts.dsol_paper1.analysis.analyze_view_value_discovery import analyze, pairwise_auc, random_hit_probability
 
 
 def episode(pair_key: str, candidate: str, success: bool, visibility: float, accel: float):

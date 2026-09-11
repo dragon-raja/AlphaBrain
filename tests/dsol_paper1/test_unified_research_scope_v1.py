@@ -2,7 +2,7 @@ from pathlib import Path
 import sys
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'scripts/dsol_paper1'))
-from build_unified_research_progress_v1 import SCOPE_CONTRACT, validate_scope_texts
+from scripts.dsol_paper1.build_unified_research_progress_v1 import SCOPE_CONTRACT, validate_scope_texts
 
 
 class ScopeTest(unittest.TestCase):

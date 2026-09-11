@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from scripts.dsol_paper1.analyze_statewise_view_oracle_v2 import (
+from scripts.dsol_paper1.analysis.analyze_statewise_view_oracle_v2 import (
     decision,
     stratified_bootstrap,
 )

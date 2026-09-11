@@ -1,0 +1,18 @@
+{
+  "report": "../vla_view_research_unified_20260907_zh.pdf",
+  "pdf_sha256": "25a0ab8f61f84a7774975aaee4c802ef343ac52489fedb16fdc909a86bf5bd5d",
+  "pages": 40,
+  "automated_layout_issues": 0,
+  "minimum_extracted_characters_per_page": 314,
+  "bookmarks": 50,
+  "external_uri_links": 10,
+  "unreplaced_placeholders": 0,
+  "manual_review": {
+    "all_page_contact_sheets_inspected": true,
+    "full_size_pages_inspected": [1, 2, 7, 11, 20, 23, 27, 38],
+    "font_rendering": "Final PDF rendered via PyMuPDF and visually checked. System Noto CJK CFF outlines embedded as Type3; Unicode text remains extractable.",
+    "scope": "Tables, diagrams, historical view images, references and page boundaries inspected. Final automated checks found no cell or page overflow."
+  },
+  "preservation": "Both historical input PDF hashes unchanged; see unified_report_build_receipt.json.",
+  "scientific_review": "Independent legacy evidence, v1/v2 scope and primary-source related-work reviews completed. Training snapshot is read-only at 2026-09-07T07:39:53Z; no training/evaluation was controlled by this report build."
+}

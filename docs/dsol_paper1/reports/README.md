@@ -2,7 +2,7 @@
 
 日常汇报只看 [current/vla_view_research_progress_zh.pdf](current/vla_view_research_progress_zh.pdf)，对应[图表说明](current/vla_view_research_progress_zh.md)。
 
-当前为 12 页修订版：主线是任务初态完整执行、噪声平均后按初态选最佳视角；中间状态恢复实验仅为辅助证据。这里不是评测调度入口。
+当前为 2026-09-11 的 12 页结果版：198,656 次标准初态完整任务评测、训练覆盖与候选空间分析，以及两类探索性离线选择器。新实验无额外遮挡；旧恢复快照包含人为遮挡，不能混用绝对成功率。这里只发布唯一汇报 PDF，不是评测调度入口。
 
 ## 目录约定
 

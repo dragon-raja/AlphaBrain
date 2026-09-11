@@ -1,36 +1,48 @@
-# Paper 1 脚本导航
+# Paper 1 命令与历史工具
 
-当前研究定义、协议和报告统一从 [研究入口](../../docs/dsol_paper1/README.md)进入。
+研究问题、结果和唯一当前 PDF 从 [研究入口](../../docs/dsol_paper1/README.md)进入。算法实现与目录规则见 [CONTRIBUTING](../../CONTRIBUTING.md)。
 
-| 用途 | 入口 / 共享模块 |
+## 日常使用
+
+| 要做什么 | 位置 |
 | --- | --- |
-| 当前调度 | `dynamic_initial_scheduler_v1.py` |
-| 标准初态整任务 | `standard_initial_aa0_v1.py`、`standard_initialization_v1.py` |
-| 双机运行与闭环 | `dualhost_aa0_v1.py`、`evaluate_dsol_libero_hdf5_views.py` |
-| 噪声与渲染一致性 | `explicit_flow_noise.py`、`render_bridge_common_v1.py`、`trace_view_repeatability_v1.py` |
-| 共享服务、观测、相机 | [`scripts/vla_shared`](../vla_shared/README.md)；`shared_runtime_paths.py` 处理历史冻结副本兼容 |
-| 训练匹配核验 | `audit_dsol_training_match.py`、`finalize_canonical_match_v1.py` |
-| 指标和空间分析 | `analyze_view_metric_rules_v1.py`、`analyze_matched_view_metric_rules_v1.py`、`compare_matched_view_landscapes_v1.py` |
-| 汇报 | `build_unified_research_progress_v1.py`；双周报使用 `docs/dsol_paper1/reports/biweekly/20260909/build_report.py` |
-| 主动获取草案，非本轮已执行方法 | `view_acquisition_*.py` |
+| 当前初态结果核查、统计和选择器 | `analyze_standard_initial_results_v1.py`；实现见 [研究包](../../AlphaBrain/research/dsol/README.md) |
+| 当前统一汇报 | `build_unified_research_progress_v1.py`；实现见 [报告模块](../../reports/paper1/README.md) |
+| 历史指标、Oracle、闭环统计和画图 | [analysis](analysis/) |
+| 历史候选空间、协议、噪声预算构造 | [protocols](protocols/) |
+| 数据生成、训练、训练匹配与来源核查 | [training](training/) |
+| 输入、渲染、运行身份和资源诊断 | [diagnostics](diagnostics/) |
+| 历史运行编排 | [Python 控制器](operations/controllers/)、[Shell 启动配方](operations/launchers/) |
+| 历史 PDF 构建 | [历史构建器](../../reports/paper1/historical/)；报告收尾脚本在 [reporting](reporting/) |
+| 尚未用于正式评测的相机获取原语 | [acquisition](../../AlphaBrain/research/dsol/acquisition/) |
 
-上述分析工具有历史数据 schema 和输入来源约束，不能直接把旧快照统计当成标准初态结果。当前调度脚本绑定冻结运行目录，也不是通用的一键新实验 CLI。不要为查看帮助而启动它。
+目录分组不是协议统一：历史工具仍有各自的数据 schema、模型与初始化约束。旧快照统计不能直接混入标准初态结果。
 
-当前运行使用共享盘的冻结 `repo/` 与 `scheduling/dynamic-v1/` 副本；本目录不是对正在运行实验的热更新接口。
+## 根目录为何还保留 37 个入口／依赖
 
-## 查找与检查
+本轮从 186 个平铺文件迁出了 149 个，没有为它们批量留下根目录转发文件。剩余 37 个是当前入口、评测依赖，以及仍在运行的旧控制器所需的原路径或源码哈希目标：
+
+- 当前标准初态运行链：`dynamic_initial_scheduler_v1.py`、`standard_initial_aa0_v1.py`、`standard_initialization_v1.py`、`dualhost_aa0_v1.py`。
+- 评测、噪声、渲染、可见性与 Accel 的共享依赖。
+- 仍在运行的 `run_full64_view_landscape_v2.py` 与 `build_consolidated_view_analysis_v1.py` 的依赖，以及冻结清单核验的来源文件。
+- 三个薄兼容入口和当前统一汇报入口。
+
+它们在本轮保持原字节；没有停止任务、改变实验或伪造新哈希。进一步迁移运行链必须单独建立新运行源码版本，并做首帧与整轨迹一致性验证，不能靠 CPU 单测代替。
+
+## 旧路径在哪里
+
+[迁移清单](../../archive/paper1/maintenance/script-layout-20260911/manifest.json) 记录旧路径、新路径、原始源码备份和受保护文件。旧命令需要按清单换路径，Python 调用方改用完整模块名；不会通过修改 `PYTHONPATH` 搜索所有子目录来掩盖依赖关系。
+
+历史冻结 release 按源码哈希识别原实现。重放已有 release 应使用它自己的冻结 `repo/`；不要把迁移后的源码强行配上旧哈希清单运行。历史文档和实验记录不改写。
+
+## 维护检查
 
 ```bash
+python tools/paper1/check_architecture.py
 python tools/paper1/check_layout.py --list
 python tools/paper1/test.py
 ```
 
-第一个命令提供按用途分组的保守导航和结构检查，不执行研究脚本；第二个命令统一运行 CPU 测试。所有 Paper 1 测试已移到 `tests/dsol_paper1/`。
+结构检查不执行研究脚本。完整测试走 CPU；少数显式列出的 `--help` 测试只验证参数入口。不要用导入或 `--help` 试探未审查的历史控制器。
 
-## 为什么保留旧模块
-
-当前代码仍复用历史阶段中的数据恢复、可见性、Accel 和统计函数。名称含 `constructed`、`expectation` 或 `bridge` 不等于无用。共享服务、观测和相机实现已迁到 `scripts/vla_shared`；CABI 同名文件只保留兼容转发，不再维护第二份实现。
-
-没有移走有调用关系的公共模块；12 个独立的一次性操作脚本已转入 [历史操作归档](../../archive/paper1/README.md)。旧实验的正式入口与分析器保留供证据复现，不属于本轮默认运行流程。
-
-后续新增实验不再用 `after_*` / `retry_*` 文件堆叠主线：先明确是否可复用现有入口；特定运行的操作记录进入该运行目录，不修改冻结 release。涉及算法、默认参数、模块拆分的变更需单独经过科学一致性验收。
+新增通用实现进入研究包；新增 CLI 进入相应职责目录。不得恢复已经迁出的平铺路径，也不以 `after_*`、`retry_*` 或复制版本来代替接口设计。

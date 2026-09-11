@@ -1,0 +1,13 @@
+{
+  "scope": "Append-only source identity amendment: bind in-process shared imports to the executing checkout, not a historical experiment path. Frozen releases remain unchanged.",
+  "records": [
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/dualhost_aa0_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/dualhost_aa0_v1.py",
+      "before_git": "fcf67e5:scripts/dsol_paper1/operations/controllers/dualhost_aa0_v1.py",
+      "before_sha256": "df57af5c11e1ad0b6b509320a57aa58f5af9a811104032f084d678c420ed60c7",
+      "after_sha256": "91db7e63aaa7c6dde6de4397d8ed1e657610f24f78d03db73f28e479bc417087",
+      "reason": "Runtime probe found camera and observation helpers loading from the predecessor frozen checkout. Use this module's source root for in-process imports; preserve frozen protocol and subprocess replay paths."
+    }
+  ]
+}

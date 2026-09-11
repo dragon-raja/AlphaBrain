@@ -29,7 +29,9 @@ ROOT=Path('/share/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-2
 REPO=ROOT/'repo'
 RUNTIME=Path('/share/longjunyu/alphabrain/datasets/libero-plus/runtime/LIBERO-plus')
 SOURCE=Path('/workspace/projects/alphabrain-dsol-paper1')
-sys.path.insert(0,str(shared_scripts(REPO)))
+# Import implementation from this checkout. REPO identifies frozen experiment
+# assets / replay subprocesses; it must not silently replace local modules.
+sys.path.insert(0,str(shared_scripts(_REPOSITORY_ROOT)))
 from scripts.dsol_paper1.runtime.render_bridge_common_v1 import read, sha, array_identity, render_protocol
 from scripts.dsol_paper1.runtime.evaluate_dsol_libero_hdf5_views import protocol_spec_at, protocol_spec_count
 LOCK=threading.RLock(); ACTIVE=[]; STOP=threading.Event()

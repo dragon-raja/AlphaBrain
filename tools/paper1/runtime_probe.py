@@ -50,6 +50,13 @@ def origins():
     return result
 
 
+def require_local_modules(modules, repo):
+    root = Path(repo).resolve()
+    outside = {name: row['path'] for name, row in modules.items()
+               if root not in Path(row['path']).resolve().parents}
+    assert not outside, 'Mixed runtime source roots: ' + repr(outside)
+
+
 def serve(args):
     import numpy as np
     namespace = runpy.run_path(str(args.entry), run_name='runtime_policy_probe')
@@ -123,9 +130,12 @@ def episode(args):
                                     host='fresh', model=args.model, port=args.port, gpu=args.gpu), release)
         row = json.loads((args.output / 'episode.json').read_text())
         assert row['aa0']['counts']['calls'] == len(calls)
+        modules = origins()
+        if args.require_local_modules:
+            require_local_modules(modules, args.repo)
         write(args.output / 'calls.json', calls)
         write(args.output / 'probe.json', dict(scientific_ledger=False, status='COMPLETE',
-              entry=str(args.entry), entry_sha256=sha(args.entry), modules=origins(),
+              entry=str(args.entry), entry_sha256=sha(args.entry), modules=modules,
               release_sha256=sha(args.release), observer_sha256=sha(__file__)))
     finally:
         websocket_client_policy.WebsocketClientPolicy = original
@@ -143,6 +153,7 @@ def main():
     parser.add_argument('--index', type=int)
     parser.add_argument('--model', choices=['canonical', 'broad'])
     parser.add_argument('--gpu', type=int, default=0)
+    parser.add_argument('--require-local-modules', action='store_true')
     args = parser.parse_args()
     assert not args.output.exists(), 'Never overwrite a probe result'
     args.output.mkdir(parents=True)

@@ -8,7 +8,7 @@ import sys
 import numpy as np
 import pytest
 
-from tools.paper1.runtime_probe import identity
+from tools.paper1.runtime_probe import identity, require_local_modules
 from tools.paper1.verify_runtime import environment, require_comparison, signature
 
 
@@ -74,3 +74,26 @@ def test_environment_prioritizes_explicit_source_and_pinned_dependencies(tmp_pat
     assert 'CUDA_VISIBLE_DEVICES' not in env
     policy = environment(experiment, repo, sim=False, gpu=3)
     assert policy['CUDA_VISIBLE_DEVICES'] == '3'
+
+
+def test_source_gate_rejects_frozen_runtime_hidden_by_new_entry(tmp_path):
+    repo = tmp_path / 'current'
+    modules = {'camera': {'path': str(repo / 'scripts/vla_shared/libero_camera_pose.py')}}
+    require_local_modules(modules, repo)
+    modules['camera']['path'] = str(tmp_path / 'frozen/libero_camera_pose.py')
+    with pytest.raises(AssertionError, match='Mixed runtime source roots'):
+        require_local_modules(modules, repo)
+
+
+def test_controller_imports_shared_code_from_own_checkout():
+    import ast
+    root = Path(__file__).resolve().parents[2]
+    path = root / 'scripts/dsol_paper1/operations/controllers/dualhost_aa0_v1.py'
+    tree = ast.parse(path.read_text())
+    calls = [node for statement in tree.body if isinstance(statement, ast.Expr)
+             for node in ast.walk(statement)
+             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+             and node.func.id == 'shared_scripts']
+    assert len(calls) == 1
+    assert isinstance(calls[0].args[0], ast.Name)
+    assert calls[0].args[0].id == '_REPOSITORY_ROOT'

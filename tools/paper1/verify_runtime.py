@@ -193,12 +193,15 @@ def run(args, plan, release):
                        '--entry', v['entry'], '--repo', v['repo'], '--output', out,
                        '--release', args.experiment / 'release.json', '--index', index,
                        '--model', model, '--port', s['port'], '--gpu', s['gpu']]
+            if version == 'current':
+                command.append('--require-local-modules')
             p = launch(command, args.output / 'logs' / f'{model}-{version}-{index}.log',
                        environment(args.experiment, Path(v['repo']), sim=True), v['repo'])
             assert p.wait(timeout=900) == 0, f'Episode failed: {model}/{version}/{index}'
             return model, version, index
 
         first = plan['gate_indices'][0]
+        status(phase='RUNNING_PILOT', completed=0, total=192)
         pilot_start = time.monotonic()
         with ThreadPoolExecutor(max_workers=2) as pool:
             try:

@@ -16,6 +16,7 @@ restored.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from copy import deepcopy
 from datetime import datetime, timezone
 import gzip
 import hashlib
@@ -165,6 +166,30 @@ def load_compiled_model_xml(bundle: SnapshotBundle) -> str:
     if path.stat().st_size != int(expected['bytes']) or _sha256(path) != expected['sha256']:
         raise RuntimeError('Archived compiled model XML checksum/size mismatch')
     return _read_gzip_text(path)
+
+
+def direct_scene_xml(bundle: SnapshotBundle, *, editor_type=None) -> str:
+    """Use the original precision and original camera transformation, no reset.
+
+    Compiled XML export can round geometry constants and is only structural
+    evidence for an exact replay. The historical environment path edits the
+    source XML using saved camera metadata. Allocate only that method's receiver;
+    no environment constructor, reset, stepping or random scene creation occurs.
+    Texture-generation configurations need a separately validated adapter.
+    """
+    if bundle.ep_meta.get('gen_textures'):
+        raise ValueError('Direct reconstruction of generated textures is not admitted')
+    cameras = bundle.ep_meta.get('cam_configs')
+    if not isinstance(cameras, dict) or not cameras:
+        raise ValueError('Recorded camera configuration is missing')
+    if editor_type is None:
+        # Dependency import occurs only on an explicitly requested runtime call.
+        from robocasa.environments.kitchen.kitchen import Kitchen
+        editor_type = Kitchen
+    receiver = object.__new__(editor_type)
+    receiver._cam_configs = deepcopy(cameras)
+    receiver.generative_textures = None
+    return receiver.edit_model_xml(bundle.model_xml)
 
 
 def _write_gzip_text(path: Path, value: str) -> None:

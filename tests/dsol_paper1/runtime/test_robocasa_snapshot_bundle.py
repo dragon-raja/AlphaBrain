@@ -11,10 +11,27 @@ import numpy as np
 
 from benchmarks.Robocasa365.snapshot import EnvSnapshot
 from benchmarks.Robocasa365.snapshot_bundle import _LegacySnapshotUnpickler, snapshot_numeric_fingerprint
-from benchmarks.Robocasa365.snapshot_bundle import save_snapshot_bundle, load_snapshot_bundle, load_compiled_model_xml
+from benchmarks.Robocasa365.snapshot_bundle import save_snapshot_bundle, load_snapshot_bundle, load_compiled_model_xml, direct_scene_xml
 
 
 class SnapshotCompatibilityTests(unittest.TestCase):
+    def test_direct_scene_uses_saved_source_and_metadata_without_constructing_env(self):
+        class Editor:
+            def __init__(self):
+                raise AssertionError('Environment constructor must not run')
+            def edit_model_xml(self, xml):
+                self._cam_configs['left']['pos'][0]=42
+                return xml+' original camera transform'
+        bundle=SimpleNamespace(model_xml='high precision source',ep_meta={
+            'cam_configs':{'left':{'pos':[0,1,2]}},'gen_textures':{}})
+        self.assertEqual(direct_scene_xml(bundle,editor_type=Editor),
+                         'high precision source original camera transform')
+        self.assertEqual(bundle.ep_meta['cam_configs']['left']['pos'],[0,1,2])
+        bundle.ep_meta['gen_textures']={'cab_tex':'texture'}
+        with self.assertRaises(ValueError):direct_scene_xml(bundle,editor_type=Editor)
+        bundle.ep_meta={'cam_configs':{}}
+        with self.assertRaises(ValueError):direct_scene_xml(bundle,editor_type=Editor)
+
     def test_direct_reader_selects_checked_compiled_xml_without_source_fallback(self):
         with tempfile.TemporaryDirectory() as folder:
             path=Path(folder)

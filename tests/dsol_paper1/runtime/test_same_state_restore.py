@@ -78,3 +78,70 @@ def test_moving_mocap_is_restored_before_forward_and_act_is_not_invented():
     del arrays['frame/026/sim/act']
     with pytest.raises(ValueError, match='actuator activation was not recorded'):
         restore_frame(sim,snapshot,arrays,26,{},names)
+
+
+def test_render_pose_rejects_unsupported_camera_before_mutation():
+    from benchmarks.Robocasa365.recorded_render_pose import install_recorded_render_pose
+    model=SimpleNamespace(cam_mode=np.array([1]), light_mode=np.array([0]))
+    data=SimpleNamespace(xpos=np.zeros((1,3)))
+    sim=SimpleNamespace(model=SimpleNamespace(_model=model),data=SimpleNamespace(_data=data))
+    with pytest.raises(ValueError, match='fixed cameras'):
+        install_recorded_render_pose(sim,np.ones((1,3)),np.ones((1,4)))
+    assert not data.xpos.any()
+
+
+def test_render_pose_derives_sites_without_changing_raw_state():
+    from benchmarks.Robocasa365.recorded_render_pose import install_recorded_render_pose
+    model=SimpleNamespace(cam_mode=np.array([0]), light_mode=np.array([0]), nbody=1,
+        ngeom=0,nsite=1,body_ipos=np.zeros((1,3)),body_iquat=np.array([[1.,0,0,0]]),
+        site_pos=np.array([[2.,0,0]]),site_quat=np.array([[1.,0,0,0]]),
+        site_bodyid=np.array([0]),site_sameframe=np.array([0]))
+    data=SimpleNamespace(xpos=np.zeros((1,3)),xquat=np.zeros((1,4)),xmat=np.zeros((1,9)),
+        xipos=np.zeros((1,3)),ximat=np.zeros((1,9)),site_xpos=np.zeros((1,3)),
+        site_xmat=np.zeros((1,9)),qpos=np.array([99.]),time=12.)
+    calls=[]
+    def local(d,pos,mat,p,q,b,s):
+        pos[:]=d.xpos[b]+p
+        mat[:]=np.eye(3).ravel()
+    native=SimpleNamespace(mju_quat2Mat=lambda res,q:res.__setitem__(slice(None),np.eye(3).ravel()),
+        mj_local2Global=local,mj_camlight=lambda m,d:calls.append('cameras'))
+    sim=SimpleNamespace(model=SimpleNamespace(_model=model),data=SimpleNamespace(_data=data))
+    install_recorded_render_pose(sim,np.array([[3.,0,0]]),np.array([[1.,0,0,0]]),native=native)
+    np.testing.assert_array_equal(data.site_xpos,[[5.,0,0]])
+    assert data.qpos[0]==99. and data.time==12. and calls==['cameras']
+
+
+def test_scene_resources_are_released_before_next_context_exists():
+    from benchmarks.Robocasa365.same_state_restore import initialize_renderer, close_render_sim
+    events=[]
+    current=[None]
+    class Context:
+        def __init__(self,sim,device_id):
+            self.label=sim.label
+            self.vopt=SimpleNamespace(geomgroup=np.zeros(2))
+            self.con=SimpleNamespace(offSamples=4)
+            self.gl_ctx=SimpleNamespace(make_current=self.make_current)
+            sim._render_context_offscreen=self
+            self.make_current()
+        def make_current(self):
+            current[0]=self.label
+        def __del__(self):
+            events.append((self.label,current[0]))
+    # Avoid self-reference in fake gl_ctx; real GL context is separate too.
+    class GL:
+        def __init__(self,label):self.label=label
+        def make_current(self):current[0]=self.label
+    original=Context.__init__
+    def init(self,sim,device_id):
+        original(self,sim,device_id)
+        self.gl_ctx=GL(self.label)
+    Context.__init__=init
+    class Sim:
+        def __init__(self,label):self.label=label
+        def free(self):del self._render_context_offscreen
+    for label in ('cabinet','sink'):
+        sim=Sim(label)
+        initialize_renderer(sim,Context,0,4)
+        close_render_sim(sim)
+        assert events[-1]==(label,label)
+    assert len(events)==2

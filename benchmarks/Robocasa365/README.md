@@ -171,33 +171,56 @@ execution requires explicit configuration and `--execute`.
 
 ## Same-state restoration diagnostic (2026-10-15)
 
-`same_state_restore.py` reconstructs recorded intermediate states with a direct
-MuJoCo model and `forward()`, never an environment reset or action replay. It
-requires exact independent state and recomputed body/site geometry, followed by
-the original native-render pixel gate. Missing actuator activation is an error.
-Mocap inputs come from each recorded body's world pose through the compiled
-`body_mocapid` mapping; body identities and complete slot coverage are checked.
-The pure mapping lives in `data/recorded_mocap.py` and supports moving bodies and
-nonconsecutive body IDs. It never substitutes initial poses or fits geometry.
+`same_state_restore.py` is an explicit, no-action observation replay gate.
+`forward_raw_state` retains the original exact independent-state/geometry check.
+The separately authorized `separate_recorded_render_pose` mode retains exact raw
+qpos/qvel/ctrl/time/warmstart, installs the recorded body world poses, and derives
+sites, geoms, cameras and lights with native MuJoCo operations. Sites are compared
+against independent historical records; rendered images must pass the unchanged
+native pixel gate. This is historical observation replay, **not** a dynamically
+complete state for continuing physics. No step/reset/action is permitted.
 
-Use an explicit new `--output` and `--previous-attempt` when a retry is authorized.
-Previous reserved model calls carry forward against the same total cap. Existing
-output directories are not resumed or overwritten. `render_preflight.py` checks
-the native EGL device convention before simulator imports: this Robosuite version
-accepts physical numeric GPU indices, not UUIDs in `CUDA_VISIBLE_DEVICES`.
+The split is necessary because historical Robosuite telemetry pairs integrated
+qpos with rendering caches from before the last 2 ms integration. Calling forward
+on raw qpos cannot reproduce that earlier geometry. Missing actuator activation
+remains an error. Mocap inputs come from each recorded body's world pose through
+`body_mocapid`; the pure mapping in `data/recorded_mocap.py` checks identities and
+complete slot coverage, including moving targets and nonconsecutive body IDs.
 
-Direct reconstruction uses the separately checksummed `compiled_model.xml.gz`,
-which preserves the cameras installed by the original environment. The raw
-`model.xml.gz` remains the input to environment reconstruction, whose
-`edit_model_xml` adds those cameras. The direct adapter checks the full archived
-model signature, runtime array shapes and candidate installations before rendering.
-Missing or changed compiled XML is an error, never a reason to synthesize cameras.
+Direct reconstruction uses the original `model.xml.gz` and the original
+`Kitchen.edit_model_xml` with saved camera metadata, without constructing an
+environment. The exported compiled XML remains checksummed audit evidence, but
+its rounded constants are unsuitable for exact reconstruction. Full archived
+model signatures and candidate array shapes are checked before rendering.
+Generative textures and unrecorded deformable/tracking render state fail closed.
 
-The numeric-device correction passed EGL initialization in the next authorized
-attempt, which then stopped because the previous direct reader loaded a raw XML
-with two cameras while the frozen installation has six. Both archived compiled
-XML payloads retain all six cameras and pass their original checksums. The reader
-correction and schema checks pass CPU tests; **runtime validation of this further
-correction remains pending** under the stop-on-failure instruction. Cumulative
-model calls remain zero. Neither intermediate state admission nor the two-case
-cross-view diagnostic is claimed complete.
+Renderer ownership remains on the simulator; resources are freed with their own
+GL context current before another scene is constructed. A renderer local retained
+across scenes can otherwise be destroyed under the next scene's GL context.
+`render_preflight.py` checks Robosuite's numeric EGL GPU convention before imports.
+
+Use a new `--output` and `--previous-attempt` only for an authorized attempt.
+Previous reserved model calls carry forward against the same cap. Existing
+outputs and historical failures are never resumed or overwritten. The authorized
+split-pose attempt passed all 192 cabinet frames / 576 images with zero pixel
+difference, then stopped at the first sink image with corrupted pixels. After
+explicit retry authorization and the context-lifecycle correction, both cases
+passed: 384 frames / 1152 images were pixel-exact, and raw state and independently
+reconstructed sites were exact. Earlier failures remain archived.
+
+`same_state_diagnostic.py` then completed 192 fixed cells, reusing 32 historical
+outputs. New calls total exactly 172: 160 diagnostic calls (including four cached
+control baselines), four historical fixed-input controls and eight rerender
+controls. All model controls were exact. Full seven-frame history is retained for
+the original four-frame sampler; cross-view intervention changes only sampled
+external images. No generated action is executed. Native complete velocity traces,
+input hashes, seeds and a reserve-before-dispatch ledger are retained. The ledger
+rejects automatic resume and carries prior attempts against the cumulative cap.
+
+Pure factorial contrasts live in `analysis/same_state.py`; channel metrics retain
+the original score definition. `reports/paper1/same_state_report.py` consumes the
+completed artifacts. State/history, view and interaction effects are descriptive
+for these two selected cases, not new closed-loop labels or proof of an improved
+selector. Cabinet late-stage effects strongly involve the gripper; sink effects
+are mostly translational and view preferences depend on the origin state/history.
+Do not turn these findings into universal channel weights.

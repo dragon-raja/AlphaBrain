@@ -14,10 +14,11 @@ from AlphaBrain.research.dsol.data.artifacts import read, sha, write, path_mappi
 from AlphaBrain.research.dsol.data.evaluation_admission import resolve_initial, load_candidate
 from AlphaBrain.research.dsol.data.prefix_telemetry import exact
 from AlphaBrain.research.dsol.data.recorded_mocap import mocap_from_body_poses
-from .snapshot_bundle import (load_snapshot_bundle, load_compiled_model_xml,
-                              compiled_model_signature, COMPILED_MODEL_FILE)
+from .snapshot_bundle import (load_snapshot_bundle, direct_scene_xml,
+                              compiled_model_signature, MODEL_FILE, EP_META_FILE)
 from .evaluation_render import pixel_check
 from .render_preflight import validate_render_device
+from .recorded_render_pose import install_recorded_render_pose
 
 
 RAW = ('qpos', 'qvel', 'ctrl', 'qacc_warmstart')
@@ -27,6 +28,28 @@ CAMERAS = ('robot0_agentview_left', 'robot0_agentview_right', 'robot0_eye_in_han
 
 def forbid_step(*args, **kwargs):
     raise RuntimeError('No simulator steps are authorized in this diagnostic')
+
+
+def initialize_renderer(sim, factory, gpu, samples):
+    """Keep context ownership on sim, without a stale reference across scenes."""
+    context=factory(sim,device_id=gpu)
+    context.vopt.geomgroup[0]=0;context.vopt.geomgroup[1]=1
+    if int(context.con.offSamples)!=samples:
+        raise ValueError('Native renderer sample count differs')
+
+
+def close_render_sim(sim):
+    """Free GL resources while their owning context is still current.
+
+    Robosuite's renderer destructor calls con.free() without make_current().
+    Retaining a local renderer across scene replacement can consequently free
+    the next scene's GL resources. Never retain a renderer outside its sim.
+    """
+    context=getattr(sim,'_render_context_offscreen',None)
+    if context is not None:
+        context.gl_ctx.make_current()
+    del context
+    sim.free()
 
 
 def validate_restoration_model(sim, bundle, candidates):
@@ -45,7 +68,9 @@ def validate_restoration_model(sim, bundle, candidates):
             if value.shape != getattr(sim.model, attr).shape or not np.isfinite(value).all():
                 raise ValueError('Candidate camera installation is incompatible: '+view+'/'+key)
     return dict(signature=signature, candidate_views=list(candidates),
-                xml_payload=COMPILED_MODEL_FILE, status='PASS_MODEL_SCHEMA')
+                xml_payload=MODEL_FILE, metadata_payload=EP_META_FILE,
+                transform='Original camera XML edit without environment construction/reset',
+                status='PASS_MODEL_SCHEMA')
 
 
 def restore_frame(sim, snapshot, arrays, step, candidate, recorded_body_names=None):
@@ -86,6 +111,11 @@ def restore_frame(sim, snapshot, arrays, step, candidate, recorded_body_names=No
 
 def run(config_file, output=None, previous_attempt=None):
     cfg=read(config_file);out=Path(output or cfg['output']);gate=out/'restoration'
+    mode=cfg.get('restoration_mode', 'forward_raw_state')
+    if mode not in ('forward_raw_state', 'separate_recorded_render_pose'):
+        raise ValueError('Unknown restoration mode')
+    if mode == 'separate_recorded_render_pose' and not cfg.get('render_pose_authorization'):
+        raise ValueError('Separate render-pose validation requires explicit authorization')
     inherited = 0
     if previous_attempt is not None:
         previous = read(Path(previous_attempt)/'call-ledger.json')
@@ -116,10 +146,11 @@ def run(config_file, output=None, previous_attempt=None):
                 bundle=load_snapshot_bundle(Path(admitted['job']['path']))
                 sources[str(bundle.path/'manifest.json')]=sha(bundle.path/'manifest.json')
                 candidates={v:load_candidate(admitted,v) for v in case['views']}
-                xml=load_compiled_model_xml(bundle)
-                sources[str(bundle.path/COMPILED_MODEL_FILE)]=sha(bundle.path/COMPILED_MODEL_FILE)
+                xml=direct_scene_xml(bundle)
+                for payload in (MODEL_FILE,EP_META_FILE):
+                    sources[str(bundle.path/payload)]=sha(bundle.path/payload)
                 sim=MjSim.from_xml_string(xml)
-                sim.step=forbid_step
+                sim.step=sim.step1=sim.step2=forbid_step
                 write(gate/f'{initial}-model-schema.json',validate_restoration_model(sim,bundle,candidates))
                 names_path=Path(cfg['prefix_root'])/'xr1'/f'{initial}-names.json'
                 names=read(names_path)['body_names'];sources[str(names_path)]=sha(names_path)
@@ -131,10 +162,7 @@ def run(config_file, output=None, previous_attempt=None):
                 write(gate/f'{initial}-state-schema.json',dict(na=int(sim.model.na),nmocap=int(sim.model.nmocap),
                     mocap_bodies=[dict(body_id=int(i),name=names[i],slot=int(mapping[i])) for i in np.flatnonzero(mapping>=0)],
                     source='Recorded body world poses; no action replay or static-pose assumption'))
-                context=MjRenderContextOffscreen(sim,device_id=cfg['gpu'])
-                context.vopt.geomgroup[0]=0;context.vopt.geomgroup[1]=1
-                if int(context.con.offSamples)!=cfg['renderer_off_samples']:
-                    raise ValueError('Native renderer sample count differs')
+                initialize_renderer(sim,MjRenderContextOffscreen,cfg['gpu'],cfg['renderer_off_samples'])
                 for view in case['views']:
                     for repeat in cfg['repeats']:
                         path=Path(cfg['prefix_root'])/'xr1'/initial/view/f'{repeat:02d}'/'telemetry.npz'
@@ -150,6 +178,17 @@ def run(config_file, output=None, previous_attempt=None):
                                     identity=dict(initial=initial,source_view=view,repeat=repeat,score_step=score_step,frame_step=step)
                                     checks=restore_frame(sim,bundle.snapshot,z,step,candidates[view],names)
                                     row=dict(**identity,geometry_checks=checks,pixel_checks={})
+                                    if mode == 'separate_recorded_render_pose':
+                                        row['forward_raw_state_checks']=checks
+                                        independent={k:v for k,v in checks.items() if k not in GEOMETRY}
+                                        if not all(c['exact'] for c in independent.values()):
+                                            raise ValueError('Raw state restoration failed before render-pose replay')
+                                        prefix=f'frame/{step:03d}/sim/'
+                                        install_recorded_render_pose(sim,z[prefix+'body_xpos'],z[prefix+'body_xquat'])
+                                        checks={k:exact(getattr(sim.data,k),z[prefix+k]) for k in RAW+GEOMETRY}
+                                        checks.update(independent)
+                                        row['geometry_checks']=checks
+                                        row['scope']='Independent raw state and historical observation pose; not dynamics restart'
                                     records.append(row);status['checked_frames']+=1
                                     if not all(c['exact'] for c in checks.values()):
                                         np.savez_compressed(gate/'failed-state.npz',
@@ -173,7 +212,7 @@ def run(config_file, output=None, previous_attempt=None):
                                     status['verified_frames']+=1
                             write(out/'status.json',status)
                             print(initial,view,repeat,'PASS',status['verified_frames'],flush=True)
-                sim.free();sim=None
+                close_render_sim(sim);sim=None
         status.update(status='PASS_STATE_RESTORATION',stage='AWAITING_ENGINEERING_MODEL_CONTROLS')
     except BaseException as exc:
         status.update(status='STOPPED_GATE_FAILURE',error=str(exc),error_type=type(exc).__name__,
@@ -181,7 +220,7 @@ def run(config_file, output=None, previous_attempt=None):
         raise
     finally:
         if sim is not None:
-            sim.free()
+            close_render_sim(sim)
         status['finished_unix']=time.time()
         write(gate/'checks.json',records);write(gate/'sources.json',sources)
         status['source_sha256']=sha(__file__)

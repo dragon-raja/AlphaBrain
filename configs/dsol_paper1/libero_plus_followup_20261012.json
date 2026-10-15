@@ -1,0 +1,36 @@
+{
+  "experiment_id": "libero-plus-window-panel-20261012",
+  "root": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012",
+  "authorization": "User selected completeness: original eight tasks, four initials, canonical/broad checkpoints; LIBERO windows1-5 and archived endpoints; official Plus camera subset initial scoring and four executions per cell, launch after runtime/throughput admission.",
+  "deadline_local": "2026-10-13T23:59:00+08:00",
+  "scope": {
+    "libero_initials": 32,
+    "libero_candidates": 97,
+    "models": ["canonical", "broad"],
+    "windows": [1, 2, 3, 4, 5],
+    "score_repeats": 8,
+    "libero_existing_execution_repeats": 32,
+    "plus_camera_initial_requests": 1364,
+    "plus_execution_repeats": 4,
+    "new_training": false,
+    "new_task_selection": false,
+    "expand_on_success": false,
+    "claim": "Known-task exploratory cross-camera-distribution follow-up; not full LIBERO-Plus40, fresh-task generalization, or physically deployed active search."
+  },
+  "inputs": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/inputs/libero-inputs.json",
+  "requests": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/inputs/plus-requests.json",
+  "input_hashes": {
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/inputs/libero-inputs.json": "c562fa09a272ce69deb78bf8c64393020e408c98cad582731c428f6850f26df8",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/inputs/plus-requests.json": "06bd558b60999236ae2181d998ab54eff6ecf0f94939aff12b3c140fdc17e445"
+  },
+  "runtime": "/share/personal/longjunyu/alphabrain/datasets/libero-plus/runtime/LIBERO-plus",
+  "dataset": "/share/personal/longjunyu/alphabrain/datasets/libero-original-hdf5-v1",
+  "sim_python": "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/python38/bin/python3.8",
+  "sim_site": "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/sim/lib/python3.8/site-packages",
+  "sim_extra_paths": [
+    "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/openpi-client-src",
+    "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/openpi-src"
+  ],
+  "source": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-runtime-v3",
+  "readiness": "Rendering-only may launch after exact initial admission. Policy endpoints and multistep probes require separate batch16/window1, rollout and throughput gates. No automatic full rollout launch from this file."
+}

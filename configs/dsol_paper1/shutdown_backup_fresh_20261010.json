@@ -1,0 +1,21 @@
+{
+  "host": "fresh",
+  "destination": "/share/personal/longjunyu/recovery/shutdown-20261015/fresh",
+  "sources": [
+    "/workspace/projects/alphabrain-dsol-paper1",
+    "/workspace/projects/openpi-robocasa",
+    "/workspace/projects/robocasa",
+    "/workspace/projects/robosuite",
+    "/workspace/projects/robotwin-replay-runtime",
+    "/workspace/projects/xiaomi-robotics1-upstream-20260929",
+    "/workspace/research-reviews",
+    "/workspace/envs",
+    "/workspace/libero-initialization-diagnostic-20260923",
+    "/workspace/alphabrain-prs",
+    "/alphabrain",
+    "/root/.local/share/uv/python",
+    "/workspace/ai2r/gpu_compute_keepalive"
+  ],
+  "exclude_patterns": ["auth.json", ".env", ".env.*", "id_ed25519*", "id_rsa*", "*.pem", "*.key", "*.sock"],
+  "max_mib_per_second": 32
+}

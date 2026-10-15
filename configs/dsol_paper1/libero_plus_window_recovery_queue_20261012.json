@@ -1,0 +1,78 @@
+{
+  "experiment_id": "native-plus-windows-20261012",
+  "worker_config": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-plus-windows-v2/configs/dsol_paper1/libero_plus_windows_recovery_20261012.json",
+  "python": "/alphabrain/.venv/bin/python",
+  "timeout_seconds": 50400,
+  "gpus": {
+    "fresh": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "gnu": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  "control_roots": {
+    "fresh": "/workspace/research-reviews/libero-plus-20261012/plus-windows-recovered-fresh",
+    "gnu": "/workspace/research-reviews/libero-plus-20261012/plus-windows-recovered-gnu"
+  },
+  "dependencies": {
+    "fresh": "/workspace/research-reviews/libero-plus-20261012/windows-fresh",
+    "gnu": "/workspace/research-reviews/libero-plus-20261012/windows-gnu"
+  },
+  "environments": {
+    "fresh": {
+      "PYTHONPATH": "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/policy/lib/python3.12/site-packages:/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-plus-windows-v2",
+      "OMP_NUM_THREADS": "2",
+      "OPENBLAS_NUM_THREADS": "2",
+      "ALPHABRAIN_DISABLE_AUTO_DOWNLOAD": "1",
+      "PRETRAINED_MODELS_DIR": "/share/personal/longjunyu/alphabrain/pretrained_models"
+    },
+    "gnu": {
+      "PYTHONPATH": "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/policy/lib/python3.12/site-packages:/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-plus-windows-v2",
+      "OMP_NUM_THREADS": "2",
+      "OPENBLAS_NUM_THREADS": "2",
+      "ALPHABRAIN_DISABLE_AUTO_DOWNLOAD": "1",
+      "PRETRAINED_MODELS_DIR": "/share/personal/longjunyu/alphabrain/pretrained_models",
+      "LD_LIBRARY_PATH": "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/egl-jammy/extracted/usr/lib/x86_64-linux-gnu"
+    }
+  },
+  "full_config": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-plus-production-v1/configs/dsol_paper1/libero_plus_production_20261012.json",
+  "libero_worker_config": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-probe-v1/configs/dsol_paper1/libero_windows_20261012.json",
+  "old_matrix": "/share/personal/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/research-v1/history/20260911T023803721133Z/matrix.npz",
+  "old_matrix_sha256": "4440669062eeeeb5be109e76068896328fdad200fcb540685b3406f3c190baad",
+  "early_pilot": true,
+  "pipeline_tag": "recovered-",
+  "pilot_gpus": {
+    "fresh": [
+      0
+    ],
+    "gnu": [
+      6
+    ]
+  },
+  "production_dependencies": {
+    "fresh": [
+      "/workspace/research-reviews/libero-plus-20261012/windows-recovery-fresh/production",
+      "/workspace/research-reviews/libero-plus-20261012/plus-fresh-expanded"
+    ],
+    "gnu": [
+      "/workspace/research-reviews/libero-plus-20261012/windows-recovery-gnu/production",
+      "/workspace/research-reviews/libero-plus-20261012/plus-gnu-balanced"
+    ]
+  },
+  "libero_ownership": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/window-recovery-ownership.json"
+}

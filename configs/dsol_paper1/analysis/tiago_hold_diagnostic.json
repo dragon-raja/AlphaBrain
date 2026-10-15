@@ -1,0 +1,9 @@
+{
+  "output": "/workspace/research-reviews/active-camera-feasibility-20260921/kitchen-hold-diagnostic-20260922",
+  "case_timeout_seconds": 50,
+  "cases": [
+    {"task": "OpenDrawer", "layout": 23, "style": 54, "seed": 0, "steps": 100, "placement_prescreen": true, "allow_support": true, "monitor_hold": true},
+    {"task": "OpenDrawer", "layout": 23, "style": 54, "seed": 1, "steps": 100, "placement_prescreen": true, "allow_support": true, "monitor_hold": true},
+    {"task": "TurnOnMicrowave", "layout": 23, "style": 54, "seed": 0, "steps": 100, "placement_prescreen": true, "allow_support": true, "monitor_hold": true}
+  ]
+}

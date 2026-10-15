@@ -1,0 +1,9 @@
+{
+  "output": "/workspace/research-reviews/active-camera-feasibility-20260921/kitchen-support-prescreen-20260922",
+  "case_timeout_seconds": 45,
+  "cases": [
+    {"task": "OpenDrawer", "layout": 23, "style": 54, "seed": 0, "inspect_contacts": true, "placement_prescreen": true, "allow_support": true},
+    {"task": "OpenDrawer", "layout": 23, "style": 54, "seed": 1, "inspect_contacts": true, "placement_prescreen": true, "allow_support": true},
+    {"task": "TurnOnMicrowave", "layout": 23, "style": 54, "seed": 0, "inspect_contacts": true, "placement_prescreen": true, "allow_support": true}
+  ]
+}

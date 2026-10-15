@@ -1,0 +1,53 @@
+{
+  "output": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/flow-structure-20261015T032638Z",
+  "synthesis_config": "configs/dsol_paper1/analysis/window_synthesis_20261013.json",
+  "consensus_root": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/action-consensus-20261013",
+  "prefix_analysis": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/prefix-replay-20261014/analysis",
+  "cpu_workers": 4,
+  "coordinate_sources": [
+    "/workspace/projects/openpi-robocasa/src/openpi/groot_utils/groot_openpi_dataset.py",
+    "benchmarks/Robocasa365/xr1_policy.py",
+    "/share/personal/longjunyu/robocasa/checkpoints/xiaomi-robotics-1-robocasa365/3a6d0293bfa90759d34a7fc48c2c62413cd7bcf4/processing_mibot.py"
+  ],
+  "rules": [
+    "original",
+    "near",
+    "near_radial",
+    "near_angular"
+  ],
+  "windows": [
+    1,
+    3,
+    5
+  ],
+  "denoise_prefix": 3,
+  "epsilon": 1e-12,
+  "identity_atol": 1e-12,
+  "identity_rtol": 1e-11,
+  "original_comparison": "array_equal",
+  "invalid_direction_policy": "Undefined if any of the first3 norms <=1e-12; exclude candidate if any scoring repeat/stage required by window is undefined; no label-based fallback.",
+  "statistics": "Equal task, within-task split, within-split initial weights; paired descriptive bootstrap reuses frozen summarize; missing-label success and paired-delta bounds retain all initials.",
+  "channel_mapping": {
+    "translation": [
+      0,
+      3
+    ],
+    "rotation": [
+      3,
+      6
+    ],
+    "gripper": [
+      6,
+      7
+    ],
+    "robocasa_base": [
+      7,
+      11
+    ],
+    "robocasa_control_mode": [
+      11,
+      12
+    ]
+  },
+  "scope": "All six current panels and four preselected short-prefix cases. Previously inspected development data. No new inference, rollout, queue, weights, threshold tuning or replacement of frozen results."
+}

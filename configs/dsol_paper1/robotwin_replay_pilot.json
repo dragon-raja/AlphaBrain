@@ -1,0 +1,12 @@
+{
+  "purpose": "engineering-only native recorded-path replay; not a VLA evaluation",
+  "resource_pointer": "/share/personal/longjunyu/robotwin/registry/current.json",
+  "runtime_root": "/workspace/projects/robotwin-replay-runtime",
+  "raw_root": "/share/personal/longjunyu/robotwin/datasets/raw/hf-3dc3b798668f/aloha-agilex_clean_50",
+  "tasks": ["adjust_bottle", "open_microwave"],
+  "episodes": [0],
+  "render_device": "cuda:0",
+  "physical_cuda_visible_devices": "1",
+  "joint_tolerance": 0.00001,
+  "candidate_probe": "head camera world-x translation 0.03m; original and wrist installation otherwise unchanged"
+}

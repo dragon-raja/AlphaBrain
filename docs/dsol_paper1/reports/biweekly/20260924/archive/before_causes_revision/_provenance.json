@@ -1,0 +1,118 @@
+{
+  "revision": "figure_led",
+  "period": [
+    "2026-09-10",
+    "2026-09-23"
+  ],
+  "compiled": "2026-09-24",
+  "thread": "01a0861a-5f0e-79b1-9cf9-b1e1ede4baf2",
+  "sources": [
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/reports/current/vla_view_research_progress_zh.md",
+      "sha256": "118ca427abba74349a408c08ddf99d8c6f061ecd302f5df8fc3a15c5fe3606e1"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/results/libero_robocasa_attribution_20260923_zh.md",
+      "sha256": "8f340c25aaef76bfc04a41b1b93d987c89ee18cf2877d6b56087747292871f17"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/results/accel_field_20260915_zh.md",
+      "sha256": "8950af5f8969399f9842548be771b6bb7583441d576188b35539d14caa81e6ab"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/protocols/local_view_derivative_20260916_zh.md",
+      "sha256": "93eae7406ba9282523eed9afd74cf4798aa24c097871a7c4cf72ef26664a39a3"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/planning/outcome_active_observation_20260918_zh.md",
+      "sha256": "53295d213925e60bb105d13bf1c6f1cd50a2b6ce5d8e437984477103145ea0fd"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/planning/active_camera_feasibility_20260921_zh.md",
+      "sha256": "a307f743ec1d64fa3afb53d4e89467eb3d50385b3ffc9ceb2baf354ba94287e5"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/audits/libero_step_zero_interpretation_20260923_zh.md",
+      "sha256": "c5cb071048c77b85a8667359c3e066f4f51a953779d626dc15d7213ddfd28c14"
+    },
+    {
+      "path": "/workspace/research-reviews/robocasa-p0-analysis-20260923/population.json",
+      "sha256": "54ccafb76480cb6a2552f591542bf764b039ad4763f7a3cc9c470eb618dae607"
+    },
+    {
+      "path": "/workspace/research-reviews/robocasa-p0-analysis-20260923/matrix.npz",
+      "sha256": "a9854396007dce1b63608631cdf5764d714c40c495e968bd3ed37067fd45151e"
+    },
+    {
+      "path": "/workspace/research-reviews/robocasa-p0-analysis-20260923/spatial-field-correlation-20260923.json",
+      "sha256": "c02856f1b24d3a08bbaf240f3b9ba07f075ed8d03fceb91b8dbf705472623967"
+    },
+    {
+      "path": "/workspace/research-reviews/view-evidence-diagnostic-20260923/contact-sheets/robocasa-OpenDrawer.png",
+      "sha256": "a54ff97ae62f4ae39ae9348cd3fd77fab51b0a9f576374e8061131042c2c2ae3"
+    },
+    {
+      "path": "/workspace/research-reviews/view-evidence-diagnostic-20260923/observation-response.png",
+      "sha256": "8488fee1b40393469baac96ba0743ce506e8d2b9f3a324cb440beb83e9c03a00"
+    }
+  ],
+  "chart_data": [
+    [
+      [
+        90.625,
+        22.406,
+        65.43
+      ],
+      [
+        88.672,
+        76.459,
+        86.523
+      ]
+    ],
+    [
+      [
+        51.25,
+        40.26,
+        43.5
+      ],
+      [
+        44.88,
+        40.14,
+        37.25
+      ]
+    ]
+  ],
+  "layout": [
+    {
+      "page": 1,
+      "spare_height": 0,
+      "scale": 1.0
+    },
+    {
+      "page": 2,
+      "spare_height": 24.52618408203125,
+      "scale": 1.0
+    },
+    {
+      "page": 3,
+      "spare_height": 51.532470703125,
+      "scale": 1.0
+    }
+  ],
+  "references": [
+    "https://arxiv.org/abs/2603.12193",
+    "https://arxiv.org/abs/2609.24124",
+    "https://arxiv.org/abs/2512.01188",
+    "https://arxiv.org/abs/2602.22461"
+  ],
+  "notes": [
+    "No new experiments; no current research report overwritten.",
+    "DOCX shares content; Word pagination may depend on installed fonts.",
+    "ActiveArena resource review remains prospective; no local reproduction claimed."
+  ],
+  "outputs": {
+    ".pdf": "8e2c69c684f6e8c46b8a626097da99b987cb6baa7b05c0fdf1f081f9363e7392",
+    ".docx": "8c540996139153f888035d332f366821e9b72d7aad034b78957cef260597b9a4",
+    ".md": "9e9fdb85029d578771ee5e5e6da300ce353000829599bad6e48ff01a343c884d"
+  }
+}

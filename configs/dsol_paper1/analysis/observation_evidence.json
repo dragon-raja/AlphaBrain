@@ -1,0 +1,12 @@
+{
+  "scope": "Approved stage1 evidence inspection + stage2 observation response; no stage3 rollout or retraining",
+  "robocasa_training": "/share/longjunyu/alphabrain/experiments/dsol-robocasa-stage2-preparation-20260916",
+  "robocasa_population": "/workspace/research-reviews/robocasa-p0-analysis-20260923/population.json",
+  "libero_training": "/share/longjunyu/alphabrain/datasets/dsol-libero-broad-pairs-v1/quick_gate_seed41_broad64_stride2",
+  "output": "/workspace/research-reviews/view-evidence-diagnostic-20260923",
+  "selection": "Per task, first sorted training episode with separated quarter/three-quarter recorded frames; minimum separation RoboCasa50/ LIBERO10 frames; existing canonical and two training views only",
+  "noise_repeats": 8,
+  "noise_seed": 20260923,
+  "state_response": "Canonical view only, actual observations and original demonstration actions. Does not isolate vision from proprioception and does not imply closed-loop performance.",
+  "visibility": "Qualitative review of actual RGB; not ground-truth semantic segmentation or a proof of equal information. Do not use pixel occupancy alone as evidence sufficiency."
+}

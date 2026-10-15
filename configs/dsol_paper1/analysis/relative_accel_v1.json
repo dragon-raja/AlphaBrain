@@ -1,0 +1,10 @@
+{
+  "audited_analysis": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/research-v1/history/20260911T023803721133Z",
+  "release": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/release.json",
+  "output": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/relative-accel-v1",
+  "image_dim": 8,
+  "alpha": 10.0,
+  "fit_starts": [0, 64],
+  "evaluation_starts": [64, 96],
+  "status": "Exploratory protocol; previous aggregate outcomes inspected; no hyperparameter selection on evaluation labels"
+}

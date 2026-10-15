@@ -6,6 +6,11 @@ import re
 from tools.repository.evidence import current_path
 
 ROOT = Path(__file__).resolve().parents[2]
+REPORT = ROOT / 'docs/dsol_paper1/reports/current'
+
+
+def publication():
+    return json.loads((REPORT / 'publication.json').read_text())
 
 
 def test_classification_preserves_prose_and_binary_payloads():
@@ -18,6 +23,12 @@ def test_classification_preserves_prose_and_binary_payloads():
         if row["old"] == row["new"]:
             continue  # Mutable indices/readers have their own later revisions.
         after = current_path(ROOT / row["new"])
+        if after.resolve() == (REPORT / 'vla_view_research_progress_zh.md').resolve():
+            # This report was explicitly revised after the byte-preserving move.
+            # Keep checking original bytes above and bind the new text to its
+            # publication receipt; other migrated documents remain immutable.
+            assert hashlib.sha256(after.read_bytes()).hexdigest() == publication()['current']['notes_sha256']
+            continue
         if row["old"].endswith(".md"):
             assert links.sub("](LINK)", before.read_text()) == links.sub("](LINK)", after.read_text())
         else:
@@ -30,12 +41,18 @@ def test_classification_preserves_prose_and_binary_payloads():
                 assert before.read_bytes() == after.read_bytes()
 
 
-def test_published_pdf_was_not_regenerated():
-    p = ROOT / "docs/dsol_paper1/reports/current/vla_view_research_progress_zh.pdf"
+def test_report_revision_preserves_original_and_matches_publication_receipt():
+    receipt = publication()
+    original = receipt['original_pdf']
+    assert original['sha256'] == 'dbd9c2b6906fee9a120734291dda9dc4b56a16a9194e1852074fb796bfdb95a7'
+    old_path = Path(original['path'])
+    if old_path.exists():
+        assert hashlib.sha256(old_path.read_bytes()).hexdigest() == original['sha256']
+    p = REPORT / "vla_view_research_progress_zh.pdf"
     if not p.exists():
         import pytest
         pytest.skip("Published PDF is an external/local artifact")
-    assert hashlib.sha256(p.read_bytes()).hexdigest() == "dbd9c2b6906fee9a120734291dda9dc4b56a16a9194e1852074fb796bfdb95a7"
+    assert hashlib.sha256(p.read_bytes()).hexdigest() == receipt['current']['pdf_sha256']
 
 
 def test_classified_document_links_resolve_except_declared_local_pdf_outputs():

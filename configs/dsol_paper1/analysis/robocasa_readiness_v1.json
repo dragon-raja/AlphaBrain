@@ -1,0 +1,8 @@
+{
+  "checkpoint_receipts": "/share/longjunyu/robocasa/checkpoints/paper1/.transfer_receipts",
+  "human300_root": "/share/longjunyu/robocasa/datasets/v1.0/pretrain",
+  "self_trained_75k": "/share/longjunyu/robocasa/training_checkpoints/pi05_pretrain_human300/baseline_from_pi05_base_human300_75k_seed42_v1/75000",
+  "historical_training": "/share/longjunyu/robocasa/history/ai2r_results_view_active_system_study_v1/B_seed41_training_v1/arms",
+  "output": "/share/longjunyu/alphabrain/experiments/dsol-robocasa-readiness-20260916",
+  "inventory_filename": "inventory-verified.json"
+}

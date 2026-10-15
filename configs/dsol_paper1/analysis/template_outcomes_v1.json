@@ -1,0 +1,7 @@
+{
+  "audited_analysis": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/research-v1/history/20260911T023803721133Z",
+  "previous_template_analysis": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/accel-template-v1/history/20260915T042459371469Z",
+  "output": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/template-outcomes-v1",
+  "expected_matrix_sha256": "4440669062eeeeb5be109e76068896328fdad200fcb540685b3406f3c190baad",
+  "scope": "Join fixed Accel-only endpoints to archived complete-task outcomes; preserve all32 cross-fit and PDF evaluation16/dev-only distinctions; no new rollout or PDF modification"
+}

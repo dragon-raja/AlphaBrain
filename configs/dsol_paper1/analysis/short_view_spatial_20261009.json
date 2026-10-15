@@ -1,0 +1,6 @@
+{
+  "completed_analysis": "/workspace/research-reviews/short-view-probe-20261008/matched-analysis-20261009",
+  "panel": "/share/personal/longjunyu/alphabrain/experiments/dsol-robocasa-official-fullview-20260928",
+  "endpoint_arrays": "/share/personal/longjunyu/robocasa/experiments/xr1-rebalanced-20260930/analysis/panel_arrays.npz",
+  "output": "/workspace/research-reviews/short-view-probe-20261008/spatial-analysis-20261009"
+}

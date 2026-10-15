@@ -1,0 +1,100 @@
+{
+  "hosts": [
+    {
+      "name": "fresh-plus",
+      "control": "/workspace/research-reviews/libero-plus-20261012/plus-fresh-expanded",
+      "python": "/alphabrain/.venv/bin/python"
+    },
+    {
+      "name": "video-plus",
+      "control": "/workspace/research-reviews/libero-plus-20261012/plus-video-rebalanced",
+      "python": "/alphabrain/.venv/bin/python",
+      "ssh": [
+        "ssh",
+        "-i",
+        "/root/.ssh/id_ed25519_ai2r_alphabrain",
+        "-o",
+        "IdentitiesOnly=yes",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ConnectTimeout=10",
+        "-p",
+        "1256",
+        "root@192.168.242.120"
+      ]
+    },
+    {
+      "name": "gnu-plus",
+      "control": "/workspace/research-reviews/libero-plus-20261012/plus-gnu-balanced",
+      "python": "/alphabrain/.venv/bin/python",
+      "ssh": [
+        "ssh",
+        "-i",
+        "/root/.ssh/id_ed25519_ai2r_alphabrain",
+        "-o",
+        "IdentitiesOnly=yes",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ConnectTimeout=10",
+        "-p",
+        "183",
+        "root@192.168.242.120"
+      ]
+    },
+    {
+      "name": "gnu-recovery",
+      "controls": [
+        "/workspace/research-reviews/libero-plus-20261012/windows-recovery-gnu/production",
+        "/workspace/research-reviews/libero-plus-20261012/windows-recovery-gnu/pilot"
+      ],
+      "python": "/alphabrain/.venv/bin/python",
+      "ssh": [
+        "ssh",
+        "-i",
+        "/root/.ssh/id_ed25519_ai2r_alphabrain",
+        "-o",
+        "IdentitiesOnly=yes",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ConnectTimeout=10",
+        "-p",
+        "183",
+        "root@192.168.242.120"
+      ]
+    },
+    {
+      "name": "fresh-next",
+      "controls": [
+        "/workspace/research-reviews/libero-plus-20261012/plus-windows-recovered-fresh/production",
+        "/workspace/research-reviews/libero-plus-20261012/windows-recovery-fresh/production",
+        "/workspace/research-reviews/libero-plus-20261012/plus-windows-recovered-fresh/pilot"
+      ],
+      "python": "/alphabrain/.venv/bin/python"
+    },
+    {
+      "name": "gnu-native-windows",
+      "controls": [
+        "/workspace/research-reviews/libero-plus-20261012/plus-windows-recovered-gnu/production",
+        "/workspace/research-reviews/libero-plus-20261012/plus-windows-recovered-gnu/pilot"
+      ],
+      "python": "/alphabrain/.venv/bin/python",
+      "ssh": [
+        "ssh",
+        "-i",
+        "/root/.ssh/id_ed25519_ai2r_alphabrain",
+        "-o",
+        "IdentitiesOnly=yes",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ConnectTimeout=10",
+        "-p",
+        "183",
+        "root@192.168.242.120"
+      ]
+    }
+  ]
+}

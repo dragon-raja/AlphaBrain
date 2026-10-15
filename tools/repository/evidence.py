@@ -5,6 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 LEDGERS = [ROOT / "archive/repository/20260911" / name / "manifest.json"
            for name in ("core", "cabi", "docs", "reports", "links", "test-modules", "runtime-modules", "runtime-validation")]
+LEDGERS.append(ROOT / 'archive/repository/20261010/runtime-path-repair/manifest.json')
 
 
 def rows():

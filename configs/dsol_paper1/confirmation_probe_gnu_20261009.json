@@ -1,0 +1,20 @@
+{
+  "host": "gnu",
+  "model": "xr1",
+  "source": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probe-source",
+  "config": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probe-inputs/config.json",
+  "python": "/share/personal/longjunyu/alphabrain/experiments/dsol-robocasa-stage2-preparation-20260916/dualhost-runtime-20260917/python/bin/python3.11",
+  "model_python": "/workspace/dsol-xr1-runtime-20260930/portable/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+  "upstream": "/workspace/dsol-xr1-runtime-20260930/upstream/xiaomi-robotics1-upstream-20260929",
+  "admission": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probe-admission/xr1/status.json",
+  "result_root": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probes-xr1",
+  "gpu_ids": [0, 1, 2, 3, 4, 5, 6, 7],
+  "environment": {
+    "PYTHONPATH": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probe-source:/workspace/dsol-robocasa-evaluation-runtime-20260918/robocasa:/workspace/dsol-robocasa-evaluation-runtime-20260918/robosuite:/workspace/dsol-robocasa-stage2-runtime-20260917/site-packages:/workspace/dsol-robocasa-stage2-runtime-20260917/site-packages/rerun_sdk",
+    "XR1_MODEL_PYTHONPATH": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probe-source:/workspace/dsol-xr1-runtime-20260930/model/site-packages",
+    "LD_LIBRARY_PATH": "/workspace/dsol-robocasa-stage2-runtime-20260917/egl-jammy/extracted/usr/lib/x86_64-linux-gnu",
+    "HF_MODULES_CACHE": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/hf-modules/gnu",
+    "PYTHONNOUSERSITE": "1", "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1",
+    "MUJOCO_GL": "egl", "PYOPENGL_PLATFORM": "egl", "OPENBLAS_NUM_THREADS": "1", "OMP_NUM_THREADS": "1"
+  }
+}

@@ -1,0 +1,13 @@
+# Isolated inference environment; never install into the existing P0 environments.
+# Official deployment guide at Xiaomi-Robotics-1 0dd7aef8dc87296246aae812a1f59ccb708e5546.
+torch==2.8.0
+torchvision==0.23.0
+torchaudio==2.8.0
+transformers==4.57.1
+accelerate>=1.2,<2
+numpy>=1.26,<3
+Pillow>=10,<12
+scipy>=1.11,<2
+einops>=0.8,<1
+imageio[ffmpeg]>=2.34,<3
+# FlashAttention uses the official prebuilt cp312/torch2.8/cu12 wheel separately.

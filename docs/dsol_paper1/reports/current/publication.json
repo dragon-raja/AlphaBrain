@@ -1,0 +1,17 @@
+{
+  "scope": "Clarified native Plus versus custom97; paired window-transition evidence; existing results only",
+  "original_pdf": {
+    "path": "/share/longjunyu/alphabrain/experiments/dsol-view-landscape-v1-20260908/unified-research-progress-v1/history/20260911T095747365982Z/previous-vla_view_research_progress_zh.pdf",
+    "sha256": "dbd9c2b6906fee9a120734291dda9dc4b56a16a9194e1852074fb796bfdb95a7"
+  },
+  "current": {
+    "archive": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/report-clarification-20261013/20261013T043239339054Z",
+    "pdf_sha256": "7e859ded74e7b542a1afbfdcd26f3fe7e583689fa9ff144d257aac144835b16a",
+    "notes_sha256": "2a43e26ece33b4cfd30242f7fea9492da8c9003e599018bc592bc2335fea1821",
+    "pages": 23,
+    "new_closed_loops": 0,
+    "added_closed_loop_results": 0
+  },
+  "previous_publication": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/report-clarification-20261013/20261013T043239339054Z/previous-publication",
+  "provenance": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/report-clarification-20261013/20261013T043239339054Z/provenance.json"
+}

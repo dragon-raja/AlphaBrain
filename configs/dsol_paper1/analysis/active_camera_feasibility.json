@@ -1,0 +1,5 @@
+{
+  "matrix_plan": "/share/longjunyu/alphabrain/experiments/dsol-robocasa-stage2-preparation-20260916/formal-matrix-native-20260918/plan.json",
+  "tiago_xml": "/workspace/projects/robosuite/robosuite/models/assets/robots/tiago/robot.xml",
+  "output": "/workspace/research-reviews/active-camera-feasibility-20260921/verified"
+}

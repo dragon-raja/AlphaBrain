@@ -1,0 +1,14 @@
+{
+  "report_date": "2026-10-15",
+  "period": ["2026-10-01", "2026-10-14"],
+  "evidence_cutoff": "2026-10-13",
+  "author": "龙君昱",
+  "student_id": "26B951131",
+  "reference_pdf": "/root/.codex/attachments/e8140904-9124-4790-b555-e400fb42b99d/科研进展双周报_20260910-20260923.pdf",
+  "synthesis": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/window-synthesis-20261013-accepted/summary.json",
+  "transitions": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/window-transitions-20261013/summary.json",
+  "transition_rows": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/window-transitions-20261013/initial-transitions.json",
+  "robocasa_audit": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/final-analysis-20261012-accepted/audit.json",
+  "font_dir": "/usr/share/fonts/opentype/noto",
+  "output": "docs/dsol_paper1/reports/biweekly/20261015"
+}

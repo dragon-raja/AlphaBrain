@@ -1,0 +1,12 @@
+{
+  "panel": "/share/personal/longjunyu/alphabrain/experiments/dsol-robocasa-official-fullview-20260928",
+  "analysis": "/share/personal/longjunyu/robocasa/experiments/xr1-rebalanced-20260930/analysis",
+  "pi05_score_repeats": "/workspace/research-reviews/robocasa-score-window-20260929-v2/scores.npz",
+  "output": "/workspace/research-reviews/static-view-diagnostic-20260930-completed",
+  "seed": 20260930,
+  "bootstrap_draws": 1000,
+  "neighborhood": 7,
+  "se_penalty": 1.0,
+  "alphas": [1.0, 10.0, 100.0],
+  "calibration_families": [["accel", false], ["accel", true], ["pose", false], ["accel_pose", false], ["accel_pose", true]]
+}

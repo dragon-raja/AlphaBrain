@@ -1,0 +1,14 @@
+{
+  "output": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/signal-structure.json",
+  "panels": {
+    "libero": {
+      "kind": "libero",
+      "arrays": "/share/personal/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/research-v1/history/20260911T023803721133Z/matrix.npz",
+      "states": "/share/personal/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/research-v1/history/20260911T023803721133Z/states.json"
+    },
+    "robocasa": {
+      "kind": "confirmation",
+      "arrays": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/final-analysis-20261012-accepted/accepted-arrays.npz"
+    }
+  }
+}

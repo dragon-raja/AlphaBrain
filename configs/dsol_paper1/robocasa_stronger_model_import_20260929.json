@@ -1,0 +1,16 @@
+{
+  "purpose": "User-authorized stronger-model resource preparation; no inference or training during import",
+  "limit_mib_s": 32,
+  "resources": [{
+    "id": "robocasa365.xr1.3a6d029",
+    "kind": "official_hf_snapshot",
+    "repo_id": "XiaomiRobotics/Xiaomi-Robotics-1-RoboCasa365",
+    "revision": "3a6d0293bfa90759d34a7fc48c2c62413cd7bcf4",
+    "max_bytes": 11000000000,
+    "destination": "checkpoints/xiaomi-robotics-1-robocasa365/3a6d0293bfa90759d34a7fc48c2c62413cd7bcf4",
+    "published_atomic_seen_success": 0.802,
+    "performance_scope": "Official 18-task leaderboard, not our 10-task panel; local performance unknown",
+    "submission": "https://github.com/robocasa-benchmark/leaderboard/blob/main/submissions_md/Xiaomi-Robotics_2026_07_08.md",
+    "execution_admission": "BLOCKED_UNTIL_SOURCE_REVIEW_INPUT_ACTION_AND_MEMORY_VALIDATION"
+  }]
+}

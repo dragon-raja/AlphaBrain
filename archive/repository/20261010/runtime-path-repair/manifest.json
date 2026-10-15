@@ -1,0 +1,13 @@
+{
+  "scope": "Append-only source identity amendment for explicit shared-root relocation and lazy private runtime imports; old experiment bytes and receipts unchanged.",
+  "records": [
+    {
+      "old": "scripts/dsol_paper1/operations/controllers/dynamic_initial_scheduler_v1.py",
+      "new": "scripts/dsol_paper1/operations/controllers/dynamic_initial_scheduler_v1.py",
+      "before_git": "5752a071c8b87da7b421682803663276bf01d3af:scripts/dsol_paper1/operations/controllers/dynamic_initial_scheduler_v1.py",
+      "before_sha256": "48663a25a2d426e3ee78eff7de6b654d9d267725b579de39860ee4749419ed3d",
+      "after_sha256": "1fb83f4df87b294ded3e922f566301e3db4ee6e33b3510189a7a0978065c1914",
+      "reason": "CPU test collection failed because a private frozen runtime was imported eagerly from the deleted shared root. Load it only on use and map read-time locations to the new root; preserve old source bytes and numerical function bodies. This is not new GPU admission for the legacy controller."
+    }
+  ]
+}

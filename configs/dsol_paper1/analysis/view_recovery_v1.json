@@ -1,0 +1,14 @@
+{
+  "audited_analysis": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/research-v1/history/20260911T023803721133Z",
+  "output": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/view-recovery-v1",
+  "budgets": [1, 4, 8, 16, 32],
+  "primary_budget": 16,
+  "neighbors": 6,
+  "translation_scale_m": 0.1,
+  "rotation_scale_deg": 15.0,
+  "random_repeats": 8,
+  "random_seed": 20260914,
+  "alpha_grid": [1.0, 10.0, 100.0],
+  "image_pca_dim": 8,
+  "wrist_pca_dim": 4
+}

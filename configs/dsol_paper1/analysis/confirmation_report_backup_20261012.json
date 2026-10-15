@@ -1,0 +1,11 @@
+{
+  "host": "fresh-report-dependencies",
+  "destination": "/share/personal/longjunyu/recovery/shutdown-20261015/report-dependencies",
+  "sources": [
+    "/root/.cache/uv/archive-v0/XO8_y4zBEt33DOY7wfN64",
+    "/usr/share/fonts/opentype/noto"
+  ],
+  "exclude_patterns": ["*.sock"],
+  "verify_unchanged": true,
+  "max_mib_per_second": 32
+}

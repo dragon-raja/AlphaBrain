@@ -36,7 +36,42 @@ def success_matrix(ax, values):
     return ax.imshow(values * 100, vmin=0, vmax=100, aspect="auto", cmap="viridis", interpolation="nearest")
 
 
-def spatial_field(ax, coordinates, values):
+def adaptive_limits(values, *, minimum_span=1.0, bounds=(0.0, 100.0)):
+    """Full measured range with padding, never quantile clipping or saturation.
+
+    Pass pooled arrays for a shared comparative scale. Separate local scales
+    must be labelled explicitly; colors then cannot compare absolute values.
+    """
+    v = np.asarray(values, dtype=float)
+    if v.size == 0 or not np.isfinite(v).all() or minimum_span <= 0:
+        raise ValueError("Expected finite nonempty values and positive minimum span")
+    lo, hi = float(v.min()), float(v.max())
+    if lo < bounds[0] or hi > bounds[1]:
+        raise ValueError("Values outside scale bounds")
+    pad = max((hi - lo) * 0.03, (minimum_span - (hi - lo)) / 2)
+    return max(bounds[0], lo - pad), min(bounds[1], hi + pad)
+
+
+def absolute_space_fields(success, accel):
+    """Comparable model x candidate fields; input has model x initial x view.
+
+    Inputs are already noise-averaged. Candidate zero is canonical and excluded
+    from this spatial parameterization. No ranking or model-wise normalization.
+    """
+    q, a = np.asarray(success), np.asarray(accel)
+    if q.shape != a.shape or q.ndim != 3 or q.shape[0] != 2 or q.shape[2] < 2:
+        raise ValueError("Expected matching two-model x initial x candidate arrays")
+    if not np.isfinite(q).all() or not np.isfinite(a).all() or (a < 0).any():
+        raise ValueError("Expected finite, nonnegative scores")
+    if (q < 0).any() or (q > 1).any():
+        raise ValueError("Success must be in [0, 1]")
+    raw = a[:, :, 1:].mean(axis=1)
+    upper = max(.05, float(np.ceil(raw.max() / .05) * .05))
+    return dict(success=q[:, :, 1:].mean(axis=1) * 100,
+                accel=raw, success_limits=(0., 100.), accel_limits=(0., upper))
+
+
+def spatial_field(ax, coordinates, values, *, limits=(0, 100), cmap="viridis"):
     if len(coordinates) != len(values):
         raise ValueError("Coordinate/value mismatch")
-    return ax.scatter(*coordinates.T, c=values, cmap="viridis", vmin=0, vmax=100, s=34, depthshade=False)
+    return ax.scatter(*coordinates.T, c=values, cmap=cmap, vmin=limits[0], vmax=limits[1], s=34, depthshade=False)

@@ -26,7 +26,7 @@ from PIL import Image, ImageDraw
 
 ROOT=Path(__file__).resolve().parents[2]
 DOCS=ROOT/"docs/dsol_paper1"
-SRC=DOCS/"report_sources_20260907"
+SRC=DOCS/"reports/sources/20260907"
 CSV=Path("/share/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2/final-analysis/state-method-metrics.csv")
 INK="#17304A"; MUTED="#627184"; BLUE="#285FAD"; TEAL="#198879"
 RED="#B8515F"; AMBER="#B9822D"; GRAY="#99A4AF"; LINE="#DFE6EE"

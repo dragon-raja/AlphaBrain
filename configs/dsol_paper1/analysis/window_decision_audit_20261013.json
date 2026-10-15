@@ -1,0 +1,9 @@
+{
+  "synthesis_config": "configs/dsol_paper1/analysis/window_synthesis_20261013.json",
+  "horizon": 3,
+  "required_noise_votes": 7,
+  "require_half_winner_agreement": true,
+  "methods": ["initial_mean", "raw_prefix3", "rank_prefix3", "rank_prefix3_gated_to_initial"],
+  "scope": "Descriptive existing-data audit only; fixed H3 and7-of8 score votes before computation; no label-based tuning or new rollout; missing endpoints are not imputed",
+  "output": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/window-decision-audit-20261013-with-noise-diagnostic"
+}

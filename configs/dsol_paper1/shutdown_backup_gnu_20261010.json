@@ -1,0 +1,15 @@
+{
+  "host": "gnu",
+  "destination": "/share/personal/longjunyu/recovery/shutdown-20261015/gnu",
+  "sources": [
+    "/workspace/dsol-recovery-confirmation-20261009",
+    "/workspace/dsol-short-view-probe-20261008",
+    "/workspace/dsol-robocasa-evaluation-runtime-20260918",
+    "/workspace/dsol-robocasa-stage2-runtime-20260917",
+    "/workspace/dsol-xr1-runtime-20260930",
+    "/alphabrain/.venv",
+    "/workspace/ai2r/gpu_compute_keepalive"
+  ],
+  "exclude_patterns": ["auth.json", ".env", ".env.*", "id_ed25519*", "id_rsa*", "*.pem", "*.key", "*.sock"],
+  "max_mib_per_second": 32
+}

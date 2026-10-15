@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "repository_root": "/workspace/projects/alphabrain-dsol-paper1",
+  "shared_catalog": "/share/personal/longjunyu/research_registry/catalog.json",
+  "project_manifest": "configs/resources/paper1_resources.json",
+  "local_resource_paths": "/share/personal/longjunyu/research_registry/resource_paths.local.json",
+  "code_owners": {"libero": "benchmarks/LIBERO", "robocasa": "benchmarks/Robocasa365", "robotwin2": "benchmarks/RoboTwin"},
+  "release_pointers": ["/share/personal/longjunyu/robotwin/registry/current.json", "/share/personal/longjunyu/robotwin/registry/official_current.json"],
+  "scope": "Paper1 active evidence anchors plus non-destructive legacy navigation",
+  "historical_read_mapping": {"/share/longjunyu": "/share/personal/longjunyu"},
+  "experiment_search_roots": ["/share/personal/longjunyu/alphabrain/experiments"],
+  "entries": [
+    {
+      "id": "libero-aa0-20260908", "benchmark": "libero", "role": "frozen_closed_loop_matrix",
+      "root": "/share/personal/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908",
+      "anchors": ["release.json", "amendment-r2.json"]
+    },
+    {
+      "id": "robocasa-matched-training-20260917", "benchmark": "robocasa", "role": "paired_training_data_and_checkpoint_lineage",
+      "root": "/share/personal/longjunyu/alphabrain/experiments/dsol-robocasa-stage2-preparation-20260916",
+      "anchors": ["matched-data-release-20260917/release.json", "training-canonical-fresh-resumed-20260918/run_config.json", "training-canonical-fresh-resumed-20260918/recovery.json", "training-broad-gnu-20260917/run_config.json"]
+    },
+    {
+      "id": "robocasa-p0-20260918", "benchmark": "robocasa", "role": "frozen_closed_loop_matrix",
+      "root": "/share/personal/longjunyu/alphabrain/experiments/dsol-robocasa-stage2-preparation-20260916/formal-matrix-native-20260918",
+      "anchors": ["plan.json", "source-manifest.json", "formal-launch-plan.json"]
+    },
+    {
+      "id": "robocasa-official-20260928", "benchmark": "robocasa", "role": "official_frozen_policy_matrix",
+      "root": "/share/personal/longjunyu/alphabrain/experiments/dsol-robocasa-official-fullview-20260928",
+      "anchors": ["plan.json", "source-manifest.json", "selection.json", "launch.json"]
+    },
+    {
+      "id": "robotwin-official-pilot-20260929", "benchmark": "robotwin2", "role": "resource_admission_not_scientific_results",
+      "root": "/share/personal/longjunyu/robotwin/imports/official-pilot-20260929",
+      "anchors": ["plan.json", "importer.py"]
+    },
+    {
+      "id": "robotwin-resource-release-20260929", "benchmark": "robotwin2", "role": "byte_verified_resources_not_full_runtime_certification",
+      "root": "/share/personal/longjunyu/robotwin/registry",
+      "anchors": ["resource_release_20260929.json", "current.json"]
+    },
+    {
+      "id": "robotwin-replay-pilot-20260929", "benchmark": "robotwin2", "role": "two_episode_native_replay_not_vla_evaluation",
+      "root": "/share/personal/longjunyu/robotwin/experiments/replay-admission-20260929",
+      "anchors": ["preparation.json", "summary.json", "environment.txt", "runtime-source-config-hashes.json"]
+    },
+    {
+      "id": "robotwin-official-completion-20260929", "benchmark": "robotwin2", "role": "official_current_acquisition_source_evidence",
+      "root": "/share/personal/longjunyu/robotwin/imports/official-current-clean50-preparation-20260929",
+      "anchors": ["plan.json", "checkpoint-plan.json", "official-source-verification.json", "finalizer-source/source-manifest.json"]
+    },
+    {
+      "id": "robotwin-official-current-release-20260929", "benchmark": "robotwin2", "role": "official_clean50_assets_checkpoint_byte_and_schema_verified_runtime_pending",
+      "root": "/share/personal/longjunyu/robotwin/registry/official-current-20260929",
+      "anchors": ["release.json"]
+    }
+  ]
+}

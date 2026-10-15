@@ -37,6 +37,7 @@ paper1-analysis = [
 ]
 paper1-test = ["pytest", "numpy", "scipy", "matplotlib", "pillow", "pymupdf", "pyyaml"]
 test-portable = ["pytest", "numpy", "scipy", "matplotlib", "pillow", "pyyaml"]
+test-full = ["pytest", "numpy", "scipy", "matplotlib", "pillow", "pyyaml", "pymupdf", "h5py", "opencv-python-headless"]
 report = ["matplotlib", "numpy", "pillow", "pymupdf", "python-docx"]
 dev = [
     "black>=24.2.0",

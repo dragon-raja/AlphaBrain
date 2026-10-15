@@ -23,11 +23,15 @@ except ImportError:
 from reports.paper1.legacy_style import Brief, INK, MUTED, BLUE, TEAL, GRAY, AMBER, LINE
 from AlphaBrain.research.dsol.data.artifacts import read, write, sha
 from AlphaBrain.research.dsol.analysis.pipeline import load_config
+from AlphaBrain.research.dsol.analysis.view_structure import summarize_structure
+from AlphaBrain.research.dsol.analysis.view_recovery import metric_reference_summary
 from AlphaBrain.research.dsol.plotting.view_space import (
     candidate_coordinates,
     projected_field,
     success_matrix,
     spatial_field,
+    adaptive_limits,
+    absolute_space_fields,
 )
 
 REPO = Path(__file__).resolve().parents[2]
@@ -81,10 +85,19 @@ class CurrentBrief(Brief):
             self.acc = a["accel_members"]
             self.vis = a["visibility"]
             self.cids = a["candidate_ids"]
+            self.camera = a["camera"]
         self.q = self.y.mean(axis=-1)
         self.s = [self.summary["models"][m] for m in ["canonical", "broad"]]
         self.per_initial = read(archive / "per-initial.json")
+        self.structure = summarize_structure(
+            self.q, self.acc.mean(axis=-1), self.camera,
+            [s["task_ordinal"] for s in self.states],
+            [s["initialization"]["init_state_index"] for s in self.states], self.cids,
+        )
         self.figures = []
+        self.recovery = None  # Explicitly bound and hash-checked by build().
+        evaluation = [i for i, s in enumerate(self.states) if s['initialization']['init_state_index'] >= 2]
+        self.metric_references = metric_reference_summary(self.q, self.acc, self.vis, evaluation)
 
     def new(self, title, stage, subtitle, takeaway, source, note):
         if title == "外部多视角后训练改善被动视角鲁棒性":
@@ -98,7 +111,7 @@ class CurrentBrief(Brief):
         self.artists[1].set_text(f"{len(self.notes):02d} / 12")
         for t in self.artists:
             if "2026-09-07" in t.get_text():
-                t.set_text("VLA VIEW RESEARCH  ·  2026-09-11  ·  标准初态结果与离线选择器")
+                t.set_text("VLA VIEW RESEARCH  ·  主矩阵 2026-09-11  ·  计划更新 2026-09-16")
         self.artists[2].set_fontsize(25)
         # Footer takeaway is a compact conclusion, not a paragraph.
         for t in self.artists:
@@ -116,25 +129,26 @@ class CurrentBrief(Brief):
 
     def overview(self, pdf):
         self.new(
-            "如何利用 VLA 视角：训练覆盖、候选收益与选择",
+            "如何利用 VLA 视角：训练覆盖与扰动恢复",
             "研究主线 · 当前证据",
             "已完成：8 个已知任务 × 4 个标准初态 × 97 候选 × 32 套噪声 × 2 模型 = 198,656 次闭环",
-            "训练扩大有效视角范围；超过规范视角的收益仍需由选择方法证明。",
-            "本轮：标准初态、无额外遮挡，外部相机单次执行内固定；腕部输入随动作变化。不是动态相机策略或多路外部图像融合。",
-            "先对同一初态同一视角的 32 套完整噪声轨迹求平均，再比较视角。所有主结果来自同一个新矩阵。历史遮挡恢复实验仅用于提出信息视角假设，不与当前绝对成功率相减。",
+            "训练提高被动覆盖；推理前选择可恢复部分扰动损失，实际获取仍待确认。",
+            "标准初态、无额外遮挡；外部相机执行内固定，腕部输入随动作变化。非任务途中动态取景。\n恢复项：留出32视角起点，RGB＋Accel 引导16查询；静态矩阵重放，尚未验证实际相机获取。",
+            "先对同一初态同一视角的32套完整噪声轨迹求平均，再比较视角。覆盖和经验上限展示全部32初态；恢复和学习器只评价初态2、3的16初态，并以留出目录32个相机起点均匀平均。二者不能混为相同统计总体。所有闭环标签来自同一冻结矩阵，新分析仅训练轻量选择器和进行静态图重放。历史遮挡实验不与当前绝对成功率相减。",
         )
         cards = [
-            (0.065, "训练覆盖", "均匀候选成功率", "22.28 → 75.07%", BLUE),
-            (0.38, "剩余收益", "多视角模型：规范 → Oracle", "90.23 → 96.00%", TEAL),
-            (0.695, "视角利用", "最低 Accel 未超过规范", "87.70 < 90.23%", AMBER),
+            (0.065, "训练覆盖", "全部32初态 · 均匀候选", "22.28 → 75.07%", BLUE),
+            (0.38, "经验上限", "32初态 · 规范→经验Oracle", "90.23 → 96.00%", TEAL),
+            (0.695, "扰动恢复", "16评价初态 · 多视角16查询",
+             f"{self.recovery['models']['broad']['references']['stay']['heldout32']['success']['mean']*100:.2f} → {self.recovery['models']['broad']['methods']['local_rgb_accel']['16']['heldout32']['success']['mean']*100:.2f}%", AMBER),
         ]
         for x, title, body, value, color in cards:
             self.box(x, 0.44, 0.245, 0.27)
             self.text(x + 0.015, 0.68, title, 21, color, True)
             self.text(x + 0.015, 0.60, body, 11, MUTED)
             self.text(x + 0.015, 0.54, value, 21, color, True)
-        self.text(0.075, 0.365, "主问题：训练之后，何时需要选择视角，哪些信息足以指导选择？", 18, INK, True)
-        self.text(0.075, 0.30, "经验 Oracle 是有限矩阵参照；指标与学习器必须与规范视角、开发集固定视角比较。", 12, MUTED)
+        self.text(0.075, 0.365, "主问题：相机偏离有效视角后，能否用可获得的信息恢复任务表现？", 17, INK, True)
+        self.text(0.075, 0.30, "保持原位为主对照，同预算随机探查检验搜索价值；已知标定返回规范作为参考。", 12, MUTED)
         self.save(pdf)
 
     def protocol(self, pdf):
@@ -210,37 +224,43 @@ class CurrentBrief(Brief):
         self.save(pdf)
 
     def space(self, pdf):
+        am = self.acc.mean(axis=-1)
+        fields = absolute_space_fields(self.q, am)
+        means = fields["accel"].mean(axis=1)
+        reduction = 100 * (1 - means[1] / means[0])
+        lower = 100 * np.mean(am[1, :, 1:] < am[0, :, 1:])
         self.new(
-            "候选位姿分布：成功区域与低 Accel 区域是否一致",
-            "02 · 实测空间分布",
-            "96 个非规范候选：横轴方位角、纵轴仰角、点大小表示半径倍率；颜色表示成功率或 Accel 偏好。",
-            "候选分布可以直接复用矩阵分析；低 Accel 与高成功率并不完全重合。",
-            "方位角／仰角／半径倍率是候选目录参数，不是完整 SE(3)。规范相机无该参数化，单独统计；图中按 32 初态平均。",
-            "上排是噪声平均再对初态平均的完整任务成功率。下排先在每个初态内对负 Accel 排名，再取平均；颜色越高表示越偏好该候选，不是成功率。",
+            "候选空间分布：成功率与初态 Accel",
+            "02 · 独立色标，展开各自空间差异",
+            "各图色标独立，跨图请比较色条数值；上排越亮成功率越高，下排越亮原始 Accel 越低。",
+            f"平均 Accel：{means[0]:.3f} → {means[1]:.3f}（降低 {reduction:.1f}%）；{lower:.1f}% 配对位置降低。",
+            "上排：32 次完整闭环的成功率；下排：同一初态 8 个评分噪声的平均 Accel，非执行全程均值。\n随后对 32 初态等权平均；96 个非规范候选，无排名变换或插值。配对位置共 3,072 个。",
+            "本页每张三维图使用独立自适应色条，覆盖该图全部实测均值，不裁剪极值。颜色只表示各图内部高低，跨模型绝对值须读取各自色条，不能直接比较相同颜色。成功率仍为百分比，Accel 仍为原始数值，不作排名变换。Accel 在同一任务初态对 8 个评分噪声求均值，不是执行轨迹全程的均值；成功率来自 32 次完整闭环。每个点随后对 32 初态等权平均。三轴是任务参考点下的方位角、仰角和半径倍率，不是完整 SE(3)，同一参数跨任务并非同一世界位姿。原始 Accel 整体下降可以与候选内部排序区分能力减弱同时存在；不能据两者共同变化认定因果关系。排名图仅作为辅助诊断保留。",
         )
-        poses = [c["pose"] for c in self.release["protocol"]["state_blocks"][0]["candidates"][1:]]
         xyz = candidate_coordinates(self.release["protocol"]["state_blocks"][0]["candidates"])
-        for row in range(2):
+        for row, key in enumerate(["success", "accel"]):
             for m in range(2):
-                ax = self.axes([0.09 + m * 0.46, 0.535 - row * 0.27, 0.32, 0.20], True, True)
-                if row == 0:
-                    val = self.q[m, :, 1:].mean(axis=0) * 100
-                else:
-                    val = np.mean([rankdata(-v[1:]) / 96 * 100 for v in self.acc[m].mean(axis=-1)], axis=0)
-                sc = projected_field(ax, xyz, val)
-                if row == 1:
-                    ax.set_xlabel("方位角（度）", fontsize=9, labelpad=1)
-                ax.set_ylabel("仰角（度）", fontsize=9, labelpad=1)
-                ax.tick_params(labelsize=8)
+                limits = adaptive_limits(fields[key][m], minimum_span=.001 if row else 1.,
+                                         bounds=(0., float("inf")) if row else (0., 100.))
+                ax = self.fig.add_axes([.045 + m * .46, .535 - row * .28, .32, .235], projection="3d")
+                sc = spatial_field(ax, xyz, fields[key][m], limits=limits,
+                                   cmap="viridis" if row == 0 else "viridis_r")
+                ax.set_xlabel("方位角 / °", fontsize=8, labelpad=-3)
+                ax.set_ylabel("仰角 / °", fontsize=8, labelpad=-3)
+                ax.set_zlabel("半径倍率", fontsize=8, labelpad=-1)
+                ax.tick_params(labelsize=7, pad=-1)
+                ax.set_box_aspect((1.6, 1, .7), zoom=1.12)
+                ax.view_init(24, -60)
                 ax.set_xlim(-65, 65)
                 ax.set_ylim(-29, 29)
-                ax.set_title(
-                    MODEL_LABELS[m] + (" · 成功率" if row == 0 else " · 低 Accel 偏好百分位"), fontsize=11, pad=6
-                )
-                cax = self.fig.add_axes([0.435 + m * 0.46, 0.55 - row * 0.27, 0.009, 0.17])
-                cb = self.fig.colorbar(sc, cax=cax)
-                cb.ax.tick_params(labelsize=7)
-                cb.set_ticks([0, 50, 100])
+                ax.set_title(MODEL_LABELS[m] + (" · 成功率" if row == 0 else " · 原始 Accel"),
+                             fontsize=11, pad=-3)
+                cb = self.fig.colorbar(sc, cax=self.fig.add_axes([.393 + m * .46, .55-row*.27, .012, .17]))
+                ticks = np.linspace(*limits, 4)
+                cb.set_ticks(ticks)
+                cb.ax.set_yticklabels([f"{v:.3f}" if row else f"{v:.1f}" for v in ticks])
+                cb.ax.tick_params(labelsize=8)
+                cb.set_label("原始 Accel" if row else "成功率（%）", fontsize=9)
         self.save(pdf)
 
     def matrix(self, pdf):
@@ -299,151 +319,127 @@ class CurrentBrief(Brief):
         self.save(pdf)
 
     def rules(self, pdf):
-        self.new(
-            "指标能避开部分差视角，但尚未超过规范基线",
-            "04 · 预定规则，留出初态评价",
-            "仅初态 2、3：16 个评价初态；规则不使用该初态的闭环成败选视角。",
-            "与随机视角相比的改善，不等于超过规范视角；两种比较必须同时报告。",
-            "线段为按任务—初态配对分层 bootstrap 95% 区间。可见性使用仿真实体分割；Accel 需查询候选图，均不计实际相机获取成本。",
-            "规则是事前保留的最低平均 Accel、最大外部可见性和 Accel Top-10 后可见性精排。可见性为外部相机指标，不混入腕部平均。均匀候选为矩阵期望。",
-        )
-        keys = ["canonical", "uniform", "min_accel", "visibility", "accel10_visibility"]
-        for m in range(2):
-            ax = self.axes([0.26 + m * 0.36, 0.33, 0.27, 0.40], True, False)
-            for i, key in enumerate(keys):
-                a = self.method(m, key)["success"]
-                v = a["mean"] * 100
-                lo, hi = np.array(a["ci95"]) * 100
-                ax.errorbar(v, i, xerr=[[max(0, v - lo)], [max(0, hi - v)]], fmt="o", color=COLORS[m], capsize=3)
-                ax.text(v, i - 0.18, f"{v:.2f}", ha="center", fontsize=10)
-            ax.set_yticks(range(len(keys)), [METHOD_LABELS[k] for k in keys] if m == 0 else [], fontsize=11)
-            ax.set_ylim(4.6, -0.6)
-            ax.set_xlim(0, 104)
-            ax.set_xlabel("成功率（%）", fontsize=11)
-            ax.set_title(MODEL_LABELS[m], fontsize=15, color=COLORS[m])
-        self.text(
-            0.075, 0.265, "多视角模型留出结果：最低 Accel 86.52%，规范视角 88.67%；Top-10＋可见性 86.13%。", 12, INK
-        )
-        self.save(pdf)
+        from .recovery_pages import full_query_page
+        full_query_page(self, pdf)
 
     def metric_diagnostics(self, pdf):
         self.new(
-            "指标诊断：排序相关性与评分噪声稳定性",
-            "04 · 指标不是闭环价值的替代品",
-            "左：每个初态内的候选排序相关性；右：8 个评分初噪各自的最优候选与均值最优的一致程度。",
-            "本轮多视角训练后，Accel 排序相关性减弱；可见性单独解释力有限。",
-            "Accel：前三步去噪速度变化的归一化分数，非机器人执行加速度；8 个评分初噪取均值。\n左图为 32 个初态内的相关系数。右图使用评分初噪，不是 32 套完整闭环噪声。",
-            "Accel_3 = 3 × (||v1−v0|| + ||v2−v1||) / (||v0||+||v1||+||v2||)，v 为 Flow 去噪速度预测，范数覆盖动作序列维度。它不是机器人真实加速度。这些是机制诊断，未执行因果干预；不可据相关性确认遮挡机制、腕部捷径或内生主动感知能力。",
+            "低 Accel 有分区信号，但不足以确定最优视角",
+            "04 · 逐初态排序，分任务检查",
+            "96 非规范候选：每初态按 8 次评分的平均 Accel 排序，四组各 24 个；再统计完整任务成功率。",
+            "平均空间相关较强，但不等于每个初态都能按 Accel 准确选点。",
+            "左图与右图均为全部 32 初态的探索性诊断，不是新增选择器成绩；右图为每任务四初态平均。\nAccel 是 Flow 去噪速度变化分数，非机器人加速度；8 个评分初噪不同于 32 套闭环噪声。",
+            "候选先在各自初态内按指标排序，再对成功率分组，避免把不同难度任务混排。四分位仅用于诊断，没有用成功标签挑阈值或重新训练规则。按初态 2、3 单独检查时，两模型的低值组到高值组趋势也仍存在，但本轮数据已查看，不能称为新的盲测。相似性只说明评分空间部分重合，不证明熟悉度或遮挡是原因。每任务差值显示多视角条件下并非所有任务都有单调信号；高成功率的饱和、多个等价好视角及评分噪声都可能影响排序。",
         )
-        ax = self.axes([0.12, 0.34, 0.39, 0.39])
-        values = []
+        ax = self.axes([.105, .35, .39, .36])
         for m in range(2):
-            rs = self.s[m]["rank_correlations"]
-            values.extend(
-                [[r[k] for r in rs if r[k] is not None] for k in ["minus_accel_spearman", "visibility_spearman"]]
-            )
-        bp = ax.boxplot(values, positions=[0, 1, 3, 4], widths=0.5, patch_artist=True, showfliers=False)
-        for patch, color in zip(bp["boxes"], [BLUE, BLUE, TEAL, TEAL]):
-            patch.set_facecolor(color)
-            patch.set_alpha(0.3)
-        rng = np.random.default_rng(3)
-        for x, vs, color in zip([0, 1, 3, 4], values, [BLUE, BLUE, TEAL, TEAL]):
-            ax.scatter(x + rng.uniform(-0.15, 0.15, len(vs)), vs, s=10, color=color, alpha=0.65)
-        ax.axhline(0, color=GRAY, lw=1)
-        ax.set_ylim(-1, 1)
-        ax.set_ylabel("与闭环成功率的 Spearman ρ", fontsize=11)
-        ax.set_xticks(
-            [0, 1, 3, 4],
-            ["−Accel\n规范训练", "可见性\n规范训练", "−Accel\n多视角训练", "可见性\n多视角训练"],
-            fontsize=9,
-        )
-        ax = self.axes([0.64, 0.34, 0.29, 0.39])
-        bins = np.arange(-0.0625, 1.13, 0.125)
-        for m in range(2):
-            v = [a["agreement_with_ensemble_winner"] for a in self.s[m]["score_noise_stability"]]
-            ax.hist(v, bins=bins, alpha=0.5, color=COLORS[m], label=MODEL_LABELS[m])
-        ax.set_xlabel("单噪声最优与均值最优一致比例", fontsize=10)
-        ax.set_ylabel("初态数", fontsize=11)
-        ax.legend(frameon=False, fontsize=10)
-        med = [
-            np.median(
-                [v["minus_accel_spearman"] for v in s["rank_correlations"] if v["minus_accel_spearman"] is not None]
-            )
-            for s in self.s
-        ]
-        self.text(
-            0.085,
-            0.265,
-            f"−Accel 与成功率相关系数的初态中位数：规范训练 {med[0]:.2f}，多视角训练 {med[1]:.2f}。",
-            12,
-            INK,
-        )
+            v = np.array(self.structure["models"][m]["quartiles_all"]) * 100
+            ax.plot(range(4), v, "o-", color=COLORS[m], label=MODEL_LABELS[m], lw=2)
+            for i, value in enumerate(v):
+                ax.text(i, value + 2.2, f"{value:.1f}", ha="center", fontsize=10, color=COLORS[m])
+        ax.set_xticks(range(4), ["最低 25%", "次低", "次高", "最高 25%"], fontsize=10)
+        ax.set_ylim(0, 100)
+        ax.set_ylabel("完整任务成功率（%）", fontsize=11)
+        ax.set_xlabel("平均 Accel 从低到高 →", fontsize=11)
+        ax.legend(frameon=False, fontsize=10, loc="center right")
+        ax = self.axes([.68, .34, .24, .39], True, False)
+        task_rows = self.structure["models"][1]["by_task"]
+        delta = [100 * (x["quartile_success"][0] - x["quartile_success"][-1]) for x in task_rows]
+        ax.barh(range(8), delta, color=[TEAL if v >= 0 else AMBER for v in delta])
+        ax.set_yticks(range(8), TASK_LABELS, fontsize=9)
+        ax.invert_yaxis()
+        ax.axvline(0, color=GRAY, lw=1)
+        ax.set_xlim(min(-2, min(delta)-2), max(delta)+5)
+        ax.set_xlabel("低值组 − 高值组（pp）", fontsize=9)
+        ax.set_title("多视角训练：分任务差异", fontsize=11)
+        for i, value in enumerate(delta):
+            ax.text(max(0, value)+.3, i, f"{value:+.1f}", va="center", fontsize=8)
+        rho = np.median([v for v in self.structure["cross_model"]["accel_rank_rho"] if v is not None])
+        overlap = np.mean(self.structure["cross_model"]["low10_overlap_fraction"]) * 100
+        spatial = [v['spatial_average_accel_success_rho'] for v in self.structure['models']]
+        within = [np.median([x for x in v['per_initial_accel_success_rho'] if x is not None]) for v in self.structure['models']]
+        self.text(.075, .275, f"低 Accel 与高成功率的 ρ：第六页平均空间 {spatial[0]:.2f} / {spatial[1]:.2f}；逐初态中位数 {within[0]:.2f} / {within[1]:.2f}（规范 / 多视角训练）。", 10, INK)
+        self.text(.075, .245, f"两模型 Accel 排序重合：ρ 中位数 {rho:.2f}；最低 10 候选平均重合 {overlap:.1f}%（随机集合期望 10.4%）。", 9, MUTED)
         self.save(pdf)
 
     def learners(self, pdf):
-        self.new(
-            "离线选择器：区分无需候选图与候选图可查询",
-            "05 · 探索性学习实验",
-            "初态 0、1 开发；初态 2、3 评价。固定视觉编码器＋岭回归；超参数仅由开发集两折选择。",
-            "多视角模型上，两类学习器均未超过简单的每任务固定基线。",
-            "已查看本轮部分测试汇总后设计，属于探索性结果，不是完全盲测确认。仿真标签复用自完整矩阵；新增闭环 0 次，VLA 不重训。",
-            "几何上下文模型用规范外部图、腕部图、任务 ID 与候选相机几何，不看候选图或分割。候选图模型额外查询各候选 RGB；不使用仿真可见性。PCA、标准化与回归均在开发折拟合，测试标签不用于训练或调参。两者仍是假定选一次固定视角，不是移动相机策略。",
-        )
-        keys = ["canonical", "dev_task_fixed", "geometry_context_ridge", "candidate_image_ridge"]
-        ax = self.axes([0.285, 0.36, 0.36, 0.36], True, False)
-        for m in range(2):
-            for i, key in enumerate(keys):
-                a = self.method(m, key)["gain_vs_canonical"]
-                v = 100 * a["mean"]
-                lo, hi = np.array(a["ci95"]) * 100
-                yy = i + (m - 0.5) * 0.30
-                ax.errorbar(v, yy, xerr=[[max(0, v - lo)], [max(0, hi - v)]], fmt="o", color=COLORS[m], capsize=3)
-                ax.text(v, yy - 0.10, f"{v:+.2f}", fontsize=8, ha="center")
-        ax.axvline(0, color=GRAY, lw=1)
-        ax.set_yticks(range(4), [METHOD_LABELS[k] for k in keys], fontsize=11)
-        ax.set_ylim(3.6, -0.6)
-        ax.set_xlabel("相对规范视角的成功率差（pp，95% 区间）", fontsize=9)
-        self.text(0.70, 0.72, "选择时的输入权限", 16, INK, True)
-        self.text(0.70, 0.655, "几何＋规范上下文\n不需要候选图\n\n额外查询候选图\n需要多视角采集或渲染", 12, MUTED)
-        self.text(0.70, 0.39, "蓝：规范视角训练\n绿：多视角训练", 11, MUTED)
-        vals = [self.method(1, k)["success"]["mean"] * 100 for k in keys]
-        self.text(
-            0.075, 0.27, "多视角模型成功率：" + " / ".join(f"{v:.2f}%" for v in vals) + "（按左图顺序）。", 11, INK
-        )
-        self.save(pdf)
+        from .recovery_pages import budget_page
+        budget_page(self, pdf)
 
     def supporting_assets(self, output):
         """Full per-task 3D plots and exact values, without extending the slide deck."""
         directory = output / "task-space"
         directory.mkdir()
+        write(output / 'metric-rule-references.json', self.metric_references)
+        if self.recovery is not None:
+            with (output / 'recovery-methods.csv').open('w') as f:
+                writer = csv.writer(f)
+                writer.writerow(['model', 'method', 'budget', 'start_scope', 'success_percent', 'gain_vs_stay_pp',
+                                 'gain_ci_low_pp', 'gain_ci_high_pp', 'harmed_start_fraction', 'graph_translation_m', 'graph_rotation_deg'])
+                for model, result in self.recovery['models'].items():
+                    for method, budgets in result['methods'].items():
+                        for budget, scopes in budgets.items():
+                            for scope, row in scopes.items():
+                                writer.writerow([model, method, budget, scope, row['success']['mean']*100,
+                                                 row['gain_vs_stay']['mean']*100, *[v*100 for v in row['gain_vs_stay']['ci95']],
+                                                 row['harmed_fraction'], row['mean_translation_m'], row['mean_rotation_deg']])
         poses = [c["pose"] for c in self.release["protocol"]["state_blocks"][0]["candidates"][1:]]
         xyz = np.array([[p["azimuth_deg"], p["elevation_deg"], p["radius_scale"]] for p in poses])
-        for task in range(8):
+        for task in range(-1, 8):
             fig = plt.figure(figsize=(12, 8), facecolor="white")
+            subset = slice(None) if task == -1 else slice(task * 4, task * 4 + 4)
+            pref = np.array([np.mean([rankdata(-v[1:]) / 96 * 100
+                                      for v in am[subset]], axis=0)
+                             for am in self.acc.mean(axis=-1)])
             for row in range(2):
                 for m in range(2):
                     ax = fig.add_subplot(2, 2, row * 2 + m + 1, projection="3d")
                     if row == 0:
-                        value = self.q[m, task * 4 : task * 4 + 4, 1:].mean(axis=0) * 100
+                        value = self.q[m, subset, 1:].mean(axis=0) * 100
                     else:
                         value = np.mean(
-                            [rankdata(-v[1:]) / 96 * 100 for v in self.acc[m, task * 4 : task * 4 + 4].mean(axis=-1)],
+                            [rankdata(-v[1:]) / 96 * 100 for v in self.acc[m, subset].mean(axis=-1)],
                             axis=0,
                         )
-                    sc = spatial_field(ax, xyz, value)
+                    limits = adaptive_limits(value) if row == 0 else adaptive_limits(pref)
+                    sc = spatial_field(ax, xyz, value, limits=limits)
                     ax.set_title(
-                        MODEL_LABELS[m] + ("：成功率（%）" if row == 0 else "：低 Accel 偏好百分位"), fontsize=12
+                        MODEL_LABELS[m] + ("：成功率 %（局部色标）" if row == 0 else "：低 Accel 偏好（共享色标）"), fontsize=12
                     )
                     ax.set_xlabel("方位角（度）", fontsize=10)
                     ax.set_ylabel("仰角（度）", fontsize=10)
-                    ax.set_zlabel("半径倍率", fontsize=9, labelpad=12)
+                    ax.set_zlabel("")
+                    ax.text2D(.83, .90, "半径倍率", transform=ax.transAxes, fontsize=9)
                     ax.tick_params(labelsize=8)
                     ax.view_init(24, -60)
                     fig.colorbar(sc, ax=ax, shrink=0.60, pad=0.12)
-            fig.suptitle(TASK_LABELS[task] + "｜4 个标准初态平均；96 非规范候选；无插值", fontsize=16)
+            label = "全部 32 初态" if task == -1 else TASK_LABELS[task] + "｜4 初态"
+            fig.suptitle("辅助图 · " + label + "平均；局部成功率色标与 Accel 排名，不表示绝对降低", fontsize=13)
             fig.subplots_adjust(top=0.91, bottom=0.08, left=0.02, right=0.98, hspace=0.18, wspace=0.04)
-            fig.savefig(directory / f"task-{task + 1:02d}.png", dpi=160)
+            filename = "global-relative.png" if task == -1 else f"task-{task + 1:02d}.png"
+            fig.savefig(directory / filename, dpi=160)
             plt.close(fig)
+        write(output / "view-structure.json", self.structure)
+        # Preserve the earlier rank/noise diagnostic beside the expanded figures.
+        fig, axes = plt.subplots(1, 2, figsize=(12, 4), facecolor="white")
+        for m in range(2):
+            values = [x['minus_accel_spearman'] for x in self.s[m]['rank_correlations']
+                      if x['minus_accel_spearman'] is not None]
+            axes[0].scatter(np.full(len(values), m), values, alpha=.55, s=24, color=COLORS[m])
+            axes[0].plot([m-.2, m+.2], [np.median(values)]*2, color=COLORS[m], lw=3)
+            stability = [x['agreement_with_ensemble_winner'] for x in self.s[m]['score_noise_stability']]
+            axes[1].hist(stability, bins=np.arange(-.0625, 1.13, .125), alpha=.5, color=COLORS[m], label=MODEL_LABELS[m])
+        axes[0].set_xticks([0, 1], MODEL_LABELS)
+        axes[0].set_ylabel('−Accel 与成功率的 Spearman ρ')
+        axes[0].set_ylim(-1, 1)
+        axes[0].axhline(0, color=GRAY, lw=1)
+        axes[1].set_xlabel('单评分噪声最优与 8 噪声均值最优的一致比例')
+        axes[1].set_ylabel('初态数')
+        axes[1].legend(frameon=False, fontsize=10)
+        fig.suptitle('保留原诊断：32 初态，97 候选（含规范）；评分噪声不是闭环重复噪声', fontsize=13)
+        fig.tight_layout()
+        fig.savefig(output / 'metric-noise-stability.png', dpi=160)
+        plt.close(fig)
         with (output / "candidate-values.csv").open("w", newline="") as handle:
             w = csv.writer(handle)
             w.writerow(
@@ -501,36 +497,8 @@ class CurrentBrief(Brief):
                     )
 
     def synthesis(self, pdf):
-        self.new(
-            "研究结论与下一步：先完成视角利用的证据闭合",
-            "收敛：不把探索性结果写成已完成的主动感知方法",
-            "当前研究范围：已知任务、自然场景、固定外部位姿；两个模型各一个后训练 seed。",
-            "已有覆盖与选择分析证据；主动获取、遮挡机制和跨任务泛化仍需独立验证。",
-            "本轮不扩任务／初态，不新增遮挡或闭环评测。未来新噪声与更多初态验证须另行确认；历史 AA4 结果不与新矩阵混合统计。",
-            "论文可围绕训练覆盖与视角价值的关系组织系统分析，但不能将多视角训练的已有常识本身作为全部创新。需证明评价与选择框架带来可靠新发现或可用方法。是否补遮挡，应该做同初态受控对照，不比较不同总体的历史百分比。",
-        )
-        blocks = [
-            (
-                0.06,
-                "本轮支持",
-                "覆盖提高候选空间整体表现\n规范视角仍是强参考\n存在逐初态经验收益\n简单指标不能等同任务价值",
-            ),
-            (
-                0.375,
-                "本轮未证明",
-                "选择收益的新噪声稳定性\n跨任务／训练来源泛化\n真实相机获取净收益\n遮挡的独立因果作用",
-            ),
-            (
-                0.69,
-                "后续优先级",
-                "冻结最终方法与基线\n少量新噪声确认（待授权）\n必要时补独立初态\n遮挡／主动相机另立对照",
-            ),
-        ]
-        for x, title, text in blocks:
-            self.box(x, 0.32, 0.255, 0.40)
-            self.text(x + 0.015, 0.69, title, 19, BLUE, True)
-            self.text(x + 0.015, 0.61, text, 12, MUTED)
-        self.save(pdf)
+        from .recovery_pages import next_page
+        next_page(self, pdf)
 
 
 def build():
@@ -558,6 +526,15 @@ def build():
             shutil.copyfile(p, dest)
             previous[str(p)] = {"sha256": sha(p), "archive": str(dest)}
     brief = CurrentBrief(source)
+    recovery_config = read(REPO / 'configs/dsol_paper1/analysis/view_recovery_v1.json')
+    recovery_receipt = read(Path(recovery_config['output']) / 'latest.json')
+    recovery_source = Path(recovery_receipt['archive'])
+    if recovery_receipt['input_hashes']['matrix.npz'] != sha(source / 'matrix.npz'):
+        raise ValueError('Recovery and main report use different matrices')
+    for name, digest in recovery_receipt['artifacts'].items():
+        if sha(recovery_source / name) != digest:
+            raise ValueError('Recovery artifact changed: ' + name)
+    brief.recovery = read(recovery_source / 'summary.json')
     brief.figure_dir = out / "figures"
     with PdfPages(out / "panels.pdf") as pdf:
         for fn in [
@@ -587,7 +564,7 @@ def build():
             {
                 "title": "VLA 研究进展｜标准初态、训练覆盖与视角选择",
                 "author": "VLA View Research",
-                "subject": "2026-09-11：完整矩阵与探索性离线选择器；无新增闭环",
+                "subject": "2026-09-14 研究更新：扰动恢复、部署权限重设与有预算离线搜索；原冻结矩阵不变，无新增闭环",
             }
         )
         doc.save(target, garbage=4, deflate=True)
@@ -611,25 +588,76 @@ def build():
             draw.text((x, y - 18), str(i + 1), fill=INK)
     contact.save(qa / "contact.jpg", quality=93)
     notes = [
-        "# VLA 研究进展｜标准初态与离线选择器（2026-09-11）",
-        f"唯一 PDF：[当前报告]({PUBLIC})。本轮新增闭环 0 次，VLA 训练 0 步。",
+        "# VLA 研究进展｜标准初态与离线选择器（计划更新 2026-09-16）",
+        f"唯一 PDF：[当前报告]({PUBLIC})。主矩阵不变；本轮新增科学闭环 0 次，未新增正式 VLA 训练权重。资源 smoke 不属于科学训练结果。",
+        "当前两阶段推进：[条件场学习首轮结果与 RoboCasa 资产、训练及评测计划](../../protocols/conditional_field_robocasa_20260916_zh.md)。第12页更新，前11页仍是原有冻结证据，不将本轮小模型与历史候选图选择器混称同一方法。",
         "## 实验范围与新旧差异",
         "两模型权重与 8 个任务不变。旧实验为 64 个演示恢复快照并添加人为遮挡；新实验为每任务 4 个官方标准初态，共 32 个，不添加遮挡或背景干预。初始化与渲染协议也不同，不能将绝对成功率变化归因于单一因素。",
         "## 选择器与统计边界",
-        "初态 0、1 开发，2、3 评价。两类冻结 ResNet18 特征＋岭回归，仅开发折进行 PCA、标准化和超参数选择。任务 ID 不是对未见任务的语言泛化；候选图模型需要额外图像查询。部分测试汇总已查看，因此本轮学习器是探索性验证，不是完全盲测。",
+        "初态 0、1 开发，2、3 评价。新学习器使用查询点 RGB、腕部图和已知任务 ID，增强版加入该点 Accel 均值及标准差；不再输入规范图、规范标记或规范相对位姿。冻结 ResNet18＋开发折 PCA／岭回归，训练初态内的视角相对价值。位姿目录仅用于搜索导航。主恢复比较在留出目录 32 个起始位姿上均匀平均，全部非规范 96 起点结果另存；留出目录是 VLA 的划分，不是选择器标签留出。此前测试汇总已查看，属于探索性分析，不是完全盲测或真机认证。",
         "区间按任务再按初态做配对分层 bootstrap，条件于实测噪声均值，仅 8 个任务。经验 Oracle 先平均噪声再取视角最大，区间不消除其最大值选择偏差。",
         "## 逐页讲解",
     ]
     for n in brief.notes:
         notes.extend([f"### 第 {n['page']} 页：{n['title']}", n["takeaway"], n["speaker_note"]])
+    notes.extend([
+        "## 本轮新增诊断：哪些规律目前成立",
+        "以下均复用同一冻结矩阵，是描述性分析，不增加选择器训练或新闭环。第六页四图分别使用独立自适应色条，以展开各自空间差异；跨图须读取色条数值，不直接比较颜色。下排为初态 8 个评分噪声的平均原始 Accel，越亮值越低，不是执行全程均值，也不做排名转换。辅助图 global-relative.png 和各任务图保留局部成功率色标与排名，仅用于看内部差异；不能用辅助图判断原始 Accel 是否整体降低。",
+        "| 训练条件 | 最低 Accel 四分位 | 次低 | 次高 | 最高四分位 |\n| --- | --- | --- | --- | --- |",
+    ])
+    for m in range(2):
+        notes.append("| " + MODEL_LABELS[m] + " | " + " | ".join(
+            f"{100*v:.2f}%" for v in brief.structure['models'][m]['quartiles_all']) + " |")
+    notes.extend([
+        "每个初态先将 96 个非规范候选按平均 Accel 排序，四组各 24 个，再计算每组的多噪声成功率。不是把不同初态按任务难度混排，也没有将规范视角插入非规范空间图。趋势只说明区域初筛信号，不等于最小值视角最优。分任务完整数据和各任务前五个经验高成功候选见 view-structure.json；这些候选由已观察的成功标签排序，只作事后诊断。",
+        "原有排序相关性与评分噪声稳定性图保留为 metric-noise-stability.png，仍使用原先含规范视角的 97 候选口径。单评分噪声最优与八噪声均值最优的一致比例，初态中位数为规范训练 50%、多视角训练 37.5%；因此一次评分的最小值位置不能视为稳定解。主 PDF 保持 12 页，新增分区与任务异质性图代替重复占页，原诊断数据未删除。",
+        "### 是否主要回到了熟悉区域？",
+    ])
+    for m in range(2):
+        rs = brief.structure['models'][m]['per_initial_closeness_success_rho']
+        med = {k: float(np.median([v for v in values if v is not None])) for k, values in rs.items()}
+        notes.append(f"{MODEL_LABELS[m]}：在每个初态内，越靠近规范位姿与成功率的排序相关系数中位数为：平移距离 {med['translation']:.2f}、旋转角距离 {med['rotation']:.2f}。距离使用实际相机变换，不使用图上目录角替代。这个结果与训练熟悉度解释相容，但相机距离、图像内容和可见性同时变化，不能据此认定因果机制。")
+    notes.extend([
+        "## 部署权限重设与有限查询重放（本轮已完成）",
+        f"可复核协议与结果：{recovery_source}。输入矩阵哈希保持不变；新增闭环 0 次，仅重训轻量离线选择器并执行图搜索重放。",
+        "主口径：16 个评价初态、每个初态均匀取 32 个留出起始视角。每个查询节点只给当前候选 RGB、腕部 RGB、任务 ID，以及该节点的 8 个 Accel 评分（若方法需要）。无规范图、规范标记、候选身份、仿真分割特权。缓存复用是离线仿真后端优化，每次访问仍按协议计查询，不能声称实际推理耗时已测。",
+        "目录导航假设已知候选间相对位姿；六近邻图按平移/0.1m＋旋转/15°构造，连接不等于物理可达。预算 [1,4,8,16,32] 在拟合前记录，主预算为16。起点计一次查询，保留起点是合法选择；搜索中不读取未查询分数和闭环标签。随机对照采用8个固定随机重放种子，最后同样选择已访问的最好评分节点。",
+        "学习器只在16个开发初态拟合；两折初态验证选正则强度，不按测试搜索曲线改规则。已知任务ID不等于未见任务语言泛化。旧含规范上下文的学习器仍归原分析历史，不再作为部署权限一致的方法主结果。",
+        "以下16查询结果使用已完成的整任务闭环标签查终点；随机方法先在每个初态×起点内对重放均值，再判断改善或变差，不把起点/随机重放扩充为独立场景。",
+        "| 模型 | 方法 | 成功率 | 相对保持原位 pp | 变差起点比例 | 图路径平移 m | 图路径转角 ° |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
+    ])
+    for model in ["canonical", "broad"]:
+        for method in ["local_accel", "random_accel", "local_rgb", "local_rgb_accel", "random_rgb_accel"]:
+            row = brief.recovery["models"][model]["methods"][str(method)]["16"]["heldout32"]
+            notes.append(f"| {model} | {method} | {100*row['success']['mean']:.2f}% | {100*row['gain_vs_stay']['mean']:+.2f} | {100*row['harmed_fraction']:.2f}% | {row['mean_translation_m']:.2f} | {row['mean_rotation_deg']:.1f} |")
+    notes.extend([
+        "### 同预算配对比较（16查询、留出32起点）",
+        "以下区间按任务—初态配对重采样，条件于既有评分与闭环噪声均值，不能消除先前查看测试汇总的探索性限制。",
+    ])
+    for model in ["canonical", "broad"]:
+        for comparison, budgets in brief.recovery["models"][model]["paired_method_comparisons"].items():
+            row = budgets["16"]["heldout32"]
+            notes.append(f"{model} · {comparison}：{row['mean']*100:+.2f} pp；95%区间 [{row['ci95'][0]*100:+.2f}, {row['ci95'][1]*100:+.2f}]。")
+    notes.extend([
+        "路径平移、旋转累计含从最后查询点返回所选终点；米与度分别报告，不合并成收益。当前目录搜索的累计移动并不小，因此不能把有限图像查询等同于低运动成本、真实头部可执行或真机净收益。",
+        "尚未做：实际相机获取后的整任务执行、新噪声独立确认、连续位姿、RoboCasa、多机器人或真机扩展。缓存评分固定为每点8噪声均值，没有验证搜索时重新抽取评分噪声的影响。",
+        "下一步先冻结方法与预算，补获取—选择—执行小规模对照；同时设置原地等待、同预算随机搜索、已知标定返回规范参考。若获取改变机械臂或场景状态，当前终点矩阵不可直接复用。1°小扰动不在本候选目录内，不能据稀疏点插值成绩。RoboCasa待方法和权限明确后作为跨场景验证。",
+    ])
     notes.extend(
         [
             "## 复核入口",
             f"- 统计与选择器产物：{source}",
+            f"- 新部署权限选择器、查询重放与全部预算结果：{recovery_source}",
+            f"- 新部署权限方法的预算与起点分布对照表：{out}/recovery-methods.csv",
             f"- PDF 构建、原图与逐页预览：{out}",
             f"- 各任务三维空间图：{out}/task-space",
+            f"- 辅助全局排名与局部色标图：{out}/task-space/global-relative.png",
             f"- 全部候选数值：{out}/candidate-values.csv",
-            f"- 留出方法成绩：{out}/heldout-methods.csv",
+            f"- 历史规则与旧规范上下文学习器成绩：{out}/heldout-methods.csv",
+            f"- 第九页单噪声、8噪声平均、可见性及组合规则：{out}/metric-rule-references.json",
+            f"- 分区、任务差异、几何距离及高成功候选：{out}/view-structure.json",
+            f"- 原排序与评分噪声诊断：{out}/metric-noise-stability.png",
             f"- 统计脚本：{REPO}/scripts/dsol_paper1/analysis/analyze_standard_initial_results_v1.py",
             f"- 报告脚本：{Path(__file__).resolve()}",
             "本次只使用已完成矩阵；没有扩充初态、任务、遮挡条件，没有开启新评测或修改冻结 release。",
@@ -646,13 +674,15 @@ def build():
         "previous_outputs": previous,
         "analysis": str(source),
         "analysis_provenance_sha256": sha(source / "provenance.json"),
+        "recovery_analysis": str(recovery_source),
+        "recovery_provenance_sha256": sha(recovery_source / 'provenance.json'),
         "inputs": {
             str(Path(__file__)): sha(__file__),
             str(REPO / "scripts/dsol_paper1/reporting/build_view_research_focus_brief.py"): sha(
                 REPO / "scripts/dsol_paper1/reporting/build_view_research_focus_brief.py"
             ),
-            str(DOCS / "report_sources_20260907/legacy_evidence.json"): sha(
-                DOCS / "report_sources_20260907/legacy_evidence.json"
+            str(DOCS / "reports/sources/20260907/legacy_evidence.json"): sha(
+                DOCS / "reports/sources/20260907/legacy_evidence.json"
             ),
         },
         "new_closed_loops": 0,
@@ -664,6 +694,10 @@ def build():
                 *sorted((out / "task-space").glob("*.png")),
                 out / "candidate-values.csv",
                 out / "heldout-methods.csv",
+                out / "recovery-methods.csv",
+                out / "metric-rule-references.json",
+                out / "view-structure.json",
+                out / "metric-noise-stability.png",
             ]
         },
         "source_snapshots": {str(f.relative_to(out)): sha(f) for f in sorted((out / "source").rglob("*.py"))},
@@ -681,6 +715,19 @@ def build():
         temp.symlink_to(os.path.relpath(PUBLIC, p.parent))
         os.replace(temp, p)
     write(ARCHIVE / "latest.json", provenance)
+    registry_path = PUBLIC.parent / 'publication.json'
+    registry = read(registry_path) if registry_path.exists() else {
+        'scope': 'Explicit report publication; not a change to frozen evaluation results',
+        'original_pdf': {'path': previous[str(PUBLIC)]['archive'], 'sha256': previous[str(PUBLIC)]['sha256']},
+    }
+    registry['current'] = {
+        'pdf_sha256': sha(target), 'notes_sha256': sha(md), 'archive': str(out),
+        'analysis': str(source), 'new_closed_loops': 0, 'vla_training_steps': 0,
+        'figure_revision': '2026-09-14: independent raw colorbars; disturbed-start baseline, permission-corrected learners and finite-query offline graph replay',
+        'recovery_analysis': str(recovery_source),
+    }
+    registry['previous_publication'] = previous
+    write(registry_path, registry)
     print(json.dumps({"pdf": str(PUBLIC), "archive": str(out)}, ensure_ascii=False))
     return provenance
 

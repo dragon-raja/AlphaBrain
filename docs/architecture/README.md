@@ -7,6 +7,7 @@
 | 共享基础 | `AlphaBrain/common` | 图像与记录编解码；不依赖模型、训练、部署或研究 |
 | 框架 | `AlphaBrain/model`、`dataloader`、`training` | 模型、数据、训练能力；只依赖包内能力和外部库，不反向 import scripts/deployment |
 | 研究实现 | `AlphaBrain/research/dsol` | 指标、选择器、统计、可视化、获取工程原语；不 import 脚本或报告 |
+| 通用执行控制 | `AlphaBrain/research/dsol/execution` | 不依赖模型的任务身份、动态队列、恢复状态机；通过显式适配器接口调用外层运行能力，不反向 import benchmarks/scripts |
 | 执行适配 | `scripts`、`benchmarks`、`deployment` | 参数、运行编排、环境和服务适配；调用核心包 |
 | 报告 | `reports/paper1` | 消费结果与图表，负责布局和输出 |
 | 人类文档 | `docs` | 设计、协议、结论、执行记录、报告产物；不放可执行 Python |
@@ -14,6 +15,11 @@
 | 历史研究 | `archive` | 原源码与迁移证据；不作为新实现的运行依赖 |
 
 ## 入口与数据分离
+
+论文统一的是资源身份、实验协议、指标与报告，不假定策略后端统一：LIBERO当前使用
+AlphaBrain/PyTorch，RoboCasa当前使用OpenPI/JAX。后端代码和权重以
+`configs/resources/paper1_resources.json` 的稳定ID登记；本机路径单独绑定，禁止
+将RoboCasa现有结果重新标注为AlphaBrain结果。跨后端转换属于需要数值/闭环验收的新工作。
 
 仓库根目录保留项目元数据、说明与构建配置。`scripts` 根目录的配置解析、模型下载、环境 smoke 和训练／评测入口是框架公共命令，并非散落的研究算法。新实验命令进入对应职责目录。
 
@@ -38,3 +44,9 @@
 5. 审查 staged 文件中的私有资产、凭据、体积与无关改动，再提交／推送。
 
 命令见 [测试说明](../../tests/README.md) 与 [开发规范](../../CONTRIBUTING.md)。历史迁移收据原样保留，后续迁移通过带前后哈希的新记录建立连续来源链。
+
+## 并行执行标准
+
+新并行实验采用 [执行管理协议](../dsol_paper1/protocols/execution_management_zh.md)。共享协议层不统一JAX/PyTorch模型实现，也不把科学结果校验挤进调度器。后端通过 `Backend` 接口提供启动、身份、停止与结果核查；队列只负责预先冻结的工作所有权和状态转换。
+
+2026-09-30：通用队列和安全CLI已实现并纳入CPU CI。历史LIBERO控制器与当前XR-1冻结副本仍为兼容实现，尚未完成新标准的实际运行准入；不热替换、不冒用旧源码哈希。

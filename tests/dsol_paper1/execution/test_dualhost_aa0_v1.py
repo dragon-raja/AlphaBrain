@@ -6,12 +6,16 @@ import unittest
 sys.path.insert(0,str(REPOSITORY_ROOT/'scripts/dsol_paper1'))
 from scripts.dsol_paper1.operations.controllers.dualhost_aa0_v1 import ROOT, output_path
 from scripts.dsol_paper1.runtime.evaluate_dsol_libero_hdf5_views import protocol_spec_at, protocol_spec_count
+from AlphaBrain.research.dsol.data.artifacts import read, path_mapping, mapped_path
 
 
 class FrozenDualhostTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.r=json.loads((ROOT/'release.json').read_text())
+        with path_mapping([('/share/longjunyu', '/share/personal/longjunyu')]):
+            if not Path(mapped_path(ROOT/'release.json')).is_file():
+                raise unittest.SkipTest('Historical private release is not installed')
+            cls.r=read(ROOT/'release.json')
 
     def test_complete_population_and_candidates(self):
         r=self.r

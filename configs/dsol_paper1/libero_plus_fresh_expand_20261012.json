@@ -1,0 +1,45 @@
+{
+  "old_control": "/workspace/research-reviews/libero-plus-20261012/plus-fresh-balanced",
+  "coordinator_pid": 1034636,
+  "controller_source": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-cluster-v1",
+  "receipt": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/plus-fresh-expand-receipt.json",
+  "evidence_root": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/plus-fresh-expand-original",
+  "dispatch_order": "task_round_robin",
+  "destinations": {
+    "fresh": {
+      "control": "/workspace/research-reviews/libero-plus-20261012/plus-fresh-expanded",
+      "workers_per_gpu": 1,
+      "capacity": 7,
+      "slots": [
+        {
+          "host": "fresh",
+          "id": "1"
+        },
+        {
+          "host": "fresh",
+          "id": "2"
+        },
+        {
+          "host": "fresh",
+          "id": "3"
+        },
+        {
+          "host": "fresh",
+          "id": "4"
+        },
+        {
+          "host": "fresh",
+          "id": "5"
+        },
+        {
+          "host": "fresh",
+          "id": "6"
+        },
+        {
+          "host": "fresh",
+          "id": "7"
+        }
+      ]
+    }
+  }
+}

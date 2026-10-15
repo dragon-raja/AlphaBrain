@@ -1,0 +1,44 @@
+{
+  "experiment_id": "libero-windows-recovery-20261012",
+  "worker_config": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-window-recovery-v1/configs/dsol_paper1/libero_windows_recovery_20261012.json",
+  "original_worker_config": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-probe-v1/configs/dsol_paper1/libero_windows_20261012.json",
+  "ownership": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/window-recovery-ownership.json",
+  "python": "/alphabrain/.venv/bin/python",
+  "timeout_seconds": 43200,
+  "gpus": {
+    "fresh": [
+      0
+    ],
+    "gnu": [
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  "control_roots": {
+    "fresh": "/workspace/research-reviews/libero-plus-20261012/windows-recovery-fresh",
+    "gnu": "/workspace/research-reviews/libero-plus-20261012/windows-recovery-gnu"
+  },
+  "old_controls": {
+    "fresh": "/workspace/research-reviews/libero-plus-20261012/windows-fresh",
+    "gnu": "/workspace/research-reviews/libero-plus-20261012/windows-gnu"
+  },
+  "environments": {
+    "fresh": {
+      "PYTHONPATH": "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/policy/lib/python3.12/site-packages:/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-window-recovery-v1",
+      "OMP_NUM_THREADS": "2",
+      "OPENBLAS_NUM_THREADS": "2",
+      "ALPHABRAIN_DISABLE_AUTO_DOWNLOAD": "1",
+      "PRETRAINED_MODELS_DIR": "/share/personal/longjunyu/alphabrain/pretrained_models"
+    },
+    "gnu": {
+      "PYTHONPATH": "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/policy/lib/python3.12/site-packages:/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-window-recovery-v1",
+      "OMP_NUM_THREADS": "2",
+      "OPENBLAS_NUM_THREADS": "2",
+      "ALPHABRAIN_DISABLE_AUTO_DOWNLOAD": "1",
+      "PRETRAINED_MODELS_DIR": "/share/personal/longjunyu/alphabrain/pretrained_models",
+      "LD_LIBRARY_PATH": "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/egl-jammy/extracted/usr/lib/x86_64-linux-gnu"
+    }
+  }
+}

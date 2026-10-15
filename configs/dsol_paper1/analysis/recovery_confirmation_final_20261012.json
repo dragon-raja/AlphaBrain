@@ -1,0 +1,19 @@
+{
+  "output": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/final-analysis-20261012-accepted",
+  "workers": 8,
+  "groups": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/release/development-strata.json",
+  "models": {
+    "official": {
+      "plan": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-official-plan.json",
+      "probes": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probes-official",
+      "endpoints": ["/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-official-fresh", "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-official-video"],
+      "worker_sources": ["/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-source-official-20261010", "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-source-threehost-20261010", "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-source-accelerated-20261010"]
+    },
+    "xr1": {
+      "plan": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-xr1-plan.json",
+      "probes": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probes-xr1",
+      "endpoints": ["/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-xr1"],
+      "worker_sources": ["/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-source-20261010"]
+    }
+  }
+}

@@ -1,5 +1,16 @@
 # 🚀 LIBERO Evaluation
 
+## Paper 1 bounded prefix diagnostics
+
+`prefix_replay.py` reuses the `window_probe.py` private batch16 policy bridge for
+explicitly frozen initial/view/noise subsets. It verifies all saved flow, action
+and Accel prefixes exactly, retaining failed checks; it records observations and
+realized simulator motion without additional renders. It is not a new full-task
+evaluation or an online camera-control method. Shared read-only recording lives
+in `AlphaBrain/research/dsol/data/prefix_telemetry.py`; analysis and plotting live
+in the corresponding `analysis/prefix_replay.py` and `plotting/prefix_replay.py`.
+Imports do not start execution; the runtime requires an explicit config and `--execute`.
+
 This document provides instructions for reproducing our **experimental results** with LIBERO.  
 The evaluation process consists of two main parts:  
 

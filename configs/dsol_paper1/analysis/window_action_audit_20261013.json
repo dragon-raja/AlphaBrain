@@ -1,0 +1,5 @@
+{
+  "synthesis_config": "configs/dsol_paper1/analysis/window_synthesis_20261013.json",
+  "transition_audit": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/window-transitions-20261013",
+  "output": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/window-action-audit-20261013"
+}

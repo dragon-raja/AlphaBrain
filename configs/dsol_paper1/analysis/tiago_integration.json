@@ -1,0 +1,8 @@
+{
+  "output": "/workspace/research-reviews/active-camera-feasibility-20260921/kitchen-integration-20260922",
+  "cases": [
+    {"task":"TurnOnMicrowave","layout":23,"style":54,"seed":0},
+    {"task":"OpenDrawer","layout":23,"style":54,"seed":0},
+    {"task":"TurnOnMicrowave","layout":23,"style":54,"seed":0,"dense_diagnostic":true}
+  ]
+}

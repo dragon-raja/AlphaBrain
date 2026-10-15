@@ -18,12 +18,44 @@ import sys
 import time
 from scripts.dsol_paper1.runtime.shared_runtime_paths import shared_scripts
 
-ROOT=Path('/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908')
-sys.path.insert(0,str(ROOT/'repo/scripts/dsol_paper1'))
-import standard_initial_aa0_v1 as standard
-core=standard.core
+ROOT=Path('/share/personal/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908')
 EXT=ROOT/'scheduling/dynamic-v1'
 FROZEN_ENTRY=ROOT/'repo/scripts/dsol_paper1/standard_initial_aa0_v1.py'
+
+
+class _FrozenRuntime:
+    """Load private historical dependencies only when the legacy runner is used."""
+    _module = None
+
+    def __getattr__(self, name):
+        if self._module is None:
+            import importlib.util
+            from AlphaBrain.research.dsol.data.artifacts import read, sha, path_mapping, mapped_path
+            if not FROZEN_ENTRY.is_file():
+                raise FileNotFoundError('Historical runtime is not installed: '+str(FROZEN_ENTRY))
+            old_path = list(sys.path)
+            try:
+                sys.path.insert(0, str(FROZEN_ENTRY.parent))
+                spec = importlib.util.spec_from_file_location('_dsol_frozen_standard_initial', FROZEN_ENTRY)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+            finally:
+                sys.path[:] = old_path
+            pairs = [('/share/longjunyu', '/share/personal/longjunyu')]
+            def relocated_read(path):
+                with path_mapping(pairs): return read(path)
+            def relocated_sha(path):
+                with path_mapping(pairs): return sha(path)
+            for owner in (module, module.core):
+                owner.read, owner.sha = relocated_read, relocated_sha
+                for key, value in list(vars(owner).items()):
+                    if isinstance(value, Path):
+                        with path_mapping(pairs): setattr(owner, key, Path(mapped_path(value)))
+            self._module = module.core
+        return getattr(self._module, name)
+
+
+core = _FrozenRuntime()
 
 
 def consume(q, callback):

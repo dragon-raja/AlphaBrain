@@ -1,0 +1,21 @@
+{
+  "p0_plan": "/share/longjunyu/alphabrain/experiments/dsol-robocasa-stage2-preparation-20260916/formal-matrix-native-20260918/plan.json",
+  "analysis": "/workspace/research-reviews/robocasa-p0-analysis-20260923",
+  "models": {
+    "official": {
+      "checkpoint": "/share/longjunyu/robocasa/checkpoints/paper1/official_75k/multitask_learning/75000",
+      "config": "pi05_pretrain_human300",
+      "parent_arm": "canonical"
+    },
+    "canonical_4000": {
+      "checkpoint": "/share/longjunyu/alphabrain/experiments/dsol-robocasa-stage2-preparation-20260916/training-canonical-fresh-20260917/checkpoints/pi05_pretrain_human300_all_lora_fast25/canonical_matched/4000",
+      "config": "pi05_pretrain_human300_all_lora_fast25",
+      "parent_arm": "canonical"
+    },
+    "broad_4000": {
+      "checkpoint": "/share/longjunyu/alphabrain/experiments/dsol-robocasa-stage2-preparation-20260916/training-broad-gnu-20260917/checkpoints/pi05_pretrain_human300_all_lora_fast25/broad_exterior_matched/4000",
+      "config": "pi05_pretrain_human300_all_lora_fast25",
+      "parent_arm": "broad"
+    }
+  }
+}

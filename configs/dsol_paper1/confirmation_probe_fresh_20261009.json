@@ -1,0 +1,17 @@
+{
+  "host": "fresh",
+  "model": "official",
+  "source": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probe-source",
+  "config": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probe-inputs/config.json",
+  "python": "/workspace/projects/openpi-robocasa/.venv/bin/python",
+  "admission": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probe-admission/official/status.json",
+  "result_root": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probes-official",
+  "gpu_ids": [0, 1, 2, 3, 4, 5, 6, 7],
+  "environment": {
+    "PYTHONPATH": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probe-source",
+    "MUJOCO_GL": "egl", "PYOPENGL_PLATFORM": "egl",
+    "OPENBLAS_NUM_THREADS": "1", "OMP_NUM_THREADS": "1",
+    "XLA_PYTHON_CLIENT_PREALLOCATE": "false",
+    "XLA_FLAGS": "--xla_gpu_autotune_level=0 --xla_gpu_deterministic_ops=true --xla_gpu_exclude_nondeterministic_ops=true"
+  }
+}

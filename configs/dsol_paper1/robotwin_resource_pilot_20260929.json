@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "admission_plan_revision": 2,
+  "benchmark": "robotwin2",
+  "purpose": "engineering replay admission; not formal task selection or training",
+  "upstream_repo": "TianxingChen/RoboTwin2.0",
+  "upstream_revision": "3dc3b798668feb99ac61cc9086d84cbcc3d79186",
+  "limit_mib_s": 32,
+  "scientific_admission": "NOT_YET_RUNTIME_VALIDATED",
+  "checkpoint_camera_training": "UNKNOWN",
+  "resources": [
+    {
+      "id": "clean50-adjust-bottle",
+      "kind": "official_zip",
+      "destination": "datasets/raw/hf-3dc3b798668f/aloha-agilex_clean_50/adjust_bottle",
+      "url": "https://huggingface.co/datasets/TianxingChen/RoboTwin2.0/resolve/3dc3b798668feb99ac61cc9086d84cbcc3d79186/dataset/adjust_bottle/aloha-agilex_clean_50.zip?download=true",
+      "bytes": 298659710,
+      "sha256": "5554b6b30e37c6ed2f0bbc48079e8ad79d9512e9d4f910a5e71b0d5ad8fbe50e"
+    },
+    {
+      "id": "clean50-open-microwave",
+      "kind": "official_zip",
+      "destination": "datasets/raw/hf-3dc3b798668f/aloha-agilex_clean_50/open_microwave",
+      "url": "https://huggingface.co/datasets/TianxingChen/RoboTwin2.0/resolve/3dc3b798668feb99ac61cc9086d84cbcc3d79186/dataset/open_microwave/aloha-agilex_clean_50.zip?download=true",
+      "bytes": 982663234,
+      "sha256": "8cf14879560849a76738fb05a1842608fe79831efac625b81aa4c886edeff132"
+    },
+    {
+      "id": "aloha-embodiment",
+      "kind": "copy_tree",
+      "source": "/share/bizhihai/robot-eval-data/robotwin-assets/embodiments/aloha-agilex",
+      "destination": "assets/upstream-20260913/embodiments/aloha-agilex",
+      "official_identity": "82 official entries match current upstream sizes/CRC; see resource admission audit"
+    },
+    {
+      "id": "objects",
+      "kind": "copy_tree",
+      "source": "/share/bizhihai/robot-eval-data/robotwin-assets/objects",
+      "destination": "assets/upstream-20260913/objects",
+      "upstream_archive_sha256": "6aa56b3cf1e1064f7c809308144da36b00815f8b137fef2d7e4de856f8becf27"
+    },
+    {
+      "id": "asset-support-files",
+      "kind": "copy_tree",
+      "source": "/share/bizhihai/robot-eval-data/robotwin-assets/files",
+      "destination": "assets/upstream-20260913/files",
+      "upstream_identity": "local source snapshot, no independent upstream package hash"
+    },
+    {
+      "id": "simulator-source",
+      "kind": "copy_tree",
+      "source": "/share/bizhihai/robot-eval-code/20260913T081701Z-b8f2e902/project/vendor/robotwin",
+      "destination": "sources/robotwin-96c1feab5363-local-snapshot",
+      "declared_upstream_commit": "96c1feab536306b50c26af200044fcdf126e8904",
+      "identity_note": "actual copied bytes define snapshot; local modifications not assumed absent",
+      "exclude": ["assets", ".git", "__pycache__", "XPolicyLab", "eval_result"]
+    },
+    {
+      "id": "official-pi05-29999",
+      "kind": "copy_tree",
+      "source": "/share/bizhihai/robot-eval-data/checkpoints/robotwin-pi05/RoboTwin-lerobot_v30-aloha_agilex-joint-0/29999",
+      "destination": "checkpoints/upstream-pi05-joint-29999/29999",
+      "upstream_archive_sha256": "957b07d4319746c70ed5173c2b0ae11b96872410d139931de603d9b4c974ee1c",
+      "training_domain": "unverified; not a proven clean-only checkpoint"
+    }
+  ]
+}

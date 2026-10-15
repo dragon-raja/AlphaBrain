@@ -1,0 +1,20 @@
+{
+  "experiment_id": "libero-windows-20261012",
+  "source": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-window-queue-v1",
+  "worker_config": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-probe-v1/configs/dsol_paper1/libero_windows_20261012.json",
+  "python": "/alphabrain/.venv/bin/python",
+  "admission_timeout_seconds": 10800,
+  "gpus": {"fresh": [0, 1, 2, 3], "gnu": [0, 1, 2, 3, 4, 5, 6, 7]},
+  "control_roots": {
+    "fresh": "/workspace/research-reviews/libero-plus-20261012/windows-fresh",
+    "gnu": "/workspace/research-reviews/libero-plus-20261012/windows-gnu"
+  },
+  "gnu_library_path": "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/egl-jammy/extracted/usr/lib/x86_64-linux-gnu",
+  "environment": {
+    "PYTHONPATH": "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/policy/lib/python3.12/site-packages:/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-probe-v1",
+    "OMP_NUM_THREADS": "2",
+    "OPENBLAS_NUM_THREADS": "2",
+    "ALPHABRAIN_DISABLE_AUTO_DOWNLOAD": "1",
+    "PRETRAINED_MODELS_DIR": "/share/personal/longjunyu/alphabrain/pretrained_models"
+  }
+}

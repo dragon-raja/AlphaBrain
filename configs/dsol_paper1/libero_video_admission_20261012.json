@@ -1,0 +1,10 @@
+{
+  "reference_root": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/plus-admission",
+  "actual_root": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/video-admission",
+  "admission_config": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-plus-eval-v1/configs/dsol_paper1/libero_plus_admission_20261012.json",
+  "production_config": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-plus-production-v1/configs/dsol_paper1/libero_plus_production_20261012.json",
+  "host_label": "video",
+  "python_wrapper": "/alphabrain/.venv/bin/python",
+  "python_wrapper_sha256": "38386bcb7d2ff6126ddb74e3809edd20949e7a077dde220a58162e78a145e86e",
+  "output": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/video-runtime-admission.json"
+}

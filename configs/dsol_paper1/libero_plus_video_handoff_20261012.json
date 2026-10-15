@@ -1,0 +1,83 @@
+{
+  "old_control": "/workspace/research-reviews/libero-plus-20261012/plus-fresh",
+  "coordinator_pid": 1005351,
+  "controller_source": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-cluster-v1",
+  "receipt": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/plus-video-handoff-receipt.json",
+  "evidence_root": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/plus-video-handoff-original",
+  "dispatch_order": "task_round_robin",
+  "seconds_per_task": {
+    "goal_cream_cheese_bowl": 26.18821863880563,
+    "goal_top_drawer_bowl": 26.18821863880563,
+    "goal_wine_rack": 26.18821863880563,
+    "libero10_book_caddy": 45.392912307263096,
+    "libero10_bowl_bottom_drawer": 45.392912307263096,
+    "libero10_mug_microwave": 45.392912307263096,
+    "object_cream_cheese_basket": 24.44233739621859,
+    "spatial_drawer_bowl_plate": 19.204693668457463
+  },
+  "destinations": {
+    "fresh": {
+      "control": "/workspace/research-reviews/libero-plus-20261012/plus-fresh-balanced",
+      "workers_per_gpu": 1,
+      "capacity": 4,
+      "slots": [
+        {
+          "host": "fresh",
+          "id": "4"
+        },
+        {
+          "host": "fresh",
+          "id": "5"
+        },
+        {
+          "host": "fresh",
+          "id": "6"
+        },
+        {
+          "host": "fresh",
+          "id": "7"
+        }
+      ]
+    },
+    "video": {
+      "control": "/workspace/research-reviews/libero-plus-20261012/plus-video-balanced",
+      "workers_per_gpu": 1,
+      "capacity": 8.694155401194,
+      "slots": [
+        {
+          "host": "video",
+          "id": "0"
+        },
+        {
+          "host": "video",
+          "id": "1"
+        },
+        {
+          "host": "video",
+          "id": "2"
+        },
+        {
+          "host": "video",
+          "id": "3"
+        },
+        {
+          "host": "video",
+          "id": "4"
+        },
+        {
+          "host": "video",
+          "id": "5"
+        },
+        {
+          "host": "video",
+          "id": "6"
+        },
+        {
+          "host": "video",
+          "id": "7"
+        }
+      ],
+      "resource_admission": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/video-runtime-admission.json"
+    }
+  }
+}

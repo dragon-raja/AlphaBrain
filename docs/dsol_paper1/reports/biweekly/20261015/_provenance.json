@@ -1,0 +1,41 @@
+{
+  "report_date": "2026-10-15",
+  "period": [
+    "2026-10-01",
+    "2026-10-14"
+  ],
+  "evidence_cutoff": "2026-10-13",
+  "sources": {
+    "configs/dsol_paper1/analysis/biweekly_20261015.json": "aa563847b341e90c8a1dd89579859e79faf4d8b3f87be672a57ca421e71af16b",
+    "/root/.codex/attachments/e8140904-9124-4790-b555-e400fb42b99d/科研进展双周报_20260910-20260923.pdf": "69e537c39a9e057f0f839ec3b969b67344e77ee9e8caa07cf0af1de8bf1435f1",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/window-synthesis-20261013-accepted/summary.json": "8a8780a1e53d563bd7f47a6665d7781517a0d50b78a682e7be1e850004cbf4f7",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/window-transitions-20261013/summary.json": "7dd4d811a52b26ae174da37cfae502247eae998de5314979922a83740d3934d7",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/window-transitions-20261013/initial-transitions.json": "a87507d45dd6ac117006fd7511d27a7fa292cbdaf77f4487bb13bba686f9401e",
+    "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/final-analysis-20261012-accepted/audit.json": "04c1d22a95ef1628d5395281d93af63137561125222f0d3d6ca431c808772c03",
+    "/workspace/projects/alphabrain-dsol-paper1/reports/paper1/biweekly_review.py": "cb4afb03065810dee792606d0c970fec2b142e222ab09ef35a92dbee3242af02"
+  },
+  "layout": [
+    {
+      "page": 1,
+      "spare_height": 24.81683349609375,
+      "scale": 1.0
+    },
+    {
+      "page": 2,
+      "spare_height": 93.0638427734375,
+      "scale": 1.0
+    },
+    {
+      "page": 3,
+      "spare_height": 103.66156005859375,
+      "scale": 1.0
+    }
+  ],
+  "new_experiments": 0,
+  "outputs": {
+    ".pdf": "0f13cadc49fd5223fca7c230c1a19e4bfd417e49b34bbc1c7a7c9c8e6a23b82a",
+    ".docx": "eb3f5d9060feca897ba9eb2cc1302c9a85fe19efc21061c7f062fa34cf301c7c",
+    ".md": "d071d310f8480067239ba326ff921607b0fa9d692cf7fbcffca64bbb551957c2"
+  },
+  "note": "Reference formatting reused; not a new independent analysis. DOCX pagination may vary with fonts. Current unified research PDF unchanged."
+}

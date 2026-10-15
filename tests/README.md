@@ -19,6 +19,10 @@ python tools/repository/test.py --profile portable
 python tools/repository/test.py --profile full
 ```
 
+全量数据IO依赖另列于`pyproject.toml`的`test-full`可选依赖（包括`h5py`与
+`opencv-python-headless`）。在独立CPU测试环境安装，不为跑测试修改活跃评测环境。
+空数据清单的失败检查不要求加载这些二进制IO库；实际HDF5验收仍必须具备它们。
+
 `full` 额外覆盖模型组件、数据加载、全部 Paper 1 与共享运行工具。只读私有数据的 golden 测试在缺少其固定数据时跳过。它仍不启动 VLA 训练或正式 rollout，也不能替代实际仿真轨迹、不同硬件和真机验收。
 
 已获授权的 GPU 迁移对照使用 `tools/paper1/verify_runtime.py`，必须显式提供源码、冻结实验和全新诊断输出目录，并传入 `--execute`。它不属于默认测试或 CI；协议、通过条件及结果入口见 [闭环一致性验收记录](../docs/dsol_paper1/audits/repository_runtime_equivalence_20260911_zh.md)。

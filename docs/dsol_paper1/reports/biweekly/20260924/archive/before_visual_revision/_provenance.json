@@ -1,0 +1,86 @@
+{
+  "period": [
+    "2026-09-10",
+    "2026-09-23"
+  ],
+  "compiled": "2026-09-24",
+  "thread": "01a0861a-5f0e-79b1-9cf9-b1e1ede4baf2",
+  "sources": [
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/reports/current/vla_view_research_progress_zh.md",
+      "sha256": "118ca427abba74349a408c08ddf99d8c6f061ecd302f5df8fc3a15c5fe3606e1"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/results/libero_robocasa_attribution_20260923_zh.md",
+      "sha256": "f7c4bad376950fa48c1551085a918d799e777be63bdff7282e6c54195a121ad0"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/results/accel_field_20260915_zh.md",
+      "sha256": "8950af5f8969399f9842548be771b6bb7583441d576188b35539d14caa81e6ab"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/protocols/local_view_derivative_20260916_zh.md",
+      "sha256": "93eae7406ba9282523eed9afd74cf4798aa24c097871a7c4cf72ef26664a39a3"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/planning/outcome_active_observation_20260918_zh.md",
+      "sha256": "53295d213925e60bb105d13bf1c6f1cd50a2b6ce5d8e437984477103145ea0fd"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/planning/active_camera_feasibility_20260921_zh.md",
+      "sha256": "a307f743ec1d64fa3afb53d4e89467eb3d50385b3ffc9ceb2baf354ba94287e5"
+    },
+    {
+      "path": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/audits/libero_step_zero_interpretation_20260923_zh.md",
+      "sha256": "c5cb071048c77b85a8667359c3e066f4f51a953779d626dc15d7213ddfd28c14"
+    }
+  ],
+  "chart_data": [
+    [
+      [
+        90.625,
+        22.406,
+        65.43
+      ],
+      [
+        88.672,
+        76.459,
+        86.523
+      ]
+    ],
+    [
+      [
+        51.25,
+        40.26,
+        43.5
+      ],
+      [
+        44.88,
+        40.14,
+        37.25
+      ]
+    ]
+  ],
+  "layout": [
+    {
+      "page": 1,
+      "spare_height": 65.92706298828125,
+      "scale": 1.0
+    },
+    {
+      "page": 2,
+      "spare_height": 87.5198974609375,
+      "scale": 1.0
+    }
+  ],
+  "notes": [
+    "No new experiments; no current research report overwritten.",
+    "DOCX shares content; Word pagination may depend on installed fonts.",
+    "ActiveArena resource review remains prospective; no local reproduction claimed."
+  ],
+  "outputs": {
+    ".pdf": "6edaf322ae115aa410270d527659cabf62f7e5306c0dd35bc11fa0918b69eb9c",
+    ".docx": "2a5dd12e919b5e485cb1390f32f38fc38250fe7cc95012acdce8cc23d35e4f2c",
+    ".md": "5c1c4d8f6e60b5ff0e0329510b5d3f2607ce62d2f0c50ce1a23f92b383220ff3"
+  }
+}

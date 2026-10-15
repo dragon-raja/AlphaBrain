@@ -1,0 +1,9 @@
+{
+  "source": "/workspace/projects/alphabrain-dsol-paper1",
+  "pi05_subspaces": "/workspace/research-reviews/robocasa-score-window-20260929-v2/scores.npz",
+  "canonical": "/share/personal/longjunyu/robocasa/experiments/xr1-canonical-panel-20260929",
+  "perturbed": "/share/personal/longjunyu/robocasa/experiments/xr1-perturbed-panel-20260929",
+  "predecessor": "/workspace/research-reviews/robocasa-xr1-continuation-20260929",
+  "output": "/share/personal/longjunyu/robocasa/experiments/xr1-remaining92-20260929",
+  "record": "/workspace/research-reviews/robocasa-xr1-fullview-20260929"
+}

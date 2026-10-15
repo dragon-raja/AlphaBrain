@@ -1,0 +1,9 @@
+{
+  "output": "/workspace/research-reviews/active-camera-feasibility-20260921/kitchen-contact-diagnostic-20260922",
+  "case_timeout_seconds": 40,
+  "cases": [
+    {"task": "OpenDrawer", "layout": 23, "style": 54, "seed": 0, "inspect_contacts": true},
+    {"task": "OpenDrawer", "layout": 23, "style": 54, "seed": 1, "inspect_contacts": true},
+    {"task": "TurnOnMicrowave", "layout": 23, "style": 54, "seed": 0, "inspect_contacts": true}
+  ]
+}

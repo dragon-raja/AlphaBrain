@@ -1,0 +1,12 @@
+{
+  "purpose": "Mechanism diagnostic only; not a recovery or success-rate evaluation",
+  "release": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/release.json",
+  "runtime": "/share/longjunyu/alphabrain/datasets/libero-plus/runtime/LIBERO-plus",
+  "output": "/share/longjunyu/alphabrain/experiments/dsol-local-view-derivative-20260916/pilot-a",
+  "state_indices": [0, 4],
+  "candidate_indices": [0, 1],
+  "score_seeds": [41, 42],
+  "translation_step_m": 0.002,
+  "rotation_step_rad": 0.003490658503988659,
+  "render_gpu": 0
+}

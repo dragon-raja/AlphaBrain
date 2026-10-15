@@ -17,6 +17,7 @@
 | 可复用科学绘图 | `AlphaBrain/research/dsol/plotting` | 修改数据、训练模型、发布报告 |
 | 命令行入口 | `scripts/dsol_paper1` 的职责子目录 | 新增一整套算法实现或恢复平铺区 |
 | 获取运动与输入工程原语 | `AlphaBrain/research/dsol/acquisition` | 冒充已验证的主动感知方法 |
+| 通用执行调度与恢复状态机 | `AlphaBrain/research/dsol/execution` | 模型推理、仿真细节、修改科学协议 |
 | 报告布局、说明与发布 | `reports/paper1` | 重写统计估计或偷偷重新评测 |
 | 实验参数与路径 | `configs/dsol_paper1` | 替代已冻结的 release |
 | 测试 | `tests` | 依赖作者个人 GPU 或隐式启动正式任务 |
@@ -85,3 +86,15 @@ python tools/repository/test.py --profile full
 本仓库参考 [PyPA 包布局讨论](https://packaging.python.org/en/latest/discussions/src-layout-vs-flat-layout/)、[pytest 集成实践](https://docs.pytest.org/en/stable/explanation/goodpractices.html) 与 [Cookiecutter Data Science](https://cookiecutter-data-science.drivendata.org/) 关于可导入实现、测试以及数据／模型／报告分离的建议，按现有框架渐进应用，不原样套用模板。
 
 这些是工程组织参考，不是更换项目开源许可证。本轮不修改 `LICENSE`，保留上游版权和已有依赖许可。
+
+## 8. 并行执行的强制准则
+
+统一标准见 [执行管理协议](docs/dsol_paper1/protocols/execution_management_zh.md)。新增并行训练／评测／渲染工作，先检查现有队列与适配器，不再复制一个实验专属调度器作为默认入口。
+
+- 科学清单与资源配置分离：模型、任务、初态、视角、评分／执行噪声地址不随机器或GPU变化。不能把小pilot的静态分片直接扩成全矩阵而不检查长尾。
+- 通用身份、动态分配、排他控制、状态、失败收尾与显式恢复放在 `execution/`；环境、SSH、驻留模型及科学结果验收放在后端适配器。CLI放在 `operations/`，只处理参数和组合。
+- 适配器须核验主机环境与来源身份，返回可恢复的所属进程身份，处理启动／记账间隙；无法证明旧worker已退出时禁止重发。重启不是无条件重跑。
+- 已完成结果校验后复用，科学失败也保留；不按成功与否择优聚合。同一试验只能有一份预先确定的所有权。调度变化不得改预算、初态、视角或噪声。
+- 新适配器先做CPU故障／恢复测试，再做独立的实际推理／轨迹准入；通用测试通过不等于某模型或双机运行已通过。
+- 启动前使用标准三机巡检/资源清单，明确模型与阶段的实测workers-per-GPU；以吞吐、显存余量和数值核验共同准入，不靠“显存似乎够”扩容。容量测试先drain整张物理卡，生产在途任务自然完成。训练使用独占GPU的DDP/FSDP整体资源契约，不套评测多worker规则。
+- 活跃冻结副本保持不动。遗留执行器接入新标准必须另立源码版本和验收记录；兼容例外须写明原因、适用release、风险及退出条件。

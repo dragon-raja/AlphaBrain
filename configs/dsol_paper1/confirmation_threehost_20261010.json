@@ -1,0 +1,16 @@
+{
+  "experiment_root": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009",
+  "scope": "Execution-only host expansion; original scientific scope and independent noise addresses unchanged",
+  "publisher_config": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/official-handoff-accelerated-config.json",
+  "follower_config": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/video-handoff-accelerated-config.json",
+  "source": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-source-accelerated-20261010",
+  "current_controllers": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/CURRENT_EXECUTION.json",
+  "unchanged_gnu_runtime": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-runtime-gnu.json",
+  "ownership_inputs": [
+    "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-xr1/ownership.json",
+    "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-official-fresh/ownership.json",
+    "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/execution-official-video/ownership.json"
+  ],
+  "old_fresh_only_handoff": "Stopped before publication; historical source and receipts preserved, must not restart concurrently",
+  "state_at_setup": "Superseded idle-Video arrangement: Fresh and Video share remaining short probes, 16 slots each; GNU has 16 XR-1 execution slots. Upcoming official endpoints use 16 slots per host after complete choice publication and counted full-task admission."
+}

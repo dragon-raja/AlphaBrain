@@ -1,0 +1,7 @@
+{
+  "libero_root": "/share/personal/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908",
+  "plus_runtime": "/share/personal/longjunyu/alphabrain/datasets/libero-plus/runtime/LIBERO-plus",
+  "plus_mapping": "/workspace/research-reviews/recovery-confirmation-planning-20261009/libero-plus-protocol/plus-initial-mapping.json",
+  "output": "/workspace/research-reviews/recovery-confirmation-planning-20261009/libero-plus-preflight",
+  "path_mappings": [["/share/longjunyu", "/share/personal/longjunyu"]]
+}

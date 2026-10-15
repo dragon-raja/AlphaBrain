@@ -1,0 +1,70 @@
+{
+  "output": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/same-state-xr1-20261015T040023Z",
+  "prefix_root": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/prefix-replay-20261014",
+  "original_config": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/prefix-replay-20261014/xr1-config-pinned.json",
+  "cases": [
+    {
+      "initial": "39dd9788d2b8a223cfc09850",
+      "views": [
+        "extra_008",
+        "train_003"
+      ],
+      "steps": [
+        32,
+        48,
+        64
+      ]
+    },
+    {
+      "initial": "a90105e397160a8fa8d737b8",
+      "views": [
+        "extra_026",
+        "train_063"
+      ],
+      "steps": [
+        16,
+        32,
+        48
+      ]
+    }
+  ],
+  "repeats": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "history_offsets": [
+    -6,
+    -4,
+    -2,
+    0
+  ],
+  "fixed_noise": "noise_seed(initial, score, repeat, first_selected_step//16)",
+  "calls_cap": 172,
+  "calls_design": {
+    "reused": 32,
+    "diagnostic_new": 160,
+    "cached_reference_controls": 4,
+    "rerender_controls": 8
+  },
+  "gpu": 0,
+  "physical_gate": "bitwise exact raw qpos/qvel/ctrl/time/warmstart and reconstructed body/site arrays; no fitted state or replay actions",
+  "pixel_gate": {
+    "max_abs": 2,
+    "mean_abs": 0.005,
+    "fraction_gt1": 0.0001,
+    "fraction_gt2": 0
+  },
+  "renderer_off_samples": 4,
+  "rule": "Original Accel p3 on16x12 with exact additive channel contributions; no weighting/selection tuning",
+  "stop_on_any_failure": true,
+  "no_actions": true,
+  "no_automatic_resume": true,
+  "execution": "One serial worker on already-admitted Fresh GPU0; no distributed queue or multi-worker expansion. GPU7 keepalive untouched.",
+  "source": "/workspace/projects/alphabrain-dsol-paper1"
+}

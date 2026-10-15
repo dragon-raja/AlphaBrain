@@ -1,0 +1,10 @@
+{
+  "audited_analysis": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/research-v1/history/20260911T023803721133Z",
+  "release": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/release.json",
+  "output": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/accel-field-v1",
+  "methods": ["constant", "nearest", "quadratic", "linear", "rbf_exact", "rbf_smooth"],
+  "dense_resolution": 24,
+  "display_method": "rbf_smooth",
+  "random_fold_seed": 20260915,
+  "scope": "Exploratory descriptive analysis of all archived standard initials; no new rollouts, no policy learning, no current PDF replacement"
+}

@@ -1,0 +1,57 @@
+{
+  "root": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012",
+  "inputs": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/inputs/libero-inputs.json",
+  "anchors": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/inputs/libero-anchors.npz",
+  "release": "/share/personal/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/release.json",
+  "runtime": "/share/personal/longjunyu/alphabrain/datasets/libero-plus/runtime/LIBERO-plus",
+  "dataset": "/share/personal/longjunyu/alphabrain/datasets/libero-original-hdf5-v1",
+  "source": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/source-plus-eval-v1",
+  "sim_python": "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/python38/bin/python3.8",
+  "sim_site": "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/sim/lib/python3.8/site-packages",
+  "sim_extra_paths": [
+    "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/openpi-client-src",
+    "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/openpi-src"
+  ],
+  "models": {
+    "canonical": {
+      "path": "/share/personal/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_canonical_unique_mb-matched-v1_seed41_g2_gb32_steps2000/final_model",
+      "weights_sha256": "7e510b752143bb6fd4987988dfab5e94f7db1de5f7e97579f892a58eed22cc68"
+    },
+    "broad": {
+      "path": "/share/personal/longjunyu/alphabrain/experiments/dsol-libero-broad-pairing-v1/runs/dsol_broad_unpaired_practical_m-b-formal-v1_seed41_g2_gb32_steps2000/final_model",
+      "weights_sha256": "123786f53c9823b878fb08fe61ef25fe4931d4bcae8134e0a64940b7a8ac3cad"
+    }
+  },
+  "table_plane_z": 0.48,
+  "worker_timeout_seconds": 14400,
+  "input_hashes": {
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/inputs/libero-inputs.json": "c562fa09a272ce69deb78bf8c64393020e408c98cad582731c428f6850f26df8",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/inputs/libero-anchors.npz": "7cafd3c682fef39c9968f41359950e9bdd589439b4776c411c429a8d3e2d25ae",
+    "/share/personal/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/release.json": "e300b2c5be13a624518ddb386981fe37eee0bae23294e81446f445db70bf9899"
+  },
+  "protocol": {
+    "scope": "Native Plus admission, canonical+first official camera variant; 4 original execution repeats, all native views initial score8; no full production admission implied",
+    "initials": [
+      0
+    ],
+    "models": [
+      "canonical",
+      "broad"
+    ],
+    "execution_view_indices": [
+      0,
+      1
+    ],
+    "score_repeats": 8,
+    "execution_repeats": 4,
+    "replan_steps": 5,
+    "render_protocol": "AA0, native wrapper, physical and wrist exact"
+  },
+  "render_root": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/render",
+  "execution_view_indices": [
+    0,
+    1
+  ],
+  "execution_noise_manifest": "/share/personal/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/noise-banks/bank_INITIAL32.manifest.json",
+  "execution_noise_file": "/share/personal/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/noise-banks/bank_INITIAL32.npy"
+}

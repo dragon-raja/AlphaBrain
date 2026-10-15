@@ -1,0 +1,9 @@
+{
+  "audited_analysis": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/research-v1/history/20260911T023803721133Z",
+  "release": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/release.json",
+  "output": "/share/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/accel-template-v1",
+  "expected_matrix_sha256": "4440669062eeeeb5be109e76068896328fdad200fcb540685b3406f3c190baad",
+  "low_fractions": [0.1, 0.25, 0.4],
+  "primary_low_count": 24,
+  "scope": "Exploratory template coverage and affine/spatial shape decomposition; no new observations, success labels, search policy or PDF replacement"
+}

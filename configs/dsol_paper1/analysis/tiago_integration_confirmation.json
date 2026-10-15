@@ -1,0 +1,8 @@
+{
+  "output": "/workspace/research-reviews/active-camera-feasibility-20260921/kitchen-integration-confirmation-20260922",
+  "case_timeout_seconds": 45,
+  "cases": [
+    {"task":"OpenDrawer","layout":23,"style":54,"seed":0},
+    {"task":"OpenDrawer","layout":23,"style":54,"seed":1}
+  ]
+}

@@ -9,7 +9,7 @@ import numpy as np
 
 sys.path.insert(0,str(REPOSITORY_ROOT/'scripts/dsol_paper1'))
 from scripts.dsol_paper1.protocols.build_full64_view_landscape_v2 import partition_states, protocol_for
-from build_matched_view_landscape_protocol_v1_test import population_fixture, protocol_fixture
+from tests.dsol_paper1.helpers.landscape_protocol import population_fixture, protocol_fixture
 from scripts.dsol_paper1.protocols.build_matched_view_landscape_protocol_v1 import select_development_states, expanded_specs
 from scripts.dsol_paper1.operations.controllers.run_full64_view_landscape_v2 import select_mode
 from scripts.dsol_paper1.analysis.analyze_view_oracle_comparison_v2 import oracle_rows, ORACLES

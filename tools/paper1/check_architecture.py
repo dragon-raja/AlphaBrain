@@ -16,7 +16,7 @@ def check(root=ROOT):
     errors = []
     registry = json.loads((root / "tools/paper1/architecture_registry.json").read_text())
     base = root / "AlphaBrain/research/dsol"
-    for name in ["data", "metrics", "selectors", "analysis", "plotting", "acquisition"]:
+    for name in ["data", "metrics", "selectors", "analysis", "plotting", "acquisition", "execution"]:
         for p in (base / name).rglob("*.py"):
             tree = ast.parse(p.read_text(), filename=str(p))
             for node in ast.walk(tree):

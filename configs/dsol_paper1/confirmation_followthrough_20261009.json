@@ -1,0 +1,17 @@
+{
+  "release": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/release",
+  "probe_config": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probe-inputs/config.json",
+  "probes": {
+    "official": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probes-official",
+    "xr1": "/share/personal/longjunyu/robocasa/experiments/recovery-confirmation-20261009/probes-xr1"
+  },
+  "selections": {
+    "official": "/workspace/research-reviews/recovery-confirmation-planning-20261009/selected-views/official",
+    "xr1": "/workspace/research-reviews/recovery-confirmation-planning-20261009/selected-views/xr1"
+  },
+  "execution_plan": "/workspace/research-reviews/recovery-confirmation-planning-20261009/confirmation-execution-plan.json",
+  "status_file": "/workspace/research-reviews/recovery-confirmation-planning-20261009/followthrough-status.json",
+  "timeout_seconds": 108000,
+  "poll_seconds": 60,
+  "path_mappings": [["/share/longjunyu", "/share/personal/longjunyu"]]
+}

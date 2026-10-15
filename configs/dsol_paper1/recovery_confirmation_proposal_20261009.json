@@ -1,0 +1,76 @@
+{
+  "status": "PROPOSED_NOT_RELEASED_FOR_GPU_EXECUTION",
+  "purpose": "Confirm frozen multi-step Accel rules on fresh initial states and execution noise; preserve all original tasks and the 32-view disturbance baseline.",
+  "sources": {
+    "development_panel": "/share/personal/longjunyu/alphabrain/experiments/dsol-robocasa-official-fullview-20260928/selection.json",
+    "development_endpoints": "/share/personal/longjunyu/robocasa/experiments/xr1-rebalanced-20260930/analysis/panel_arrays.npz",
+    "development_windows": "/workspace/research-reviews/short-view-probe-20261008/matched-analysis-20261009/windows.npz",
+    "original_p0_plan": "/share/personal/longjunyu/alphabrain/experiments/dsol-robocasa-stage2-preparation-20260916/formal-matrix-native-20260918/plan.json"
+  },
+  "population": {
+    "tasks": ["CloseBlenderLid", "CloseFridge", "CoffeeSetupMug", "NavigateKitchen", "OpenCabinet", "OpenDrawer", "PickPlaceCounterToCabinet", "PickPlaceSinkToCounter", "TurnOffStove", "TurnOnMicrowave"],
+    "environment_splits": ["pretrain", "target"],
+    "new_initials_per_task_split": 4,
+    "new_physical_initials": 80,
+    "models": ["official", "xr1"],
+    "all_tasks_retained": true,
+    "new_seed_namespace": "robocasa_recovery_confirmation_20261009_v1",
+    "seed_rule": "First 8 SHA256 hex digits of namespace|task|split|index, modulo 2147000000, plus 20000; freeze before any new policy outcome.",
+    "novelty_claim": "New initial-state and noise samples of known tasks within existing official scene splits; NOT new-task or entirely unseen-kitchen generalization.",
+    "deduplication": "Check registered prior task/split/seeds and physical snapshot identities before admission; no success-based replacement. Record all generation failures and stop for review."
+  },
+  "development_rules": {
+    "old_40_role": "Exploration/development for this new confirmation, without altering original seen/heldout metadata or historical receipts.",
+    "primary_window": 3,
+    "secondary_windows": [1, 2, 4, 5],
+    "no_confirmatory_best_window_selection": true,
+    "group_unit": "model x task x environment_split",
+    "capacity": "Old development canonical-view mean success, after averaging execution noise and initials.",
+    "view_loss": "Old development canonical success minus mean success over the original 32 extra_eval views.",
+    "descriptive_groups": {
+      "capable_view_sensitive": "capacity >= 0.80 and view_loss >= 0.10",
+      "capable_low_view_loss": "capacity >= 0.80 and view_loss < 0.10",
+      "lower_reference_capacity": "capacity < 0.80"
+    },
+    "group_caveat": "These thresholds organize descriptive strata, not a sufficient-condition theorem or eligibility filter. Development has only two initials per task/split; report continuous capacity/view-loss values, uncertainty and group transfer failures.",
+    "no_group_definition_from_selector_gain": true,
+    "no_test_regrouping_for_primary_claim": true
+  },
+  "probing": {
+    "candidate_views": 97,
+    "score_repeats": 8,
+    "windows": [1, 2, 3, 4, 5],
+    "short_branches_total": 124160,
+    "metric": "Original native Accel prefix3; original per-model action dimensions and Flow settings.",
+    "first_window_admission": "Independent initial scoring pass must exactly reproduce window1 noise/input/velocity/actions and selection for the new population, separately for each model.",
+    "stopping": "Five actual scores; success events recorded but not used for selection. Actual terminated/truncated still fail closed; no imputation.",
+    "camera_semantics": "Original linked exterior installation offset, wrist installation unchanged, native support motion; not physically actuated head-camera control.",
+    "reset_semantics": "Candidate probes reset to the same frozen initial state; subsequent complete-task evaluations also start from that initial state."
+  },
+  "complete_task_evaluation": {
+    "new_execution_repeats": 8,
+    "conditions": ["canonical", "all_32_original_extra_eval_views", "chosen_window1", "chosen_window2", "chosen_window3", "chosen_window4", "chosen_window5"],
+    "max_distinct_views_per_initial_model": 38,
+    "max_new_rollouts": 48640,
+    "deduplication": "Identical chosen view shares the same initial/model/noise result; never retain the better duplicate.",
+    "score_and_execution_noise_disjoint": true,
+    "execution_pairing": "Pair each new execution repeat and replan-index address across all evaluated views; preserve original model-specific replan stride and task horizons.",
+    "no_full_97_view_outcome_matrix": true,
+    "no_new_oracle_claim": true
+  },
+  "analysis": {
+    "primary": "Window3 minus uniform mean over original 32 extra_eval views, all tasks retained; per-model seen/heldout reports and overall average.",
+    "secondary": ["Window3 minus window1", "All five predeclared windows", "Frozen development strata", "Task-level gains", "Canonical performance and view-loss transfer", "Continuous development capacity/view-loss versus confirmation gains"],
+    "uncertainty": "Paired task/initial hierarchical intervals with paired resampling of new execution addresses; preserve repeated observations and shared layouts; label multi-window/subgroup exploration and control multiplicity for formal significance claims.",
+    "scale_caveat": "Four new initials per task/split improves the original two, but is a bounded confirmation, not guaranteed power or a final benchmark-scale result."
+  },
+  "execution": {
+    "queue": "Existing durable execution queue, dynamic small blocks, immutable artifacts, explicit ownership and missing-only recovery.",
+    "assignment_proposal": {"fresh": "official", "gnu": "xr1"},
+    "gates": ["Budget and scope approval", "New snapshot and candidate rendering admission", "CPU protocol tests", "Both-host actual inference and reset/anchor pilot", "Freeze group manifest and selected-view manifest before confirmation endpoint reveal"],
+    "measured_old_probe_seconds_per_cell": {"official": 46.04586465186632, "xr1": 36.58126202643244},
+    "probe_hours_per_host_at_8_gpus_ideal": {"official": 12.407913753419648, "xr1": 9.857395990455404},
+    "rollout_timing": "Pending actual dual-host end-to-end pilot; 47-70 seconds per rollout is a planning scenario, not a measured promise for the new panel.",
+    "runtime_adapter_status": "Not yet implemented for fresh initial populations. Current short_view_probe anchors to the old panel; it must not be pointed at new seeds without new standalone-score admission."
+  }
+}

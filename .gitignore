@@ -377,3 +377,19 @@ results/
 !/docs/dsol_paper1/results/*.md
 !/archive/repository/20260911/runtime-modules/before/docs/dsol_paper1/results/
 !/archive/repository/20260911/runtime-modules/before/docs/dsol_paper1/results/*.md
+
+# Figures referenced by versioned biweekly reports; keep clean checkouts readable.
+!/docs/dsol_paper1/reports/biweekly/20260924/_assets/accel_space.png
+!/docs/dsol_paper1/reports/biweekly/20260924/_assets/candidate_geometry.png
+!/docs/dsol_paper1/reports/biweekly/20260924/_assets/observation_response_compact.png
+!/docs/dsol_paper1/reports/biweekly/20260924/_assets/training_design.png
+!/docs/dsol_paper1/reports/biweekly/20260924/_assets/view_recovery.png
+!/docs/dsol_paper1/reports/biweekly/20260924/archive/before_causes_revision/_assets/accel_space.png
+!/docs/dsol_paper1/reports/biweekly/20260924/archive/before_causes_revision/_assets/observation_response.png
+!/docs/dsol_paper1/reports/biweekly/20260924/archive/before_causes_revision/_assets/training_design.png
+!/docs/dsol_paper1/reports/biweekly/20260924/archive/before_causes_revision/_assets/training_views.png
+!/docs/dsol_paper1/reports/biweekly/20260924/archive/before_causes_revision/_assets/view_recovery.png
+!/docs/dsol_paper1/reports/biweekly/20260924/archive/before_visual_revision/_assets/view_recovery.png
+!/docs/dsol_paper1/reports/biweekly/20261015/_assets/libero_plus_windows.png
+!/docs/dsol_paper1/reports/biweekly/20261015/_assets/robocasa_windows.png
+!/docs/dsol_paper1/reports/biweekly/20261015/_assets/stable_misselection.png

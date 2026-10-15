@@ -2,6 +2,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import subprocess
 
 from tools.repository.evidence import current_path
 
@@ -58,6 +59,7 @@ def test_report_revision_preserves_original_and_matches_publication_receipt():
 def test_classified_document_links_resolve_except_declared_local_pdf_outputs():
     import os
     from urllib.parse import unquote
+    tracked = set(subprocess.check_output(['git', 'ls-files', '-z'], cwd=ROOT).decode().split('\0'))
     local_only = {
         "docs/dsol_paper1/reports/current/vla_view_research_progress_zh.pdf",
         "docs/dsol_paper1/vla_view_landscape_and_metrics_20260908_zh.pdf",
@@ -75,3 +77,11 @@ def test_classified_document_links_resolve_except_declared_local_pdf_outputs():
             target = Path(os.path.normpath(str(p.parent / unquote(token.split("#")[0]))))
             if target.is_relative_to(ROOT) and str(target.relative_to(ROOT)) not in local_only:
                 assert target.exists(), (p, token)
+                # A local ignored image can mask a broken published document.
+                # Require linked resources of versioned documents in Git too.
+                if str(p.relative_to(ROOT)) in tracked:
+                    relative = str(target.relative_to(ROOT))
+                    if target.is_dir():
+                        assert any(name.startswith(relative + '/') for name in tracked), (p, token, 'unversioned directory')
+                    else:
+                        assert relative in tracked, (p, token, 'unversioned linked resource')

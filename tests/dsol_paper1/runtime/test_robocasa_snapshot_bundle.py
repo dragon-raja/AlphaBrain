@@ -1,5 +1,7 @@
 from copy import deepcopy
 import io
+import gzip
+import hashlib
 import unittest
 from pathlib import Path
 import tempfile
@@ -9,10 +11,24 @@ import numpy as np
 
 from benchmarks.Robocasa365.snapshot import EnvSnapshot
 from benchmarks.Robocasa365.snapshot_bundle import _LegacySnapshotUnpickler, snapshot_numeric_fingerprint
-from benchmarks.Robocasa365.snapshot_bundle import save_snapshot_bundle, load_snapshot_bundle
+from benchmarks.Robocasa365.snapshot_bundle import save_snapshot_bundle, load_snapshot_bundle, load_compiled_model_xml
 
 
 class SnapshotCompatibilityTests(unittest.TestCase):
+    def test_direct_reader_selects_checked_compiled_xml_without_source_fallback(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path=Path(folder)
+            compiled='<mujoco><worldbody><camera name="runtime_camera"/></worldbody></mujoco>'
+            payload=gzip.compress(compiled.encode())
+            (path/'compiled_model.xml.gz').write_bytes(payload)
+            bundle=SimpleNamespace(path=path,model_xml='<mujoco/>',manifest={'files':{
+                'compiled_model.xml.gz':{'bytes':len(payload),'sha256':hashlib.sha256(payload).hexdigest()}}})
+            self.assertEqual(load_compiled_model_xml(bundle),compiled)
+            (path/'compiled_model.xml.gz').write_bytes(payload+b'bad')
+            with self.assertRaises(RuntimeError):load_compiled_model_xml(bundle)
+            bundle.manifest['files'].clear()
+            with self.assertRaises(ValueError):load_compiled_model_xml(bundle)
+
     def test_writer_roundtrip_checksums_and_no_overwrite(self):
         snapshot = EnvSnapshot(sim_state=np.zeros(5), camera_positions=np.zeros((3, 3)),
             camera_quaternions=np.zeros((3, 4)), model_runtime={},

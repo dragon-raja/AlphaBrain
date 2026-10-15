@@ -131,7 +131,11 @@ def _names(model: Any, attribute: str) -> list[str]:
 
 
 def model_signature(env: Any) -> dict[str, Any]:
-    model = inner_env(env).sim.model
+    return compiled_model_signature(inner_env(env).sim.model)
+
+
+def compiled_model_signature(model: Any) -> dict[str, Any]:
+    """Describe a compiled model without requiring an environment or reset."""
     return {
         "nq": int(model.nq),
         "nv": int(model.nv),
@@ -144,6 +148,23 @@ def model_signature(env: Any) -> dict[str, Any]:
         "joint_names": _names(model, "joint_names"),
         "geom_names": _names(model, "geom_names"),
     }
+
+
+def load_compiled_model_xml(bundle: SnapshotBundle) -> str:
+    """Read the archived runtime model for direct, no-reset reconstruction.
+
+    The source MODEL_FILE is intentionally retained for environment reconstruction,
+    where edit_model_xml adds runtime cameras. Direct MjSim construction must use
+    the separately archived compiled XML. Never synthesize missing cameras or fall
+    back to the source XML when this payload is missing or has changed.
+    """
+    expected = bundle.manifest['files'].get(COMPILED_MODEL_FILE)
+    if expected is None:
+        raise ValueError('No checksummed compiled model XML in snapshot bundle')
+    path = bundle.path / COMPILED_MODEL_FILE
+    if path.stat().st_size != int(expected['bytes']) or _sha256(path) != expected['sha256']:
+        raise RuntimeError('Archived compiled model XML checksum/size mismatch')
+    return _read_gzip_text(path)
 
 
 def _write_gzip_text(path: Path, value: str) -> None:

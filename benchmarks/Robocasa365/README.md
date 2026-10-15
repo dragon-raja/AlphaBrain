@@ -186,8 +186,18 @@ output directories are not resumed or overwritten. `render_preflight.py` checks
 the native EGL device convention before simulator imports: this Robosuite version
 accepts physical numeric GPU indices, not UUIDs in `CUDA_VISIBLE_DEVICES`.
 
-The mocap correction and device checks pass CPU tests. The latest runtime attempt
-stopped during EGL initialization because the launcher supplied a GPU UUID; it
-verified zero frames and made zero model calls. The numeric-device launch fix is
-prepared but has **not** been retried after that failure. Neither intermediate
-state admission nor the two-case cross-view diagnostic is claimed complete.
+Direct reconstruction uses the separately checksummed `compiled_model.xml.gz`,
+which preserves the cameras installed by the original environment. The raw
+`model.xml.gz` remains the input to environment reconstruction, whose
+`edit_model_xml` adds those cameras. The direct adapter checks the full archived
+model signature, runtime array shapes and candidate installations before rendering.
+Missing or changed compiled XML is an error, never a reason to synthesize cameras.
+
+The numeric-device correction passed EGL initialization in the next authorized
+attempt, which then stopped because the previous direct reader loaded a raw XML
+with two cameras while the frozen installation has six. Both archived compiled
+XML payloads retain all six cameras and pass their original checksums. The reader
+correction and schema checks pass CPU tests; **runtime validation of this further
+correction remains pending** under the stop-on-failure instruction. Cumulative
+model calls remain zero. Neither intermediate state admission nor the two-case
+cross-view diagnostic is claimed complete.

@@ -14,7 +14,8 @@ from AlphaBrain.research.dsol.data.artifacts import read, sha, write, path_mappi
 from AlphaBrain.research.dsol.data.evaluation_admission import resolve_initial, load_candidate
 from AlphaBrain.research.dsol.data.prefix_telemetry import exact
 from AlphaBrain.research.dsol.data.recorded_mocap import mocap_from_body_poses
-from .snapshot_bundle import load_snapshot_bundle
+from .snapshot_bundle import (load_snapshot_bundle, load_compiled_model_xml,
+                              compiled_model_signature, COMPILED_MODEL_FILE)
 from .evaluation_render import pixel_check
 from .render_preflight import validate_render_device
 
@@ -26,6 +27,25 @@ CAMERAS = ('robot0_agentview_left', 'robot0_agentview_right', 'robot0_eye_in_han
 
 def forbid_step(*args, **kwargs):
     raise RuntimeError('No simulator steps are authorized in this diagnostic')
+
+
+def validate_restoration_model(sim, bundle, candidates):
+    """Reject topology/array mismatches before state writes or rendering."""
+    signature = compiled_model_signature(sim.model)
+    if signature != bundle.manifest['model_signature']:
+        raise ValueError('Direct compiled model signature differs from archived runtime')
+    if not set(CAMERAS).issubset(signature['camera_names']):
+        raise ValueError('Archived runtime lacks required policy cameras')
+    for name, value in bundle.snapshot.model_runtime.items():
+        if np.asarray(value).shape != np.asarray(getattr(sim.model, name)).shape:
+            raise ValueError('Archived runtime model array shape differs: '+name)
+    for view, candidate in candidates.items():
+        for key, attr in (('positions', 'cam_pos'), ('quaternions', 'cam_quat')):
+            value = np.asarray(candidate[key])
+            if value.shape != getattr(sim.model, attr).shape or not np.isfinite(value).all():
+                raise ValueError('Candidate camera installation is incompatible: '+view+'/'+key)
+    return dict(signature=signature, candidate_views=list(candidates),
+                xml_payload=COMPILED_MODEL_FILE, status='PASS_MODEL_SCHEMA')
 
 
 def restore_frame(sim, snapshot, arrays, step, candidate, recorded_body_names=None):
@@ -96,8 +116,11 @@ def run(config_file, output=None, previous_attempt=None):
                 bundle=load_snapshot_bundle(Path(admitted['job']['path']))
                 sources[str(bundle.path/'manifest.json')]=sha(bundle.path/'manifest.json')
                 candidates={v:load_candidate(admitted,v) for v in case['views']}
-                sim=MjSim.from_xml_string(bundle.model_xml)
+                xml=load_compiled_model_xml(bundle)
+                sources[str(bundle.path/COMPILED_MODEL_FILE)]=sha(bundle.path/COMPILED_MODEL_FILE)
+                sim=MjSim.from_xml_string(xml)
                 sim.step=forbid_step
+                write(gate/f'{initial}-model-schema.json',validate_restoration_model(sim,bundle,candidates))
                 names_path=Path(cfg['prefix_root'])/'xr1'/f'{initial}-names.json'
                 names=read(names_path)['body_names'];sources[str(names_path)]=sha(names_path)
                 if sources[str(names_path)]!=prior['sources'][str(names_path)]:

@@ -3,7 +3,8 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from benchmarks.Robocasa365.same_state_restore import RAW, GEOMETRY, restore_frame, forbid_step
+from benchmarks.Robocasa365.same_state_restore import RAW, GEOMETRY, CAMERAS, restore_frame, forbid_step, validate_restoration_model
+from benchmarks.Robocasa365.snapshot_bundle import compiled_model_signature
 
 
 def test_restoration_recomputes_geometry_without_integrating_or_copying_it():
@@ -32,6 +33,22 @@ def test_missing_mocap_state_cannot_be_assumed_static():
 def test_step_is_forbidden():
     with pytest.raises(RuntimeError,match='No simulator steps'):
         forbid_step()
+
+
+def test_runtime_camera_schema_is_checked_before_installation():
+    model=SimpleNamespace(nq=1,nv=1,nu=1,nbody=1,ncam=3,ngeom=1,
+        body_names=('world',),camera_names=CAMERAS,joint_names=('joint',),geom_names=('geom',),
+        cam_pos=np.zeros((3,3)),cam_quat=np.zeros((3,4)),body_pos=np.zeros((1,3)))
+    bundle=SimpleNamespace(manifest={'model_signature':compiled_model_signature(model)},
+                           snapshot=SimpleNamespace(model_runtime={'body_pos':np.zeros((1,3))}))
+    sim=SimpleNamespace(model=model)
+    candidate=dict(positions=np.zeros((3,3)),quaternions=np.zeros((3,4)))
+    assert validate_restoration_model(sim,bundle,{'view':candidate})['status']=='PASS_MODEL_SCHEMA'
+    with pytest.raises(ValueError,match='camera installation'):
+        validate_restoration_model(sim,bundle,{'view':dict(candidate,positions=np.zeros((2,3)))})
+    model.ncam=2
+    with pytest.raises(ValueError,match='signature'):
+        validate_restoration_model(sim,bundle,{'view':candidate})
 
 
 def test_moving_mocap_is_restored_before_forward_and_act_is_not_invented():

@@ -1,5 +1,9 @@
 # 相机获取工程原语
 
+- `search_env.py`：标签隔离的有限预算缓存搜索环境、简单对照与可选 Gymnasium 桥接。
+  当前只完成 CPU 接口/数据验证，未训练、未验证头部运动；设计与预算见
+  `docs/dsol_paper1/planning/rl_search_interface_20261020_zh.md`。
+
 - `motion.py`：位姿、运动边界、轨迹与预算。
 - `inputs.py`：允许传入选择器的观测与输入约束。
 - `executor.py`：端点获取执行、匹配等待、控制器适配。

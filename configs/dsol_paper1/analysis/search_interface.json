@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "mode": "interface_audit_only",
+  "search": {
+    "query_budget": 8,
+    "neighbors": 6,
+    "translation_scale_m": 0.1,
+    "rotation_scale_deg": 15.0,
+    "query_cost": 0.01,
+    "motion_cost": 0.001
+  },
+  "audit_budgets": [4, 8, 16],
+  "audit_start": 65,
+  "audit_seed": 20261020,
+  "training_enabled": false,
+  "scope": "Cached INITIAL32 external-camera catalog; not head kinematics or physical execution"
+}

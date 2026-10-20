@@ -51,6 +51,11 @@ def _route(edges, distance, allowed, source, target):
     raise ValueError("Visited subgraph disconnected")
 
 
+def visited_route(edges, distance, allowed, source, target):
+    """Public routing interface; no new nodes or scores are acquired."""
+    return _route(edges, distance, allowed, source, target)
+
+
 def search(edges, distance, start, budgets, query, *, random_seed=None):
     """Best-score frontier expansion or random frontier expansion.
 

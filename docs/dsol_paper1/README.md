@@ -1,5 +1,10 @@
 # Paper 1：VLA 的视角利用
 
+2026-10-20 执行更新：[原生 SigLIP 真实准入记录](execution/rl_search_attention_20261020_zh.md)。
+捕获开关前后动作/velocity/Accel 逐值一致；单视角 batch1 评分未复现历史 batch16，
+累计4/114条去噪后停止。混合预算与特权 critic 已接入 SB3 并通过合成数据工程测试，
+尚无新研究训练、完整任务成绩或真实仿真搜索结果，不混用旧 PPO 结果。
+
 2026-10-20 后续：[查询成本、策略原生 SigLIP 与共享 attention 设计](planning/rl_search_attention_20261020_zh.md)。
 已准备无额外视觉前向的捕获组件、候选共享 actor 和隔离特权 critic，完成 CPU 组件测试；
 旧数据噪声/几何审计不产生新模型调用。混合预算训练、实际策略准入与头部查询尚未运行。

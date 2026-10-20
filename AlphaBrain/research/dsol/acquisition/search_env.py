@@ -209,6 +209,7 @@ class SearchEnv:
             translation_m=float(self.translation_m), rotation_deg=float(self.rotation_deg),
             motion_units=float(self.travel), initial_query_cost=self.config.query_cost,
             total_reward=float(self.total_reward), stop_reason=self.reason,
+            initial_accel=float(self.initial_score), best_accel=float(self.values[self.best, 0]),
         )
 
 

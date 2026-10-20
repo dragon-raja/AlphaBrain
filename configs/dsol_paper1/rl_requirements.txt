@@ -1,0 +1,11 @@
+# Install only in a separate CPU RL environment.
+# First install torch==2.7.1+cpu from https://download.pytorch.org/whl/cpu
+# Then install this file; do not upgrade an existing policy/simulator environment.
+torch==2.7.1+cpu
+gymnasium==1.2.0
+stable-baselines3==2.7.0
+sb3-contrib==2.7.0
+numpy==2.2.6
+matplotlib==3.10.6
+scipy==1.16.2
+pytest==8.4.2

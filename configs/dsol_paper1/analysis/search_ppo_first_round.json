@@ -1,0 +1,27 @@
+{
+  "smoke_steps": 2048,
+  "steps_per_seed": 32768,
+  "training_seeds": [0, 1, 2],
+  "evaluation_budgets": [4, 8, 16],
+  "cpu_threads": 4,
+  "search": {
+    "query_budget": 8,
+    "neighbors": 6,
+    "translation_scale_m": 0.1,
+    "rotation_scale_deg": 15.0,
+    "query_cost": 0.01,
+    "motion_cost": 0.001
+  },
+  "ppo": {
+    "n_steps": 64,
+    "batch_size": 64,
+    "n_epochs": 4,
+    "learning_rate": 0.0003,
+    "gamma": 1.0,
+    "gae_lambda": 0.95,
+    "clip_range": 0.2,
+    "ent_coef": 0.01,
+    "vf_coef": 0.5,
+    "max_grad_norm": 0.5
+  }
+}

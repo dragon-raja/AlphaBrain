@@ -1,0 +1,67 @@
+{
+  "status": "DESIGN_ONLY_REQUIRES_LIVE_FEATURE_ADMISSION",
+  "automatic_execution": false,
+  "operation_policy": "same_frozen_LIBERO_canonical_PaliGemmaPi05",
+  "feature": {
+    "source": "operation_policy_siglip_pre_projector",
+    "pool": [2, 2],
+    "expected_patch_grid": [16, 16],
+    "expected_hidden_dim": 1152,
+    "view_order": ["external", "wrist", "masked_dummy"],
+    "image_mask": [true, true, false],
+    "fallback_to_resnet_or_old_features": false
+  },
+  "network": {
+    "width": 128,
+    "heads": 4,
+    "history_layers": 2,
+    "feedforward_width": 256,
+    "dropout": 0.0,
+    "critic": "separate_weights_full_same_noise_accel_training_only"
+  },
+  "search": {
+    "training_budgets": [4, 8, 16],
+    "budget_distribution": "uniform_per_episode",
+    "start_counts_as_query": true,
+    "query_cost": 0.01,
+    "motion_cost": 0.0,
+    "primary_noise_count_proposal": 2,
+    "noise_pair": "first_two_in_frozen_per_initial_order_shared_across_candidates",
+    "final_selection": "minimum_observed_accel_first_visit_breaks_ties",
+    "automatic_return_to_canonical": false
+  },
+  "training": {
+    "smoke_steps": 2048,
+    "seeds": [0, 1, 2],
+    "steps_per_seed": 32768,
+    "max_total_decisions": 100352,
+    "logical_environments": 16,
+    "n_steps": 64,
+    "batch_size": 64,
+    "n_epochs": 4,
+    "learning_rate": 0.0003,
+    "gamma": 1.0,
+    "gae_lambda": 0.95,
+    "clip_range": 0.2,
+    "ent_coef": 0.01,
+    "vf_coef": 0.5,
+    "max_grad_norm": 0.5,
+    "checkpoint_selection": "final_only",
+    "comparators": ["stay", "local_accel", "random"]
+  },
+  "proposed_admission_caps": {
+    "feature_timing_inputs": 8,
+    "noise_counts": [1, 2, 4],
+    "hook_off_on_per_input": 2,
+    "warmup_noise_trajectories": 2,
+    "max_noise_trajectories": 114,
+    "max_policy_requests_sequential_members": 114,
+    "historical_feature_observation_pairs": 3104,
+    "historical_feature_vision_slot_evaluations": 9312,
+    "additional_action_denoising_for_feature_extraction": 0,
+    "live_search_episodes": 8,
+    "live_search_budget": 8,
+    "live_search_noise_trajectories": 128,
+    "first_closed_loop_tasks": 24
+  }
+}

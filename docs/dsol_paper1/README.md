@@ -1,5 +1,9 @@
 # Paper 1：VLA 的视角利用
 
+2026-10-20 后续：[查询成本、策略原生 SigLIP 与共享 attention 设计](planning/rl_search_attention_20261020_zh.md)。
+已准备无额外视觉前向的捕获组件、候选共享 actor 和隔离特权 critic，完成 CPU 组件测试；
+旧数据噪声/几何审计不产生新模型调用。混合预算训练、实际策略准入与头部查询尚未运行。
+
 2026-10-20：已完成[RL 搜索接口准入](planning/rl_search_interface_20261020_zh.md)及
 [独立 CPU 环境下 PPO 第一轮训练与比较](execution/rl_search_20261020_zh.md)。
 复用 INITIAL32 缓存，累计 100,352 个搜索训练决策，新增 VLA 推理/仿真执行为 0。

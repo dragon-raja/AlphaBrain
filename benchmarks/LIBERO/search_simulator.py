@@ -64,6 +64,19 @@ def serve(config_path,initial,address):
                 connection.send(dict(status='READY',physics=baseline))
                 while True:
                     request=connection.recv();kind=request['kind']
+                    if kind=='catalog':
+                        # Public camera geometry only: no RGB, score or outcome
+                        # is returned for unvisited candidates.
+                        before=physical_digest(env);poses=[]
+                        for candidate in candidates:
+                            _restore_reference(env,camera_reference)
+                            if candidate['pose'] is not None:
+                                install_camera_pose(env,camera_reference,candidate['pose'])
+                            poses.append(agentview_camera_calibration(env)['camera_to_world_opencv'])
+                        _restore_reference(env,camera_reference)
+                        if physical_digest(env)!=before:
+                            raise ValueError('Camera catalog changed physical state')
+                        connection.send(dict(poses=np.asarray(poses),physics=before));continue
                     if kind=='close':
                         connection.send(dict(ok=True));break
                     if kind=='reset':

@@ -39,18 +39,19 @@ def local(manifest, control, shared):
     signal.signal(signal.SIGHUP,interrupted)
     def watch():
         while not stopping.wait(.5):
-            if (shared.parent/'STOP.json').exists():
+            if Path(str(control)+'.stop').exists() or (shared.parent/'STOP.json').exists():
                 os.kill(os.getpid(),signal.SIGTERM)
                 return
     thread=threading.Thread(target=watch,daemon=True);thread.start()
     try:
+        if Path(str(control)+'.stop').exists():raise RuntimeError('Fleet stopped before dispatch')
         backend=SearchBackend(plan,control)
         # Preflight every physical card before launching the first model. In a
         # synchronized capacity phase an unavailable slot cannot be skipped.
         for slot in plan['slots']:
             if not backend.admit(slot):
                 raise RuntimeError('Capacity resource preflight refused slot: '+str(slot))
-        run(control,backend,timeout_seconds=1800)
+        run(control,backend,timeout_seconds=plan['runtime'].get('queue_timeout_seconds',1800))
         write(shared/'queue-result.json',dict(status='COMPLETE'))
     except BaseException as error:
         write(shared/'queue-result.json',dict(status='FAILED_STOPPED',error=repr(error)))
@@ -71,6 +72,22 @@ def launch_command(host, phase):
     if host.get('ssh'):
         return host['ssh']+[shlex.join(command)]
     return command
+
+
+def stop_hosts(config):
+    """Notify only this fleet's local controls; no signals to external processes.
+
+Shared-filesystem negative lookup caching can delay STOP visibility. The SSH
+channel already used for launch also writes the unique local stop marker.
+"""
+    errors=[]
+    for host in config['hosts']:
+        code='from pathlib import Path; import sys; Path(sys.argv[1]).write_text("fleet stopped\\n")'
+        command=[host['python'],'-c',code,host['control']+'.stop']
+        if host.get('ssh'):command=host['ssh']+[shlex.join(command)]
+        try:subprocess.run(command,capture_output=True,text=True,timeout=15,check=True)
+        except (OSError,subprocess.SubprocessError) as error:errors.append(dict(host=host['name'],error=repr(error)))
+    return errors
 
 
 def capacity(config_path, *, execute=False):
@@ -125,6 +142,7 @@ def capacity(config_path, *, execute=False):
         return result
     except BaseException as error:
         first_stop(phase/'STOP.json',dict(error=repr(error),time=time.time()))
+        write(phase/'stop-delivery.json',dict(errors=stop_hosts(config)))
         # Host watchers interrupt only their owned queues and reap their workers.
         for process in processes:
             try:
@@ -138,6 +156,46 @@ def capacity(config_path, *, execute=False):
             log.close()
 
 
+def evaluation(config_path, *, execute=False):
+    """Supervise independent standard queues; fail-stop without automatic retry."""
+    if not execute:raise ValueError('Explicit --execute required')
+    config=read(config_path);phase=Path(config['phase'])
+    if config.get('mode')!='full_tasks':raise ValueError('Explicit full-task fleet required')
+    if (phase/'started.json').exists():raise FileExistsError('No automatic evaluation retries')
+    write(phase/'started.json',dict(time=time.time()))
+    processes=[];logs=[];begin=time.monotonic()
+    try:
+        for host in config['hosts']:
+            shared=phase/host['name'];shared.mkdir(exist_ok=True)
+            log=(shared/'coordinator.log').open('xb');logs.append(log)
+            processes.append(subprocess.Popen(launch_command(host,phase),stdout=log,stderr=subprocess.STDOUT))
+        outputs=[Path(t['output']) for h in config['hosts'] for t in read(h['manifest'])['tasks']]
+        while True:
+            if (phase/'STOP.json').exists() or any(p.poll() not in (None,0) for p in processes):
+                raise RuntimeError('An evaluation host stopped; see original STOP/worker evidence')
+            if time.monotonic()-begin>config['timeout_seconds']:
+                raise TimeoutError('Evaluation fleet deadline exceeded')
+            complete=[read(p/'status.json') for p in outputs if (p/'status.json').exists()]
+            if any(v['status']!='COMPLETE' for v in complete):raise ValueError('Invalid block receipt')
+            write(phase/'progress.json',dict(completed_blocks=len(complete),total_blocks=len(outputs),
+                completed_tasks=sum(len(v['tasks']) for v in complete),elapsed_seconds=time.monotonic()-begin))
+            if all(p.poll()==0 for p in processes):break
+            time.sleep(5)
+        if len(complete)!=len(outputs):raise ValueError('Missing evaluation block')
+        write(phase/'receipt.json',dict(status='COMPLETE',blocks=len(complete),
+            tasks=sum(len(v['tasks']) for v in complete),elapsed_seconds=time.monotonic()-begin))
+    except BaseException as error:
+        first_stop(phase/'STOP.json',dict(error=repr(error),time=time.time()))
+        write(phase/'stop-delivery.json',dict(errors=stop_hosts(config)))
+        for process in processes:
+            try:process.wait(timeout=45)
+            except subprocess.TimeoutExpired:pass
+        write(phase/'failure.json',dict(status='FAILED_STOPPED',error=repr(error)))
+        raise
+    finally:
+        for log in logs:log.close()
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config');parser.add_argument('--local');parser.add_argument('--control');parser.add_argument('--shared')
@@ -147,4 +205,5 @@ if __name__=='__main__':
     if args.local:
         local(args.local,args.control,args.shared)
     else:
-        capacity(args.config,execute=True)
+        if read(args.config).get('mode')=='full_tasks':evaluation(args.config,execute=True)
+        else:capacity(args.config,execute=True)

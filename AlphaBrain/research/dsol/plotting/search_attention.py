@@ -28,7 +28,7 @@ def training_curves(updates):
     return fig
 
 
-def replay_curves(summary):
+def replay_curves(summary,full_catalog_reference=None):
     fig,axes=plt.subplots(2,2,figsize=(12,8),constrained_layout=True)
     for ax,(metric,title,multiplier) in zip(axes.flat,[('success','历史完整任务成绩上的选位回放',100),
                                                ('queries','实际查询数（含起点）',1),
@@ -42,7 +42,10 @@ def replay_curves(summary):
                                 [r['metrics'][metric]['ci95'][1]*100 for r in rows],color=color,alpha=.08)
         ax.set(title=title,xlabel='查询预算',xticks=[4,8,16],ylabel='%' if multiplier==100 else '次数')
         ax.grid(alpha=.2)
-    axes[0,0].legend(frameon=False,fontsize=9)
+    if full_catalog_reference is not None:
+        axes[0,0].axhline(100*full_catalog_reference,color='#333333',ls='--',lw=1.3,
+            label='同两噪声评分查全97候选（非同成本）')
+    axes[0,0].legend(frameon=False,fontsize=8,loc='lower right')
     for method,(label,color) in METHODS.items():
         rows=sorted([r for r in summary['rows'] if r['method']==method],key=lambda r:r['budget'])
         x=[r['metrics']['queries']['mean'] for r in rows]
@@ -57,21 +60,33 @@ def replay_curves(summary):
 
 
 def live_task_figure(receipt):
-    tasks=receipt['tasks'];fig,axes=plt.subplots(1,2,figsize=(12,5),constrained_layout=True)
+    from ..analysis.search_live_summary import summarize_live
+    summary=summarize_live(receipt)
+    tasks=receipt['tasks'];fig,axes=plt.subplots(2,2,figsize=(12,8),constrained_layout=True)
     methods=('stay','local_accel','ppo')
-    for j,method in enumerate(methods):
-        rows=[r for r in tasks if r['method']==method]
-        wins=sum(r['success'] for r in rows)
-        axes[0].bar(j,100*wins/len(rows),color=METHODS[method][1])
-        axes[0].text(j,100*wins/len(rows)+2,f'{wins}/{len(rows)}',ha='center')
-    axes[0].set(xticks=range(3),xticklabels=[METHODS[m][0] for m in methods],ylim=(0,112),
-                ylabel='成功率（%）',title='真实仿真完整任务：每方法 8 条')
-    matrix=np.asarray([[next(r['success'] for r in tasks if r['initial']==i and r['method']==m and r['repeat']==s)
-                        for s in range(4)] for i in (0,4) for m in methods],int)
-    axes[1].imshow(matrix,cmap='RdYlGn',vmin=0,vmax=1,aspect='auto')
-    for (i,j),v in np.ndenumerate(matrix):axes[1].text(j,i,'成功' if v else '失败',ha='center',va='center')
-    axes[1].set(xticks=range(4),xticklabels=range(4),xlabel='配对执行种子',yticks=range(6),
-                yticklabels=[task+' / '+METHODS[m][0] for task in ('奶酪放碗','上抽屉放碗') for m in methods],
-                title='相同任务、初态和执行种子的逐条结果')
-    fig.suptitle('两例工程验证：保留失败；不足以推断整体泛化收益',fontsize=15)
+    for j,row in enumerate(summary['rows']):
+        for offset,key,label,color in ((-.18,'historical_successes','同视角、同种子的历史成绩','#a9b3bd'),
+                                       (.18,'live_successes','本轮真实执行','#447da8')):
+            wins=row[key];height=100*wins/row['trials']
+            axes[0,0].bar(j+offset,height,width=.34,color=color,label=label if j==0 else None)
+            axes[0,0].text(j+offset,height+2,f"{wins}/{row['trials']}",ha='center',fontsize=9)
+        axes[0,1].bar(j,row['mean_queries'],color=METHODS[row['method']][1])
+        axes[0,1].text(j,row['mean_queries']+.2,f"{row['mean_queries']:.1f}",ha='center')
+    labels=[METHODS[m][0] for m in methods]
+    axes[0,0].set(xticks=range(3),xticklabels=labels,ylim=(0,125),ylabel='成功率（%）',
+                  title='真实执行与同一批任务的历史成绩')
+    axes[0,0].legend(frameon=False,fontsize=9,loc='upper left')
+    axes[0,1].axhline(8,color='gray',ls='--',lw=1,label='查询上限 8')
+    axes[0,1].set(xticks=range(3),xticklabels=labels,ylim=(0,9),ylabel='视角数（含起点）',
+                  title='两例的平均实际查询数')
+    axes[0,1].legend(frameon=False)
+    for ax,key,title in ((axes[1,0],'historical_same_seed_success','历史执行：同一候选与执行种子'),
+                         (axes[1,1],'success','本轮真实执行：逐条保留成功与失败')):
+        matrix=np.asarray([[next(r[key] for r in tasks if r['initial']==i and r['method']==m and r['repeat']==s)
+                            for s in range(4)] for i in (0,4) for m in methods],int)
+        ax.imshow(matrix,cmap='RdYlGn',vmin=0,vmax=1,aspect='auto')
+        for (i,j),v in np.ndenumerate(matrix):ax.text(j,i,'成功' if v else '失败',ha='center',va='center',fontsize=9)
+        ax.set(xticks=range(4),xticklabels=range(4),xlabel='配对执行种子',yticks=range(6),
+               yticklabels=[task+' / '+METHODS[m][0] for task in ('奶酪放碗','上抽屉放碗') for m in methods],title=title)
+    fig.suptitle('两例开发任务 × 三方法 × 四执行种子；不与16初态回放成功率直接相减',fontsize=14)
     return fig

@@ -36,7 +36,10 @@ def assert_observation(observation):
 def compare_nested(left, right):
     import torch
     if isinstance(left, torch.Tensor):
-        return isinstance(right, torch.Tensor) and torch.equal(left, right)
+        # Optimizer counters may move from CPU to CUDA during checkpoint load.
+        # Compare exact values/dtypes independently of storage placement.
+        return (isinstance(right, torch.Tensor) and left.dtype == right.dtype
+                and torch.equal(left.detach().cpu(), right.detach().cpu()))
     if isinstance(left, dict):
         return left.keys() == right.keys() and all(compare_nested(left[k], right[k]) for k in left)
     if isinstance(left, (list, tuple)):

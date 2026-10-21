@@ -26,7 +26,7 @@ def environment(data, initial, starts, budgets=(4,8,16), training=False):
 
 def checkpoint_gate(model, path, data):
     from ..selectors.search_attention_ppo import AttentionPPO
-    restored = AttentionPPO.load(path,device="cpu")
+    restored = AttentionPPO.load(path,device=model.device)
     if (not compare_nested(model.policy.state_dict(),restored.policy.state_dict())
             or not compare_nested(model.policy.optimizer.state_dict(),restored.policy.optimizer.state_dict())):
         raise ValueError("Checkpoint state or optimizer mismatch")
@@ -53,7 +53,7 @@ def checkpoint_gate(model, path, data):
                 no_deployment_privileged_provider=True,paths=paths[0])
 
 
-def train_seed(data, plan, output, seed, steps):
+def train_seed(data, plan, output, seed, steps, *, device="cpu"):
     import torch
     from stable_baselines3.common.callbacks import BaseCallback
     from stable_baselines3.common.vec_env import DummyVecEnv
@@ -85,7 +85,10 @@ def train_seed(data, plan, output, seed, steps):
     env = DummyVecEnv([lambda i=i:environment(data,i,range(1,65),training=True) for i in data.development])
     ppo = {k:plan["training"][k] for k in ("n_steps","batch_size","n_epochs","learning_rate",
              "gamma","gae_lambda","clip_range","ent_coef","vf_coef","max_grad_norm")}
-    model = build_attention_model(env,seed,ppo)
+    model = build_attention_model(env,seed,ppo,device=device)
+    if model.device.type != device:
+        env.close()
+        raise ValueError("Training device silently fell back: " + str(model.device))
     model.audit_output,model.audit_episodes = str(output),[]
     actor = {k:v.clone() for k,v in model.policy.actor.state_dict().items()}
     critic = {k:v.clone() for k,v in model.policy.critic.state_dict().items()}
@@ -98,22 +101,25 @@ def train_seed(data, plan, output, seed, steps):
             raise ValueError("Actor/critic did not update")
         path=output/"final.zip"; model.save(path)
         gate=checkpoint_gate(model,path,data)
-        torch.save(dict(state_dict=model.policy.actor.state_dict(),visual_dim=data.visual.shape[-1],
+        actor_state={k:v.detach().cpu() for k,v in model.policy.actor.state_dict().items()}
+        torch.save(dict(state_dict=actor_state,visual_dim=data.visual.shape[-1],
                         score_scale=data.score_scales[0],noise_count=2,search=SEARCH),output/"actor.pt")
         if seed==0:
+            from ..selectors.search_attention import SharedSearchActor
+            control_actor=SharedSearchActor(data.visual.shape[-1]).eval()
+            control_actor.load_state_dict(actor_state,strict=True)
             controls=[]
-            model.policy.actor.eval()
             for initial in range(0,32,4):
                 core=make_core(data,initial,8,SEARCH);core.reset(start=65);actions=[]
                 while not core.done:
                     observation=attention_observation(core,core.observation())
                     tensor={k:torch.as_tensor(v[None],dtype=torch.float32) for k,v in observation.items()}
                     with torch.inference_mode():
-                        action=int(model.policy.actor(tensor).argmax(-1).item())
+                        action=int(control_actor(tensor).argmax(-1).item())
                     actions.append(action);core.step(action)
                 controls.append(dict(initial=initial,actions=actions,visited=core.info()['visited'],selected=core.best))
             write(output/'deployment-controls.json',dict(controls=controls,scope='CPU actor runtime parity, no VLA calls'))
-        receipt=dict(seed=seed,steps=steps,checked_actions=callback.checked,budgets=sorted(callback.budgets),
+        receipt=dict(seed=seed,steps=steps,device=str(model.device),checked_actions=callback.checked,budgets=sorted(callback.budgets),
             actor_updated=True,critic_updated=True,elapsed_seconds=time.monotonic()-start,
             checkpoint_sha256=sha(path),actor_sha256=sha(output/"actor.pt"),checkpoint_admission=gate)
         write(output/"receipt.json",receipt)
@@ -182,7 +188,7 @@ def evaluate(data,outcomes,output):
     return result
 
 
-def run(source,native,inputs,plan_file,output,*,execute=False):
+def run(source,native,inputs,plan_file,output,*,execute=False,device="cpu"):
     if not execute:
         raise ValueError("Explicit --execute required")
     import torch
@@ -191,18 +197,27 @@ def run(source,native,inputs,plan_file,output,*,execute=False):
     if (plan["training"]["smoke_steps"] != 2048 or plan["training"]["seeds"] != [0,1,2]
             or plan["training"]["steps_per_seed"] != 32768 or plan["search"]["training_budgets"] != [4,8,16]):
         raise ValueError("Only the frozen one-round training budget is authorized")
+    if device != plan['training'].get('device',device):
+        raise ValueError('Training device differs from the launch plan')
     torch.set_num_threads(4);torch.set_num_interop_threads(1)
     torch.use_deterministic_algorithms(True)
+    torch.set_float32_matmul_precision('highest')
+    if device=="cuda":
+        if not torch.cuda.is_available():
+            raise ValueError("Explicit CUDA training requested but unavailable")
+        torch.backends.cuda.enable_flash_sdp(False)
+        torch.backends.cuda.enable_mem_efficient_sdp(False)
+        torch.backends.cuda.enable_math_sdp(True)
     try:
         data,outcomes=load_native_search(source,native,inputs)
         write(output/"frozen-plan.json",dict(plan=plan,source_hashes=data.source_hashes,
             native_path=str(native),score_scale=data.score_scales[0],development=data.development,
             evaluation=data.evaluation,source=str(source),inputs=str(inputs),
-            runtime_device="cpu",cpu_threads=4,success_labels_training=False,
-            resource_contract="Single CPU process, 16 logical environments, sequential seeds; no old queue"))
-        smoke=train_seed(data,plan,output/"smoke",17,2048)
+            runtime_device=device,cpu_threads=4,success_labels_training=False,
+            resource_contract="One process and at most one exclusive GPU, 16 logical environments, sequential seeds; no old queue"))
+        smoke=train_seed(data,plan,output/"smoke",17,2048,device=device)
         write(output/"smoke-admission.json",dict(status="PASS",**smoke))
-        trained=[train_seed(data,plan,output/f"seed-{seed}",seed,32768) for seed in (0,1,2)]
+        trained=[train_seed(data,plan,output/f"seed-{seed}",seed,32768,device=device) for seed in (0,1,2)]
         result=evaluate(data,outcomes,output)
         for path,digest in data.source_hashes.items():
             if sha(path)!=digest:
@@ -220,5 +235,6 @@ if __name__=="__main__":
     for name in ("source","native","inputs","plan","output"):
         parser.add_argument("--"+name,required=True)
     parser.add_argument("--execute",action="store_true")
+    parser.add_argument("--device",choices=("cpu","cuda"),default="cpu")
     args=parser.parse_args()
-    run(args.source,args.native,args.inputs,args.plan,args.output,execute=args.execute)
+    run(args.source,args.native,args.inputs,args.plan,args.output,execute=args.execute,device=args.device)

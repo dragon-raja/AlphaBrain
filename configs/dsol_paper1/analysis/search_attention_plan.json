@@ -73,7 +73,13 @@
       "stay",
       "local_accel",
       "random"
-    ]
+    ],
+    "device": "cuda",
+    "dtype": "float32",
+    "cpu_threads": 4,
+    "exclusive_gpus": 1,
+    "attention_backend": "math",
+    "deterministic_algorithms": true
   },
   "batch1_reference_protocol": {
     "previous_admission_trajectories": 36,

@@ -45,6 +45,10 @@ class ProbeBackend:
             raise ValueError('Real five-window admission is missing')
         return self.gpu_available(slot)
 
+    def allowed_external_process(self,pid,args,gpu_uuid):
+        """Legacy adapters retain their existing keepalive compatibility rule."""
+        return '/gpu_compute_keepalive/gpu_compute_keepalive.py' in args
+
     def gpu_available(self,slot):
         """Reuse resource admission without coupling it to one scientific worker."""
         result=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid','--format=csv,noheader,nounits'],text=True)
@@ -62,7 +66,7 @@ class ProbeBackend:
             if gpu!=uuid:continue
             try:args=Path(f'/proc/{pid}/cmdline').read_bytes().replace(b'\0',b' ').decode()
             except FileNotFoundError:continue
-            if '/gpu_compute_keepalive/gpu_compute_keepalive.py' not in args:
+            if not self.allowed_external_process(int(pid),args,uuid):
                 identity=process_identity(int(pid))
                 if identity is None:continue
                 if identity['group'] not in owned_groups:return False

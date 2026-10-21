@@ -3,7 +3,7 @@ import pytest
 
 from benchmarks.LIBERO.search_capacity import run, wait_barrier
 from benchmarks.LIBERO.search_runtime import exact_prediction
-from benchmarks.LIBERO.search_queue import SearchBackend, verified_coexisting_process
+from benchmarks.LIBERO.search_queue import SearchBackend
 
 
 def test_capacity_requires_explicit_execution(tmp_path):
@@ -31,18 +31,6 @@ def test_production_requires_real_capacity_receipt(tmp_path):
     backend=SearchBackend(plan,tmp_path)
     with pytest.raises(ValueError,match='production'):
         backend.admit(dict(host='fresh',id='0'))
-
-
-@pytest.mark.parametrize('field',['pid','start','boot','group','gpu_uuid','command_sha256','executable_sha256'])
-def test_keepalive_identity_cannot_be_replaced_by_name(field):
-    import hashlib
-    current=dict(pid=5,start='1',boot='b',group=5,state='S')
-    command=b'/existing/anchor\0--device\07'
-    binding={**current,'gpu_uuid':'gpu','command_sha256':hashlib.sha256(command).hexdigest(),
-             'executable_sha256':'binary'}
-    assert verified_coexisting_process(binding,current,command,'binary','gpu')
-    binding[field]='changed'
-    assert not verified_coexisting_process(binding,current,command,'binary','gpu')
 
 
 def test_original_fleet_stop_reason_is_preserved(tmp_path):

@@ -38,17 +38,29 @@ def test_cancel_only_owned_process_group(tmp_path):
         if p.poll() is None:p.terminate();p.wait(timeout=5)
 
 
-@pytest.mark.parametrize('owned,free,expected',[(True,18000,True),(False,18000,False),(True,12000,False)])
-def test_dual_worker_requires_owned_peer_and_memory_headroom(tmp_path,monkeypatch,owned,free,expected):
-    from AlphaBrain.research.dsol.data.artifacts import write
-    identity=process_identity(os.getpid())
-    if identity is None:pytest.skip('Process identity unavailable')
-    handle=dict(identity,group=identity['group'] if owned else identity['group']+100000)
-    write(tmp_path/'state.json',dict(tasks={'a':dict(status='RUNNING',slot=dict(host='h',id='0'),handle=handle)}))
-    def output(command,**kwargs):
-        if '--query-compute-apps=gpu_uuid,pid' in command:return f'GPU-0, {os.getpid()}\n'
-        assert command[command.index('-i')+1]=='0'
-        return str(free) if '--query-gpu=memory.free' in command else 'GPU-0'
-    monkeypatch.setattr(subprocess,'check_output',output)
-    backend=ProbeBackend(dict(runtime=dict(workers_per_gpu=2)),tmp_path)
-    assert backend.gpu_available(dict(host='h',id='0:1',gpu_id='0'))==expected
+def test_monitoring_error_blocks_instead_of_treating_gpu_as_idle(tmp_path,monkeypatch):
+    import AlphaBrain.research.dsol.execution.gpu_guard as guard
+    monkeypatch.setattr(guard,'preflight',lambda *a,**k:dict(status='MONITOR_ERROR',error='stale'))
+    backend=ProbeBackend(dict(runtime=dict(host='h',gpu_guard=dict(profile='h'))),tmp_path)
+    with pytest.raises(RuntimeError,match='failed closed'):
+        backend.gpu_available(dict(host='h',id='0'))
+
+
+def test_start_rechecks_and_refuses_without_launch_gap(tmp_path,monkeypatch):
+    backend=ProbeBackend(dict(runtime={}),tmp_path)
+    backend.worker_command=lambda task:['unused']
+    availability=iter([True,False])
+    backend.gpu_available=lambda slot:next(availability)
+    assert backend.gpu_available(dict(host='h',id='0'))  # Earlier preflight passed.
+    monkeypatch.setattr(subprocess,'Popen',lambda *a,**k:pytest.fail('Must not spawn after changed ownership'))
+    task=dict(key='trial',output=str(tmp_path/'result'))
+    with pytest.raises(RuntimeError,match='changed before launch'):
+        backend.start(task,dict(host='h',id='0'),1)
+    assert backend.locate(task,{},1) is None
+    assert not (tmp_path/'result').exists()
+
+
+def test_missing_supervisor_contract_never_falls_back_to_process_names(tmp_path):
+    backend=ProbeBackend(dict(runtime={}),tmp_path)
+    with pytest.raises(RuntimeError,match='gpu_guard'):
+        backend.gpu_available(dict(host='h',id='0'))

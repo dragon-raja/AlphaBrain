@@ -16,6 +16,7 @@ def main():
         "tests/repository", "tests/cabi_vla", "tests/dsol_paper1/architecture/test_core_architecture.py",
         "tests/dsol_paper1/architecture/test_script_migration.py", "tests/dsol_paper1/execution/test_work_queue.py",
         "tests/dsol_paper1/execution/test_resources.py", "tests/dsol_paper1/execution/test_cluster.py",
+        "tests/dsol_paper1/execution/test_gpu_guard.py",
         "tests/dsol_paper1/execution/test_balance.py"]
     env = dict(os.environ, CUDA_VISIBLE_DEVICES="", OPENBLAS_NUM_THREADS="1", OMP_NUM_THREADS="1", MKL_NUM_THREADS="1",
                PYTHONPATH=str(ROOT), PYTHONDONTWRITEBYTECODE="1")

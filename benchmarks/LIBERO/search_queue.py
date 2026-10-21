@@ -1,34 +1,12 @@
 """Search workers on the existing durable host-local queue/process adapter."""
-import hashlib
 from pathlib import Path
 
 from AlphaBrain.research.dsol.data.artifacts import read, sha
 from AlphaBrain.research.dsol.execution.queue import MissingResult
-from benchmarks.Robocasa365.probe_queue import ProbeBackend, process_identity
-
-
-def verified_coexisting_process(binding, current, command, executable_sha256, gpu_uuid):
-    """Pin an existing non-experiment process; a familiar filename is not enough."""
-    return (current is not None and current['state']!='Z'
-        and all(binding.get(k)==current[k] for k in ('pid','start','boot','group'))
-        and binding.get('gpu_uuid')==gpu_uuid
-        and binding.get('command_sha256')==hashlib.sha256(command).hexdigest()
-        and binding.get('executable_sha256')==executable_sha256)
+from benchmarks.Robocasa365.probe_queue import ProbeBackend
 
 
 class SearchBackend(ProbeBackend):
-    def allowed_external_process(self,pid,args,gpu_uuid):
-        for binding in self.runtime.get('coexisting_processes',[]):
-            if binding['pid']!=pid:
-                continue
-            try:
-                command=Path(f'/proc/{pid}/cmdline').read_bytes()
-                executable=sha(f'/proc/{pid}/exe')
-            except FileNotFoundError:
-                return False
-            return verified_coexisting_process(binding,process_identity(pid),command,executable,gpu_uuid)
-        return False
-
     def admit(self, slot):
         if slot['host'] != self.runtime['host']:
             raise ValueError('Wrong host coordinator')

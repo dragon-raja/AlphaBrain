@@ -28,6 +28,12 @@ def verify_example(example,cached,candidate):
             raise ValueError('Live renderer differs from frozen input: '+key)
 
 
+def verify_prediction(value,reference,candidate,member):
+    for key in ('trace','actions'):
+        if not np.array_equal(value[key],reference[key][candidate,member]):
+            raise ValueError('Live full prediction differs from batch1 reference: '+key)
+
+
 @contextmanager
 def simulator(config_path,config,initial,output):
     child=None
@@ -162,6 +168,8 @@ def run(config_path,output,*,execute=False):
         def search(request,initial,method,stage,directory):
             directory.mkdir()
             cached=load_observations(inputs[initial])
+            with np.load(native/'initials'/f'{initial:02d}.npz',allow_pickle=False) as z:
+                prediction_reference={k:z[k].copy() for k in ('trace','actions')}
 
             class Source:
                 size=97;feature_dim=4608;score_samples=2
@@ -172,6 +180,8 @@ def run(config_path,output,*,execute=False):
                     example=response['example'];verify_example(example,cached,candidate)
                     values=[infer(example,scoring_noises[initial,m],stage,
                                   dict(initial=initial,method=method,candidate=candidate,member=m),True) for m in (0,1)]
+                    for member,value in enumerate(values):
+                        verify_prediction(value,prediction_reference,candidate,member)
                     scores=np.asarray([v['score'] for v in values])
                     if not np.array_equal(scores,native_scores[initial,candidate]):
                         raise ValueError('Live batch1 scores differ from admitted native table')
@@ -205,7 +215,8 @@ def run(config_path,output,*,execute=False):
                     action=baseline_action(core,method)
                 core.step(action)
             info=dict(core.info(),initial=initial,method=method,stage=stage,actor_seed=0,
-                      input_exact=True,score_exact=True,feature_exact=True,camera_motion='external_pose_teleport')
+                      input_exact=True,score_exact=True,feature_exact=True,trace_and_actions_exact=True,
+                      camera_motion='external_pose_teleport')
             write(directory/'search.json',info);queries.append(info)
             return info
 

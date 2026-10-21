@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from benchmarks.LIBERO.search_live import run, verify_example, simulator
+from benchmarks.LIBERO.search_live import run, verify_example, verify_prediction, simulator
 
 
 def test_live_validation_cannot_substitute_cached_inputs():
@@ -20,6 +20,15 @@ def test_live_requires_explicit_execution(tmp_path):
     with pytest.raises(ValueError,match='Explicit'):
         run('missing',tmp_path/'output')
     assert not (tmp_path/'output').exists()
+
+
+def test_late_denoising_drift_is_rejected_even_if_early_score_matches():
+    reference=dict(trace=np.zeros((2,2,10,10,7),np.float32),actions=np.zeros((2,2,10,7),np.float32))
+    value={k:reference[k][1,0].copy() for k in reference}
+    verify_prediction(value,reference,1,0)
+    value['trace'][-1,0,0]=.01
+    with pytest.raises(ValueError,match='trace'):
+        verify_prediction(value,reference,1,0)
 
 
 def test_simulator_handshake_failure_reaps_owned_child(tmp_path,monkeypatch):

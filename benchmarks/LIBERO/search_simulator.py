@@ -48,6 +48,11 @@ def serve(config_path,initial,address):
                 camera_reference=capture_camera_reference(env,camera_name='agentview',table_plane_z=config['table_plane_z'])
                 baseline=physical_digest(env)
                 observation=None
+                continuous=None
+                if config.get('continuous_camera') is True:
+                    from .continuous_camera import ContinuousCamera
+                    continuous=ContinuousCamera(env.env.sim, camera_reference['camera_id'],
+                        agentview_camera_calibration(env)['camera_to_world_opencv'])
 
                 def current_example(refresh=True):
                     nonlocal observation
@@ -64,6 +69,17 @@ def serve(config_path,initial,address):
                 connection.send(dict(status='READY',physics=baseline))
                 while True:
                     request=connection.recv();kind=request['kind']
+                    if continuous is not None:
+                        if kind=='continuous_info':
+                            connection.send(dict(reference=continuous.mount.reference.copy(),
+                                receipt=continuous.receipt()));continue
+                        if kind=='move_pose':
+                            connection.send(dict(receipt=continuous.move(request['camera_to_world'])));continue
+                        if kind=='query_pose':
+                            example=current_example()
+                            connection.send(dict(example=example,receipt=continuous.receipt()));continue
+                        if kind!='close':
+                            raise ValueError('Continuous admission forbids catalog/reset/manipulation commands')
                     if kind=='catalog':
                         # Public camera geometry only: no RGB, score or outcome
                         # is returned for unvisited candidates.

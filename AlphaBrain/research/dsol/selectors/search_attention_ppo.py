@@ -5,6 +5,9 @@ Privileged fields follow the exact pre-action candidate permutation into the
 buffer. No reward labels, policy download or training starts during import.
 """
 
+import json
+from pathlib import Path
+
 import numpy as np
 import torch
 
@@ -106,6 +109,24 @@ class AttentionPPO(MaskablePPO):
             if parameter.grad is not None and not torch.isfinite(parameter.grad).all():
                 raise ValueError("Nonfinite search gradient; stop")
         self.policy.minibatch_field = None
+        if getattr(self, "audit_output", None):
+            record = {"steps":int(self.num_timesteps), "completed_episodes":len(self.audit_episodes)}
+            for key, value in self.logger.name_to_value.items():
+                if key.startswith("train/") and isinstance(value, (int,float,np.number)):
+                    record[key] = float(value) if np.isfinite(value) else None
+            for key in ("total_reward", "queries", "initial_accel", "best_accel"):
+                record["episode_mean_" + key] = (float(np.mean([r[key] for r in self.audit_episodes]))
+                                                 if self.audit_episodes else None)
+            for budget in (4,8,16):
+                rows = [r for r in self.audit_episodes if r["budget"] == budget]
+                record[f"budget{budget}_queries"] = float(np.mean([r["queries"] for r in rows])) if rows else None
+            with (Path(self.audit_output) / "updates.jsonl").open("a") as stream:
+                stream.write(json.dumps(record,allow_nan=False) + "\n")
+            self.audit_episodes = []
+            print(f"steps={self.num_timesteps} reward={record['episode_mean_total_reward']} queries={record['episode_mean_queries']}",flush=True)
+
+    def _excluded_save_params(self):
+        return super()._excluded_save_params() + ["audit_output", "audit_episodes"]
 
 
 def build_attention_model(env, seed, ppo_config, *, device="cpu"):

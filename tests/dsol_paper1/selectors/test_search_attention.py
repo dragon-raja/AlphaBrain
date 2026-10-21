@@ -90,3 +90,33 @@ def test_save_restore_logits(tmp_path):
     restored = SharedSearchActor(8, width=16).eval()
     restored.load_state_dict(torch.load(tmp_path / "weights.pt", weights_only=True))
     torch.testing.assert_close(actor(observation()), restored(observation()), rtol=0, atol=0)
+
+
+def test_observed_only_projection_matches_original_dense_outputs_and_gradients():
+    import copy
+    import types
+
+    def dense_forward(encoder, obs):
+        visited = obs['flags'][...,0] > .5
+        visual = torch.where(visited[...,None], obs['visual'], torch.zeros_like(obs['visual']))
+        scores = torch.where(visited[...,None], obs['scores'], torch.zeros_like(obs['scores']))
+        record = encoder.record(torch.cat([encoder.visual(visual),obs['geometry'],scores,obs['flags']],-1))
+        context = encoder.context(torch.cat([encoder.visual(obs['wrist']),obs['global']],-1))
+        memory = encoder.history(record + context[:,None,:],src_key_padding_mask=~visited)
+        pooled = (memory * visited[...,None]).sum(1) / visited.sum(1,keepdim=True)
+        return memory,pooled,visited
+
+    torch.set_num_threads(1)
+    obs=observation(17)
+    for model in (SharedSearchActor(8,width=16),PrivilegedSearchCritic(8,width=16)):
+        original=copy.deepcopy(model)
+        original.encoder.forward=types.MethodType(dense_forward,original.encoder)
+        args=(obs,) if isinstance(model,SharedSearchActor) else (obs,torch.rand(2,17))
+        current,reference=model(*args),original(*args)
+        torch.testing.assert_close(current,reference,rtol=1e-5,atol=1e-6)
+        if isinstance(model,SharedSearchActor):
+            assert torch.equal(current.argmax(-1),reference.argmax(-1))
+        current[torch.isfinite(current)].sum().backward()
+        reference[torch.isfinite(reference)].sum().backward()
+        for left,right in zip(model.parameters(),original.parameters()):
+            torch.testing.assert_close(left.grad,right.grad,rtol=1e-4,atol=1e-5)

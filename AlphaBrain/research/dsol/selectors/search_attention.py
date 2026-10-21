@@ -46,11 +46,16 @@ class SearchHistoryEncoder(nn.Module):
         if not visited.any(1).all():
             raise ValueError("At least the initial observation must be visible")
         # Defense in depth: unknown scores/images cannot affect actor or critic.
-        seen_visual = torch.where(visited[..., None], visual, torch.zeros_like(visual))
+        # Unknown rows are never attention keys and have zero pooled weight.
+        # Encode only acquired images, avoiding 97 dense visual projections per
+        # history when at most 16 images are observable. No feature is cached
+        # across optimizer updates; the shared projection remains trainable.
+        encoded = visual.new_zeros((batch, count, self.record.out_features))
+        encoded[visited] = self.visual(visual[visited])
         scores = torch.where(visited[..., None], observation["scores"],
                              torch.zeros_like(observation["scores"]))
         record = self.record(torch.cat(
-            [self.visual(seen_visual), geom, scores, observation["flags"]], -1))
+            [encoded, geom, scores, observation["flags"]], -1))
         context = self.context(torch.cat(
             [self.visual(observation["wrist"]), observation["global"]], -1))
         record = record + context[:, None, :]

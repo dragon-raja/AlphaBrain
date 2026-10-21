@@ -1,14 +1,28 @@
 {
-  "status": "DESIGN_ONLY_REQUIRES_LIVE_FEATURE_ADMISSION",
+  "status": "AUTHORIZED_NATIVE_BATCH1_REFERENCE_THEN_FROZEN_TRAINING",
   "automatic_execution": false,
   "operation_policy": "same_frozen_LIBERO_canonical_PaliGemmaPi05",
   "feature": {
     "source": "operation_policy_siglip_pre_projector",
-    "pool": [2, 2],
-    "expected_patch_grid": [16, 16],
+    "pool": [
+      2,
+      2
+    ],
+    "expected_patch_grid": [
+      16,
+      16
+    ],
     "expected_hidden_dim": 1152,
-    "view_order": ["external", "wrist", "masked_dummy"],
-    "image_mask": [true, true, false],
+    "view_order": [
+      "external",
+      "wrist",
+      "masked_dummy"
+    ],
+    "image_mask": [
+      true,
+      true,
+      false
+    ],
     "fallback_to_resnet_or_old_features": false
   },
   "network": {
@@ -20,19 +34,27 @@
     "critic": "separate_weights_full_same_noise_accel_training_only"
   },
   "search": {
-    "training_budgets": [4, 8, 16],
+    "training_budgets": [
+      4,
+      8,
+      16
+    ],
     "budget_distribution": "uniform_per_episode",
     "start_counts_as_query": true,
     "query_cost": 0.01,
     "motion_cost": 0.0,
-    "primary_noise_count_proposal": 2,
     "noise_pair": "first_two_in_frozen_per_initial_order_shared_across_candidates",
     "final_selection": "minimum_observed_accel_first_visit_breaks_ties",
-    "automatic_return_to_canonical": false
+    "automatic_return_to_canonical": false,
+    "primary_noise_count": 2
   },
   "training": {
     "smoke_steps": 2048,
-    "seeds": [0, 1, 2],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
     "steps_per_seed": 32768,
     "max_total_decisions": 100352,
     "logical_environments": 16,
@@ -47,21 +69,120 @@
     "vf_coef": 0.5,
     "max_grad_norm": 0.5,
     "checkpoint_selection": "final_only",
-    "comparators": ["stay", "local_accel", "random"]
+    "comparators": [
+      "stay",
+      "local_accel",
+      "random"
+    ]
   },
-  "proposed_admission_caps": {
-    "feature_timing_inputs": 8,
-    "noise_counts": [1, 2, 4],
-    "hook_off_on_per_input": 2,
-    "warmup_noise_trajectories": 2,
-    "max_noise_trajectories": 114,
-    "max_policy_requests_sequential_members": 114,
-    "historical_feature_observation_pairs": 3104,
-    "historical_feature_vision_slot_evaluations": 9312,
-    "additional_action_denoising_for_feature_extraction": 0,
-    "live_search_episodes": 8,
-    "live_search_budget": 8,
-    "live_search_noise_trajectories": 128,
-    "first_closed_loop_tasks": 24
+  "batch1_reference_protocol": {
+    "previous_admission_trajectories": 36,
+    "additional_admission_trajectories": 66,
+    "cumulative_admission_trajectories": 102,
+    "original_admission_ceiling": 114,
+    "inputs": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        65
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        4,
+        65
+      ],
+      [
+        8,
+        0
+      ],
+      [
+        8,
+        65
+      ],
+      [
+        12,
+        0
+      ],
+      [
+        12,
+        65
+      ]
+    ],
+    "members": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "hook_pair": "off/on exact trace, actions, Accel",
+    "prior_process_control": "initial0 canonical member0 matches saved batch1 trace/actions exactly",
+    "timing": "cumulative 1/2/4 prefixes of same paired member calls",
+    "batch16_reference": "preserved difference record only",
+    "additional_table_trajectories": 6208,
+    "table_noise_members": [
+      0,
+      1
+    ],
+    "table": "32 initials x 97 views x 2 noises; capture native SigLIP during same calls",
+    "fail_stop": true
+  },
+  "live_validation": {
+    "actor_seed": 0,
+    "initials": [
+      0,
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      28
+    ],
+    "start_candidate": 65,
+    "query_budget": 8,
+    "noise_count": 2,
+    "maximum_search_trajectories": 128,
+    "task_initials": [
+      0,
+      4
+    ],
+    "methods": [
+      "stay",
+      "local_accel",
+      "ppo"
+    ],
+    "execution_repeat_ids": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "maximum_task_search_trajectories": 68,
+    "full_tasks": 24,
+    "maximum_execution_trajectories": 1440,
+    "replan_steps": 5,
+    "task_horizon": 300,
+    "camera_motion": "external pose teleport; not head kinematics",
+    "cached_inputs_used_for": "exact validation only, never query responses"
+  },
+  "execution_caps": {
+    "admission_ceiling_including_previous": 114,
+    "previous_admission_trajectories": 36,
+    "new_admission_trajectories": 66,
+    "native_table_trajectories": 6208,
+    "native_observation_pairs": 3104,
+    "native_export_vision_slot_evaluations": 18624,
+    "live_search_trajectories": 128,
+    "task_search_trajectories": 68,
+    "task_execution_trajectories": 1440,
+    "maximum_total_new_trajectories": 7910,
+    "maximum_cumulative_trajectories": 7946,
+    "formal_training_and_smoke_decisions": 100352
   }
 }

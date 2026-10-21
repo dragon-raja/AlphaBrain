@@ -29,7 +29,7 @@ def mixed_budget_env(core, starts, budgets=(4, 8, 16), *, full_accel=None):
             or core.config.motion_cost != 0):
         raise ValueError("Valid starts/budgets and query-only cost required")
     if full_accel is not None:
-        full_accel = np.asarray(full_accel, np.float32).copy()
+        full_accel = np.asarray(full_accel, np.float64).copy()
         if full_accel.shape != (core.n,) or not np.isfinite(full_accel).all() or (full_accel < 0).any():
             raise ValueError("Full critic field must match candidate axis")
     shapes = {"geometry": (core.n, 12), "visual": (core.n, core.source.feature_dim),
@@ -74,6 +74,6 @@ def mixed_budget_env(core, starts, budgets=(4, 8, 16), *, full_accel=None):
         def critic_field(self):
             if full_accel is None or self.order is None:
                 raise RuntimeError("Privileged field is unavailable outside admitted training")
-            return (full_accel[self.order] / core.scale).copy()
+            return np.asarray(full_accel[self.order] / core.scale, np.float32)
 
     return Adapter()

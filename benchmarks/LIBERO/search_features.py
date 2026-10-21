@@ -44,11 +44,13 @@ def batch_check_inputs(record, cached, noise, duplicate=False):
     return [policy_example(record, cached, j) for j in candidates], np.repeat(noise[None], 16, axis=0)
 
 
-def run(config_path, output, *, export=False, execute=False, batch_check=False):
+def run(config_path, output, *, export=False, execute=False, batch_check=False, batch1_reference=False):
     if not execute:
         raise ValueError("Explicit --execute required")
     if batch_check and export:
         raise ValueError("Diagnostic cannot trigger feature export or downstream work")
+    if batch1_reference and (batch_check or export):
+        raise ValueError("Batch1 reference uses its own bounded admission/export protocol")
     import torch
     from AlphaBrain.model.framework.base_framework import BaseFramework
     from AlphaBrain.model.pi05_features import SiglipFeatureCapture
@@ -87,6 +89,9 @@ def run(config_path, output, *, export=False, execute=False, batch_check=False):
             torch=torch.__version__, gpu=torch.cuda.get_device_name(),
             weights_sha256=checkpoint["weights_sha256"], grid=grid, dim=1152,
             slots=list(cfg.image_mask), batch_size=16 if batch_check else 1))
+        if batch1_reference:
+            from .search_batch1 import run_batch1
+            return run_batch1(policy, tower, inputs, noises, reference, config, output)
         if batch_check:
             cached = load_observations(inputs[0])
             diagnostics = []
@@ -214,8 +219,9 @@ def run(config_path, output, *, export=False, execute=False, batch_check=False):
                 feature_sha256=sha(output / "siglip.npz"), pooling=[2, 2], hidden_dim=1152))
         return dict(status="COMPLETE", attempted=attempted)
     except BaseException as error:
-        write(output / "failure.json", dict(status="FAILED_STOPPED", attempted=attempted,
-            error=repr(error), completed_comparisons=len(rows), downstream_started=False))
+        if not (output / "failure.json").exists():
+            write(output / "failure.json", dict(status="FAILED_STOPPED", attempted=attempted,
+                error=repr(error), completed_comparisons=len(rows), downstream_started=False))
         raise
 
 
@@ -225,6 +231,8 @@ if __name__ == "__main__":
     parser.add_argument("--output", required=True)
     parser.add_argument("--export", action="store_true")
     parser.add_argument("--batch-check", action="store_true")
+    parser.add_argument("--batch1-reference", action="store_true")
     parser.add_argument("--execute", action="store_true")
     args = parser.parse_args()
-    run(args.config, args.output, export=args.export, execute=args.execute, batch_check=args.batch_check)
+    run(args.config, args.output, export=args.export, execute=args.execute,
+        batch_check=args.batch_check, batch1_reference=args.batch1_reference)

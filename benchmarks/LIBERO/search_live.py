@@ -34,22 +34,53 @@ def verify_prediction(value,reference,candidate,member):
             raise ValueError('Live full prediction differs from batch1 reference: '+key)
 
 
+def simulator_environment(config):
+    paths=config.get('sim_library_paths')
+    if (not isinstance(paths,list) or not paths
+            or any(not isinstance(p,str) or not Path(p).is_absolute() or not Path(p).is_dir() for p in paths)):
+        raise ValueError('Explicit existing sim_library_paths required')
+    libraries=paths+([os.environ['LD_LIBRARY_PATH']] if os.environ.get('LD_LIBRARY_PATH') else [])
+    return {**os.environ,'PYTHONPATH':':'.join([config['sim_site'],config['source'],
+        config['source']+'/scripts/vla_shared']+config['sim_extra_paths']),
+        'LD_LIBRARY_PATH':':'.join(libraries),
+        'OMP_NUM_THREADS':'1','OPENBLAS_NUM_THREADS':'1','MUJOCO_GL':'egl','PYOPENGL_PLATFORM':'egl'}
+
+
+def check_simulator_dependencies(config):
+    """Import only the recovered image library; do not create a simulator."""
+    result=subprocess.run([config['sim_python'],'-c',
+        'from wand.api import library; print(library._name)'],
+        env=simulator_environment(config),cwd=config['source'],capture_output=True,
+        text=True,timeout=60,check=True)
+    return dict(status='PASS',magickwand=result.stdout.strip(),
+                library_paths=config['sim_library_paths'],simulator_started=False)
+
+
 @contextmanager
 def simulator(config_path,config,initial,output):
     child=None
     with tempfile.TemporaryDirectory(prefix='dsol-live-search-') as temporary:
         address=str(Path(temporary)/'sim.sock')
         with Listener(address,family='AF_UNIX') as listener:
-            environment={**os.environ,'PYTHONPATH':':'.join([config['sim_site'],config['source'],
-                config['source']+'/scripts/vla_shared']+config['sim_extra_paths']),
-                'OMP_NUM_THREADS':'1','OPENBLAS_NUM_THREADS':'1','MUJOCO_GL':'egl','PYOPENGL_PLATFORM':'egl'}
+            environment=simulator_environment(config)
             command=[config['sim_python'],'-u','-m','benchmarks.LIBERO.search_simulator',
                      '--config',str(config_path),'--initial',str(initial),'--socket',address,'--execute']
             try:
                 with (output/'simulator.log').open('xb') as log:
                     child=subprocess.Popen(command,env=environment,cwd=config['source'],stdout=log,stderr=subprocess.STDOUT)
-                    listener._listener._socket.settimeout(180)
-                    with listener.accept() as connection:
+                    deadline=time.monotonic()+180
+                    while True:
+                        if child.poll() is not None:
+                            raise RuntimeError('Simulator exited before handshake; see '+str(output/'simulator.log'))
+                        remaining=deadline-time.monotonic()
+                        if remaining<=0:
+                            raise TimeoutError('Simulator handshake deadline exceeded')
+                        listener._listener._socket.settimeout(min(1.,remaining))
+                        try:
+                            connection=listener.accept();break
+                        except TimeoutError:
+                            continue
+                    with connection:
                         def request(payload=None):
                             if payload is not None:
                                 connection.send(payload)
@@ -97,6 +128,7 @@ def run(config_path,output,*,execute=False):
         for path,digest in config['input_hashes'].items():
             if sha(path)!=digest:
                 raise ValueError('Bound live source changed: '+path)
+        write(output/'dependency-admission.json',check_simulator_dependencies(config))
         native=Path(config['native']);receipt=read(native/'features.json')
         if receipt['status']!='COMPLETE' or sha(native/'siglip-scores.npz')!=receipt['asset_sha256']:
             raise ValueError('Native batch1 table not admitted')

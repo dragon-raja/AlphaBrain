@@ -43,6 +43,27 @@ def test_current_worker_is_known_on_any_gpu(case):
     assert result['keepalive']['start_ticks']==20000
 
 
+def test_live_low_utilization_worker_still_requires_identity_and_memory(case):
+    c,s=case;s['status'].update(state='WORKER_THRESHOLD_LOW',continuous_worker=True)
+    assert classify(c,s)['keepalive']['supervisor_state']=='WORKER_THRESHOLD_LOW'
+    s['gpus'][1]['free_mib']=15547
+    assert classify(c,s)['rows'][1]['category']=='INSUFFICIENT_MEMORY'
+    s['worker']['executable_sha256']='impostor'
+    assert preflight(c,collector=lambda _:s)['status']=='MONITOR_ERROR'
+
+
+@pytest.mark.parametrize('state',['PAUSED','ERROR','WORKER_STARTING','YIELD_MEMORY_PRESSURE','unknown'])
+def test_non_running_or_unready_states_remain_blocked(case,state):
+    c,s=case;s['status'].update(state=state,continuous_worker=True)
+    result=preflight(c,collector=lambda _:s,sleep=lambda _:None)
+    assert result['status']=='MONITOR_ERROR' and state in result['error']
+
+
+def test_low_threshold_requires_continuous_worker_contract(case):
+    c,s=case;s['status']['state']='WORKER_THRESHOLD_LOW'
+    assert preflight(c,collector=lambda _:s,sleep=lambda _:None)['status']=='MONITOR_ERROR'
+
+
 def test_explicitly_trusted_old_unified_release_is_supported(case):
     c,s=case
     old='/trusted/releases/v5';new=s['status']['release']

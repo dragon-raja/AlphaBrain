@@ -102,6 +102,18 @@ def test_dynamic_two_host_drain_preserves_trial_addresses(plan, tmp_path):
     assert summary(root)['counts']['COMPLETE'] == 6
 
 
+def test_no_launch_admission_when_all_work_is_already_dispatched(plan, tmp_path):
+    class Backend(FakeBackend):
+        def admit(self, slot):
+            if len(self.launched)==len(plan['tasks']):
+                raise RuntimeError('No new launch: admission must not run during completion')
+            return True
+    root=tmp_path/'completion';prepare(plan,root)
+    backend=Backend()
+    assert execute(root,backend)['status']=='COMPLETE'
+    assert len(backend.launched)==len(plan['tasks']) and not backend.cancelled
+
+
 def test_physical_gpu_drain_does_not_cancel_and_resumes(plan, tmp_path):
     from AlphaBrain.research.dsol.execution.resources import resource_status, set_drain
     plan['slots'] = [dict(host='local', id='0'), dict(host='local', id='0:1', gpu_id='0')]

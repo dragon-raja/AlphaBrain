@@ -204,12 +204,12 @@ def run(root, backend, *, poll_seconds=1.0, timeout_seconds=3600.0,
                 for slot in plan['slots']:
                     if (slot['host'], slot['id']) in occupied:
                         continue
+                    task = next((t for t in plan['tasks'] if state['tasks'][t['key']]['status'] == 'PENDING'), None)
+                    if task is None:
+                        break
                     with dispatch_guard(root,plan,slot) as allowed:
                         if not allowed or not backend.admit(deepcopy(slot)):
                             continue
-                        task = next((t for t in plan['tasks'] if state['tasks'][t['key']]['status'] == 'PENDING'), None)
-                        if task is None:
-                            break
                         row = state['tasks'][task['key']]
                         row.update(status='LAUNCHING', slot=slot, attempt=row['attempt'] + 1)
                         _save(root, state, 'launch_intent', key=task['key'], slot=slot, attempt=row['attempt'])

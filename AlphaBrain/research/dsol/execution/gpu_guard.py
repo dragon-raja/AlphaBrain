@@ -117,8 +117,12 @@ def verify_status(config, snapshot):
     if (sup['executable']!=interpreter['path'] or sup['executable_sha256']!=interpreter['sha256']
             or sup['argv'][1:]!=[release+'/supervisor.py','run',config['profile']]):
         raise MonitorError('Supervisor executable/command mismatch')
-    if s['state'] not in ('PROTECTED_OWN_WORKER','PROTECTED_ASSIST'):
-        raise TransientMonitorError('Supervisor worker is not in a protected running state')
+    # v6 retains its live worker when sampled utilization briefly drops below
+    # the retention threshold. That is not a loss of process identity. All
+    # executable, parent, birth, UUID and memory checks below still apply.
+    low_threshold=(s['state']=='WORKER_THRESHOLD_LOW' and s.get('continuous_worker') is True)
+    if s['state'] not in ('PROTECTED_OWN_WORKER','PROTECTED_ASSIST') and not low_threshold:
+        raise TransientMonitorError('Supervisor worker is not in an admitted live state: '+str(s['state']))
     if s.get('job_coordination')!='coexist':
         raise MonitorError('Supervisor is not configured for coexistence')
     if (worker['pid']!=s['worker_pid'] or worker['ppid']!=sup['pid']
@@ -150,7 +154,8 @@ def verify_status(config, snapshot):
     return dict(pid=worker['pid'],start_ticks=worker['start_ticks'],ppid=worker['ppid'],
         pgid=worker['pgid'],sid=worker['sid'],gpu_uuid=uuid,executable=worker['executable'],
         executable_sha256=worker['executable_sha256'],supervisor_pid=sup['pid'],
-        supervisor_start_ticks=sup['start_ticks'],profile=s['profile'],status_age_seconds=age)
+        supervisor_start_ticks=sup['start_ticks'],profile=s['profile'],status_age_seconds=age,
+        supervisor_state=s['state'])
 
 
 def collect(config):

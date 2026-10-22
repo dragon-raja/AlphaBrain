@@ -15,6 +15,18 @@ class Runtime:
         return {'identity':identity}
 
 
+def test_named_operation_model_cannot_fall_back_to_canonical():
+    from benchmarks.LIBERO.search_runtime import selected_checkpoint
+    models={name:dict(path='/'+name,weights_sha256=name) for name in ('canonical','broad','step_zero')}
+    assert selected_checkpoint(dict(models=models)) == models['canonical']
+    for name in ('broad','step_zero'):
+        assert selected_checkpoint(dict(models=models,operation_model=name)) == models[name]
+    with pytest.raises(ValueError,match='Unknown'):
+        selected_checkpoint(dict(models=models,operation_model='missing'))
+    with pytest.raises(ValueError,match='hash'):
+        selected_checkpoint(dict(models={'broad':dict(path='/broad')},operation_model='broad'))
+
+
 def test_attempt_ledger_survives_resume_and_counts_failure(tmp_path):
     runtime=Runtime();s=DurableScoring(runtime,tmp_path,0,4);s.episode=2
     example={'state':np.zeros((1,7)),'image':[np.zeros((2,2,3),dtype=np.uint8)]}

@@ -44,7 +44,11 @@ def validate_inputs(path):
     manifests={k:read(v)['records'] for k,v in cfg['identity_inputs'].items()}
     if any(v not in cfg['input_hashes'] for v in cfg['identity_inputs'].values()):
         raise ValueError('Unbound split identities')
-    for p in (sim['inputs'],sim['anchors'],str(Path(sim['models']['canonical']['path'])/'model.safetensors')):
+    from .search_runtime import selected_checkpoint
+    checkpoint=selected_checkpoint(sim)
+    if checkpoint['weights_sha256']!=plan['operation_policy']['checkpoint_sha256']:
+        raise ValueError('Design and simulator operation-model identities differ')
+    for p in (sim['inputs'],sim['anchors'],str(Path(checkpoint['path'])/'model.safetensors')):
         if p not in cfg['input_hashes']:raise ValueError('Unbound model/state/noise asset')
     budget=validate_schedules(plan,read(cfg['training_schedule']),read(cfg['evaluation_schedule']),manifests)
     if (plan['schema']!='continuous_search_plan_v1' or plan['training']['episodes']!=512

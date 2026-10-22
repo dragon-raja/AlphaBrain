@@ -1,0 +1,61 @@
+{
+  "schema": "continuous_operation_model_comparison_v1",
+  "base_plan": "configs/dsol_paper1/search/continuous_search_stop_mixed_v2.json",
+  "automatic_execution": false,
+  "conditions": {
+    "step_zero": {
+      "label": "Project-adapted pi05 LIBERO, zero project optimizer updates; not native OpenPI deployment",
+      "checkpoint_sha256": "f91d7bbb1ea1c212570436525d8e087a979a249fee9c6b41feb286139017cb75",
+      "host_profile": "gnu"
+    },
+    "canonical": {
+      "label": "Canonical-view project posttraining, 2000 steps",
+      "checkpoint_sha256": "7e510b752143bb6fd4987988dfab5e94f7db1de5f7e97579f892a58eed22cc68",
+      "host_profile": "fresh",
+      "reuse_current_corrected_run": true
+    },
+    "broad": {
+      "label": "Broad-view project posttraining, 2000 steps",
+      "checkpoint_sha256": "123786f53c9823b878fb08fe61ef25fe4931d4bcae8134e0a64940b7a8ac3cad",
+      "host_profile": "video"
+    }
+  },
+  "fixed": {
+    "training_episodes_per_condition": 512,
+    "seed": 0,
+    "workers_per_condition": 4,
+    "episodes_per_update": 32,
+    "initialization": "same original update-zero search checkpoint, including inherited visual encoder",
+    "score_scale": 0.16535300100378683,
+    "query_cost": 0.01,
+    "query_budget": 8,
+    "score_noise_members": 2,
+    "task_split_camera_noise_and_horizons": "unchanged from base_plan",
+    "success_labels_used_in_training": false,
+    "checkpoint_selection": "final update only"
+  },
+  "new_training_budget": {
+    "conditions": 2,
+    "admission_trajectories_per_condition": 128,
+    "training_trajectories_per_condition": 8192,
+    "total_new_cap": 16640
+  },
+  "evaluation_design": {
+    "methods": ["stay", "local_near_best_accel", "continuous_ppo"],
+    "paired_tasks_per_condition": 192,
+    "search_trajectory_cap_per_condition": 544,
+    "execution_trajectory_cap_per_condition": 10560,
+    "matched_nominal_tasks_per_condition": 32,
+    "matched_nominal_execution_cap_per_condition": 1760,
+    "new_three_condition_evaluation_cap": 38592,
+    "launch": "separate frozen-actor evaluation manifests and engineering gates; not launched by training driver"
+  },
+  "failure": "stop affected run; no automatic retry or change to existing canonical run",
+  "interpretation": [
+    "Independent per-model search training tests applicability, not zero-shot actor transfer.",
+    "Step-zero has 7D projections and project preprocessing; do not label it native official inference.",
+    "Shared reward scale and inherited encoder are controlled choices, not model-independent calibration.",
+    "Four tasks are development evidence; one RL seed cannot establish training-seed robustness.",
+    "Do not change architecture or data scale until this comparison is complete."
+  ]
+}

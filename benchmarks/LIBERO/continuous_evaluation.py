@@ -34,8 +34,12 @@ def validate_inputs(path):
                 or sim.get('continuous_camera') is not True
                 or any(k in sim for k in ('native','outcome_matrix','release'))):
             raise ValueError('Continuous live backend only; no catalog/cache inputs')
+        from .search_runtime import selected_checkpoint
+        checkpoint = selected_checkpoint(sim)
+        if checkpoint['weights_sha256'] != plan['operation_policy']['checkpoint_sha256']:
+            raise ValueError('Design and simulator operation-model identities differ')
         required += [spec['sim_config'], spec['score_noise'], spec['execution_noise'], sim['inputs'],
-                     str(Path(sim['models']['canonical']['path'])/'model.safetensors')]
+                     str(Path(checkpoint['path'])/'model.safetensors')]
         manifests[cohort] = read(sim['inputs'])['records']
     if any(p not in cfg['input_hashes'] for p in required):
         raise ValueError('Unbound evaluation input')

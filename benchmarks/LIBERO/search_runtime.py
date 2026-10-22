@@ -9,6 +9,17 @@ import numpy as np
 from AlphaBrain.research.dsol.data.artifacts import sha
 
 
+def selected_checkpoint(config):
+    """Select a named frozen policy; preserve legacy canonical-only manifests."""
+    key = config.get('operation_model', 'canonical')
+    if not isinstance(key, str) or key not in config['models']:
+        raise ValueError('Unknown frozen operation model')
+    checkpoint = config['models'][key]
+    if not checkpoint.get('path') or not checkpoint.get('weights_sha256'):
+        raise ValueError('Frozen operation model needs path and weights hash')
+    return checkpoint
+
+
 class PolicyRuntime:
     def __init__(self, config, output, limit):
         import torch
@@ -17,7 +28,7 @@ class PolicyRuntime:
         self.output, self.limit, self.calls = Path(output), int(limit), 0
         torch.set_num_threads(2)
         torch.set_num_interop_threads(1)
-        checkpoint = config['models']['canonical']
+        checkpoint = selected_checkpoint(config)
         if sha(Path(checkpoint['path'])/'model.safetensors') != checkpoint['weights_sha256']:
             raise ValueError('Frozen manipulation policy changed')
         self.policy = BaseFramework.from_pretrained(checkpoint['path'], strict_checkpoint=True).to(torch.bfloat16).to('cuda').eval()

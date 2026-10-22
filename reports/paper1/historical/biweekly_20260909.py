@@ -34,11 +34,11 @@ def main():
                          'font.size': 11, 'axes.spines.top': False, 'axes.spines.right': False})
 
     sources = [
-        REPO/'docs/dsol_paper1/execution/training_match_execution_status_20260907_zh.md',
+        REPO/'docs/dsol_paper1/history/history/execution/training_match_execution_status_20260907_zh.md',
         REPO/'docs/dsol_paper1/results/libero_expanded_a_constructed_gate_20260827_zh.md',
         REPO/'docs/dsol_paper1/audits/view_repeatability_root_cause_20260908_zh.md',
         REPO/'docs/dsol_paper1/audits/render_protocol_bridge_and_historical_validity_20260908_zh.md',
-        REPO/'docs/dsol_paper1/execution/standard_initial_aa0_execution_20260908_zh.md',
+        REPO/'docs/dsol_paper1/history/history/execution/standard_initial_aa0_execution_20260908_zh.md',
         OLD/'checkpoint-audit/completed_run_receipt.json',
         OLD/'metric-oracle-comparison-v2/broad_summary.json',
         OLD/'render-protocol-bridge-v1/analysis-recovered-v1.json',

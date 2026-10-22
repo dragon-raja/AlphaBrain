@@ -1,0 +1,53 @@
+{
+  "output": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/action-structure-20261015T072110Z",
+  "inventory": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/channel-phase-20261015T064331Z/validated/analysis/next-step-array-coverage.json",
+  "previous_sources": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/channel-phase-20261015T064331Z/validated/analysis/sources.json",
+  "structure_sources": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/flow-structure-20261015T032638Z/sources.json",
+  "structure_root": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/flow-structure-20261015T032638Z",
+  "previous_analysis": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/channel-phase-20261015T064331Z/validated",
+  "windows": [
+    1,
+    3,
+    5
+  ],
+  "transitions": [
+    [
+      1,
+      3
+    ],
+    [
+      3,
+      5
+    ]
+  ],
+  "modes": [
+    "include",
+    "exclude"
+  ],
+  "scope": "128 existing archives only; no new inference, rendering, execution, score or selector. Exact score/channel/choice reproduction required.",
+  "features": [
+    "close_fraction",
+    "gripper_switch",
+    "gripper_variation",
+    "rotation_magnitude",
+    "rotation_variation",
+    "rotation_reversal"
+  ],
+  "horizons": {
+    "near": 5,
+    "full": 10
+  },
+  "semantics": "Saved actions clipped [-1,1] as historical executor. Positive gripper=close, zero=hold; rotation is controller input, not physical angle. Last block not executed; far half never executed. Denoising channels use original normalized coordinates.",
+  "comparison": "Fixed original winners and switches. Added stages new minus old features; stratify panels, transition and canonical inclusion. Retain unchanged/equal/unknown. Descriptive P(improved feature > degraded feature)+half ties and leave-one-task-out; no optimizing direction, threshold, weights, or selector. No independence claim for repeated tasks/noises.",
+  "case_display": "For each panel choose lowest-index improved and degraded changed W3->W5 include-canonical cases; show all 128 cases in browser and tables. Not best/worst cherry-picking.",
+  "font_dir": "/workspace/envs/paper1-cpu-20261014/share/fonts",
+  "old_presentation": "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/reports/current/vla_view_research_progress_zh.pdf",
+  "input_sha256": {
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/channel-phase-20261015T064331Z/validated/analysis/next-step-array-coverage.json": "fd1e000b6d69915f815c77cb0c1cf1f32e02b592d221935884f6e24884b72e67",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/channel-phase-20261015T064331Z/validated/analysis/sources.json": "86bedb91fc1eb7038b2670ccb9961de2ec916f6e6e6d884d5bdd136e7a229325",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/flow-structure-20261015T032638Z/sources.json": "0435d09254bbb983340a56e1cd202e555652dab85dfd59e841d4b31fbd9c2f10",
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/reports/current/vla_view_research_progress_zh.pdf": "7e859ded74e7b542a1afbfdcd26f3fe7e583689fa9ff144d257aac144835b16a",
+    "/workspace/projects/alphabrain-dsol-paper1/benchmarks/LIBERO/window_probe.py": "5369471e91a9701f2b1c4342141d784739b46dc49e3c20f417743ec263820e1e",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/channel-phase-20261015T064331Z/validated/completion-receipt.json": "146c626ac78a8567212bc4b89bea74bd964359b213472b008f769ba2d3bfd97c"
+  }
+}

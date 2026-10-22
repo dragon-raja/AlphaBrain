@@ -25,6 +25,8 @@
 
 使用现有 `AlphaBrain` 包，不为了追求目录形式整体迁移成新的 `src/` 包。Paper 1 脚本全部按职责进入子目录，根目录禁止新增 Python／Shell 和批量兼容壳。纯指标和噪声实现进入研究包，仿真环境适配在 `scripts/dsol_paper1/runtime/`。测试同样按职责分层，共享样例在 helpers，不能从另一测试模块 import。历史源码哈希对应冻结 checkout，不能给迁移后的实现冒用旧哈希。
 
+当前研究入口为 [DSOL 首页](docs/dsol_paper1/README.md)，目录归属与新运行目录规则见 [项目目录协议](docs/dsol_paper1/protocols/project_layout_zh.md)。RL 搜索属于 DSOL；历史计划进入 `docs/dsol_paper1/history/`。机器私有结果从忽略的 `artifacts/` 入口访问，新运行按 `runs/<run-id>/` 组织，不再向 `/workspace` 根目录散放队列和图片。
+
 ## 2. 新功能的最小流程
 
 1. 先确认研究问题与变更范围。新增任务、初始化、遮挡、噪声预算、训练条件、指标定义或成功判据，需要用户明确确认。
@@ -71,6 +73,7 @@
 python tools/repository/check.py
 python tools/paper1/check_architecture.py
 python tools/paper1/check_layout.py
+python tools/paper1/project.py check
 python tools/repository/test.py --profile portable
 python tools/repository/test.py --profile full
 ```

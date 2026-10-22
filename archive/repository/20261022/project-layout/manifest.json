@@ -1,0 +1,392 @@
+{
+  "schema": "project_layout_maintenance_v1",
+  "scope": "historical documentation and link consumers; no scientific settings or runtime changes",
+  "records": [
+    {
+      "old": "docs/dsol_paper1/README.md",
+      "new": "docs/dsol_paper1/README.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/README.md",
+      "before_sha256": "9fd6e453019cc26d435c5a6cedbe14f05de2881ba4afeabce19581bcdfef9e6d",
+      "after_sha256": "b1685938859e7cc858acc8f8fa938350130f25720b9d81aa0e66209483d0013c"
+    },
+    {
+      "old": "docs/dsol_paper1/HISTORY.md",
+      "new": "docs/dsol_paper1/HISTORY.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/HISTORY.md",
+      "before_sha256": "8b3baf1b0700a62462612e9eacc3e5aaf493d21de5d64989f2ff6bd6057f1775",
+      "after_sha256": "3e3f76b0d9e26647bfcb27295de49fca9e7e60dff9789a9e5fb5bdb13f8ffcc0"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/window_decision_convergence_20261013_zh.md",
+      "new": "docs/dsol_paper1/history/planning/window_decision_convergence_20261013_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/planning/window_decision_convergence_20261013_zh.md",
+      "before_sha256": "9d9af24bf7c97c9b4d623c9977ec052bd1437ab069ebab495f80dc0f63919eb1",
+      "after_sha256": "9d9af24bf7c97c9b4d623c9977ec052bd1437ab069ebab495f80dc0f63919eb1"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/rl_search_attention_20261020_zh.md",
+      "new": "docs/dsol_paper1/history/planning/rl_search_attention_20261020_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/planning/rl_search_attention_20261020_zh.md",
+      "before_sha256": "6ab2cef4744de6f4206d19266349b1462607e8652b7d161b865d888206309915",
+      "after_sha256": "6ab2cef4744de6f4206d19266349b1462607e8652b7d161b865d888206309915"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/outcome_active_observation_20260918_zh.md",
+      "new": "docs/dsol_paper1/history/planning/outcome_active_observation_20260918_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/planning/outcome_active_observation_20260918_zh.md",
+      "before_sha256": "53295d213925e60bb105d13bf1c6f1cd50a2b6ce5d8e437984477103145ea0fd",
+      "after_sha256": "53295d213925e60bb105d13bf1c6f1cd50a2b6ce5d8e437984477103145ea0fd"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/paper_master_plan_v1_20260907_zh.md",
+      "new": "docs/dsol_paper1/history/planning/paper_master_plan_v1_20260907_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/planning/paper_master_plan_v1_20260907_zh.md",
+      "before_sha256": "fcff38f85ae0009a78e9a6e55dfcb5ebfce6c805d3b609c764ac47c9c2338886",
+      "after_sha256": "8ef86cf64aae8571cffa32f743cf6220df60c2f2f53184b52be8d6fb0f832453"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/paper_convergence_plan_20260907_zh.md",
+      "new": "docs/dsol_paper1/history/planning/paper_convergence_plan_20260907_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/planning/paper_convergence_plan_20260907_zh.md",
+      "before_sha256": "852e4445ec043e9f22b5787b430981f00bafb8468163dd7133f97ea971fcd164",
+      "after_sha256": "3432366f7b5af2ac69dc68400cc7f4f4b055f87c9508abca9b812b5ec45485b1"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/paper_research_synthesis_20260905_zh.md",
+      "new": "docs/dsol_paper1/history/planning/paper_research_synthesis_20260905_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/planning/paper_research_synthesis_20260905_zh.md",
+      "before_sha256": "63e7fd7db8bd943d8440d21dcba85fbd83c8cffccd17387e0795ee386f90abf2",
+      "after_sha256": "afda234a131ced0295b7b358cae7b82d1fb0e2bd85092d46d5f94e59978ca208"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/next_stage_asset_evidence_inventory_20260907_zh.md",
+      "new": "docs/dsol_paper1/history/planning/next_stage_asset_evidence_inventory_20260907_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/planning/next_stage_asset_evidence_inventory_20260907_zh.md",
+      "before_sha256": "6772c162618b63ecd4fa820bc714e9284efc6115f3deddc4e70681b35669a98d",
+      "after_sha256": "6772c162618b63ecd4fa820bc714e9284efc6115f3deddc4e70681b35669a98d"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/rl_search_generalization_20261021_zh.md",
+      "new": "docs/dsol_paper1/history/planning/rl_search_generalization_20261021_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/planning/rl_search_generalization_20261021_zh.md",
+      "before_sha256": "7184f6f6fddd66962b3ef97c7f04cb3437366e10ab67810b76a1f5b180626116",
+      "after_sha256": "7184f6f6fddd66962b3ef97c7f04cb3437366e10ab67810b76a1f5b180626116"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/paper_master_plan_v2_active_bridge_20260907_zh.md",
+      "new": "docs/dsol_paper1/history/planning/paper_master_plan_v2_active_bridge_20260907_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/planning/paper_master_plan_v2_active_bridge_20260907_zh.md",
+      "before_sha256": "89510f8d105593210fbaa72a8c4e443b7dd524f2d4717c3517c979b1e0f9e25a",
+      "after_sha256": "ba5b9450f44163f9b0c4863e29288d614ea442158f10624d4952d1edf427d6b6"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/next_stage_scaffold_status_20260907_zh.md",
+      "new": "docs/dsol_paper1/history/planning/next_stage_scaffold_status_20260907_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/planning/next_stage_scaffold_status_20260907_zh.md",
+      "before_sha256": "0a571dd100f7b1df7eee7fb5d4eb576b5a21d393344dc5fbb8e859e8ab4f132b",
+      "after_sha256": "0a571dd100f7b1df7eee7fb5d4eb576b5a21d393344dc5fbb8e859e8ab4f132b"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/active_camera_feasibility_20260921_zh.md",
+      "new": "docs/dsol_paper1/history/planning/active_camera_feasibility_20260921_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/planning/active_camera_feasibility_20260921_zh.md",
+      "before_sha256": "a307f743ec1d64fa3afb53d4e89467eb3d50385b3ffc9ceb2baf354ba94287e5",
+      "after_sha256": "ee66158591ad4457e6ea591ace9e33deb4b771700db6ef93fc5d071ec9898390"
+    },
+    {
+      "old": "docs/dsol_paper1/planning/rl_search_interface_20261020_zh.md",
+      "new": "docs/dsol_paper1/history/planning/rl_search_interface_20261020_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/planning/rl_search_interface_20261020_zh.md",
+      "before_sha256": "8e8f341045bc4d8be9fea44be3818b68f82cf4eecdd839fdb438fd7a17a23e14",
+      "after_sha256": "8e8f341045bc4d8be9fea44be3818b68f82cf4eecdd839fdb438fd7a17a23e14"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/libero_plus_revalidation_execution_v1_zh.md",
+      "new": "docs/dsol_paper1/history/execution/libero_plus_revalidation_execution_v1_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/libero_plus_revalidation_execution_v1_zh.md",
+      "before_sha256": "e7d5e0e2482f5f24e6f1921388ddf2886bc6e36133bb51cddbbe73af5dd17397",
+      "after_sha256": "e7d5e0e2482f5f24e6f1921388ddf2886bc6e36133bb51cddbbe73af5dd17397"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/full64_view_landscape_execution_20260908_zh.md",
+      "new": "docs/dsol_paper1/history/execution/full64_view_landscape_execution_20260908_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/full64_view_landscape_execution_20260908_zh.md",
+      "before_sha256": "5d3c2ce46fe448feddd1877e49c2457831e37c2d265d90b09e2be7a82f514c16",
+      "after_sha256": "1fe6a074572e7e1a7682eae85402bed1dbf549ad804734eb8c49983a6fd50ed2"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/libero_plus_followup_20261012_zh.md",
+      "new": "docs/dsol_paper1/history/execution/libero_plus_followup_20261012_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/libero_plus_followup_20261012_zh.md",
+      "before_sha256": "702a36efcb2cb6f3d7a9f9b886c5e70d7a10c0db6d33683a47061692015811c7",
+      "after_sha256": "702a36efcb2cb6f3d7a9f9b886c5e70d7a10c0db6d33683a47061692015811c7"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/robotwin_resource_pilot_20260929_zh.md",
+      "new": "docs/dsol_paper1/history/execution/robotwin_resource_pilot_20260929_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/robotwin_resource_pilot_20260929_zh.md",
+      "before_sha256": "385ad0aa252185623dd6d8c5f8a951dbd9f10cbf0bcd1b9e63659f1af129aef0",
+      "after_sha256": "c33f5dde4be104186c84ae65607c4461d6b0955ea840800437abd33cb354ea7e"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/standard_initial_aa0_execution_20260908_zh.md",
+      "new": "docs/dsol_paper1/history/execution/standard_initial_aa0_execution_20260908_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/standard_initial_aa0_execution_20260908_zh.md",
+      "before_sha256": "bfe3ea1a52ed38a351221793d8ec2d340ab25486aaf207098afbc4a1e92cedcf",
+      "after_sha256": "bfe3ea1a52ed38a351221793d8ec2d340ab25486aaf207098afbc4a1e92cedcf"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/rl_search_attention_20261020_zh.md",
+      "new": "docs/dsol_paper1/history/execution/rl_search_attention_20261020_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/rl_search_attention_20261020_zh.md",
+      "before_sha256": "b00afb0cca773e9d35809f375c3c2f342106ba3cf403a8b37e277e396264a081",
+      "after_sha256": "b00afb0cca773e9d35809f375c3c2f342106ba3cf403a8b37e277e396264a081"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/training_match_execution_status_20260907_zh.md",
+      "new": "docs/dsol_paper1/history/execution/training_match_execution_status_20260907_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/training_match_execution_status_20260907_zh.md",
+      "before_sha256": "f91df83f5b0b79e2e2071103e0330408894ddba0472e5c1f4f20ac2b2c41b66c",
+      "after_sha256": "0bc6ef433b18a70d63314ff1c5dcc39a0dd65d3fdeef9499d6e584f136ee4796"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/statewise_view_oracle_v2_execution_status_20260903_zh.md",
+      "new": "docs/dsol_paper1/history/execution/statewise_view_oracle_v2_execution_status_20260903_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/statewise_view_oracle_v2_execution_status_20260903_zh.md",
+      "before_sha256": "07cb376d5eb668c1c3fc6a46be983a87d47b20b7edbc4770014198dd3d69f70b",
+      "after_sha256": "07cb376d5eb668c1c3fc6a46be983a87d47b20b7edbc4770014198dd3d69f70b"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/view_value_expectation_takeover_20260902_zh.md",
+      "new": "docs/dsol_paper1/history/execution/view_value_expectation_takeover_20260902_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/view_value_expectation_takeover_20260902_zh.md",
+      "before_sha256": "52f17a9d2e24fc7934a83cf4c40fcfde2b92faf141944a54f3b8ff626eb6988a",
+      "after_sha256": "52f17a9d2e24fc7934a83cf4c40fcfde2b92faf141944a54f3b8ff626eb6988a"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/aa0_dualhost_execution_20260908.md",
+      "new": "docs/dsol_paper1/history/execution/aa0_dualhost_execution_20260908.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/aa0_dualhost_execution_20260908.md",
+      "before_sha256": "b3c239f70215824df84cca3dc472a591e2a184a0ef0c632e71a2b7ce1d57bc08",
+      "after_sha256": "b3c239f70215824df84cca3dc472a591e2a184a0ef0c632e71a2b7ce1d57bc08"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/rl_search_20261020_zh.md",
+      "new": "docs/dsol_paper1/history/execution/rl_search_20261020_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/rl_search_20261020_zh.md",
+      "before_sha256": "1ed56378f51b51fec49062373dbafbcd436abe665dc80c902f0e1326cda82c76",
+      "after_sha256": "1ed56378f51b51fec49062373dbafbcd436abe665dc80c902f0e1326cda82c76"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/libero_expanded_a_gate_status_20260827_zh.md",
+      "new": "docs/dsol_paper1/history/execution/libero_expanded_a_gate_status_20260827_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/libero_expanded_a_gate_status_20260827_zh.md",
+      "before_sha256": "23f859ccec5db4e95fa9fec3e8fcf2d613549561ae19ffe4ce48fff66ef68775",
+      "after_sha256": "23f859ccec5db4e95fa9fec3e8fcf2d613549561ae19ffe4ce48fff66ef68775"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/view_revalidation_program_progress_20260820_zh.md",
+      "new": "docs/dsol_paper1/history/execution/view_revalidation_program_progress_20260820_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/view_revalidation_program_progress_20260820_zh.md",
+      "before_sha256": "58814f870431d40db394e7522cca54aad243aa2550deed5cdbb780a5eaac8fd5",
+      "after_sha256": "58814f870431d40db394e7522cca54aad243aa2550deed5cdbb780a5eaac8fd5"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/robocasa_recovery_validation_20260929_zh.md",
+      "new": "docs/dsol_paper1/history/execution/robocasa_recovery_validation_20260929_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/robocasa_recovery_validation_20260929_zh.md",
+      "before_sha256": "55856de1087d6128d607984f22e8c27246ed1bddc8e20b332e9fbba7d3299e5f",
+      "after_sha256": "55856de1087d6128d607984f22e8c27246ed1bddc8e20b332e9fbba7d3299e5f"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/view_revalidation_full_program_status_20260819_zh.md",
+      "new": "docs/dsol_paper1/history/execution/view_revalidation_full_program_status_20260819_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/view_revalidation_full_program_status_20260819_zh.md",
+      "before_sha256": "b93c57d6c52311022df4677da7049723853840cf51f52ff3cb0cc7a229a2bfec",
+      "after_sha256": "b93c57d6c52311022df4677da7049723853840cf51f52ff3cb0cc7a229a2bfec"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/short_view_probe_20261008_zh.md",
+      "new": "docs/dsol_paper1/history/execution/short_view_probe_20261008_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/short_view_probe_20261008_zh.md",
+      "before_sha256": "244a964ffe6e17c583ac6f8783bb6edae5835592d772f688e40ed953e5079f88",
+      "after_sha256": "b88b330373a93037722df6654eaa2da52f667bf4e93978b40060684b07800d0f"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/matched_view_landscape_execution_20260908_zh.md",
+      "new": "docs/dsol_paper1/history/execution/matched_view_landscape_execution_20260908_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/matched_view_landscape_execution_20260908_zh.md",
+      "before_sha256": "bf1342dd12ac84a377669099803324ed1de86ca9ee6ecd4588c5fcb736a30388",
+      "after_sha256": "bf1342dd12ac84a377669099803324ed1de86ca9ee6ecd4588c5fcb736a30388"
+    },
+    {
+      "old": "docs/dsol_paper1/execution/view_revalidation_parallel_execution_v4_zh.md",
+      "new": "docs/dsol_paper1/history/execution/view_revalidation_parallel_execution_v4_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/execution/view_revalidation_parallel_execution_v4_zh.md",
+      "before_sha256": "095cd36cfe815e2e77d98b60643def36fbd328082420bbb0b85ec30e1ddaf0fb",
+      "after_sha256": "095cd36cfe815e2e77d98b60643def36fbd328082420bbb0b85ec30e1ddaf0fb"
+    },
+    {
+      "old": "docs/dsol_paper1/protocols/local_view_derivative_20260916_zh.md",
+      "new": "docs/dsol_paper1/history/protocols/local_view_derivative_20260916_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/protocols/local_view_derivative_20260916_zh.md",
+      "before_sha256": "93eae7406ba9282523eed9afd74cf4798aa24c097871a7c4cf72ef26664a39a3",
+      "after_sha256": "93eae7406ba9282523eed9afd74cf4798aa24c097871a7c4cf72ef26664a39a3"
+    },
+    {
+      "old": "docs/dsol_paper1/protocols/libero_baseline_panel_20260923_zh.md",
+      "new": "docs/dsol_paper1/history/protocols/libero_baseline_panel_20260923_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/protocols/libero_baseline_panel_20260923_zh.md",
+      "before_sha256": "c3abddff2437cfa1ae45c5c4b773b49b2dabc8a996769042ec9da072fef32033",
+      "after_sha256": "92e056d9f56389d364330e13635889799b2026f2aa0b4028968abcdf1661bc0e"
+    },
+    {
+      "old": "docs/dsol_paper1/protocols/robocasa_attribution_v1.md",
+      "new": "docs/dsol_paper1/history/protocols/robocasa_attribution_v1.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/protocols/robocasa_attribution_v1.md",
+      "before_sha256": "fe22f9ddffd57eb3a5d90e7e6e7febaafde253203369ded31f44e6e2e58935fa",
+      "after_sha256": "fe22f9ddffd57eb3a5d90e7e6e7febaafde253203369ded31f44e6e2e58935fa"
+    },
+    {
+      "old": "docs/dsol_paper1/protocols/conditional_field_robocasa_20260916_zh.md",
+      "new": "docs/dsol_paper1/history/protocols/conditional_field_robocasa_20260916_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/protocols/conditional_field_robocasa_20260916_zh.md",
+      "before_sha256": "3556eb5f309fd8447e1e0512f14e4413672a3c145a76c42860ffdd7a22887cc0",
+      "after_sha256": "1cd55d83deaeb5e9f543e3533ef44b7c9f59d7f5ed23cf28326108a80deaf387"
+    },
+    {
+      "old": "docs/dsol_paper1/protocols/view_revalidation_master_protocol_v3_zh.md",
+      "new": "docs/dsol_paper1/history/protocols/view_revalidation_master_protocol_v3_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/protocols/view_revalidation_master_protocol_v3_zh.md",
+      "before_sha256": "661627c24f21558984bc872b0792026b695bdbde1af08b8f7c4e3c3bd4fe5f21",
+      "after_sha256": "661627c24f21558984bc872b0792026b695bdbde1af08b8f7c4e3c3bd4fe5f21"
+    },
+    {
+      "old": "docs/dsol_paper1/protocols/failure_view_search_protocol_20260831_zh.md",
+      "new": "docs/dsol_paper1/history/protocols/failure_view_search_protocol_20260831_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/protocols/failure_view_search_protocol_20260831_zh.md",
+      "before_sha256": "7a082e810919e5fb4ab4e74bbd78dc067bc2ddf2421e9c10ef078e0b10b7b31e",
+      "after_sha256": "7a082e810919e5fb4ab4e74bbd78dc067bc2ddf2421e9c10ef078e0b10b7b31e"
+    },
+    {
+      "old": "docs/dsol_paper1/protocols/view_value_expectation_protocol_v1_zh.md",
+      "new": "docs/dsol_paper1/history/protocols/view_value_expectation_protocol_v1_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/protocols/view_value_expectation_protocol_v1_zh.md",
+      "before_sha256": "0729dd7aaa7fdb3f002d2a201bb680bd54638776e58486cfc7fab9f47126847e",
+      "after_sha256": "0729dd7aaa7fdb3f002d2a201bb680bd54638776e58486cfc7fab9f47126847e"
+    },
+    {
+      "old": "docs/dsol_paper1/protocols/statewise_view_oracle_v2_protocol_20260903_zh.md",
+      "new": "docs/dsol_paper1/history/protocols/statewise_view_oracle_v2_protocol_20260903_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/protocols/statewise_view_oracle_v2_protocol_20260903_zh.md",
+      "before_sha256": "57d6adc2a4335fb386c3c3a2636780d7dcdfcbd4721f26487d6239266fb127dd",
+      "after_sha256": "57d6adc2a4335fb386c3c3a2636780d7dcdfcbd4721f26487d6239266fb127dd"
+    },
+    {
+      "old": "docs/dsol_paper1/protocols/robocasa_baseline_panel_20260923_zh.md",
+      "new": "docs/dsol_paper1/history/protocols/robocasa_baseline_panel_20260923_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/protocols/robocasa_baseline_panel_20260923_zh.md",
+      "before_sha256": "6d6a32323dd7045b3e94ffcf55d65c36c6415bf5ef91af12563d171b690fa262",
+      "after_sha256": "6d6a32323dd7045b3e94ffcf55d65c36c6415bf5ef91af12563d171b690fa262"
+    },
+    {
+      "old": "docs/dsol_paper1/protocols/view_revalidation_master_protocol_v2_zh.md",
+      "new": "docs/dsol_paper1/history/protocols/view_revalidation_master_protocol_v2_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/protocols/view_revalidation_master_protocol_v2_zh.md",
+      "before_sha256": "a63f210d0ab056a30f86f4f502df2c4eccc8ac77d46210ad02b00b1af1048479",
+      "after_sha256": "a63f210d0ab056a30f86f4f502df2c4eccc8ac77d46210ad02b00b1af1048479"
+    },
+    {
+      "old": "docs/dsol_paper1/results/geometry_visibility_review_20260920_zh.md",
+      "new": "docs/dsol_paper1/results/geometry_visibility_review_20260920_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/results/geometry_visibility_review_20260920_zh.md",
+      "before_sha256": "99863271c406c5a333cc7c5737a729996d6a1228dbbcd44ac88b77479714c24c",
+      "after_sha256": "8a6f485157e5c1ea59fb2be07ec0c6df2bb118e717749f8e576e3645f8db3be9"
+    },
+    {
+      "old": "docs/dsol_paper1/audits/training_match_anchor_audit_20260907_zh.md",
+      "new": "docs/dsol_paper1/audits/training_match_anchor_audit_20260907_zh.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/audits/training_match_anchor_audit_20260907_zh.md",
+      "before_sha256": "a57d0b5dd640ac0c8520908a0fefcb36856444040e5fb7fd3bccb67e1dfe8b5f",
+      "after_sha256": "50558063ffb1fe6181b97c510fce16d845efbbb777f5dffc89efffc3129a94c6"
+    },
+    {
+      "old": "reports/paper1/biweekly_20260924.py",
+      "new": "reports/paper1/biweekly_20260924.py",
+      "before": "archive/repository/20261022/project-layout/before/reports/paper1/biweekly_20260924.py",
+      "before_sha256": "baade7c080d12cae73339886803ba6fb76ba20d2c1725232e276aea9e13969ac",
+      "after_sha256": "3a74b23e32a53685f904ed29590ed882d16a0225cf0eac860522797914da450a"
+    },
+    {
+      "old": "reports/paper1/historical/biweekly_20260909.py",
+      "new": "reports/paper1/historical/biweekly_20260909.py",
+      "before": "archive/repository/20261022/project-layout/before/reports/paper1/historical/biweekly_20260909.py",
+      "before_sha256": "c7d976345d8132e002f230fb1aa6e2308437f6e33f31379aa88df37cc7b9a2f7",
+      "after_sha256": "4ef5c869c119ab3430c65143beefaa242cb80fffd1e749a5e88b3a699e076e9a"
+    },
+    {
+      "old": ".gitignore",
+      "new": ".gitignore",
+      "before": "archive/repository/20261022/project-layout/before/.gitignore",
+      "before_sha256": "1de3cd47ac18be46d7dc3349ccecc8b6ddb095be1677e4606a7cf81051abe7ac",
+      "after_sha256": "4352b0411842942bbf1aa1d5990487efc9e832c153c24949133caa543272a214"
+    },
+    {
+      "old": "AGENTS.md",
+      "new": "AGENTS.md",
+      "before": "archive/repository/20261022/project-layout/before/AGENTS.md",
+      "before_sha256": "7f1fffab1c7e97a1a4164d47f6ecee4dccd1d9cbe3f891a9520b9fcbb2f6caec",
+      "after_sha256": "1760da77192296acbeb1b69b311927a9757c33eb265cf9bed5749a77bd4bdb2f"
+    },
+    {
+      "old": "AlphaBrain/research/dsol/README.md",
+      "new": "AlphaBrain/research/dsol/README.md",
+      "before": "archive/repository/20261022/project-layout/before/AlphaBrain/research/dsol/README.md",
+      "before_sha256": "31448ab80a715134c7e60d4c85480ba6ffcee6c433b1f8915a79b66a5213a000",
+      "after_sha256": "11d744e87508b40fb9c328ec8c0cbd8c64da5b67798d6afe34e7c7a9a373196a"
+    },
+    {
+      "old": "CONTRIBUTING.md",
+      "new": "CONTRIBUTING.md",
+      "before": "archive/repository/20261022/project-layout/before/CONTRIBUTING.md",
+      "before_sha256": "abf041a8f61e7ab741771f4b6483e145eea31fb433872d7417d300699884bd4c",
+      "after_sha256": "f685ef9d8d1e7a3db19821340558cddcdcdfc25bb2d9a93e4e085ddc757a9f76"
+    },
+    {
+      "old": "README.md",
+      "new": "README.md",
+      "before": "archive/repository/20261022/project-layout/before/README.md",
+      "before_sha256": "26b5b6e503c8948a93509c8c7aa739456a4b5c8c87d33d7560e1b604c086f56d",
+      "after_sha256": "ea503bdbfbfd471c739fe3c84e874ded0c6928951db726bf11c5d40806446aaf"
+    },
+    {
+      "old": "docs/dsol_paper1/reports/README.md",
+      "new": "docs/dsol_paper1/reports/README.md",
+      "before": "archive/repository/20261022/project-layout/before/docs/dsol_paper1/reports/README.md",
+      "before_sha256": "768a4a93f32e7226d942a5faba94b4db25b74ab039742b4817b8277748bcb758",
+      "after_sha256": "65a655f81f6c18d1e8bed6ff411d5394a4f2d11aa7bc570ec5d123ecfc0df02e"
+    },
+    {
+      "old": "tools/repository/evidence.py",
+      "new": "tools/repository/evidence.py",
+      "before": "archive/repository/20261022/project-layout/before/tools/repository/evidence.py",
+      "before_sha256": "e01be9f1e2d300ef61f476ff29b0b351c44ab5c6365598e4fcd243d93a75199a",
+      "after_sha256": "fe3118dd6abdc71e51a9b98cc8b48ef124d42840607bff43ce370a44bc3e1104"
+    },
+    {
+      "old": "tools/repository/test.py",
+      "new": "tools/repository/test.py",
+      "before": "archive/repository/20261022/project-layout/before/tools/repository/test.py",
+      "before_sha256": "2ea174590f4b12f975798faef747f323834a3d9fddbd7941d31c28c2f5244f56",
+      "after_sha256": "28410d6d1d67a16a6b9df79d806a6142fb0067ef081f40199afe4ebc19d0f11a"
+    },
+    {
+      "old": "tools/paper1/check_architecture.py",
+      "new": "tools/paper1/check_architecture.py",
+      "before": "archive/repository/20261022/project-layout/before/tools/paper1/check_architecture.py",
+      "before_sha256": "e9ce0023ea83c6cb990e84d0a99a152096da10baa94407357650792f74919124",
+      "after_sha256": "fd2942ca3efab7a62b55aa567164f03fa4c2d7b8eaa7ad348a1990d5af25d99e"
+    }
+  ],
+  "moved_documents": 40
+}

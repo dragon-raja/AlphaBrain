@@ -1,0 +1,30 @@
+{
+  "v2": "/share/personal/longjunyu/alphabrain/experiments/dsol-statewise-view-oracle-v2",
+  "matrix": "/share/personal/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/research-v1/history/20260911T023803721133Z",
+  "recovery": "/share/personal/longjunyu/alphabrain/experiments/dsol-standard-initial-aa0-v1-20260908/analysis/view-recovery-v1/history/20260914T080428261078Z",
+  "output": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/learner-attribution-20261016T083852Z",
+  "path_rewrites": {
+    "/share/longjunyu/": "/share/personal/longjunyu/"
+  },
+  "budgets": [
+    1,
+    4,
+    8,
+    16,
+    32
+  ],
+  "primary_budget": 16,
+  "font": "/workspace/envs/paper1-cpu-20261014/share/fonts/NotoSansCJK-Regular.ttc",
+  "caveats": [
+    "No refitting, encoder inference, policy calls, rendering, or execution.",
+    "V2 O/P are selection banks; Q is independent of selection; missing P labels remain missing.",
+    "Recovery uses historical test labels already inspected; half-bank checks are descriptive, not new independent confirmation.",
+    "Max-based gaps are optimistic; cross-evaluated gaps can be negative and are retained.",
+    "Frozen query paths; cross-scoring on identical acquired views is diagnostic, not a new deployed search policy.",
+    "Visibility means every registered entity has >0 pixels, not semantic sufficiency.",
+    "All 16 evaluation initials and all 32 heldout-catalog starts retained; task/initial weighting.",
+    "Visual examples: largest stable positive and negative per model, both half-banks same strict sign; illustrative extremes, complete events retained."
+  ],
+  "robocasa": "/workspace/research-reviews/robocasa-p0-analysis-20260923",
+  "robocasa_matrix_plan": "/share/personal/longjunyu/alphabrain/experiments/dsol-robocasa-stage2-preparation-20260916/formal-matrix-native-20260918/plan.json"
+}

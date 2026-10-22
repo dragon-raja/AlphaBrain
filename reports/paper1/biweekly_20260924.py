@@ -36,9 +36,9 @@ def main():
         'reports/current/vla_view_research_progress_zh.md',
         'results/libero_robocasa_attribution_20260923_zh.md',
         'results/accel_field_20260915_zh.md',
-        'protocols/local_view_derivative_20260916_zh.md',
-        'planning/outcome_active_observation_20260918_zh.md',
-        'planning/active_camera_feasibility_20260921_zh.md',
+        'history/protocols/local_view_derivative_20260916_zh.md',
+        'history/planning/outcome_active_observation_20260918_zh.md',
+        'history/planning/active_camera_feasibility_20260921_zh.md',
         'audits/libero_step_zero_interpretation_20260923_zh.md',
     ]]
     texts = {p.name: p.read_text() for p in sources}

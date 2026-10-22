@@ -56,7 +56,7 @@ def check(root=ROOT):
     if runtime.exists():
         errors.extend("Flat runtime entry must not return: " + name for name in sorted(actual))
         for row in json.loads(runtime.read_text())["records"]:
-            if not (root / row["new"]).is_file():
+            if not current_path(root / row["new"]).is_file():
                 errors.append("Missing classified runtime/consumer: " + row["new"])
     manifest = json.loads((root / "archive/research/code/manifest.json").read_text())
     exceptions = {"scripts/fresh_vla/" + n for n in ["__init__.py", "video_io.py", "pi05_policy_server.py", "README.md"]}

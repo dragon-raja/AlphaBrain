@@ -1,0 +1,395 @@
+debug/
+ckpts/
+third_party/
+.env
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+!run_script/lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+third_party/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Ruff
+.ruff_cache/
+
+# Paper 1 report products: sources stay in Git; local renderings stay on disk.
+# This does not untrack any previously committed evidence or ignore result JSON.
+/docs/dsol_paper1/reports/**/*.pdf
+/docs/dsol_paper1/reports/**/*.docx
+/docs/dsol_paper1/reports/**/_assets/*.png
+/docs/dsol_paper1/reports/**/_assets/*.otf
+/docs/dsol_paper1/vla_view_landscape_and_metrics_20260908_zh.pdf
+/docs/dsol_paper1/vla_view_research_focus_20260907_zh.pdf
+/docs/dsol_paper1/vla_view_research_unified_20260907_zh.pdf
+
+# Auth Tokens / Hidden Files
+.hf_token
+.wandb_api_key
+.*_token
+.*api_key
+
+# IDE Caches
+.idea/
+.vscode/
+
+# Mac OS
+.DS_Store
+
+# Caches and Datasets
+cache/
+data/
+/data
+playground/Models
+=4.43.2
+
+# temp
+playground/BuildData
+
+playground/Checkpoints
+playground/Pretrained_models
+playground/Datasets
+
+eval/SimplerEnv
+
+results
+nohup.out
+*.out
+length_distribution.png
+eval/MMBench/*.jpg
+eval/*/*.jpg
+eval/*/*.png
+eval/**/*.ipynb
+# scripts
+# scripts
+bar
+eval/MMBench/*.jpeg
+eval/MMBench/play_ground_bbox.ipynb
+eval/MMBench/spatial_understanding.ipynb
+llavavla/conf/qwenvla_lmdb_genmanip.yaml
+annotated_image.png
+data_processed
+llavavla/conf/qwenvla_lmdb_3Lpretrain.yaml
+extracted_frames
+**/bar
+real_deployment/upload/push_model_to_hf.py
+real_deployment/deploy/*bar
+**/*.mp4
+# but allow demo video data
+!playground/demo_data/**/*.mp4
+!playground/demo_data/**/data/
+!playground/demo_data/**/*.parquet
+experiments/libero/logs/2025-08-10/17-18-26+checkpoints_steps_60000_pytorch_model.pt_s1-8_s2-16_s2cand-5_ntl-1.0_ntu-1.0_ttl-0.9_ttu-1.0/rollout_put_the_bowl_on_top_of_the_cabinet_failure.mp4
+
+**/*.log
+
+**/*.jpg
+debug_images/step1_raw.npy
+test_image.jpg
+test_image.jpg.npy
+test_image.jpg
+# scripts/*
+
+scripts/run_scripts/sum2cluter.sh
+
+examples/SimplerEnv/eval_scripts
+
+configs/frameworks/*
+AlphaBrain/model/modules/sam_model/*
+assets/SAMv2.txt
+playground/*
+qwen_talk.md
+assets/R1Pro.py
+examples/SPVLA
+examples/SimplerEnv/eval_files/eval_scripts
+examples/Robotwin/train_files/submit_robotwin_training.sh
+AlphaBrain/dataloader/gr00t_lerobot/datasets_temp.py
+MUJOCO_LOG.TXT
+examples/MultiRobot/*
+
+AGENTS.md
+
+dev_notes
+.omc
+
+# zhanghe
+experiments
+logs
+.claude
+.codex
+
+
+
+
+# 测试脚本（不推送）
+tests/
+smoke_test_*.py
+fix_init.py
+scripts/llama_ab_test_*.sh
+scripts/run_llama_oft_*.sh
+post_train.sh
+jeff_modify.md
+docs/pi0oft_integration_notes.md
+-e 
+wandb/
+test_data.py
+
+# CABI-VLA reproducibility artifacts are part of the research implementation.
+!configs/experiments/
+configs/experiments/*
+!configs/experiments/cabi_vla_libero_bind.yaml
+!configs/experiments/kyc_libero_bind.yaml
+!configs/experiments/pi05_libero_plus_multiview.yaml
+!tests/
+tests/*
+!tests/model/
+tests/model/*
+!tests/model/test_cabi_binding.py
+!tests/dsol_paper1/
+!tests/dsol_paper1/*.py
+!tests/dsol_paper1/data/
+!tests/dsol_paper1/**/*.py
+!tests/dsol_paper1/README.md
+!archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/data/
+!archive/repository/20260911/runtime-modules/before/tests/dsol_paper1/data/*.py
+!tests/vla_shared/
+!tests/vla_shared/*.py
+!tests/dataloader/
+tests/dataloader/*
+!tests/dataloader/test_libero_bind_dataset.py
+test_e2e.py
+tokenizer.model
+train_pi0oft_20k.sh
+jeff_modify.md
+.nfs*
+AlphaBrain.egg-info
+.nfs*
+*.egg-info
+
+# ============================================================================
+# Internal / WIP experiment tracking — NEVER push these.
+# Intermediate hyperparameter-sweep artefacts (tracking docs, per-run result
+# dumps, scratch comparison tables) live only locally.  Only *final* writeups
+# (e.g. docs/continual_learning/EXPERIMENTS.md with reproducible numbers)
+# belong in the repo.
+# ============================================================================
+docs/continual_learning/EXPERIMENT_MATRIX.md
+docs/continual_learning/EXPERIMENT_MATRIX_*.md
+docs/continual_learning/internal/
+docs/continual_learning/sweep_*.md
+EXPERIMENT_LOG*.md
+*_sweep_results.md
+*_sweep_results.json
+
+# ============================================================================
+# PHASER (phase-aware replay) — under-review paper; never push to remote.
+# All algorithm code, configs, stage_info JSON, and eval artefacts stay local.
+# ============================================================================
+AlphaBrain/training/continual_learning/algorithms/rehearsal_based/phaser.py
+configs/continual_learning/stage_info/
+configs/continual_learning/*phaser*.yaml
+scripts/run_continual_learning_scripts/run_phaser_*.sh
+scripts/phase_segmentation/
+scripts/_phaser_*.sh
+scripts/_phaser_*.py
+
+# Sweep / hyperparameter-search artefacts — intermediate, never push.
+# Keep frozen recipe yamls (e.g. *_refresh50.yaml); exclude any *_sweep_* /
+# *_widepool_* / *_aligned_* style variants.
+scripts/run_continual_learning_scripts/run_*_sweep.sh
+scripts/run_continual_learning_scripts/run_*_lambda_sweep.sh
+configs/continual_learning/*_sweep_*.yaml
+configs/continual_learning/*_widepool_*.yaml
+configs/continual_learning/*_aligned_*.yaml
+*_sweep.py
+results/
+
+# Paper 1 maintained source is not an experiment data directory.
+**/*.local.json
+!/AGENTS.md
+!/AlphaBrain/research/dsol/data/
+!/AlphaBrain/research/dsol/data/*.py
+!/archive/research/code/scripts/**/*.py
+!/archive/research/code/scripts/**/*.sh
+!/archive/research/code/scripts/**/*.md
+!/archive/research/code/scripts/**/*.json
+!/tests/dsol_paper1/analysis/
+!/tests/dsol_paper1/analysis/*.py
+!/tests/dsol_paper1/reporting/
+!/tests/dsol_paper1/reporting/*.py
+
+# Reviewed repository/framework test suites. Other local test exclusions remain.
+!/tests/README.md
+!/tests/repository/
+!/tests/repository/*.py
+!/tests/cabi_vla/
+!/tests/cabi_vla/*.py
+!/tests/verify_vla/
+!/tests/verify_vla/*.py
+!/tests/model/test_base_framework.py
+!/tests/model/test_weight_bridge.py
+!/tests/model/test_pair_consistency.py
+!/tests/model/test_fresh_loss.py
+!/tests/model/test_pi05_camera_conditioning.py
+!/tests/model/test_vision_low_rank_adapter.py
+!/tests/dataloader/test_paligemma_datasets.py
+
+# Existing, previously tracked report evidence remains versioned after relocation.
+!/docs/dsol_paper1/reports/archive/imported/accel_expanded_diagnostic_20260824_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_interim_brief_20260821_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_report_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_final_brief_20260824_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_20260825_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v2_20260825_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v3_20260825_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v4_20260825_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_revalidation_stage1_integrated_v5_20260826_zh.pdf
+!/docs/dsol_paper1/reports/archive/imported/view_value_new_experiments_zh.pdf
+# Recovery-only binary copies stay local; one preserved payload plus hashes suffices in Git.
+/archive/repository/20260911/docs/before/**/*.pdf
+/archive/repository/20260911/docs/before/**/*.png
+/archive/repository/20260911/docs-attempt-before-symlink-guard/
+# Human result narratives are not the globally ignored raw-results cache.
+!/docs/dsol_paper1/results/
+!/docs/dsol_paper1/results/*.md
+!/archive/repository/20260911/runtime-modules/before/docs/dsol_paper1/results/
+!/archive/repository/20260911/runtime-modules/before/docs/dsol_paper1/results/*.md
+
+# Figures referenced by versioned biweekly reports; keep clean checkouts readable.
+!/docs/dsol_paper1/reports/biweekly/20260924/_assets/accel_space.png
+!/docs/dsol_paper1/reports/biweekly/20260924/_assets/candidate_geometry.png
+!/docs/dsol_paper1/reports/biweekly/20260924/_assets/observation_response_compact.png
+!/docs/dsol_paper1/reports/biweekly/20260924/_assets/training_design.png
+!/docs/dsol_paper1/reports/biweekly/20260924/_assets/view_recovery.png
+!/docs/dsol_paper1/reports/biweekly/20260924/archive/before_causes_revision/_assets/accel_space.png
+!/docs/dsol_paper1/reports/biweekly/20260924/archive/before_causes_revision/_assets/observation_response.png
+!/docs/dsol_paper1/reports/biweekly/20260924/archive/before_causes_revision/_assets/training_design.png
+!/docs/dsol_paper1/reports/biweekly/20260924/archive/before_causes_revision/_assets/training_views.png
+!/docs/dsol_paper1/reports/biweekly/20260924/archive/before_causes_revision/_assets/view_recovery.png
+!/docs/dsol_paper1/reports/biweekly/20260924/archive/before_visual_revision/_assets/view_recovery.png
+!/docs/dsol_paper1/reports/biweekly/20261015/_assets/libero_plus_windows.png
+!/docs/dsol_paper1/reports/biweekly/20261015/_assets/robocasa_windows.png
+!/docs/dsol_paper1/reports/biweekly/20261015/_assets/stable_misselection.png

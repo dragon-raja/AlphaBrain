@@ -100,7 +100,7 @@ PYTHONPATH=. OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MPLCONFIGDIR=/tmp/dsol-rev
 
 ## RoboCasa补充：相机架几何、覆盖范围与统一解释
 
-2026-09-21后续核验：[主动相机可行性报告](../planning/active_camera_feasibility_20260921_zh.md)。10个预选seen初态中已发现部分候选中心进入柜门/柜板碰撞几何；因此下文“未证明物理可达”不应读作“只是形式上的声明”。原矩阵与本页几何统计未改，需另外做基于物理标记的分析。
+2026-09-21后续核验：[主动相机可行性报告](../history/planning/active_camera_feasibility_20260921_zh.md)。10个预选seen初态中已发现部分候选中心进入柜门/柜板碰撞几何；因此下文“未证明物理可达”不应读作“只是形式上的声明”。原矩阵与本页几何统计未改，需另外做基于物理标记的分析。
 
 ### 保存的是真实安装位姿，而不是全程世界轨迹
 

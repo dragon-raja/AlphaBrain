@@ -23,6 +23,10 @@ def main():
         "tests/dsol_paper1/analysis/test_search_task_alignment.py",
         "tests/dsol_paper1/analysis/test_execution_trace_audit.py",
         "tests/dsol_paper1/data/test_local_search_plan.py",
+        "tests/dsol_paper1/analysis/test_action_structure.py",
+        "tests/dsol_paper1/analysis/test_channel_phase.py",
+        "tests/dsol_paper1/analysis/test_learner_failure.py",
+        "tests/dsol_paper1/metrics/test_action_structure.py",
         "tests/dsol_paper1/execution/test_balance.py"]
     env = dict(os.environ, CUDA_VISIBLE_DEVICES="", OPENBLAS_NUM_THREADS="1", OMP_NUM_THREADS="1", MKL_NUM_THREADS="1",
                PYTHONPATH=str(ROOT), PYTHONDONTWRITEBYTECODE="1")

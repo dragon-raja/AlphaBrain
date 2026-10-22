@@ -328,6 +328,9 @@ configs/continual_learning/*_aligned_*.yaml
 results/
 
 # Paper 1 maintained source is not an experiment data directory.
+/artifacts
+/.runtime
+/WORKSPACE.md
 **/*.local.json
 !/AGENTS.md
 !/AlphaBrain/research/dsol/data/

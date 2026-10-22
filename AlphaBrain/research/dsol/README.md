@@ -2,10 +2,10 @@
 
 - `data/`：产物 IO、身份核查、标准初态矩阵读取与显式 Flow 噪声库。
 - `metrics/`：Accel 定义与推理适配、任务实体可见性、候选视角指标规则。
-- `selectors/`：冻结视觉编码、特征处理、开发折选择、岭回归排序器。
+- `selectors/`：共享 attention actor/critic、PPO，以及历史视觉排序器。
 - `analysis/`：Oracle、配对统计、结果汇总、配置驱动分析流水线。
 - `plotting/`：实测相机空间、成功率矩阵等可复用绘图。
-- `acquisition/`：获取运动、输入和执行工程原语，尚非当前评测方法。
+- `acquisition/`：当前 RL 搜索环境、动态局部候选及连续位姿接口；真实头部适配尚未完成。
 - `execution/`：冻结任务身份、跨主机资源槽动态分配、持久状态、失败收尾和显式恢复；不导入模型或仿真。运行细节由显式后端适配器提供。
 - `protocol.py`：此前已存在的协议校验，保留接口。
 
@@ -28,3 +28,13 @@ RoboCasa原生复位、噪声地址及完整任务验收属于 `benchmarks/Roboc
 历史分析、协议构造、训练、诊断与控制器已按职责迁出脚本平铺区，详见 `scripts/dsol_paper1/README.md`。这属于可维护性整理，不意味着所有历史工具都已抽象成通用算法接口。
 
 实际仿真适配在 `benchmarks/`，薄运行入口在 `scripts/dsol_paper1/runtime/`。新通用调度实现位于 `execution/`，标准入口是 `scripts/dsol_paper1/operations/manage_work_queue.py`；`operations/controllers/` 保留历史兼容控制器。新布局不沿用旧源码身份；正式运行前仍需协议等价与轨迹验收，旧冻结实验使用自身的源码快照。接口、恢复和当前接入边界见 [执行管理协议](../../../../docs/dsol_paper1/protocols/execution_management_zh.md)。
+
+## 当前 RL 搜索代码
+
+- `acquisition/search_env.py` / `local_view_search.py`：固定表和动态局部搜索，查询计费与停止。
+- `selectors/search_attention.py` / `search_attention_ppo.py`：共享编码、attention、actor/critic 与 PPO。
+- `analysis/search_attention_training.py`：已有训练流程；`data/local_search_plan.py`：下一轮划分/预算核查。
+- `analysis/search_task_alignment.py` / `execution_trace_audit.py`：配对任务统计、回放边界、已有执行记录核查。
+- `benchmarks/LIBERO/search_runtime.py` / `search_simulator.py` / `continuous_camera.py`：仓库外层的模型/仿真适配。
+
+旧 97 点训练和动态候选设计不可混称为同一个已完成方法。当前状态见[项目首页](../../../../docs/dsol_paper1/README.md)。

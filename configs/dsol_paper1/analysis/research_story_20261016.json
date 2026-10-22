@@ -1,0 +1,52 @@
+{
+  "output": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/research-story-20261016T071125Z",
+  "font": "/workspace/envs/paper1-cpu-20261014/share/fonts/NotoSansCJK-Regular.ttc",
+  "physical_summary": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/channel-phase-20261015T064331Z/validated/analysis/evidence-summary.json",
+  "same_state_summary": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/same-state-xr1-20261015T045429Z/diagnostic/summary.json",
+  "transitions": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/action-structure-20261015T072110Z/transitions.json",
+  "aliases": {
+    "cabinet": {
+      "A": "extra_008",
+      "B": "train_003"
+    },
+    "sink": {
+      "A": "extra_026",
+      "B": "train_063"
+    }
+  },
+  "choice_cases": [
+    {
+      "title": "入柜：先选对，后来又改错",
+      "choices": [
+        "B",
+        "A",
+        "B"
+      ],
+      "successes": [
+        2,
+        8,
+        2
+      ]
+    },
+    {
+      "title": "水槽到台面：先改错，后来又纠正",
+      "choices": [
+        "A",
+        "B",
+        "A"
+      ],
+      "successes": [
+        7,
+        0,
+        7
+      ]
+    }
+  ],
+  "input_sha256": {
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/channel-phase-20261015T064331Z/validated/analysis/evidence-summary.json": "b89178d3b254fe13f417a3db2cdd597e1994be9b8e590bacf1fab1ddb69882ce",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/same-state-xr1-20261015T045429Z/diagnostic/summary.json": "60c9b62cb43a796106b2098eaedf7763726916ebaaaa72d87929c162a09baa4d",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/action-structure-20261015T072110Z/transitions.json": "2ee3fb7fa6f4d295d3e7909f04b49157a68d45dd4f3badc2c544ed4c3a45ead2",
+    "/workspace/projects/alphabrain-dsol-paper1/docs/dsol_paper1/planning/window_decision_convergence_20261013_zh.md": "9d9af24bf7c97c9b4d623c9977ec052bd1437ab069ebab495f80dc0f63919eb1",
+    "/workspace/projects/alphabrain-dsol-paper1/AlphaBrain/research/dsol/data/rig_training.py": "51ca7851f8d9f17dbeb623f5ff01f0b2c9d2b566b4bbba01b7cb55c75b46f559"
+  }
+}

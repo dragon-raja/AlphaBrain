@@ -1,0 +1,47 @@
+{
+  "prefix_summary": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/prefix-replay-20261014/analysis/summary.json",
+  "structure_summary": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/flow-structure-20261015T032638Z/summary.json",
+  "structure_diagnostics": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/flow-structure-20261015T032638Z/diagnostics/summary.json",
+  "same_state_results": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/same-state-xr1-20261015T045429Z/diagnostic/results.json",
+  "same_state_ledger": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/same-state-xr1-20261015T045429Z/diagnostic/call-ledger.json",
+  "same_state_summary": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/same-state-xr1-20261015T045429Z/diagnostic/summary.json",
+  "output": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/channel-phase-20261015T064331Z/validated",
+  "input_sha256": {
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/prefix-replay-20261014/analysis/summary.json": "b63ef858eb5c863f1c65e132b3e25844ee2250f31a15af7a72cfdb2e233089f3",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/flow-structure-20261015T032638Z/summary.json": "6bfa5769511366887aa4b2eee11724f724c148ad1a0650e8db7de8c58a40b38d",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/flow-structure-20261015T032638Z/diagnostics/summary.json": "b96ba142ee1490a67f80179c96dd0bff38e8d5dd3e64539280c656a0644632c8",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/same-state-xr1-20261015T045429Z/diagnostic/results.json": "ba8893e9b1324ab16feb6cddcd49ed3502f55a4827f8113af4a95389ef66d327",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/same-state-xr1-20261015T045429Z/diagnostic/call-ledger.json": "314210b4c9264a9a8c3c86fe5ce2430f48dfcaf670417dbed8cf6bbf6d3027a3",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/same-state-xr1-20261015T045429Z/diagnostic/summary.json": "60c9b62cb43a796106b2098eaedf7763726916ebaaaa72d87929c162a09baa4d",
+    "/workspace/projects/robocasa/robocasa/wrappers/gym_wrapper.py": "356d61ca9e4b777ca0515323d38167cb7560b837cb37ea460f16ba01b4cf2d49",
+    "/workspace/projects/robosuite/robosuite/models/grippers/panda_gripper.py": "df0449a9b003e9a019fad4ef59b435ae2b9accd2705026da041165dd99faab8d",
+    "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/window-synthesis-20261013-accepted/summary.json": "8a8780a1e53d563bd7f47a6665d7781517a0d50b78a682e7be1e850004cbf4f7",
+    "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/sim/lib/python3.8/site-packages/robosuite/models/grippers/panda_gripper.py": "a3760a8fc4599fa6f79914304b82466f3c1bda1a945943ca693bb57f00dc59eb"
+  },
+  "gripper_command_semantics": {
+    "xr1": {
+      "threshold": 0.5,
+      "inclusive": true,
+      "source": "/workspace/projects/robocasa/robocasa/wrappers/gym_wrapper.py"
+    },
+    "libero": {
+      "threshold": 0.0,
+      "inclusive": false,
+      "source": "/share/personal/longjunyu/alphabrain/experiments/dsol-aa0-full64-dualhost-v1-20260908/runtime/sim/lib/python3.8/site-packages/robosuite/models/grippers/panda_gripper.py"
+    }
+  },
+  "targets": {
+    "libero": [
+      "wooden_cabinet_1_cabinet_top",
+      "akita_black_bowl_1_main"
+    ],
+    "xr1": [
+      "obj_main"
+    ]
+  },
+  "scope": "All 64 existing branches, all 320 original plan nodes, all 192 existing same-state cells, and all 128 LIBERO/Plus panel records. CPU only. No new score, weights, thresholds fitted to labels, model calls, rendering or actions. Preserve unknown labels.",
+  "temporal_rules": "Physical events use only observed frames at or before scoring time. Report view-sign changes as intervals between the three sampled times. Never interpolate flow scores or treat predicted future commands as execution.",
+  "positive_controls": "All original selections at W1/W3/W5, include and exclude canonical, versus canonical endpoint labels; all improved/degraded/equal/unknown cases retained. Existing window transitions also retained. Original frozen disturbance baseline is primary: heldout32 uniform for LIBERO, all noncanonical uniform for Plus; canonical comparison remains secondary. Exact golden check against original recovery summary.",
+  "primary_thresholds": "Contact distance <=0 is native collision semantics; close command thresholds come from existing adapters. No fitted distance/opening thresholds.",
+  "window_summary": "/share/personal/longjunyu/alphabrain/experiments/libero-plus-window-panel-20261012/analysis/window-synthesis-20261013-accepted/summary.json"
+}

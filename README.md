@@ -1,3 +1,5 @@
+> 当前维护项目：**DSOL Paper 1 / Accel 主动视角搜索**。本机数据入口为 `WORKSPACE.md` 与 `artifacts/`；源码与私有产物分离。
+
 > 本研究分支的入口：[Paper 1：VLA 视角利用研究](docs/dsol_paper1/README.md)。以下为 AlphaBrain 框架说明；其他历史研究目录不代表当前论文范围。
 
 开发前阅读 [贡献与维护规范](CONTRIBUTING.md)。主线可复用实现位于 [研究包](AlphaBrain/research/dsol/README.md)，报告位于 [报告层](reports/paper1/README.md)，已退出主线的方向见 [旁支归档](archive/research/README.md)。

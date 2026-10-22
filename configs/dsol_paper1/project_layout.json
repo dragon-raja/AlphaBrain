@@ -1,0 +1,20 @@
+{
+  "project": "dsol-paper1",
+  "current_entry": "docs/dsol_paper1/README.md",
+  "current_protocol": "docs/dsol_paper1/protocols/dynamic_local_camera_zh.md",
+  "current_design": "configs/dsol_paper1/search/dynamic_local_v1.json",
+  "history_root": "docs/dsol_paper1/history",
+  "private_local_entries": ["artifacts", "WORKSPACE.md", ".runtime"],
+  "artifact_directories": ["runs", "evidence", "current", "reports", "assets", "archive", "maintenance"],
+  "run_directories": ["protocol", "inputs", "checkpoints", "logs", "results", "analysis"],
+  "source_owners": {
+    "search_environment": "AlphaBrain/research/dsol/acquisition",
+    "actor_critic": "AlphaBrain/research/dsol/selectors",
+    "data_and_protocols": "AlphaBrain/research/dsol/data",
+    "analysis": "AlphaBrain/research/dsol/analysis",
+    "execution": "AlphaBrain/research/dsol/execution",
+    "libero_runtime": "benchmarks/LIBERO",
+    "reports": "reports/paper1",
+    "tests": "tests/dsol_paper1"
+  }
+}

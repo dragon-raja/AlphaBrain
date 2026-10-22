@@ -1,7 +1,8 @@
-"""Four-worker synchronous PPO through the existing durable execution queue.
+"""Synchronous PPO collectors through the existing durable execution queue.
 
-Each worker keeps one frozen VLA resident for its block. Workers exit at the
-update barrier; only the central CPU learner can optimize or publish a version.
+Four or eight collectors use a separately admitted lifecycle: per-batch exit
+or cross-batch VLA residency. Only the central CPU learner updates the policy;
+every update still requires all 32 episodes from the same published version.
 No processes or model imports are started by importing this adapter.
 """
 import argparse

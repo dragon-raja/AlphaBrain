@@ -40,9 +40,17 @@
         6,
         7
       ],
-      "status": "PREPARATION_ONLY_NATIVE_SEARCH_RUNTIME_NOT_ADMITTED",
+      "status": "EIGHT_RESIDENT_EXACT_ADMISSION_PASSED_TRAINING_LAUNCHED",
       "noise_rule": "libero-native32-tensor-sha256-extra25-v1",
-      "score_channels": [0, 1, 2, 3, 4, 5, 6],
+      "score_channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
       "full_trace_retained": true,
       "planned_collector_lifecycle": "resident",
       "planned_workers_after_capacity_gate": 8
@@ -53,7 +61,7 @@
     "seed": 0,
     "workers_per_condition": 4,
     "native_worker_override_after_exact_capacity_gate": 8,
-    "torch_runtime": "Active posttrained arms: 2.11.0+cu130. Native retains its separately versioned Transformers/OpenPI stack; CPU/import validation does not imply live admission.",
+    "torch_runtime": "Observed host runtimes: canonical Fresh 2.11.0+cu128; broad Video 2.11.0+cu130; native GNU 2.11.0+cu128 with separately bound Transformers/OpenPI dependencies. This is an end-to-end deployment comparison, not a single-variable posttraining ablation.",
     "episodes_per_update": 32,
     "initialization": "same original update-zero search checkpoint, including inherited visual encoder",
     "score_scale": 0.16535300100378683,
@@ -75,7 +83,8 @@
     "native_serial_parallel_resident_cap": 84,
     "native_four_worker_resident_actual_calls": 36,
     "native_eight_worker_remaining_cap": 48,
-    "native_launch_status": "STOPPED_PENDING_CORRECTED_PROTOCOL_ADMISSION"
+    "native_launch_status": "EXACT_ADMISSION_COMPLETE_128_INCLUDING_REJECTED_ZERO_TRAINING_STARTED",
+    "native_eight_worker_actual_calls": 48
   },
   "evaluation_design": {
     "methods": [

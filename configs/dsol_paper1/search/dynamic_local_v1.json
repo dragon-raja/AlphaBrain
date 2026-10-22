@@ -1,0 +1,233 @@
+{
+  "schema": "dynamic_local_plan_v1",
+  "status": "DESIGN_FROZEN_NOT_AUTHORIZED_TO_RUN",
+  "automatic_execution": false,
+  "operation_policy": {
+    "checkpoint_sha256": "7e510b752143bb6fd4987988dfab5e94f7db1de5f7e97579f892a58eed22cc68",
+    "frozen": true,
+    "batch_size": 1,
+    "denoising_steps": 10,
+    "predicted_actions": 10,
+    "executed_actions_per_replan": 5,
+    "clip": [
+      -1,
+      1
+    ]
+  },
+  "actor": {
+    "initial_sha256": "a396a4a7ceb296054775a76541c3c411dd628ae77b02d20de75c4a7e78349d87",
+    "visual": "same_policy_SigLIP_2x2_pool_4608",
+    "network": "SharedSearchActor_width128_heads4_layers2",
+    "trainable": true,
+    "checkpoint_selection": "final_only_after_512_episodes",
+    "critic": "new_separate_history_only_attention_and_value_head_no_unvisited_scores",
+    "score_scale": 0.16535300100378683
+  },
+  "camera": {
+    "mode": "virtual_fixed_optical_center_OpenCV_pan_tilt_not_robot_FK",
+    "yaw_bounds_deg": [
+      -30,
+      30
+    ],
+    "pitch_bounds_deg": [
+      -20,
+      20
+    ],
+    "per_axis_setpoint_limit_deg": 10,
+    "proposal_length_deg": [
+      2,
+      10
+    ],
+    "proposals": "four_axial_plus_four_seeded_random_directions",
+    "invalid": "drop_not_clip",
+    "catalog_used": false,
+    "reference": "existing_agentview_installation_no_target_look_at",
+    "evaluation_start_angles_deg": [
+      [
+        -17.5,
+        9.5
+      ],
+      [
+        17.5,
+        -9.5
+      ]
+    ],
+    "training_start_distribution": "uniform_yaw[-25,25]_pitch[-15,15]_reject_max_abs_below10",
+    "seed": 20261022
+  },
+  "search": {
+    "query_budget": 8,
+    "score_noise_members": [
+      0,
+      1
+    ],
+    "noise": "reuse_existing_first_two_scoring_tensors_per_initial_constant_across_views_returns_and_methods",
+    "cost_per_query": 0.01,
+    "movement_cost": 0,
+    "initial_query_charged": true,
+    "return_recheck_charged": true,
+    "reserve_return_slot": true,
+    "maximum_forward_queries": 7,
+    "stop": "STOP_or_budget_or_no_legal_candidate",
+    "failure": "stop_record_no_automatic_retry",
+    "final_view": "minimum_observed_Accel_first_visit_tie_break",
+    "reward": "(previous_best-new_best)/fixed_score_scale - 0.01*new_queries",
+    "actor_unvisited_inputs": "geometry_only_zero_visual_and_score_no_outcomes"
+  },
+  "training": {
+    "seed": 0,
+    "cohort": "A",
+    "tasks": [
+      "goal_cream_cheese_bowl",
+      "goal_top_drawer_bowl",
+      "goal_wine_rack",
+      "libero10_book_caddy",
+      "libero10_bowl_bottom_drawer",
+      "libero10_mug_microwave",
+      "object_cream_cheese_basket",
+      "spatial_drawer_bowl_plate"
+    ],
+    "initial_indices": [
+      0,
+      1,
+      4,
+      5,
+      8,
+      9,
+      12,
+      13,
+      16,
+      17,
+      20,
+      21,
+      24,
+      25,
+      28,
+      29
+    ],
+    "episodes_per_initial": 32,
+    "episodes": 512,
+    "maximum_decisions_per_episode": 6,
+    "query_budget": 8,
+    "task_execution": false,
+    "success_labels": false,
+    "updates": 16,
+    "episodes_per_update": 32,
+    "ppo": {
+      "learning_rate": 0.0003,
+      "gamma": 1.0,
+      "gae_lambda": 0.95,
+      "clip_range": 0.2,
+      "ent_coef": 0.01,
+      "vf_coef": 0.5,
+      "max_grad_norm": 0.5,
+      "n_epochs": 4,
+      "batch_size": 64,
+      "partial_minibatches": "retain_without_new_environment_queries",
+      "advantage": "per_episode_GAE_true_search_terminal_no_tail_from_next_episode"
+    },
+    "validation": "CPU_only_save_reload_and_first_training_batch_finite_loss_mask_budget_checks_no_extra_scientific_episodes"
+  },
+  "evaluation": {
+    "tasks": [
+      {
+        "task": "goal_cream_cheese_bowl",
+        "cohort": "A",
+        "indices": [
+          2,
+          3
+        ],
+        "suite": "libero_goal",
+        "seen_by_actor": true
+      },
+      {
+        "task": "goal_wine_rack",
+        "cohort": "A",
+        "indices": [
+          10,
+          11
+        ],
+        "suite": "libero_goal",
+        "seen_by_actor": true
+      },
+      {
+        "task": "pick_up_the_black_bowl_between_the_plate_and_the_ramekin_and_place_it_on_the_plate",
+        "cohort": "B",
+        "indices": [
+          0,
+          1
+        ],
+        "suite": "libero_spatial",
+        "seen_by_actor": false
+      },
+      {
+        "task": "pick_up_the_alphabet_soup_and_place_it_in_the_basket",
+        "cohort": "B",
+        "indices": [
+          4,
+          5
+        ],
+        "suite": "libero_object",
+        "seen_by_actor": false
+      }
+    ],
+    "methods": [
+      "stay",
+      "local_near_best_accel",
+      "ppo"
+    ],
+    "method_query_caps": {
+      "stay": 1,
+      "local_near_best_accel": 8,
+      "ppo": 8
+    },
+    "execution_repeat_ids": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "execution_noise": "existing_A_INITIAL32_and_B_ood_execution_v1_exact_addresses_per_replan",
+    "horizons": {
+      "libero_spatial": 220,
+      "libero_object": 280,
+      "libero_goal": 300,
+      "libero_10": 520
+    },
+    "success": "first_env_done_true_in_counted_actions_settle10_excluded",
+    "search_reused_for_execution_seeds": true,
+    "selection_rationale": "four_tasks_from_completed_continuous_admission_not_selected_for_success_rate",
+    "local_baseline": "among_legal_current_proposals_min_squared_angular_distance_to_best_visited_then_distance_to_current_then_proposal_index; query_until_cap; final_min_observed_Accel",
+    "proposal_pairing": "same_seed_initial_start_and_decision_no_method_or_worker_in_seed_paths_can_differ",
+    "first_execution_gate": "first_complete_stay_local_ppo_block_is_part_of_192_not_extra_stop_on_engineering_failure",
+    "reports": [
+      "per_task_success_counts_and_percent",
+      "paired_harm_and_rescue_counts",
+      "actual_queries_including_return",
+      "failure_and_missing_counts",
+      "training_return_best_accel_entropy_critic_loss"
+    ],
+    "independence": "tasks_seen_in_previous_analysis_heldout_means_no_actor_updates_not_blind_or_unseen_by_VLA"
+  },
+  "budget": {
+    "completed_admission_trajectories": 64,
+    "additional_admission_trajectories": 0,
+    "training_search_trajectories": 8192,
+    "evaluation_search_sessions": 48,
+    "evaluation_search_trajectories": 544,
+    "evaluation_episodes": 192,
+    "evaluation_max_actions": 52800,
+    "evaluation_execution_trajectories": 10560,
+    "future_trajectories": 19296,
+    "total_including_completed_admission": 19360
+  },
+  "launch_requirements": [
+    "new_source_and_asset_hash_manifest",
+    "CPU_dynamic_Gym_PPO_and_history_critic_adapter_checks",
+    "execution_adapter_supports_explicit_suite_horizon_never_reuse_frozen_300_only_driver",
+    "save_full_clipped_10_action_chunks_and_each_input_hash_with_replan_index_plus_executed_actions",
+    "unchanged_fail_closed_keepalive_resource_preflight",
+    "user_authorizes_training_and_evaluation_after_design_review"
+  ],
+  "interpretation": "small_dynamic_space_feasibility_not_full_benchmark_or_hardware_transfer_proof"
+}

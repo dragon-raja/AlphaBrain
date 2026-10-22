@@ -45,6 +45,48 @@ def batch_observations(observations):
     return {key:torch.as_tensor(np.stack([o[key] for o in observations])) for key in observations[0]}
 
 
+def collect_episode(policy, backend, row, query_output, *, policy_update, source_kind):
+    """One complete rollout; storage and scheduling belong to the caller."""
+    started=time.perf_counter()
+    policy.eval();transitions=[]
+    # Backend owns source lifetime; cannot auto-reset or silently reuse failed queries.
+    stack=ExitStack()
+    try:
+        with backend_rng():
+            env,options=stack.enter_context(backend(row,query_output))
+            obs,info=env.reset(options=options)
+        if info['queries']!=1:raise ValueError('Initial acquisition must be charged once')
+        while True:
+            before={k:np.array(v,copy=True) for k,v in obs.items()}
+            tensor=batch_observations([before])
+            with torch.no_grad():
+                action=policy.distribution(tensor).sample()
+                value=float(policy.value(tensor)[0])
+            stored=dict(stop=bool(action['stop'][0]),latent=action['latent'][0].numpy().copy(),
+                        delta_deg=action['delta_deg'][0].numpy().copy())
+            with backend_rng():
+                obs,reward,done,truncated,info=env.step(dict(stop=int(stored['stop']),delta_deg=stored['delta_deg']))
+            transitions.append(dict(observation=before,action=stored,reward=float(reward),
+                                    value=value,log_prob=float(action['log_prob'][0])))
+            if truncated or len(transitions)>6:raise ValueError('Unexpected truncation/decision overflow')
+            if done:break
+        if info['status']!='COMPLETE' or not 1<=info['queries']<=8:
+            raise ValueError('Search did not finish within its declared query cap')
+        episode=dict(status='COMPLETE',transitions=transitions,policy_update=policy_update)
+        complete_update([episode],episodes_per_update=1)
+        metrics=dict(episode=row['episode'],policy_update=policy_update,queries=info['queries'],
+            scoring_trajectories=info['queries']*2,decisions=len(transitions),reason=info['reason'],
+            total_reward=sum(t['reward'] for t in transitions),initial_query_cost=info['initial_query_cost'],
+            total_reward_including_initial=sum(t['reward'] for t in transitions)-info['initial_query_cost'],
+            best_accel=env.core.records[env.core.best][1].accel_mean,
+            initial_accel=env.core.records[0][1].accel_mean,selected_angles=info['selected_angles'],
+            initial_identity=row,source_kind=source_kind)
+    finally:
+        with backend_rng():stack.__exit__(*sys.exc_info())
+    metrics['elapsed_seconds']=time.perf_counter()-started
+    return episode,metrics
+
+
 class ContinuousPPO:
     def __init__(self, policy, config, schedule, backend, output, *, binding, resume=False):
         if len(schedule) != config.episodes_per_update*config.updates:
@@ -117,44 +159,12 @@ class ContinuousPPO:
         self.store.begin('episode',self.cursor)
         started=time.perf_counter()
         try:
-            self.policy.eval();transitions=[];row=self.schedule[self.cursor]
-            # Backend owns source lifetime; cannot auto-reset or silently reuse failed queries.
-            stack=ExitStack()
-            try:
-                with backend_rng():
-                    env,options=stack.enter_context(self.backend(row,self.store.root/'episodes'/f'{self.cursor:04d}-queries'))
-                    obs,info=env.reset(options=options)
-                if info['queries']!=1:raise ValueError('Initial acquisition must be charged once')
-                while True:
-                    before={k:np.array(v,copy=True) for k,v in obs.items()}
-                    tensor=batch_observations([before])
-                    with torch.no_grad():
-                        action=self.policy.distribution(tensor).sample()
-                        value=float(self.policy.value(tensor)[0])
-                    stored=dict(stop=bool(action['stop'][0]),latent=action['latent'][0].numpy().copy(),
-                                delta_deg=action['delta_deg'][0].numpy().copy())
-                    with backend_rng():
-                        obs,reward,done,truncated,info=env.step(dict(stop=int(stored['stop']),delta_deg=stored['delta_deg']))
-                    transitions.append(dict(observation=before,action=stored,reward=float(reward),
-                                            value=value,log_prob=float(action['log_prob'][0])))
-                    if truncated or len(transitions)>6:raise ValueError('Unexpected truncation/decision overflow')
-                    if done:break
-                if info['status']!='COMPLETE' or not 1<=info['queries']<=8:
-                    raise ValueError('Search did not finish within its declared query cap')
-                episode=dict(status='COMPLETE',transitions=transitions,policy_update=self.update)
-                complete_update([episode],episodes_per_update=1)
-                metrics=dict(episode=self.cursor,policy_update=self.update,queries=info['queries'],
-                    scoring_trajectories=info['queries']*2,decisions=len(transitions),reason=info['reason'],
-                    total_reward=sum(t['reward'] for t in transitions),initial_query_cost=info['initial_query_cost'],
-                    total_reward_including_initial=sum(t['reward'] for t in transitions)-info['initial_query_cost'],
-                    best_accel=env.core.records[env.core.best][1].accel_mean,
-                    initial_accel=env.core.records[0][1].accel_mean,selected_angles=info['selected_angles'],
-                    initial_identity=row,source_kind=self.store.binding['source_kind'])
-            finally:
-                with backend_rng():stack.__exit__(*sys.exc_info())
+            episode,metrics=collect_episode(self.policy,self.backend,self.schedule[self.cursor],
+                self.store.root/'episodes'/f'{self.cursor:04d}-queries',
+                policy_update=self.update,source_kind=self.store.binding['source_kind'])
             metrics['elapsed_seconds']=time.perf_counter()-started
             self.store.save_episode(self.cursor,episode,metrics)
-            self.pending.append(episode);self.cursor+=1;self.queries+=info['queries'];self.store.finish()
+            self.pending.append(episode);self.cursor+=1;self.queries+=metrics['queries'];self.store.finish()
             return metrics
         except BaseException as error:
             self.store.fail(error);raise

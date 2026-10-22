@@ -1,6 +1,6 @@
 {
   "schema": "continuous_search_plan_v1",
-  "status": "PREPARED_CPU_ONLY_NOT_AUTHORIZED_TO_TRAIN",
+  "status": "FOUR_WORKER_ADMISSION_THEN_512_TRAINING_AUTHORIZED_FAILURE_STOPS",
   "automatic_execution": false,
   "operation_policy": {
     "checkpoint_sha256": "7e510b752143bb6fd4987988dfab5e94f7db1de5f7e97579f892a58eed22cc68",
@@ -271,16 +271,15 @@
   },
   "training_revision": "continuous_ppo_stop_mixed_v2",
   "parallel_sampling": {
-    "status": "DESIGN_ONLY_NOT_IMPLEMENTED_OR_AUTHORIZED",
+    "status": "FOUR_WORKER_IMPLEMENTED_CPU_VERIFIED_LIVE_ADMISSION_REQUIRED",
     "global_episodes_per_update": 32,
     "initial_workers": 4,
-    "later_workers": [
-      24,
-      48
-    ],
+    "later_workers": [],
     "policy_version_barrier": true,
     "one_frozen_VLA_per_worker": true,
     "VLA_batch_size": 1,
-    "failure": "stop_without_reassignment_or_retry"
+    "failure": "stop_without_reassignment_or_retry",
+    "batch_lifecycle": "four collectors each eight complete episodes; exit at version barrier; reload next batch",
+    "policy_rng": "per_source_episode_sha256_v1; independent of host/worker/arrival order; differs from old serial global RNG chain"
   }
 }

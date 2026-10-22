@@ -37,7 +37,7 @@ def audit_first_batch(trainer):
                     expected.append((i,q,member))
             files+=1
     actual=[(r['identity']['episode'],r['identity']['query'],r['identity']['member']) for r in attempts]
-    if actual!=expected:raise ValueError('Query/member/episode order mismatch')
+    if sorted(actual)!=expected:raise ValueError('Query/member/episode coverage mismatch')
     old=torch.load(root/'checkpoints/update-000.pt',map_location='cpu',weights_only=True)['policy']
     new=trainer.policy.state_dict()
     actor_changed=any(not torch.equal(v,old[k]) for k,v in new.items() if k.startswith(('actor_history.','mean_head.','stop_head.')))

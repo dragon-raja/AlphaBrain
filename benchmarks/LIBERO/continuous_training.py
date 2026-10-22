@@ -62,7 +62,7 @@ def validate_inputs(path):
 
 class DurableScoring:
     """Count attempts before inference, including failures and resumed processes."""
-    def __init__(self, runtime, root, expected_calls, limit):
+    def __init__(self, runtime, root, expected_calls, limit, global_budget=None):
         self.runtime,self.path,self.limit=runtime,Path(root)/'model-attempts.jsonl',limit
         rows=[json.loads(line) for line in self.path.read_text().splitlines()] if self.path.exists() else []
         if [r['index'] for r in rows]!=list(range(1,len(rows)+1)) or len(rows)!=expected_calls:
@@ -71,6 +71,7 @@ class DurableScoring:
         self.runtime.calls=expected_calls
         if self.runtime.limit!=limit:raise ValueError('Runtime and durable budget differ')
         self.episode=None
+        self.global_budget=global_budget
 
     def infer(self,example,noise,identity,capture=True):
         from AlphaBrain.research.dsol.data.flow_noise import tensor_sha256
@@ -79,18 +80,25 @@ class DurableScoring:
         self.calls+=1
         address=dict(identity,stage='continuous_ppo_training',episode=self.episode)
         row=dict(index=self.calls,unix_time=time.time(),identity=address,input_sha256=input_identity(example),noise_sha256=tensor_sha256(noise))
+        if self.global_budget is not None:
+            budget,owner,version,prefix=self.global_budget
+            row['global_index']=budget.attempt(f'{prefix}:{self.episode}',owner,version,identity['query'],identity['member'])
         with self.path.open('a') as stream:
             stream.write(json.dumps(row,allow_nan=False)+'\n');stream.flush();os.fsync(stream.fileno())
-        value=self.runtime.infer(example,noise,address,capture=capture)
+        try:value=self.runtime.infer(example,noise,address,capture=capture)
+        except BaseException as error:
+            if self.global_budget is not None:self.global_budget[0].fail(error)
+            raise
         if self.runtime.calls!=self.calls:raise ValueError('Runtime/model ledger divergence')
         return value
 
 
 class LiveEpisodes:
     """Lazy persistent VLA; fresh simulator per search; explicit fixed state/noise."""
-    def __init__(self,cfg,plan,output,*,expected_calls=0):
+    def __init__(self,cfg,plan,output,*,expected_calls=0,global_budget=None):
         self.cfg,self.plan,self.output=cfg,plan,Path(output)
         self.expected_calls=expected_calls;self.scoring=None
+        self.global_budget=global_budget
 
     @contextmanager
     def __call__(self,row,output):
@@ -104,7 +112,7 @@ class LiveEpisodes:
         sim=read(self.cfg['sim_config'])
         if self.scoring is None:
             runtime=PolicyRuntime(sim,self.output,self.cfg['trajectory_cap'])
-            self.scoring=DurableScoring(runtime,self.output,self.expected_calls,self.cfg['trajectory_cap'])
+            self.scoring=DurableScoring(runtime,self.output,self.expected_calls,self.cfg['trajectory_cap'],self.global_budget)
         self.scoring.episode=row['episode']
         with np.load(sim['anchors'],allow_pickle=False) as z:
             noises=z['first_score_noise'][row['initial'],:2].copy()

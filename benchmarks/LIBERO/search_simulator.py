@@ -31,7 +31,8 @@ def serve(config_path,initial,address):
     from .initialization import initialize,capture_model_reference
     configure_imports()
     config=read(config_path);record=read(config['inputs'])['records'][initial];spec=record['state']
-    candidates=read(config['release'])['protocol']['state_blocks'][initial]['candidates']
+    # Continuous pose queries do not load or snap to the historical catalog.
+    candidates=[] if config.get('continuous_camera') is True else read(config['release'])['protocol']['state_blocks'][initial]['candidates']
     physical=load_initial(spec)
     with tempfile.TemporaryDirectory(prefix='dsol-search-sim-') as temporary:
         _configure_runtime(Path(config['runtime']),Path(config['dataset']),Path(temporary))

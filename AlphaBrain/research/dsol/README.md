@@ -32,7 +32,9 @@ RoboCasa原生复位、噪声地址及完整任务验收属于 `benchmarks/Roboc
 ## 当前 RL 搜索代码
 
 - `acquisition/search_env.py` / `local_view_search.py`：固定表和动态局部搜索，查询计费与停止。
-- `selectors/search_attention.py` / `search_attention_ppo.py`：共享编码、attention、actor/critic 与 PPO。
+- `selectors/search_attention.py` / `search_attention_ppo.py`：历史97点的编码、离散actor/critic与PPO；连续actor只复用兼容的历史编码。
+- `selectors/continuous_search_policy.py` / `continuous_ppo.py`：当前连续STOP/角度策略及完整训练驱动；`data/continuous_training_store.py`：日志、事务与恢复。
+- `benchmarks/LIBERO/continuous_training.py` / `continuous_training_queue.py`：当前在线连续查询训练适配与标准队列，默认只读验证；不是旧缓存评价入口。
 - `analysis/search_attention_training.py`：已有训练流程；`data/local_search_plan.py`：下一轮划分/预算核查。
 - `analysis/search_task_alignment.py` / `execution_trace_audit.py`：配对任务统计、回放边界、已有执行记录核查。
 - `benchmarks/LIBERO/search_runtime.py` / `search_simulator.py` / `continuous_camera.py`：仓库外层的模型/仿真适配。

@@ -106,7 +106,7 @@ class ContinuousActorCritic(nn.Module):
     def value(self, obs):
         return self.value_head(self.critic_history(obs)).squeeze(-1)
 
-    def objective(self, obs, stop, latent, old_log_prob, advantages, returns):
+    def objective(self, obs, stop, latent, old_log_prob, advantages, returns, *, with_metrics=False):
         distribution = self.distribution(obs)
         log_prob = distribution.log_prob(stop, latent)
         value = self.value(obs)
@@ -116,6 +116,13 @@ class ContinuousActorCritic(nn.Module):
         if len(adv)>1: adv = (adv-adv.mean())/(adv.std()+1e-8)
         ratio = (log_prob-old_log_prob.detach()).exp()
         policy = -torch.minimum(adv*ratio, adv*ratio.clamp(.8, 1.2)).mean()
-        loss = policy + .5*(value-returns.detach()).square().mean() - .01*distribution.entropy().mean()
+        value_loss = (value-returns.detach()).square().mean()
+        entropy = distribution.entropy().mean()
+        loss = policy + .5*value_loss - .01*entropy
         if not torch.isfinite(loss): raise ValueError('Nonfinite PPO objective')
+        if with_metrics:
+            log_ratio = log_prob-old_log_prob.detach()
+            return loss, dict(policy_loss=float(policy.detach()), value_loss=float(value_loss.detach()),
+                entropy=float(entropy.detach()), approximate_kl=float(((ratio-1)-log_ratio).mean().detach()),
+                clip_fraction=float(((ratio-1).abs()>.2).double().mean()))
         return loss

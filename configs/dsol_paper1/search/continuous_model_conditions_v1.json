@@ -40,7 +40,7 @@
         6,
         7
       ],
-      "status": "EIGHT_RESIDENT_EXACT_ADMISSION_PASSED_TRAINING_LAUNCHED",
+      "status": "COMPLETE_512_EPISODES_FINAL_ACTOR_FROZEN",
       "noise_rule": "libero-native32-tensor-sha256-extra25-v1",
       "score_channels": [
         0,
@@ -83,7 +83,7 @@
     "native_serial_parallel_resident_cap": 84,
     "native_four_worker_resident_actual_calls": 36,
     "native_eight_worker_remaining_cap": 48,
-    "native_launch_status": "EXACT_ADMISSION_COMPLETE_128_INCLUDING_REJECTED_ZERO_TRAINING_STARTED",
+    "native_launch_status": "COMPLETE_512_EPISODES_1706_TRAINING_TRAJECTORIES",
     "native_eight_worker_actual_calls": 48
   },
   "evaluation_design": {

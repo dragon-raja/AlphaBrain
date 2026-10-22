@@ -10,6 +10,7 @@ from torch.nn import functional as F
 from .search_attention import SearchHistoryEncoder
 
 BASE = {'geometry', 'visual', 'scores', 'flags', 'wrist', 'global', 'action_mask'}
+EXPLORATION_RULE = 'unit_tanh_detached_continue_v1'
 
 
 class ContinuousHistory(nn.Module):
@@ -75,14 +76,31 @@ class BoundedStopNormal:
         return dict(stop=stop, latent=latent, delta_deg=delta, log_prob=self.log_prob(stop, latent))
 
     def entropy(self):
-        # One reparameterized MC draw for H(transformed Normal), weighted by P(go).
+        # Physical-density entropy, retained for historical diagnostics ONLY.
+        # Its STOP gradient depends on angle units; do not use as a regularizer.
         z = self.normal.rsample()
         jac = self.half.log() + 2*(math.log(2.) - z - F.softplus(-2*z))
         conditional = self.normal.entropy().sum(-1) + jac.sum(-1)
         return self.stop.entropy() + (1-self.stop.probs) * conditional
 
+    def exploration_terms(self):
+        """Dimensionless exploration; motion entropy cannot train the STOP branch.
+
+        This is an explicit regularizer, NOT the joint action entropy. Physical
+        affine scales remain in log_prob for the PPO ratio, but not here. The
+        detached continuation weight still scales motion exploration by usage.
+        """
+        z = self.normal.rsample()
+        unit_jac = 2 * (math.log(2.) - z - F.softplus(-2*z))
+        motion = self.normal.entropy().sum(-1) + unit_jac.sum(-1)
+        stop = self.stop.entropy()
+        total = stop + (1-self.stop.probs).detach() * motion
+        return total, stop, motion
+
 
 class ContinuousActorCritic(nn.Module):
+    exploration_rule = EXPLORATION_RULE
+
     def __init__(self, visual_dim, width=128, heads=4, layers=2):
         super().__init__()
         self.actor_history = ContinuousHistory(visual_dim, width, heads, layers)
@@ -117,12 +135,17 @@ class ContinuousActorCritic(nn.Module):
         ratio = (log_prob-old_log_prob.detach()).exp()
         policy = -torch.minimum(adv*ratio, adv*ratio.clamp(.8, 1.2)).mean()
         value_loss = (value-returns.detach()).square().mean()
-        entropy = distribution.entropy().mean()
-        loss = policy + .5*value_loss - .01*entropy
+        exploration, stop_entropy, motion_entropy = distribution.exploration_terms()
+        regularizer = exploration.mean()
+        loss = policy + .5*value_loss - .01*regularizer
         if not torch.isfinite(loss): raise ValueError('Nonfinite PPO objective')
         if with_metrics:
             log_ratio = log_prob-old_log_prob.detach()
             return loss, dict(policy_loss=float(policy.detach()), value_loss=float(value_loss.detach()),
-                entropy=float(entropy.detach()), approximate_kl=float(((ratio-1)-log_ratio).mean().detach()),
+                exploration_regularizer=float(regularizer.detach()),
+                stop_entropy=float(stop_entropy.mean().detach()),
+                motion_unit_entropy=float(motion_entropy.mean().detach()),
+                mean_stop_probability=float(distribution.stop.probs.mean().detach()),
+                approximate_kl=float(((ratio-1)-log_ratio).mean().detach()),
                 clip_fraction=float(((ratio-1).abs()>.2).double().mean()))
         return loss

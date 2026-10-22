@@ -39,3 +39,16 @@ def test_continuous_plan_preserves_research_budget_and_separates_new_admission()
     assert p['training']['initial_indices'] == old['training']['initial_indices']
     assert p['evaluation']['tasks'] == old['evaluation']['tasks']
     assert p['evaluation']['methods'] == ['stay','local_near_best_accel','continuous_ppo']
+
+
+def test_stop_mixed_revision_only_changes_training_regularizer_and_order():
+    root=Path(__file__).resolve().parents[3]/'configs/dsol_paper1/search'
+    old=json.loads((root/'continuous_search_v1.json').read_text())
+    new=json.loads((root/'continuous_search_stop_mixed_v2.json').read_text())
+    assert validate_plan(new)==validate_plan(old)
+    for key in ('operation_policy','camera','search','evaluation','budget'):
+        assert new[key]==old[key]
+    for key,value in old['training'].items():assert new['training'][key]==value
+    assert new['actor']['initial_sha256']==old['actor']['initial_sha256']
+    assert new['engineering_admission']['authorized'] is False
+    assert new['automatic_execution'] is False

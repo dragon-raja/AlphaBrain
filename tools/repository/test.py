@@ -25,6 +25,7 @@ def main():
         "tests/dsol_paper1/analysis/test_search_task_alignment.py",
         "tests/dsol_paper1/analysis/test_execution_trace_audit.py",
         "tests/dsol_paper1/data/test_local_search_plan.py",
+        "tests/dsol_paper1/data/test_continuous_training_schedule.py",
         "tests/dsol_paper1/data/test_local_search_rollouts.py",
         "tests/dsol_paper1/acquisition/test_local_view_gym.py",
         "tests/dsol_paper1/acquisition/test_continuous_search.py",

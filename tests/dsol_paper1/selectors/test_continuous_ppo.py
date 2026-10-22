@@ -10,6 +10,7 @@ from AlphaBrain.research.dsol.selectors.continuous_search_policy import Continuo
 from AlphaBrain.research.dsol.acquisition.continuous_search import ContinuousSearch
 from AlphaBrain.research.dsol.acquisition.continuous_search_gym import ContinuousSearchGym
 from AlphaBrain.research.dsol.data.continuous_training_store import write_json
+from AlphaBrain.research.dsol.data.continuous_training_schedule import balanced_schedule
 from tests.dsol_paper1.helpers.local_search import synthetic_session
 
 
@@ -24,7 +25,8 @@ def backend(row, output):
 def trainer(path, *, resume=False, updates=2, source=backend, binding=None):
     torch.set_num_threads(1);torch.manual_seed(71)
     policy = ContinuousActorCritic(4,width=16)
-    schedule = [dict(episode=i,initial=i%16) for i in range(updates*32)]
+    schedule = balanced_schedule([dict(episode=i,initial=i//(updates*2)) for i in range(updates*32)],
+                                 list(range(16)),updates=updates)
     return ContinuousPPO(policy,ContinuousPPOConfig(updates=updates),schedule,source,path,
         binding=binding or {'source_kind':'SYNTHETIC_CPU_NO_MODEL'},resume=resume)
 
@@ -167,3 +169,11 @@ def test_backend_cleanup_failure_never_commits_episode(tmp_path):
         with pytest.raises(RuntimeError,match='cleanup failed'):t.collect_one()
         assert not t.store.episodes() and t.cursor==0
     with pytest.raises(ValueError,match='no automatic replay'):trainer(tmp_path/'run',resume=True)
+
+
+def test_legacy_training_binding_cannot_resume_with_corrected_objective(tmp_path):
+    with trainer(tmp_path/'run') as t:t.collect_one()
+    path=tmp_path/'run/binding.json';binding=json.loads(path.read_text())
+    binding.pop('exploration_rule');binding['engine']='continuous_ppo_complete_episode_v1'
+    write_json(path,binding)
+    with pytest.raises(ValueError,match='Changed protocol'):trainer(tmp_path/'run',resume=True)

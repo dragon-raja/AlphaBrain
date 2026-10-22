@@ -32,3 +32,26 @@ def test_invalid_or_nonfinite_log_rejected(tmp_path):
 
 def test_missing_training_output_is_not_failure(tmp_path):
     assert update_rows(tmp_path/'not-started')==[]
+
+
+def test_corrected_regularizer_does_not_relabel_historical_entropy(tmp_path):
+    from reports.paper1.continuous_training_tracking import CORRECTED_MEANS
+    fixture(tmp_path)
+    path=tmp_path/'updates/001.json';data=json.loads(path.read_text())
+    data['means']={k:.2 for k in CORRECTED_MEANS};write(path,data)
+    row=update_rows(tmp_path)[0]
+    assert 'optimization/entropy' not in row
+    assert row['optimization/exploration_regularizer']==.2
+    assert row['optimization/stop_entropy']==.2
+
+
+def test_tracking_checks_revision_when_trainer_binding_arrives(tmp_path):
+    from reports.paper1.continuous_training_tracking import validate_tracking_revision
+    cfg=dict(group='continuous-pose-ppo-stop-mixed-v2',training_revision='continuous_ppo_stop_mixed_v2')
+    validate_tracking_revision(cfg,tmp_path)
+    write(tmp_path/'binding.json',dict(exploration_rule='unit_tanh_detached_continue_v1'))
+    validate_tracking_revision(cfg,tmp_path)
+    with pytest.raises(ValueError):validate_tracking_revision({'group':'continuous-pose-ppo-v1'},tmp_path)
+    with pytest.raises(ValueError):validate_tracking_revision({'group':cfg['group']},tmp_path)
+    write(tmp_path/'binding.json',{})
+    with pytest.raises(ValueError):validate_tracking_revision(cfg,tmp_path)

@@ -1,10 +1,12 @@
 # 连续视角搜索主方案
 
 本方案按用户 2026-10-22 指令取代尚未执行的动态候选 PPO 学习计划。
-唯一配置为 `configs/dsol_paper1/search/continuous_search_v1.json`；旧配置和旧结果不改。
+已完成首轮配置为 `configs/dsol_paper1/search/continuous_search_v1.json`；旧配置和旧结果不改。
+当前待执行修正版为 `configs/dsol_paper1/search/continuous_search_stop_mixed_v2.json`，
+只准备STOP探索项与混合采样修复，不启动训练。具体取代关系与准入见[训练驱动](continuous_training_zh.md)。
 动态候选保留给非学习局部 Accel 对照，本轮只准备一套学习策略。
 工程准入已完成36条。2026-10-22后续授权启动原512回合训练，首32回合及首次更新已通过；
-未启动后续192条操作任务评价，旧冻结配置不改。
+随后512回合训练和192条配对操作任务均已完成，旧冻结配置不改。
 
 ## 接口与信息流
 
@@ -37,7 +39,10 @@ STOP ~ Bernoulli；继续分支采样二维高斯 z，按当前位置得到每�
 记录 STOP、原始 z、实际增量和旧策略联合 log probability。
 继续分支的 log probability 包含 tanh 及状态相关缩放的 Jacobian；STOP 分支只含离散概率。
 禁止裁剪后仍用原概率。浮点饱和、非法增量及非有限数值报错，不重采样凑通过。
-连续熵采用 Bernoulli 精确熵 + P(继续)×有界连续分布的重参数化单样本熵估计。
+历史v1探索项采用 Bernoulli 精确熵 + P(继续)×物理角度连续熵，存在单位影响STOP梯度的问题。
+修正版采用 `H(STOP) + detach(P(继续)) × H(tanh(z))`，不含角度仿射缩放项；
+这是明确设计的探索正则，不称联合动作熵。运动探索不能通过分支概率额外推动继续，
+PPO奖励梯度仍可训练STOP，Bernoulli熵仍鼓励分支探索。系数保持0.01。
 部署规则：P(STOP)≥0.5 则停止，否则使用映射后的高斯均值。
 
 critic 使用独立的历史编码与价值头，不看完整 Accel 场。按完整搜索回合计算 GAE，

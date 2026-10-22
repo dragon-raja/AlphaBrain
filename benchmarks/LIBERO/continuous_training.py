@@ -13,18 +13,31 @@ import numpy as np
 from AlphaBrain.research.dsol.data.artifacts import read
 from AlphaBrain.research.dsol.execution.manifest import file_digest as sha
 from AlphaBrain.research.dsol.data.local_search_plan import validate_schedules
+from AlphaBrain.research.dsol.data.continuous_training_schedule import (
+    TRAINING_REVISION, SAMPLING_RULE, validate_balanced_schedule, validate_preserved_episodes)
 
 
 def validate_inputs(path):
     """Read-only identity/split check. Does not import a model or simulator."""
     cfg=read(path)
+    if cfg.get('training_revision') != TRAINING_REVISION:
+        raise ValueError('Explicit corrected training revision required; use frozen source for old runs')
     if cfg['schema']!='continuous_ppo_launch_v1' or cfg['source_kind']!='LIVE_RENDER_BATCH1_TWO_NOISES':
         raise ValueError('Continuous live training manifest required; no catalog replay')
     for filename,digest in cfg['input_hashes'].items():
         if sha(filename)!=digest:raise ValueError('Bound training input changed: '+filename)
-    required=[cfg[k] for k in ('design','training_schedule','evaluation_schedule','initial_checkpoint','sim_config')]
+    required=[cfg[k] for k in ('design','training_schedule','source_training_schedule',
+                              'evaluation_schedule','initial_checkpoint','sim_config')]
     if any(p not in cfg['input_hashes'] for p in required):raise ValueError('Unbound training input')
     plan=read(cfg['design']); sim=read(cfg['sim_config'])
+    if (plan.get('training_revision') != TRAINING_REVISION
+            or plan['training'].get('sampling_rule') != SAMPLING_RULE
+            or plan['actor'].get('exploration_rule') != 'unit_tanh_detached_continue_v1'):
+        raise ValueError('Corrected exploration and balanced sampling must be explicit')
+    rows=read(cfg['training_schedule'])
+    validate_balanced_schedule(rows,plan['training']['initial_indices'],
+        episodes_per_update=plan['training']['episodes_per_update'],updates=plan['training']['updates'])
+    validate_preserved_episodes(read(cfg['source_training_schedule']),rows)
     if (cfg['trajectory_cap']!=8192 or cfg['cpu_threads']!=2 or cfg['actor_device']!='cpu'
             or not sim['continuous_camera'] or 'outcome_matrix' in sim or 'native' in sim):
         raise ValueError('Wrong resource budget/backend or cached labels/scores supplied')

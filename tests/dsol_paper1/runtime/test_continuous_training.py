@@ -47,6 +47,14 @@ def test_continuous_queue_rejects_discrete_mode(tmp_path):
     with pytest.raises(ValueError,match='Single persistent'):backend.worker_command({})
 
 
+def test_old_launch_cannot_silently_select_new_training_math(tmp_path):
+    from benchmarks.LIBERO.continuous_training import validate_inputs
+    path=tmp_path/'old.json';path.write_text(json.dumps({'authorization':'EXPLICIT_TRAINING_ONLY'}))
+    with pytest.raises(ValueError,match='corrected training revision'):validate_inputs(path)
+    with pytest.raises(ValueError,match='corrected training revision'):run(path,tmp_path/'output',execute=True)
+    assert not (tmp_path/'output').exists()
+
+
 def test_live_episode_adapter_with_4608_model_on_synthetic_renderer(tmp_path,monkeypatch):
     """Exercise actual query/prefetch/return/log wiring, using fake VLA + renderer."""
     torch=pytest.importorskip('torch');pytest.importorskip('gymnasium')

@@ -55,7 +55,8 @@ class ContinuousPPO:
             raise ValueError('This admitted trainer keeps the search actor/critic on CPU')
         self.policy,self.config,self.schedule,self.backend=policy,config,schedule,backend
         self.optimizer=torch.optim.Adam(policy.parameters(),lr=config.learning_rate,eps=1e-5)
-        binding=dict(binding,engine='continuous_ppo_complete_episode_v1',config=asdict(config),
+        binding=dict(binding,engine='continuous_ppo_complete_episode_v2',
+                     exploration_rule=policy.exploration_rule,config=asdict(config),
                      schedule_sha256=fingerprint(schedule))
         self.store=ContinuousTrainingStore(output,binding,resume=resume)
         self.update=self.cursor=self.queries=0

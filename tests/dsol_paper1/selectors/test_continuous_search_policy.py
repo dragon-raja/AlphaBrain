@@ -60,3 +60,35 @@ def test_critic_independent_save_restore_and_ppo_gradients_without_update(tmp_pa
     torch.testing.assert_close(q.distribution(o).log_prob(a['stop'],a['latent']),a['log_prob'],atol=0,rtol=0)
     bad=dict(o,full_accel=torch.ones(1,97))
     with pytest.raises(ValueError):p.value(bad)
+
+
+@pytest.mark.parametrize('scale', [1., math.pi/180, .001])
+def test_exploration_is_unit_invariant_and_stop_gradient_is_branch_only(scale):
+    def calculate(units):
+        logit=torch.tensor([-3.,0.,2.],dtype=torch.float64,requires_grad=True)
+        mean=torch.tensor([[.3,-.4]]*3,dtype=torch.float64,requires_grad=True)
+        std=torch.full((3,2),-.5,dtype=torch.float64,requires_grad=True)
+        low=torch.tensor([[-10.,-10.],[-3.,0.],[0.,-2.]],dtype=torch.float64)*units
+        high=torch.tensor([[10.,10.],[10.,1.],[.1,10.]],dtype=torch.float64)*units
+        d=BoundedStopNormal(logit,mean,std,low,high)
+        torch.manual_seed(5)
+        total,stop,motion=d.exploration_terms()
+        grads=torch.autograd.grad(total.sum(),(logit,mean,std))
+        p=logit.sigmoid()
+        torch.testing.assert_close(grads[0],-logit*p*(1-p),atol=1e-12,rtol=1e-12)
+        assert grads[1].abs().sum()>0 and grads[2].abs().sum()>0
+        assert grads[0][0]>0 and grads[0][1]==0 and grads[0][2]<0
+        return total,stop,motion,*grads
+    for a,b in zip(calculate(1.),calculate(scale)):
+        torch.testing.assert_close(a,b,atol=0,rtol=0)
+
+
+def test_ppo_likelihood_ratio_still_uses_physical_density():
+    low=torch.tensor([[-10.,-2.]]*2,dtype=torch.float64);high=low+20
+    latent=torch.tensor([[.2,-.3],[.4,.5]],dtype=torch.float64);stop=torch.tensor([True,False])
+    ratios=[]
+    for scale in (1.,math.pi/180):
+        old=BoundedStopNormal(torch.zeros(2),torch.zeros(2,2),torch.zeros(2,2),low*scale,high*scale)
+        new=BoundedStopNormal(torch.ones(2)*.2,torch.ones(2,2)*.1,torch.zeros(2,2),low*scale,high*scale)
+        ratios.append((new.log_prob(stop,latent)-old.log_prob(stop,latent)).exp())
+    torch.testing.assert_close(*ratios,atol=1e-12,rtol=1e-12)

@@ -29,12 +29,12 @@
     "native_reference": {
       "label": "Original converted pi05 LIBERO via native OpenPI transforms, internal 32D actions, quantile decoding; no project posttraining",
       "checkpoint_sha256": "0f8c489e37b01c72251c45f2e73595894f3933fc6297f4f1cf95fc8737db4c74",
-      "host_profile": "fresh",
+      "host_profile": "gnu",
       "gpu_indices": [
-        4,
-        5,
-        6,
-        7
+        0,
+        1,
+        2,
+        3
       ],
       "status": "PREPARATION_ONLY_NATIVE_SEARCH_RUNTIME_NOT_ADMITTED"
     }

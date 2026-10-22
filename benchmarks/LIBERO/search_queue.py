@@ -10,10 +10,10 @@ class SearchBackend(ProbeBackend):
     def admit(self, slot):
         if slot['host'] != self.runtime['host']:
             raise ValueError('Wrong host coordinator')
-        if self.runtime['mode'] not in ('capacity','domain_admission','full_tasks','continuous_admission'):
+        if self.runtime['mode'] not in ('capacity','domain_admission','full_tasks','continuous_admission','continuous_action_admission'):
             raise ValueError('Unsupported search queue mode; production requires the full_tasks adapter')
         proofs=['capacity_admission'] if self.runtime['mode']=='domain_admission' else []
-        if self.runtime['mode'] in ('full_tasks','continuous_admission'):
+        if self.runtime['mode'] in ('full_tasks','continuous_admission','continuous_action_admission'):
             proofs=['capacity_admission','domain_admission']
         for key in proofs:
             proof=self.runtime[key]
@@ -25,6 +25,7 @@ class SearchBackend(ProbeBackend):
         module = {'capacity':'benchmarks.LIBERO.search_capacity',
                   'domain_admission':'benchmarks.LIBERO.search_domain',
                   'continuous_admission':'benchmarks.LIBERO.local_view_runtime',
+                  'continuous_action_admission':'benchmarks.LIBERO.continuous_action_admission',
                   'full_tasks':'benchmarks.LIBERO.search_rollout'}[self.runtime['mode']]
         config=task['payload']['config'] if self.runtime['mode']=='full_tasks' else self.runtime['config']
         command=[self.runtime['python'],'-u','-m',module,'--config',config,
@@ -61,6 +62,14 @@ class SearchBackend(ProbeBackend):
                 if (case['pose_input_return_exact'] is not True or case['model_return_exact'] is not True
                         or sha(case['reference'])!=case['sha256']):
                     raise ValueError('Continuous admission input/model verification failed')
+        elif self.runtime['mode']=='continuous_action_admission':
+            if (not 0 < receipt['calls'] <= 64 or receipt['training_steps'] != 0
+                    or receipt['manipulation_actions'] != 0 or len(receipt['cases']) != 4
+                    or [(r['cohort'],r['initial']) for r in receipt['cases']] != [('A',2),('A',10),('B',0),('B',4)]):
+                raise ValueError('Continuous action admission scope mismatch')
+            for row in receipt['cases']:
+                if row['exact_return'] is not True or sha(row['reference']) != row['sha256']:
+                    raise ValueError('Continuous action return control failed')
         elif self.runtime['mode']=='full_tasks':
             from .search_rollout import validate_block
             block=validate_block(read(task['payload']['block']))

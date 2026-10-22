@@ -26,3 +26,16 @@ def test_reject_silent_protocol_drift(change):
     elif change == 'heldout': p['evaluation']['tasks'][2]['seen_by_actor'] = True
     else: p['evaluation']['execution_repeat_ids'][1] = 0
     with pytest.raises(ValueError): validate_plan(p)
+
+
+def test_continuous_plan_preserves_research_budget_and_separates_new_admission():
+    root = Path(__file__).resolve().parents[3]
+    p = json.loads((root/'configs/dsol_paper1/search/continuous_search_v1.json').read_text())
+    result = validate_plan(p)
+    assert result['future_trajectories'] == 19296 + 64
+    assert result['total_including_completed_admission'] == 19296 + 64 + 64
+    assert p['budget']['research_training_evaluation_trajectories'] == 19296
+    old = plan()
+    assert p['training']['initial_indices'] == old['training']['initial_indices']
+    assert p['evaluation']['tasks'] == old['evaluation']['tasks']
+    assert p['evaluation']['methods'] == ['stay','local_near_best_accel','continuous_ppo']

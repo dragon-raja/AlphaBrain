@@ -4,10 +4,10 @@
 
 ## 当前状态
 
-- **研究主线**：冻结操作模型，以 Accel 决定已观察视角的选择，用 RL 减少搜索所需查询；从固定 97 点推进到动态局部候选，再适配头部。
+- **研究主线**：冻结操作模型，以 Accel 决定已观察视角的选择，用 RL 减少搜索所需查询；从固定 97 点推进到连续 Δyaw/Δpitch＋STOP，再适配头部；动态候选保留为非学习对照。
 - **已经完成**：固定 actor 的 A8/B8 共 15,488 条真实仿真任务；连续位姿/输入/返回复核 64 条去噪轨迹。旧实验不再运行。
-- **设计已冻结、未训练**：动态局部候选，512 搜索回合、192 条配对操作任务；未来最多 19,296 条去噪轨迹。具体划分和时限只以[设计协议](protocols/dynamic_local_camera_zh.md)及[机器清单](../../configs/dsol_paper1/search/dynamic_local_v1.json)为准。
-- **当前工作**：项目整理和 CPU 维护验证。没有训练、模型调用或新实验授权从本页自动触发。
+- **设计已冻结、未训练**：连续 PPO，512 搜索回合、192 条配对操作任务；未来最多 19,296 条去噪轨迹。具体划分和时限只以[设计协议](protocols/continuous_search_zh.md)及[机器清单](../../configs/dsol_paper1/search/continuous_search_v1.json)为准。
+- **当前工作**：连续动作接口、CPU 检查及最多64条新增工程准入；不训练、不执行操作任务。工程准入不是研究训练授权。
 - **暂存后续工作**：用户提供的私有机器人 URDF 已归档；相机标定及头部运动学接入尚未开展。
 
 ## 结果能说明什么
@@ -27,7 +27,7 @@
 | 内容 | 入口 |
 | --- | --- |
 | 目录、运行产物与新实验落盘规则 | [项目管理约定](protocols/project_layout_zh.md) |
-| 动态候选下一轮设计与剩余准入 | [连续位姿协议](protocols/dynamic_local_camera_zh.md) |
+| 连续主方案与剩余准入 | [连续位姿协议](protocols/continuous_search_zh.md) |
 | RL actor / critic、搜索环境、结果分析 | [研究代码导航](../../AlphaBrain/research/dsol/README.md) |
 | 模型和仿真依赖 | [资源管理](protocols/resource_management_zh.md) · [资源地图](protocols/project_inventory_zh.md) |
 | 队列身份、并发和保活共存 | [执行协议](protocols/execution_management_zh.md) |

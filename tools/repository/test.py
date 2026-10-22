@@ -31,6 +31,7 @@ def main():
         "tests/dsol_paper1/selectors/test_continuous_search_policy.py",
         "tests/dsol_paper1/selectors/test_continuous_ppo.py",
         "tests/dsol_paper1/runtime/test_continuous_training.py",
+        "tests/dsol_paper1/runtime/test_continuous_evaluation.py",
         "tests/dsol_paper1/runtime/test_local_search_rollout.py",
         "tests/dsol_paper1/analysis/test_action_structure.py",
         "tests/dsol_paper1/analysis/test_channel_phase.py",

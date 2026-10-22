@@ -50,6 +50,8 @@ def serve(config_path,initial,address):
                 baseline=physical_digest(env)
                 observation=None
                 continuous=None
+                from .continuous_execution import ContinuousExecutionGate
+                execution_gate=ContinuousExecutionGate(config)
                 if config.get('continuous_camera') is True:
                     from .continuous_camera import ContinuousCamera
                     continuous=ContinuousCamera(env.env.sim, camera_reference['camera_id'],
@@ -71,6 +73,12 @@ def serve(config_path,initial,address):
                 while True:
                     request=connection.recv();kind=request['kind']
                     if continuous is not None:
+                        execution_gate.allow(kind)
+                        if kind=='begin_execution':
+                            receipt=continuous.receipt()
+                            example=current_example()
+                            execution_gate.begin()
+                            connection.send(dict(example=example,receipt=receipt));continue
                         if kind=='continuous_info':
                             connection.send(dict(reference=continuous.mount.reference.copy(),
                                 receipt=continuous.receipt()));continue
@@ -79,8 +87,8 @@ def serve(config_path,initial,address):
                         if kind=='query_pose':
                             example=current_example()
                             connection.send(dict(example=example,receipt=continuous.receipt()));continue
-                        if kind!='close':
-                            raise ValueError('Continuous admission forbids catalog/reset/manipulation commands')
+                        # Only explicitly unlocked manipulation reaches the shared
+                        # native step handler below. Search remains motion-free.
                     if kind=='catalog':
                         # Public camera geometry only: no RGB, score or outcome
                         # is returned for unvisited candidates.

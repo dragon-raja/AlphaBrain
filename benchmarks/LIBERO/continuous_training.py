@@ -7,6 +7,7 @@ import argparse
 from contextlib import contextmanager
 import json
 import os
+import time
 from pathlib import Path
 import numpy as np
 from AlphaBrain.research.dsol.data.artifacts import read
@@ -64,7 +65,7 @@ class DurableScoring:
         if self.calls>=self.limit:raise ValueError('Global scoring budget exhausted')
         self.calls+=1
         address=dict(identity,stage='continuous_ppo_training',episode=self.episode)
-        row=dict(index=self.calls,identity=address,input_sha256=input_identity(example),noise_sha256=tensor_sha256(noise))
+        row=dict(index=self.calls,unix_time=time.time(),identity=address,input_sha256=input_identity(example),noise_sha256=tensor_sha256(noise))
         with self.path.open('a') as stream:
             stream.write(json.dumps(row,allow_nan=False)+'\n');stream.flush();os.fsync(stream.fileno())
         value=self.runtime.infer(example,noise,address,capture=capture)
@@ -133,6 +134,18 @@ def run(config_path,output,*,execute=False,resume=False):
             binding=dict(source_kind=cfg['source_kind'],launch_config_sha256=sha(config_path),
                          source_commit=cfg['source_commit'],cpu_threads=cfg['cpu_threads']),resume=resume) as trainer:
         backend.expected_calls=2*trainer.queries
+        if trainer.update == 0:
+            trainer.run(through_update=1)
+            trainer.store.begin('first_batch_gate',1)
+            try:
+                from .continuous_training_gate import audit_first_batch
+                gate=audit_first_batch(trainer)
+                write_json(Path(output)/'first-batch-gate.json',gate)
+                trainer.store.finish()
+            except BaseException as error:
+                trainer.store.fail(error);raise
+        elif not (Path(output)/'first-batch-gate.json').exists():
+            raise ValueError('Cannot resume beyond first update without its gate')
         result=trainer.run()
         result.update(config_sha256=sha(config_path),calls=2*trainer.queries,manipulation_actions=0)
         write_json(Path(output)/'status.json',result)

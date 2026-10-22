@@ -44,11 +44,21 @@ python -m reports.paper1.search_tracking publish \
 只有显式 `online` 才上传。输出目录必须不存在，防止覆盖旧收据。
 离线测试用的实体占位符不能直接 `wandb sync` 到个人账户；登录后用原整理包重新 publish。
 
-## 下一轮训练的接入边界
+## 连续PPO训练接入
 
-优先保留训练器现有 JSONL 日志，在独立进程中整理与同步；网络故障不应改变优化器、
-奖励或停止规则。通用 `numeric_history` / `publish` 接口已可用；连续动作训练器正在
-另一线程实现，本次不热改它。下一轮启动前按它最终日志字段补充白名单映射并做离线准入。
-不能把连续动作结果写入本次固定97候选的历史 run，也不能把训练器新输出直接整包上传。
+`reports/paper1/continuous_training_tracking.py` 是独立侧进程，读取连续训练器已提交的回合与更新记录。
+分组固定为 `continuous-pose-ppo-v1`，job_type为 `continuous-search-training`；不能复用旧97点run。
+记录奖励、起始/最佳Accel、查询数、STOP比例、actor/critic损失、熵、KL和耗时。
+横轴为累计完成回合；累计决策数、查询数、去噪轨迹数和优化更新数分别保存，不画成成功率。
+本地JSON/PT/NPZ仍是证据源，网络故障不改变训练奖励和优化过程。
 
-检查：`pytest tests/dsol_paper1/execution/test_experiment_tracking.py`，以及仓库架构、布局和portable检查。
+```bash
+python -m reports.paper1.continuous_training_tracking --config TRACKING_CONFIG --follow
+```
+
+`mode=offline` 的合成日志映射先经真实SDK验证，再使用明确授权的online配置。
+云端仅接收选定标量、配置和图表；原始图像、动作、模型、私有URDF和本地路径不上传。
+训练器首32回合/首次更新必须通过实际账本和完整输出检查，再继续剩余回合；不按奖励高低筛选实验。
+启动需要新的源码/资产清单和资源复检；旧冻结清单保持不变。
+
+检查：`pytest tests/dsol_paper1/execution/test_experiment_tracking.py tests/dsol_paper1/execution/test_continuous_tracking.py`，以及仓库架构、布局和portable检查。

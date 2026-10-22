@@ -8,6 +8,7 @@ from contextlib import contextmanager, ExitStack
 import json
 import random
 import sys
+import time
 import numpy as np
 import torch
 from ..data.local_search_rollouts import complete_update, minibatch_indices
@@ -113,6 +114,7 @@ class ContinuousPPO:
         if self.cursor>=len(self.schedule) or len(self.pending)>=self.config.episodes_per_update:
             raise ValueError('Schedule exhausted or an update is due')
         self.store.begin('episode',self.cursor)
+        started=time.perf_counter()
         try:
             self.policy.eval();transitions=[];row=self.schedule[self.cursor]
             # Backend owns source lifetime; cannot auto-reset or silently reuse failed queries.
@@ -149,6 +151,7 @@ class ContinuousPPO:
                     initial_identity=row,source_kind=self.store.binding['source_kind'])
             finally:
                 with backend_rng():stack.__exit__(*sys.exc_info())
+            metrics['elapsed_seconds']=time.perf_counter()-started
             self.store.save_episode(self.cursor,episode,metrics)
             self.pending.append(episode);self.cursor+=1;self.queries+=info['queries'];self.store.finish()
             return metrics
@@ -158,6 +161,7 @@ class ContinuousPPO:
     def optimize(self):
         if len(self.pending)!=self.config.episodes_per_update:raise ValueError('Collect complete episode batch first')
         self.store.begin('update',self.update+1)
+        started=time.perf_counter()
         try:
             if any(e['policy_update']!=self.update for e in self.pending):raise ValueError('Mixed on-policy versions')
             rows=complete_update(self.pending,episodes_per_update=self.config.episodes_per_update)
@@ -178,6 +182,7 @@ class ContinuousPPO:
                     metrics.append(dict(loss=float(loss.detach()),gradient_norm=float(norm),**stats));batch_sizes.append(len(selected))
             self.update+=1
             record=dict(update=self.update,completed_episodes=self.cursor,queries=self.queries,
+                elapsed_seconds=time.perf_counter()-started,
                 scoring_trajectories=self.queries*2,transitions=len(rows),minibatch_sizes=batch_sizes,
                 means={k:float(np.average([m[k] for m in metrics],weights=batch_sizes)) for k in metrics[0]},
                 source_kind=self.store.binding['source_kind'])

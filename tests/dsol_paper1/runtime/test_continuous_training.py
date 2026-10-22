@@ -98,3 +98,10 @@ def test_live_episode_adapter_with_4608_model_on_synthetic_renderer(tmp_path,mon
         assert len(list(output.glob('episodes/*-queries/query-*.npz')))==status['queries']
         assert len((output/'model-attempts.jsonl').read_text().splitlines())==status['queries']*2
         assert 'step' not in requests
+        from benchmarks.LIBERO.continuous_training_gate import audit_first_batch
+        from reports.paper1.continuous_training_tracking import update_rows
+        gate=audit_first_batch(trainer)
+        assert gate['queries']==status['queries'] and gate['extra_admission_calls']==0
+        assert len(update_rows(output))==1
+        (output/'episodes/0000-queries/query-01.npz').write_bytes(b'changed')
+        with pytest.raises(ValueError,match='evidence changed'):audit_first_batch(trainer)

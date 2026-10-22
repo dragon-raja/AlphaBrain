@@ -55,6 +55,19 @@ def update_rows(root):
         if all('elapsed_seconds' in e for e in episodes):
             row['search/mean_episode_seconds']=sum(e['elapsed_seconds'] for e in episodes)/32
         if 'elapsed_seconds' in update:row['optimization/elapsed_seconds']=update['elapsed_seconds']
+        workers=[read(p) for p in sorted((root/'batches'/f'update-{index-1:03d}').glob('worker-*/status.json'))]
+        if workers:
+            if any(w['status']!='COMPLETE' or w['version']!=index-1 for w in workers):
+                raise ValueError('Sampling timing requires the committed policy version')
+            row['sampling/max_worker_loop_seconds']=max(w['elapsed_seconds'] for w in workers)
+            row['sampling/workers']=len(workers)
+            if all('episode_timings' in w for w in workers):
+                timing=[t for w in workers for t in w['episode_timings']]
+                if sorted(t['episode'] for t in timing)!=list(range((index-1)*32,index*32)):
+                    raise ValueError('Incomplete sampling timing coverage')
+                row['sampling/max_worker_model_prepare_seconds']=max(
+                    sum(t['model_prepare_seconds'] for t in w['episode_timings']) for w in workers)
+                row['sampling/mean_simulator_start_seconds']=sum(t['simulator_start_seconds'] for t in timing)/32
         if any(type(v) not in (int,float) or not math.isfinite(v) for v in row.values()):
             raise ValueError('Nonfinite tracking scalar')
         rows.append(row)
@@ -80,6 +93,7 @@ def track(config, *, follow=False):
     try:
         run.define_metric('episodes');run.define_metric('optimization/*',step_metric='episodes')
         run.define_metric('search/*',step_metric='episodes')
+        run.define_metric('sampling/*',step_metric='episodes')
         for key in ('updates','decision_steps','queries','denoising_trajectories'):run.define_metric(key,step_metric='episodes')
         save();cursor=0;started=time.monotonic()
         while True:

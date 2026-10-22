@@ -250,13 +250,16 @@ def train(config_path,execution_path,output,control_root,*,execute=False,resume=
     from .continuous_training import validate_inputs
     _,cfg,plan=validate_inputs(config_path);runtime=read(execution_path)
     proof=runtime['parallel_admission']
+    workers=runtime.get('collector_workers',4)
+    if workers not in (4,8):raise ValueError('Only separately admitted four/eight worker topology supported')
     resident_enabled=runtime.get('collector_lifecycle','per_batch')=='resident'
     if runtime.get('collector_lifecycle','per_batch') not in ('resident','per_batch'):
         raise ValueError('Unknown collector lifecycle')
     if resident_enabled and (resume or read(proof['path']).get('collector_lifecycle')!='resident'):
         raise ValueError('Resident lifecycle needs separate admission; interrupted pools require explicit audit')
     if (file_digest(proof['path'])!=proof['sha256'] or read(proof['path'])['status']!='PASS_EXACT_PARALLEL'
-            or len(runtime['slots'])!=4):raise ValueError('Four-worker exact admission required')
+            or read(proof['path'])['workers']!=workers or len(runtime['slots'])!=workers):
+        raise ValueError('Matching worker-count exact admission required')
     import torch
     from AlphaBrain.research.dsol.selectors.continuous_ppo import ContinuousPPO,ContinuousPPOConfig
     from AlphaBrain.research.dsol.selectors.continuous_search_policy import ContinuousActorCritic
@@ -280,7 +283,7 @@ def train(config_path,execution_path,output,control_root,*,execute=False,resume=
         if resident_enabled:
             from .continuous_resident import ResidentPool
             resident=cleanup.enter_context(ResidentPool(str(Path(config_path).resolve()),runtime,
-                root/'resident',Path(control_root)/'resident',workers=4))
+                root/'resident',Path(control_root)/'resident',workers=workers))
         if trainer.update and not (root/'first-batch-gate.json').exists():
             raise ValueError('First update has no validated gate; do not resume automatically')
         while trainer.update<16:
@@ -291,7 +294,7 @@ def train(config_path,execution_path,output,control_root,*,execute=False,resume=
                 records,attempts=completed_batch(control)
             else:
                 records,attempts=collect_batch(str(Path(config_path).resolve()),runtime,trainer.policy,rows,k,
-                    root/'batches'/f'update-{k:03d}',root/'episodes',control,budget,resident=resident)
+                    root/'batches'/f'update-{k:03d}',root/'episodes',control,budget,resident=resident,workers=workers)
             ledger=root/'model-attempts.jsonl'
             previous=[json.loads(l) for l in ledger.read_text().splitlines()] if ledger.exists() else []
             by_index={a['global_index']:a for a in previous}
@@ -319,14 +322,87 @@ def train(config_path,execution_path,output,control_root,*,execute=False,resume=
         write_json(root/'status.json',result);return result
 
 
+def capacity_admission(config_path,execution_path,output,control_root,*,execute=False):
+    """Reuse the four-state serial reference for two exact eight-worker rounds."""
+    import numpy as np
+    import torch
+    from .continuous_training import validate_inputs
+    from .continuous_resident import ResidentPool
+    from AlphaBrain.research.dsol.selectors.continuous_search_policy import ContinuousActorCritic
+    from AlphaBrain.research.dsol.selectors.continuous_parallel import validate_rollout
+    from AlphaBrain.research.dsol.data.continuous_training_store import numpy_tree,write_json
+    cfg=read(config_path);runtime=read(execution_path)
+    if not execute or cfg['authorization']!='EXPLICIT_ADMISSION_ONLY':raise ValueError('Capacity admission not authorized')
+    validate_inputs(config_path)
+    ref=runtime['capacity_reference'];proof=read(ref['path'])
+    if (file_digest(ref['path'])!=ref['sha256'] or proof['status']!='PASS_EXACT_PARALLEL'
+            or proof['workers']!=4 or proof['collector_lifecycle']!='resident'
+            or proof['initial_checkpoint_sha256']!=file_digest(cfg['initial_checkpoint'])
+            or runtime['admission_cap']!=48 or runtime.get('collector_workers')!=8):
+        raise ValueError('Frozen four-worker reference and remaining 48-call cap required')
+    reference=Path(ref['path']).parent
+    source=read(reference/'serial/worker-0/status.json')['records']
+    torch.set_num_threads(2);policy=ContinuousActorCritic(4608).eval()
+    policy.load_state_dict(torch.load(cfg['initial_checkpoint'],map_location='cpu',weights_only=True)['state_dict'])
+    originals=[];payloads={}
+    for key in sorted(source,key=int):
+        item=source[key]
+        if file_digest(item['path'])!=item['sha256']:raise ValueError('Reference rollout changed')
+        value=torch.load(item['path'],map_location='cpu',weights_only=True)
+        row=value['metrics']['initial_identity'];validate_rollout(policy,value,row,0)
+        originals.append(row);payloads[row['episode']]=value
+    if sorted(r['initial'] for r in originals)!=[0,8,16,24]:raise ValueError('Wrong capacity reference states')
+    rows=[];mapping={};caps={}
+    for i,original in enumerate(originals*2):
+        row=dict(original,episode=1000+i,source_episode=original.get('source_episode',original['episode']))
+        rows.append(row);mapping[row['episode']]=original
+        caps[row['episode']]=int(payloads[original['episode']]['metrics']['scoring_trajectories'])
+    if sum(caps.values())*2>48:raise ValueError('Known reference costs exceed remaining engineering budget')
+    root=Path(output);root.mkdir(parents=True,exist_ok=False);budget=RolloutBudget.create(root/'budget',48)
+    def equal(a,b):
+        if isinstance(a,dict):
+            if a.keys()!=b.keys():raise ValueError('Capacity keys differ')
+            for k in a:equal(a[k],b[k])
+        elif isinstance(a,list):
+            if len(a)!=len(b):raise ValueError('Capacity lengths differ')
+            for x,y in zip(a,b):equal(x,y)
+        elif not np.array_equal(a,b):raise ValueError('Capacity values differ')
+    def comparable(value,row):
+        value=numpy_tree(value);value['metrics'].pop('elapsed_seconds')
+        value['metrics'].update(episode=row['episode'],initial_identity=row,policy_update=0)
+        value['episode']['policy_update']=0
+        return value
+    with ResidentPool(str(Path(config_path).resolve()),runtime,root/'resident',Path(control_root)/'resident',workers=8) as pool:
+        for version in range(2):
+            records,_=collect_batch(str(Path(config_path).resolve()),runtime,policy,rows,version,
+                root/f'batch-{version}',root/f'queries-{version}',Path(control_root)/f'batch-{version}',
+                budget,workers=8,resident=pool,call_caps=caps)
+            for row in rows:
+                original=mapping[row['episode']];value=torch.load(records[row['episode']]['path'],map_location='cpu',weights_only=True)
+                validate_rollout(policy,value,row,version)
+                equal(comparable(value,original),comparable(payloads[original['episode']],original))
+                for q in range(1,value['metrics']['queries']+1):
+                    a=reference/'serial-queries'/f"{original['episode']:04d}-queries"/f'query-{q:02d}.npz'
+                    b=root/f'queries-{version}'/f"{row['episode']:04d}-queries"/f'query-{q:02d}.npz'
+                    with np.load(a,allow_pickle=False) as x,np.load(b,allow_pickle=False) as y:equal(dict(x),dict(y))
+    state=budget.inspect()
+    if state['failed'] or state['reserved'] or state['spent']!=2*sum(caps.values()):raise ValueError('Capacity accounting mismatch')
+    result=dict(status='PASS_EXACT_PARALLEL',workers=8,collector_lifecycle='resident',episodes=16,
+        calls=state['spent'],limit=48,training_updates=0,manipulation_actions=0,
+        initial_checkpoint_sha256=file_digest(cfg['initial_checkpoint']),reference_sha256=ref['sha256'],
+        source_commit=cfg['source_commit'])
+    write_json(root/'status.json',result);return result
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('mode',choices=['worker','train','admission'])
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('mode',choices=['worker','train','admission','capacity'])
     p.add_argument('--request');p.add_argument('--config');p.add_argument('--execution');p.add_argument('--output',required=True)
     p.add_argument('--control');p.add_argument('--execute',action='store_true');p.add_argument('--resume',action='store_true')
     a=p.parse_args()
     try:
         if a.mode=='worker':result=worker(a.request,a.output,execute=a.execute)
         elif a.mode=='admission':result=admission(a.config,a.execution,a.output,a.control,execute=a.execute)
+        elif a.mode=='capacity':result=capacity_admission(a.config,a.execution,a.output,a.control,execute=a.execute)
         else:result=train(a.config,a.execution,a.output,a.control,execute=a.execute,resume=a.resume)
         print(json.dumps(result,indent=2))
     except BaseException as error:

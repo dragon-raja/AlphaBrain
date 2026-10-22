@@ -79,3 +79,11 @@ def test_collection_failure_restores_rng_and_never_produces_episode():
     torch.manual_seed(8);p=ContinuousActorCritic(4,width=16);old=torch.get_rng_state().clone()
     with pytest.raises(RuntimeError):seeded_episode(p,fail,dict(episode=0,proposal_seed=0),None,version=0,seed=0,source_kind='CPU')
     assert torch.equal(old,torch.get_rng_state())
+
+
+def test_capacity_replicas_preserve_episode_rng_without_reusing_output_identity():
+    from AlphaBrain.research.dsol.selectors.continuous_parallel import episode_seed
+    for row in [dict(episode=3,proposal_seed=8),dict(episode=3,source_episode=91,proposal_seed=8)]:
+        replica=dict(row,episode=1000,source_episode=row.get('source_episode',row['episode']))
+        assert replica['episode']!=row['episode']
+        assert episode_seed(0,replica)==episode_seed(0,row)

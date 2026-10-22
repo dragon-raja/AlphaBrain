@@ -74,7 +74,8 @@ def test_resident_entry_refuses_execution_without_authorization(tmp_path):
 
 
 @pytest.mark.parametrize('fail',[False,True])
-def test_four_real_resident_processes_queue_barrier_and_failure_cleanup(tmp_path,monkeypatch,fail):
+@pytest.mark.parametrize('workers',[4,8])
+def test_real_resident_processes_queue_barrier_and_failure_cleanup(tmp_path,monkeypatch,fail,workers):
     import sys
     from benchmarks.LIBERO import continuous_resident as module
     from benchmarks.Robocasa365.probe_queue import process_identity
@@ -98,14 +99,14 @@ m.serve(sys.argv[1],sys.argv[2],execute=True)
     monkeypatch.setattr(module,'ResidentBackend',CPUBackend)
     config=tmp_path/'cfg.json';config.write_text('{}')
     runtime=dict(host='cpu',source=str(Path(__file__).resolve().parents[3]),environment={},
-        source_artifacts=[],slots=[dict(host='cpu',id=str(i),gpu_id=str(i)) for i in range(4)],
+        source_artifacts=[],slots=[dict(host='cpu',id=str(i),gpu_id=str(i)) for i in range(workers)],
         batch_timeout_seconds=30)
-    pool=module.ResidentPool(str(config),runtime,tmp_path/'pool',tmp_path/'control')
+    pool=module.ResidentPool(str(config),runtime,tmp_path/'pool',tmp_path/'control',workers=workers)
     try:
         handles=None
         for version in range(2):
             requests=[]
-            for i in range(4):
+            for i in range(workers):
                 q=tmp_path/f'request-{version}-{i}.json'
                 q.write_text(json.dumps(dict(config=str(config),version=version,owner=f'resident-collector-{i}',
                     resident_output=str(tmp_path/f'out-{version}-{i}'),inject_failure=fail and version==1 and i==0)))
@@ -113,7 +114,7 @@ m.serve(sys.argv[1],sys.argv[2],execute=True)
             if fail and version==1:
                 with pytest.raises(RuntimeError,match='queue failed'):pool.collect(requests)
                 break
-            results=pool.collect(requests);assert len(results)==4
+            results=pool.collect(requests);assert len(results)==workers
             _,state=load(tmp_path/'control')
             current=[r['handle'] for r in state['tasks'].values()]
             if handles is not None:assert [h['pid'] for h in handles]==[h['pid'] for h in current]

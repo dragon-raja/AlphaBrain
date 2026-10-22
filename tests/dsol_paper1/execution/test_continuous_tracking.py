@@ -34,6 +34,19 @@ def test_missing_training_output_is_not_failure(tmp_path):
     assert update_rows(tmp_path/'not-started')==[]
 
 
+def test_worker_load_and_simulator_timing_remain_separate(tmp_path):
+    fixture(tmp_path)
+    for w in range(4):
+        write(tmp_path/'batches/update-000'/f'worker-{w}/status.json',dict(status='COMPLETE',version=0,
+            elapsed_seconds=100+w,episode_timings=[dict(episode=i,model_prepare_seconds=2.,
+                simulator_start_seconds=3.) for i in range(w,32,4)]))
+    row=update_rows(tmp_path)[0]
+    assert row['sampling/max_worker_loop_seconds']==103
+    assert row['sampling/max_worker_model_prepare_seconds']==16
+    assert row['sampling/mean_simulator_start_seconds']==3
+    assert not any('batch_wall' in k or 'success' in k for k in row)
+
+
 def test_corrected_regularizer_does_not_relabel_historical_entropy(tmp_path):
     from reports.paper1.continuous_training_tracking import CORRECTED_MEANS
     fixture(tmp_path)

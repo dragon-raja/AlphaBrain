@@ -45,11 +45,15 @@ def validate_inputs(path):
     if any(v not in cfg['input_hashes'] for v in cfg['identity_inputs'].values()):
         raise ValueError('Unbound split identities')
     from .search_runtime import selected_checkpoint
-    checkpoint=selected_checkpoint(sim)
+    checkpoint=selected_checkpoint(sim,allow_native=True)
     if checkpoint['weights_sha256']!=plan['operation_policy']['checkpoint_sha256']:
         raise ValueError('Design and simulator operation-model identities differ')
     for p in (sim['inputs'],sim['anchors'],str(Path(checkpoint['path'])/'model.safetensors')):
         if p not in cfg['input_hashes']:raise ValueError('Unbound model/state/noise asset')
+    if checkpoint.get('implementation')=='openpi_native':
+        norm=str(Path(checkpoint['path'])/'assets/physical-intelligence/libero/norm_stats.json')
+        if cfg['input_hashes'].get(norm)!=checkpoint.get('normalization_sha256'):
+            raise ValueError('Unbound native normalization')
     budget=validate_schedules(plan,read(cfg['training_schedule']),read(cfg['evaluation_schedule']),manifests)
     if (plan['schema']!='continuous_search_plan_v1' or plan['training']['episodes']!=512
             or plan['training']['updates']!=16 or plan['training']['episodes_per_update']!=32
@@ -99,14 +103,16 @@ class DurableScoring:
 
 class LiveEpisodes:
     """Lazy persistent VLA; fresh simulator per search; explicit fixed state/noise."""
-    def __init__(self,cfg,plan,output,*,expected_calls=0,global_budget=None):
+    def __init__(self,cfg,plan,output,*,expected_calls=0,global_budget=None,runtime=None):
         self.cfg,self.plan,self.output=cfg,plan,Path(output)
         self.expected_calls=expected_calls;self.scoring=None
         self.global_budget=global_budget
+        self.runtime=runtime
+        self.timings=[]
 
     @contextmanager
     def __call__(self,row,output):
-        from .search_runtime import PolicyRuntime
+        from .search_runtime import create_policy_runtime
         from .search_live import simulator
         from .local_view_runtime import RenderedViewSource
         from AlphaBrain.research.dsol.acquisition.continuous_search import ContinuousSearch
@@ -114,13 +120,19 @@ class LiveEpisodes:
         from AlphaBrain.research.dsol.data.continuous_training_store import write_json
         output.mkdir(exist_ok=False)
         sim=read(self.cfg['sim_config'])
+        model_started=time.perf_counter()
         if self.scoring is None:
-            runtime=PolicyRuntime(sim,self.output,self.cfg['trajectory_cap'])
+            runtime=self.runtime or create_policy_runtime(sim,self.output,self.cfg['trajectory_cap'])
+            runtime.output=self.output
+            self.runtime=runtime
             self.scoring=DurableScoring(runtime,self.output,self.expected_calls,self.cfg['trajectory_cap'],self.global_budget)
+        model_seconds=time.perf_counter()-model_started
         self.scoring.episode=row['episode']
         with np.load(sim['anchors'],allow_pickle=False) as z:
             noises=z['first_score_noise'][row['initial'],:2].copy()
+        simulator_started=time.perf_counter()
         with simulator(self.cfg['sim_config'],sim,row['initial'],output) as request:
+            simulator_seconds=time.perf_counter()-simulator_started
             source=RenderedViewSource(request,self.scoring,noises,output)
             source.move_angles(row['angles_deg']);first=source.query()
             original=source.query;pending=[first]
@@ -133,6 +145,8 @@ class LiveEpisodes:
             write_json(output/'search.json',dict(info=core.info(),events=core.events,
                 physical_state_id=source.physical,noise_members=2,manipulation_actions=0,
                 query_files=[dict(path=p.name,sha256=sha(p)) for p in sorted(output.glob('query-*.npz'))]))
+        self.timings.append(dict(episode=row['episode'],model_prepare_seconds=model_seconds,
+                                 simulator_start_seconds=simulator_seconds))
 
 
 def run(config_path,output,*,execute=False,resume=False):

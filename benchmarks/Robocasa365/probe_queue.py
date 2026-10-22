@@ -132,16 +132,22 @@ class ProbeBackend:
         return 0 if path.exists() and read(path)['status']=='COMPLETE' else 1
 
     def cancel(self,handle):
-        if not self.alive(handle):return
+        def reap():
+            process=self.processes.get(handle['pid'])
+            if process is not None:process.wait(timeout=10)
+            log=self.logs.get(handle['pid'])
+            if log is not None:log.close()
+        if not self.alive(handle):
+            reap();return
         current=process_identity(handle['pid'])
         if current is None:raise RuntimeError('Orphan process group: manual audit required')
         os.killpg(handle['group'],signal.SIGTERM)
         for _ in range(30):
-            if not self.alive(handle):return
+            if not self.alive(handle):
+                reap();return
             time.sleep(.1)
         os.killpg(handle['group'],signal.SIGKILL)
-        process=self.processes.get(handle['pid'])
-        if process is not None:process.wait(timeout=10)
+        reap()
 
     def validate(self,task,*,allow_partial=False):
         root=Path(task['output']);path=root/'status.json'

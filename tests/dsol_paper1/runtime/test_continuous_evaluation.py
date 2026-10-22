@@ -145,7 +145,7 @@ def test_complete_192_task_driver_with_injected_cpu_backend(tmp_path,monkeypatch
             self.calls+=1
             return dict(score=1+abs(float(example['camera_to_world_opencv'][0,2])),actions=np.zeros((10,7)),
                 trace=np.zeros((10,10,7)),external=np.ones(4608),wrist=np.ones(4608))
-    monkeypatch.setattr('benchmarks.LIBERO.search_runtime.PolicyRuntime',Runtime)
+    monkeypatch.setattr('benchmarks.LIBERO.search_runtime.create_policy_runtime',Runtime)
     @contextmanager
     def simulator(*args):
         pose=np.eye(4);gate=ContinuousExecutionGate({'continuous_execution':'PAIRED_EVALUATION_ONLY'})

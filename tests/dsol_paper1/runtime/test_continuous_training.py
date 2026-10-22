@@ -105,7 +105,7 @@ def test_live_episode_adapter_with_4608_model_on_synthetic_renderer(tmp_path,mon
             return dict(receipt=receipt(),example=dict(image=[current.copy(),np.ones((2,2))],state=np.zeros(7),
                 camera_intrinsics=np.eye(3),camera_to_world_opencv=current.copy(),instruction='synthetic',lang='synthetic'))
         yield request
-    monkeypatch.setattr(search_runtime,'PolicyRuntime',FakeVLA)
+    monkeypatch.setattr(search_runtime,'create_policy_runtime',FakeVLA)
     monkeypatch.setattr(search_live,'simulator',fake_simulator)
     anchors=tmp_path/'anchors.npz';np.savez(anchors,first_score_noise=np.zeros((16,2,10,7),dtype=np.float32))
     sim=tmp_path/'sim.json';sim.write_text(json.dumps({'anchors':str(anchors)}))

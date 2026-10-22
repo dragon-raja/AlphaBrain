@@ -47,6 +47,7 @@ def rollout_local_episode(request, infer, example, bank, state_key, repeat, iden
     steps = replans = 0
     success = False
     chunks, executed, input_hashes, noise_hashes, offsets = [], [], [], [], []
+    native_traces,native_noises=[],[]
     while steps < horizon and not success:
         noise = bank.get(state_key, repeat, replans)
         if np.asarray(noise['noise']).shape != (10, 7) or not np.isfinite(noise['noise']).all():
@@ -57,6 +58,9 @@ def rollout_local_episode(request, infer, example, bank, state_key, repeat, iden
                     noise_sha256=noise['noise_sha256'], action_offset=steps))
         result = infer(example, noise['noise'], address, capture=False)
         prediction = np.asarray(result['actions'])
+        if 'full_trace' in result:
+            native_traces.append(np.array(result['full_trace'],copy=True))
+            native_noises.append(np.array(result['full_noise'],copy=True))
         if prediction.shape != (10, 7) or not np.isfinite(prediction).all():
             raise ValueError('Full finite 10x7 action block required')
         full = np.clip(prediction, -1, 1)
@@ -77,8 +81,11 @@ def rollout_local_episode(request, infer, example, bank, state_key, repeat, iden
         chunks.append(full.copy()); executed.extend(chunk[:count])
         input_hashes.append(digest); noise_hashes.append(noise['noise_sha256'])
         steps += count; replans += 1; success = done
+    arrays=dict(full_clipped_action_chunks=np.asarray(chunks), actions=np.asarray(executed),
+                replan_action_offsets=np.asarray(offsets))
+    if native_traces:
+        if len(native_traces)!=replans:raise ValueError('Missing native full execution trace')
+        arrays.update(native_full_velocity_traces=np.asarray(native_traces),native_full_noises=np.asarray(native_noises))
     return dict(success=success, steps=steps, replans=replans, horizon=horizon,
                 repeat=repeat, state_key=state_key, input_sha256=input_hashes,
-                execution_noise_sha256=noise_hashes), dict(
-                    full_clipped_action_chunks=np.asarray(chunks), actions=np.asarray(executed),
-                    replan_action_offsets=np.asarray(offsets))
+                execution_noise_sha256=noise_hashes), arrays

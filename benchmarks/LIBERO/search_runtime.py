@@ -9,7 +9,7 @@ import numpy as np
 from AlphaBrain.research.dsol.data.artifacts import sha
 
 
-def selected_checkpoint(config):
+def selected_checkpoint(config, *, allow_native=False):
     """Select a named frozen policy; preserve legacy canonical-only manifests."""
     key = config.get('operation_model', 'canonical')
     if not isinstance(key, str) or key not in config['models']:
@@ -22,9 +22,18 @@ def selected_checkpoint(config):
     # manipulation baseline (see the September 23 interpretation audit).
     if checkpoint['weights_sha256'] == 'f91d7bbb1ea1c212570436525d8e087a979a249fee9c6b41feb286139017cb75':
         raise ValueError('Rejected zero-step policy: known quantile/mean-std decoding mismatch')
-    if checkpoint.get('implementation', 'alphabrain') != 'alphabrain':
+    implementation = checkpoint.get('implementation', 'alphabrain')
+    if implementation != 'alphabrain' and not (allow_native and implementation == 'openpi_native'):
         raise ValueError('Native policy requires its separately admitted runtime; no fallback loader')
     return checkpoint
+
+
+def create_policy_runtime(config, output, limit):
+    checkpoint = selected_checkpoint(config, allow_native=True)
+    if checkpoint.get('implementation', 'alphabrain') == 'openpi_native':
+        from .native_search_runtime import NativePolicyRuntime
+        return NativePolicyRuntime(config, output, limit)
+    return PolicyRuntime(config, output, limit)
 
 
 class PolicyRuntime:
@@ -74,3 +83,6 @@ def exact_prediction(value, reference):
     for key in ('trace','actions','score','external','wrist'):
         if not np.array_equal(value[key], reference[key]):
             raise ValueError('Frozen batch1 prediction mismatch: '+key)
+    for key in ('full_trace','full_noise'):
+        if (key in value) != (key in reference) or (key in value and not np.array_equal(value[key], reference[key])):
+            raise ValueError('Native full-dimensional prediction mismatch: '+key)

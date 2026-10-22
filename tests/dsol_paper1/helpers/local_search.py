@@ -5,7 +5,7 @@ from AlphaBrain.research.dsol.acquisition.local_view_search import (
 from AlphaBrain.research.dsol.data.search_replay import QueryResult
 
 
-def synthetic_session():
+def synthetic_session(visual_dim=4):
     mount = PanTiltMount(np.eye(4))
     class Source:
         pose = np.eye(4)
@@ -20,7 +20,7 @@ def synthetic_session():
                 raise RuntimeError('injected failure')
             score = 1. if np.array_equal(self.pose, np.eye(4)) else 2.
             return ViewMeasurement(PoseReceipt(self.pose.copy(), 'synthetic'),
-                QueryResult(np.ones(4), score, 0., 2))
+                QueryResult(np.ones(visual_dim), score, 0., 2))
     source = Source()
     return LocalViewSearch(mount, source, initial_angles=[0., 0.],
-        physical_state_id='synthetic', wrist=np.ones(4), score_scale=1., seed=19), source
+        physical_state_id='synthetic', wrist=np.ones(visual_dim), score_scale=1., seed=19), source

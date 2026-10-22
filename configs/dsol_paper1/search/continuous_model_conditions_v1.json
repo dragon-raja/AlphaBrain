@@ -36,7 +36,11 @@
         2,
         3
       ],
-      "status": "PREPARATION_ONLY_NATIVE_SEARCH_RUNTIME_NOT_ADMITTED"
+      "status": "PREPARATION_ONLY_NATIVE_SEARCH_RUNTIME_NOT_ADMITTED",
+      "noise_rule": "libero-native32-tensor-sha256-extra25-v1",
+      "score_channels": [0, 1, 2, 3, 4, 5, 6],
+      "full_trace_retained": true,
+      "planned_collector_lifecycle": "resident"
     }
   },
   "fixed": {
@@ -61,7 +65,8 @@
     "total_new_cap": 16640,
     "native_engineering_already_spent_on_rejected_zero": 20,
     "native_engineering_remaining": 108,
-    "native_proposed_admission_cap": 96,
+    "native_capture_return_cap": 24,
+    "native_serial_parallel_resident_cap": 84,
     "native_launch_status": "STOPPED_PENDING_CORRECTED_PROTOCOL_ADMISSION"
   },
   "evaluation_design": {

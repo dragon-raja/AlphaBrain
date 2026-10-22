@@ -35,11 +35,15 @@ def validate_inputs(path):
                 or any(k in sim for k in ('native','outcome_matrix','release'))):
             raise ValueError('Continuous live backend only; no catalog/cache inputs')
         from .search_runtime import selected_checkpoint
-        checkpoint = selected_checkpoint(sim)
+        checkpoint = selected_checkpoint(sim, allow_native=True)
         if checkpoint['weights_sha256'] != plan['operation_policy']['checkpoint_sha256']:
             raise ValueError('Design and simulator operation-model identities differ')
         required += [spec['sim_config'], spec['score_noise'], spec['execution_noise'], sim['inputs'],
                      str(Path(checkpoint['path'])/'model.safetensors')]
+        if checkpoint.get('implementation')=='openpi_native':
+            norm=str(Path(checkpoint['path'])/'assets/physical-intelligence/libero/norm_stats.json')
+            if cfg['input_hashes'].get(norm)!=checkpoint.get('normalization_sha256'):
+                raise ValueError('Unbound native normalization')
         manifests[cohort] = read(sim['inputs'])['records']
     if any(p not in cfg['input_hashes'] for p in required):
         raise ValueError('Unbound evaluation input')
@@ -156,7 +160,7 @@ def run(config_path, output, *, execute=False):
     try:
         cfg, plan, _ = validate_inputs(config_path)
         import torch
-        from .search_runtime import PolicyRuntime
+        from .search_runtime import create_policy_runtime
         from .search_live import simulator, check_simulator_dependencies
         from .search_domain import exact_input
         from .local_view_runtime import RenderedViewSource
@@ -174,7 +178,7 @@ def run(config_path, output, *, execute=False):
         sims = {k:read(v['sim_config']) for k,v in cfg['cohorts'].items()}
         for sim in sims.values(): check_simulator_dependencies(sim)
         banks = {k:ExplicitFlowNoiseBank(Path(v['execution_noise']),verify_file=True) for k,v in cfg['cohorts'].items()}
-        runtime = PolicyRuntime(sims['A'], output, sum(cfg['limits'].values()))
+        runtime = create_policy_runtime(sims['A'], output, sum(cfg['limits'].values()))
         calls = EvaluationCalls(runtime, output, cfg['limits'])
         initial_reference = None
         for index, row in enumerate(read(cfg['schedule'])):

@@ -85,6 +85,8 @@ class RenderedViewSource:
             for m,value in enumerate(values):
                 for field in ('actions','trace','external','wrist','score'):
                     saved[f'{field}_{m}']=value[field]
+                for field in ('full_trace','full_noise'):
+                    if field in value:saved[f'{field}_{m}']=value[field]
             np.savez_compressed(self.output/f'query-{self.queries:02d}.npz',**saved)
             self.last_example,self.last_values=example,values
             scores=np.asarray([v['score'] for v in values])

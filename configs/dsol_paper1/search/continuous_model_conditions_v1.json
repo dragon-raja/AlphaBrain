@@ -3,31 +3,47 @@
   "base_plan": "configs/dsol_paper1/search/continuous_search_stop_mixed_v2.json",
   "automatic_execution": false,
   "conditions": {
-    "step_zero": {
-      "label": "Project-adapted pi05 LIBERO, zero project optimizer updates; not native OpenPI deployment",
-      "checkpoint_sha256": "f91d7bbb1ea1c212570436525d8e087a979a249fee9c6b41feb286139017cb75",
-      "host_profile": "fresh",
-      "gpu_indices": [4, 5, 6, 7]
-    },
     "canonical": {
       "label": "Canonical-view project posttraining, 2000 steps",
       "checkpoint_sha256": "7e510b752143bb6fd4987988dfab5e94f7db1de5f7e97579f892a58eed22cc68",
       "host_profile": "fresh",
-      "gpu_indices": [0, 1, 2, 3],
+      "gpu_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
       "reuse_current_corrected_run": true
     },
     "broad": {
       "label": "Broad-view project posttraining, 2000 steps",
       "checkpoint_sha256": "123786f53c9823b878fb08fe61ef25fe4931d4bcae8134e0a64940b7a8ac3cad",
       "host_profile": "video",
-      "gpu_indices": [0, 1, 2, 3]
+      "gpu_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    "native_reference": {
+      "label": "Original converted pi05 LIBERO via native OpenPI transforms, internal 32D actions, quantile decoding; no project posttraining",
+      "checkpoint_sha256": "0f8c489e37b01c72251c45f2e73595894f3933fc6297f4f1cf95fc8737db4c74",
+      "host_profile": "fresh",
+      "gpu_indices": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "status": "PREPARATION_ONLY_NATIVE_SEARCH_RUNTIME_NOT_ADMITTED"
     }
   },
   "fixed": {
     "training_episodes_per_condition": 512,
     "seed": 0,
     "workers_per_condition": 4,
-    "torch_runtime": "2.11.0+cu130; GNU cu128 overlay excluded from this comparison",
+    "torch_runtime": "Active posttrained arms: 2.11.0+cu130. Native retains its separately versioned Transformers/OpenPI stack; CPU/import validation does not imply live admission.",
     "episodes_per_update": 32,
     "initialization": "same original update-zero search checkpoint, including inherited visual encoder",
     "score_scale": 0.16535300100378683,
@@ -42,10 +58,18 @@
     "conditions": 2,
     "admission_trajectories_per_condition": 128,
     "training_trajectories_per_condition": 8192,
-    "total_new_cap": 16640
+    "total_new_cap": 16640,
+    "native_engineering_already_spent_on_rejected_zero": 20,
+    "native_engineering_remaining": 108,
+    "native_proposed_admission_cap": 96,
+    "native_launch_status": "STOPPED_PENDING_CORRECTED_PROTOCOL_ADMISSION"
   },
   "evaluation_design": {
-    "methods": ["stay", "local_near_best_accel", "continuous_ppo"],
+    "methods": [
+      "stay",
+      "local_near_best_accel",
+      "continuous_ppo"
+    ],
     "paired_tasks_per_condition": 192,
     "search_trajectory_cap_per_condition": 544,
     "execution_trajectory_cap_per_condition": 10560,
@@ -57,9 +81,27 @@
   "failure": "stop affected run; no automatic retry or change to existing canonical run",
   "interpretation": [
     "Independent per-model search training tests applicability, not zero-shot actor transfer.",
-    "Step-zero has 7D projections and project preprocessing; do not label it native official inference.",
+    "Native and posttrained models retain their own valid decoding/input pipelines. Compare end-to-end search applicability, not posttraining as the only causal variable.",
     "Shared reward scale and inherited encoder are controlled choices, not model-independent calibration.",
     "Four tasks are development evidence; one RL seed cannot establish training-seed robustness.",
     "Do not change architecture or data scale until this comparison is complete."
-  ]
+  ],
+  "excluded_conditions": {
+    "step_zero": {
+      "label": "Project-adapted pi05 LIBERO, zero project optimizer updates; not native OpenPI deployment",
+      "checkpoint_sha256": "f91d7bbb1ea1c212570436525d8e087a979a249fee9c6b41feb286139017cb75",
+      "host_profile": "fresh",
+      "gpu_indices": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "status": "REJECTED_KNOWN_DECODING_MISMATCH",
+      "audit": "docs/dsol_paper1/audits/libero_step_zero_interpretation_20260923_zh.md",
+      "this_attempt_admission_calls": 20,
+      "this_attempt_training_calls": 0,
+      "this_attempt_optimizer_updates": 0
+    }
+  }
 }

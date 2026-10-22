@@ -17,6 +17,13 @@ def selected_checkpoint(config):
     checkpoint = config['models'][key]
     if not checkpoint.get('path') or not checkpoint.get('weights_sha256'):
         raise ValueError('Frozen operation model needs path and weights hash')
+    # Historical intervention established a decoding mismatch for this exact
+    # zero-update artifact. Numerical repeatability cannot admit it as a valid
+    # manipulation baseline (see the September 23 interpretation audit).
+    if checkpoint['weights_sha256'] == 'f91d7bbb1ea1c212570436525d8e087a979a249fee9c6b41feb286139017cb75':
+        raise ValueError('Rejected zero-step policy: known quantile/mean-std decoding mismatch')
+    if checkpoint.get('implementation', 'alphabrain') != 'alphabrain':
+        raise ValueError('Native policy requires its separately admitted runtime; no fallback loader')
     return checkpoint
 
 

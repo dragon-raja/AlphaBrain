@@ -25,6 +25,11 @@ def test_named_operation_model_cannot_fall_back_to_canonical():
         selected_checkpoint(dict(models=models,operation_model='missing'))
     with pytest.raises(ValueError,match='hash'):
         selected_checkpoint(dict(models={'broad':dict(path='/broad')},operation_model='broad'))
+    rejected=dict(path='/zero',weights_sha256='f91d7bbb1ea1c212570436525d8e087a979a249fee9c6b41feb286139017cb75')
+    with pytest.raises(ValueError,match='decoding mismatch'):
+        selected_checkpoint(dict(models={'canonical':rejected}))
+    with pytest.raises(ValueError,match='no fallback'):
+        selected_checkpoint(dict(models={'canonical':dict(models['canonical'],implementation='openpi_native')}))
 
 
 def test_attempt_ledger_survives_resume_and_counts_failure(tmp_path):

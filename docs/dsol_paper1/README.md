@@ -31,6 +31,7 @@
 | RL actor / critic、搜索环境、结果分析 | [研究代码导航](../../AlphaBrain/research/dsol/README.md) |
 | 模型和仿真依赖 | [资源管理](protocols/resource_management_zh.md) · [资源地图](protocols/project_inventory_zh.md) |
 | 队列身份、并发和保活共存 | [执行协议](protocols/execution_management_zh.md) |
+| 训练曲线、A/B结果与W&B授权 | [实验看板接入](protocols/experiment_tracking_zh.md)（默认离线，不启动实验） |
 | 已汇报 PDF 与来源边界 | [报告入口](reports/README.md) |
 | 旧计划、执行记录及原首页 | [历史目录](HISTORY.md) |
 | 代码质量与本次维护回执 | [测试说明](../../tests/README.md) · [整理清单](../../archive/repository/20261022/project-layout/manifest.json) |

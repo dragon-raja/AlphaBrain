@@ -17,6 +17,7 @@ def main():
         "tests/dsol_paper1/architecture/test_script_migration.py", "tests/dsol_paper1/execution/test_work_queue.py",
         "tests/dsol_paper1/execution/test_resources.py", "tests/dsol_paper1/execution/test_cluster.py",
         "tests/dsol_paper1/execution/test_gpu_guard.py",
+        "tests/dsol_paper1/execution/test_experiment_tracking.py",
         "tests/dsol_paper1/runtime/test_search_domain.py", "tests/dsol_paper1/runtime/test_search_rollout.py",
         "tests/dsol_paper1/acquisition/test_local_view_search.py",
         "tests/dsol_paper1/runtime/test_continuous_camera.py",

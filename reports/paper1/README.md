@@ -1,5 +1,9 @@
 # Paper 1 报告层
 
+`search_tracking.py` 将已有搜索训练曲线、历史标签回放、真实仿真A/B和共同时间上限复核
+分别整理为可审查的W&B导出包；默认离线，只上传指标、筛选配置和统计图。
+登录、授权及下一轮训练接入边界见[实验看板协议](../../docs/dsol_paper1/protocols/experiment_tracking_zh.md)。
+
 `biweekly_review.py` 根据冻结分析产物生成2026-10-15双周报（PDF、可编辑DOCX、Markdown共用内容块）。
 日期、证据截点、输入与输出路径位于`configs/dsol_paper1/analysis/biweekly_20261015.json`；
 这是独立汇报快照，不覆盖唯一研究进展PDF。沿用上一份3页A4格式，区分汇报日期与实际数据截止日期。

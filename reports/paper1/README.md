@@ -24,8 +24,11 @@
 融合为五页更新（23页同一PDF）。明确候选权限、执行噪声预算、初态拆分及RoboCasa未覆盖
 的排除规范位终点；完整数值与不确定性放在同名配套说明中。先构建并预览，再显式发布。
 
-统一构建入口为 `reports/paper1/unified.py`，当前报告薄入口为 `scripts/dsol_paper1/reporting/report_standard_initial_results_v1.py`；唯一成品仍在 `docs/dsol_paper1/reports/current/`。旧脚本根目录不保留兼容壳。
+统一构建入口为 `reports/paper1/unified.py`，当前报告薄入口为 `scripts/dsol_paper1/reporting/report_standard_initial_results_v1.py`；该入口维护历史基础报告；当前full版及续接入口以 [报告导航](../../docs/dsol_paper1/reports/README.md) 为准。旧脚本根目录不保留兼容壳。
 
 `historical/` 收纳旧阶段报告构建器；输入口径各不相同，不参与当前报告的默认生成。旧 PDF 监视器已获用户授权结束，报告代码不再因其固定调用路径滞留脚本根目录。
 
 连续训练看板入口：`continuous_training_tracking.py`；独立读取已提交日志，以连续回合数为横轴，不复用历史97点run。
+
+`search_progress_appendix.py`原位更新当前full版的连续搜索续接页，只读取已完成的历史统计与训练日志。
+保留前33页正文，区分97点、连续首版和三组修正版，不生成额外历史PDF，不执行模型或W&B上传。

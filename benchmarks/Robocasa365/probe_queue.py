@@ -13,7 +13,6 @@ import numpy as np
 
 from AlphaBrain.research.dsol.data.artifacts import read,sha
 from AlphaBrain.research.dsol.execution.queue import MissingResult,_durable_write
-from .short_view_probe import prefix_means
 
 
 def process_identity(pid):
@@ -150,6 +149,7 @@ class ProbeBackend:
         reap()
 
     def validate(self,task,*,allow_partial=False):
+        from .short_view_probe import prefix_means
         root=Path(task['output']);path=root/'status.json'
         if not path.exists() or (not allow_partial and read(path)['status']!='COMPLETE'):raise MissingResult(str(root))
         status=read(path);identity=read(root/'identity.json');views=task['payload']['views'];initial=task['payload']['initial']

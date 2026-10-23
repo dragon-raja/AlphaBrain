@@ -170,3 +170,28 @@ def test_complete_192_task_driver_with_injected_cpu_backend(tmp_path,monkeypatch
     assert status['calls']['score']<=544
     assert json.loads((output/'first-block-gate.json').read_text())['tasks']==12
     assert len(paired_rows(output))==16 and not (output/'failure.json').exists()
+    # Same scientific loop, partitioned into all 16 blocks; compare every result
+    # and every actual execution array, not only the final success rate.
+    serial=json.loads((output/'results.json').read_text())['tasks'];split=[];calls=0
+    for block in range(16):
+        destination=tmp_path/f'block-{block}';run(path,destination,execute=True,block_index=block)
+        split+=json.loads((destination/'results.json').read_text())['tasks']
+        calls+=json.loads((destination/'status.json').read_text())['calls']['score']
+    assert calls==status['calls']['score'] and len(split)==192
+    ignored={'trajectory','trajectory_sha256','elapsed_seconds'}
+    for a,b in zip(serial,split):
+        assert {k:v for k,v in a.items() if k not in ignored}=={k:v for k,v in b.items() if k not in ignored}
+        with np.load(a['trajectory']) as x,np.load(b['trajectory']) as y:
+            assert x.files==y.files
+            for key in x.files:np.testing.assert_array_equal(x[key],y[key])
+
+
+
+def test_guard_blocks_before_consuming_call_budget(tmp_path):
+    class Runtime:
+        calls=0
+        def infer(self,*a,**k):raise AssertionError('must not execute')
+    def stopped():raise RuntimeError('campaign stop')
+    calls=EvaluationCalls(Runtime(),tmp_path,dict(score=2),guard=stopped);calls.stage='score'
+    with pytest.raises(RuntimeError,match='campaign stop'):calls.infer({},np.zeros((10,7)),{})
+    assert calls.counts['score']==0 and not (tmp_path/'model-attempts.jsonl').exists()

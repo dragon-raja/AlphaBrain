@@ -11,7 +11,7 @@ from AlphaBrain.research.dsol.execution.manifest import file_digest
 def inputs():
     plan=json.loads((Path(__file__).resolve().parents[3]/'configs/dsol_paper1/search/continuous_search_v1.json').read_text())
     rows=[dict(cohort=t['cohort'],initial=i,task=t['task'],state_key=f'{t["cohort"]}:{i}',start=start,
-        method=method,execution_repeats=[0,1,2,3]) for t in plan['evaluation']['tasks'] for i in t['indices']
+        method=method,angles_deg=plan['camera']['evaluation_start_angles_deg'][start],query_cap=1 if method=='stay' else 8,execution_repeats=[0,1,2,3]) for t in plan['evaluation']['tasks'] for i in t['indices']
         for start in range(2) for method in plan['evaluation']['methods']]
     return plan,rows
 
@@ -62,3 +62,10 @@ def test_32_task_nominal_driver_synthetic_backend_no_scoring(tmp_path,monkeypatc
     assert result['completed_tasks']==32 and result['calls']=={'execution':32}
     assert result['score_calls']==0 and result['search_queries']==0
     assert commands.count('step')==32 and 'move_pose' not in commands
+
+    calls=0
+    for index in range(16,24):
+        out=tmp_path/f'block-{index}';run(cfg,out,execute=True,block_index=index)
+        status=json.loads((out/'status.json').read_text());assert status['completed_tasks']==4
+        calls+=status['calls']['execution']
+    assert calls==32

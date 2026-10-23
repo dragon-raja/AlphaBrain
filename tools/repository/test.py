@@ -15,6 +15,8 @@ def main():
     paths = ["tests"] if args.profile == "full" else [
         "tests/repository", "tests/cabi_vla", "tests/dsol_paper1/architecture/test_core_architecture.py",
         "tests/dsol_paper1/architecture/test_script_migration.py", "tests/dsol_paper1/execution/test_work_queue.py",
+        "tests/dsol_paper1/execution/test_campaign_control.py",
+        "tests/dsol_paper1/runtime/test_continuous_evaluation_fleet.py",
         "tests/dsol_paper1/execution/test_resources.py", "tests/dsol_paper1/execution/test_cluster.py",
         "tests/dsol_paper1/execution/test_gpu_guard.py",
         "tests/dsol_paper1/execution/test_experiment_tracking.py",

@@ -6,6 +6,7 @@ searching, duplicating the two perturbation starts, or loading a search actor.
 import argparse
 from pathlib import Path
 import math
+import time
 import numpy as np
 
 from AlphaBrain.research.dsol.data.artifacts import read,write
@@ -29,7 +30,7 @@ def nominal_rows(plan,rows):
     return list(selected.values())
 
 
-def run(config_path,output,*,execute=False):
+def run(config_path,output,*,execute=False,block_index=None,guard=None):
     cfg=read(config_path)
     if not execute or cfg.get('authorization')!='EXPLICIT_NOMINAL_EVALUATION_ONLY':
         raise ValueError('Nominal execution not authorized')
@@ -37,7 +38,13 @@ def run(config_path,output,*,execute=False):
     if file_digest(parent)!=cfg['paired_config_sha256'] or cfg['execution_cap']!=1760:
         raise ValueError('Nominal parent binding/budget changed')
     paired,plan,_=validate_inputs(parent)
-    rows=nominal_rows(plan,read(paired['schedule']))
+    rows=nominal_rows(plan,read(paired['schedule']));limit=1760
+    if block_index is not None:
+        from AlphaBrain.research.dsol.data.continuous_evaluation_blocks import blocks
+        block=blocks(plan,read(paired['schedule']))[block_index]
+        if block['kind']!='nominal':raise ValueError('Nominal block required')
+        rows=block['rows'];limit=block['limits']['execution']
+    if guard is not None:guard()
     root=Path(output);root.mkdir(parents=True,exist_ok=False);calls=None;tasks=[]
     try:
         from .search_runtime import create_policy_runtime
@@ -47,8 +54,10 @@ def run(config_path,output,*,execute=False):
         sims={k:read(v['sim_config']) for k,v in paired['cohorts'].items()}
         for sim in sims.values():check_simulator_dependencies(sim)
         banks={k:ExplicitFlowNoiseBank(Path(v['execution_noise']),verify_file=True) for k,v in paired['cohorts'].items()}
-        runtime=create_policy_runtime(sims['A'],root,1760)
-        calls=EvaluationCalls(runtime,root,dict(execution=1760));calls.stage='execution'
+        model_started=time.perf_counter()
+        runtime=create_policy_runtime(sims['A'],root,limit)
+        model_seconds=time.perf_counter()-model_started
+        calls=EvaluationCalls(runtime,root,dict(execution=limit),guard=guard);calls.stage='execution'
         for row in rows:
             spec=paired['cohorts'][row['cohort']];sim=sims[row['cohort']]
             suite=next(t['suite'] for t in plan['evaluation']['tasks'] if t['task']==row['task'])
@@ -56,7 +65,7 @@ def run(config_path,output,*,execute=False):
             calls.identity=identity
             for repeat in row['execution_repeats']:
                 case=root/f"{row['cohort']}-{row['initial']:02d}-seed-{repeat}";case.mkdir()
-                with simulator(spec['sim_config'],sim,row['initial'],case) as request:
+                with calls.timing.context(simulator(spec['sim_config'],sim,row['initial'],case),'simulator') as request:
                     pose=request(dict(kind='continuous_info'))
                     initial=request(dict(kind='query_pose'))
                     if not np.allclose(initial['receipt']['camera_to_world'],pose['reference'],rtol=0,atol=1e-9):
@@ -68,6 +77,8 @@ def run(config_path,output,*,execute=False):
                 np.savez_compressed(case/'execution.npz',**arrays)
                 result.update(identity,execution_sha256=file_digest(case/'execution.npz'))
                 write(case/'result.json',result);tasks.append(result)
+        write(root/'timing.json',dict(model_prepare_seconds=model_seconds,phases=calls.timing.rows))
+        write(root/'results.json',dict(tasks=tasks,searches=[],block_index=block_index))
         write(root/'status.json',dict(status='COMPLETE',tasks=tasks,completed_tasks=len(tasks),
             calls=calls.counts,score_calls=0,search_queries=0,training_updates=0,config_sha256=file_digest(config_path)))
     except BaseException as error:

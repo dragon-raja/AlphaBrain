@@ -125,7 +125,11 @@ def collect_batch(cfg, runtime, policy, rows, version, batch_root, query_root, c
         raise ValueError('Distinct physical GPUs required')
     if resident is not None:
         try:
-            resident.collect([t['payload']['request'] for t in tasks])
+            from AlphaBrain.research.dsol.execution.phase_timing import PhaseTiming
+            timing=PhaseTiming()
+            with timing.measure('publish_and_wait'):
+                resident.collect([t['payload']['request'] for t in tasks])
+            validation_started=time.perf_counter()
             control.mkdir(parents=True,exist_ok=False)
             backend=CollectorBackend(plan,control);records={};attempts=[]
             for task in tasks:
@@ -138,6 +142,8 @@ def collect_batch(cfg, runtime, policy, rows, version, batch_root, query_root, c
             attempts.sort(key=lambda a:a['global_index'])
             write_json(root/'resident-complete.json',dict(status='COMPLETE',version=version,
                        records=records,requests=[file_digest(t['payload']['request']) for t in tasks]))
+            write_json(root/'collection-timing.json',dict(phases=timing.rows,
+                validation_and_collection_seconds=time.perf_counter()-validation_started))
             return records,attempts
         except BaseException as error:
             budget.fail(repr(error));raise
@@ -296,6 +302,7 @@ def train(config_path,execution_path,output,control_root,*,execute=False,resume=
             else:
                 records,attempts=collect_batch(str(Path(config_path).resolve()),runtime,trainer.policy,rows,k,
                     root/'batches'/f'update-{k:03d}',root/'episodes',control,budget,resident=resident,workers=workers)
+            ledger_started=time.perf_counter()
             ledger=root/'model-attempts.jsonl'
             previous=[json.loads(l) for l in ledger.read_text().splitlines()] if ledger.exists() else []
             by_index={a['global_index']:a for a in previous}
@@ -306,7 +313,13 @@ def train(config_path,execution_path,output,control_root,*,execute=False,resume=
             all_calls=[dict(by_index[i],index=i) for i in sorted(by_index)]
             if sorted(by_index)!=list(range(1,budget.inspect()['spent']+1)):raise ValueError('Global call coverage gap')
             atomic_file(ledger,lambda f:f.write((''.join(json.dumps(a)+'\n' for a in all_calls)).encode()))
-            ingest(trainer,records);trainer.optimize()
+            ledger_seconds=time.perf_counter()-ledger_started
+            ingest_started=time.perf_counter();ingest(trainer,records)
+            ingest_seconds=time.perf_counter()-ingest_started
+            optimize_started=time.perf_counter();trainer.optimize()
+            write_json(root/'batches'/f'update-{k:03d}'/'learner-timing.json',dict(
+                ledger_merge_seconds=ledger_seconds,ingest_verify_commit_seconds=ingest_seconds,
+                optimize_commit_seconds=time.perf_counter()-optimize_started))
             if trainer.queries*2!=budget.inspect()['spent'] or budget.inspect()['reserved']:
                 raise ValueError('Global spent/reserved accounting mismatch')
             if trainer.update==1:

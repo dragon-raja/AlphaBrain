@@ -68,23 +68,29 @@ def append_event(path, value):
 
 
 class EvaluationCalls:
-    def __init__(self, runtime, output, limits):
+    def __init__(self, runtime, output, limits, *, guard=None):
         self.runtime, self.output, self.limits = runtime, Path(output), limits
         self.counts = dict.fromkeys(limits, 0)
+        from AlphaBrain.research.dsol.execution.phase_timing import PhaseTiming
+        self.timing=PhaseTiming()
+        self.guard = guard
         self.stage = None
         self.identity = {}
 
     def infer(self, example, noise, identity, capture=True):
         from AlphaBrain.research.dsol.data.flow_noise import tensor_sha256
+        if self.guard is not None:self.guard()
         stage = self.stage
         if stage not in self.counts or self.counts[stage] >= self.limits[stage]:
             raise ValueError('Stage call budget exhausted')
         self.counts[stage] += 1
         address = dict(identity, **self.identity, stage=stage)
-        append_event(self.output/'model-attempts.jsonl', dict(index=sum(self.counts.values()),
+        with self.timing.measure('durable_call_ledger'):
+            append_event(self.output/'model-attempts.jsonl', dict(index=sum(self.counts.values()),
             stage_index=self.counts[stage], unix_time=time.time(), identity=address,
             input_sha256=input_identity(example), noise_sha256=tensor_sha256(noise)))
-        value = self.runtime.infer(example, noise, address, capture=capture)
+        with self.timing.measure(stage+'_inference'):
+            value = self.runtime.infer(example, noise, address, capture=capture)
         if self.runtime.calls != sum(self.counts.values()):
             raise ValueError('Runtime and durable ledger diverged')
         return value
@@ -152,13 +158,20 @@ def audit_block(tasks, searches):
                 included_in_192=True, selected_on_task_success=False)
 
 
-def run(config_path, output, *, execute=False):
+def run(config_path, output, *, execute=False, block_index=None, guard=None):
     if not execute or read(config_path).get('authorization') != 'EXPLICIT_PAIRED_EVALUATION_ONLY':
         raise ValueError('Explicit paired evaluation authorization required')
     output = Path(output); output.mkdir(parents=True, exist_ok=False)
     calls = None; tasks = []; searches = []; begin = time.time()
     try:
         cfg, plan, _ = validate_inputs(config_path)
+        rows=read(cfg['schedule']);limits=cfg['limits'];expected_tasks=192;expected_searches=48
+        if block_index is not None:
+            from AlphaBrain.research.dsol.data.continuous_evaluation_blocks import blocks
+            block=blocks(plan,rows)[block_index]
+            if block['kind']!='paired':raise ValueError('Paired block required')
+            rows=block['rows'];limits=block['limits'];expected_tasks=block['tasks'];expected_searches=block['searches']
+        if guard is not None:guard()
         import torch
         from .search_runtime import create_policy_runtime
         from .search_live import simulator, check_simulator_dependencies
@@ -178,10 +191,12 @@ def run(config_path, output, *, execute=False):
         sims = {k:read(v['sim_config']) for k,v in cfg['cohorts'].items()}
         for sim in sims.values(): check_simulator_dependencies(sim)
         banks = {k:ExplicitFlowNoiseBank(Path(v['execution_noise']),verify_file=True) for k,v in cfg['cohorts'].items()}
-        runtime = create_policy_runtime(sims['A'], output, sum(cfg['limits'].values()))
-        calls = EvaluationCalls(runtime, output, cfg['limits'])
+        model_started=time.perf_counter()
+        runtime = create_policy_runtime(sims['A'], output, sum(limits.values()))
+        model_seconds=time.perf_counter()-model_started
+        calls = EvaluationCalls(runtime, output, limits, guard=guard)
         initial_reference = None
-        for index, row in enumerate(read(cfg['schedule'])):
+        for index, row in enumerate(rows):
             spec = cfg['cohorts'][row['cohort']]; sim = sims[row['cohort']]
             directory = output/f'session-{index:03d}'; directory.mkdir()
             identity = {k:row[k] for k in ('cohort','initial','state_key','task','start','method')}
@@ -189,7 +204,7 @@ def run(config_path, output, *, execute=False):
             with np.load(spec['score_noise'],allow_pickle=False) as z:
                 noises = z[spec['score_key']][row['initial'],:2].copy()
             started = time.time()
-            with simulator(spec['sim_config'],sim,row['initial'],directory) as request:
+            with calls.timing.context(simulator(spec['sim_config'],sim,row['initial'],directory),'simulator') as request:
                 info, selected = search(row,request,calls,noises,directory,actor,plan['actor']['score_scale'])
             with np.load(directory/'query-01.npz',allow_pickle=False) as z:
                 first = {k:z[k].copy() for k in z.files}
@@ -202,7 +217,7 @@ def run(config_path, output, *, execute=False):
             for repeat in row['execution_repeats']:
                 episode_dir = directory/f'episode-{repeat}'; episode_dir.mkdir()
                 calls.stage = 'execution'; started = time.time()
-                with simulator(spec['sim_config'],sim,row['initial'],episode_dir) as request:
+                with calls.timing.context(simulator(spec['sim_config'],sim,row['initial'],episode_dir),'simulator') as request:
                     source = RenderedViewSource(request,calls,noises,episode_dir)
                     source.move_angles(info['selected_angles'])
                     response = request(dict(kind='begin_execution'))
@@ -220,9 +235,11 @@ def run(config_path, output, *, execute=False):
             if index%3 == 2:
                 if index == 2: write_json(output/'first-block-gate.json',audit_block(tasks,searches))
                 write_json(output/f'paired-{index//3:02d}.json',summarize(tasks,searches))
-        if len(tasks)!=192 or len(searches)!=48 or sha(cfg['actor'])!=cfg['input_hashes'][cfg['actor']]:
+        if len(tasks)!=expected_tasks or len(searches)!=expected_searches or sha(cfg['actor'])!=cfg['input_hashes'][cfg['actor']]:
             raise ValueError('Final coverage or frozen actor identity mismatch')
-        write_json(output/'status.json',dict(status='COMPLETE',tasks=192,searches=48,
+        write_json(output/'timing.json',dict(model_prepare_seconds=model_seconds,phases=calls.timing.rows))
+        write_json(output/'results.json',dict(tasks=tasks,searches=searches,block_index=block_index))
+        write_json(output/'status.json',dict(status='COMPLETE',tasks=expected_tasks,searches=expected_searches,
             calls=calls.counts,config_sha256=sha(config_path),elapsed_seconds=time.time()-begin,
             training_updates=0,summary=summarize(tasks,searches)))
     except BaseException as error:

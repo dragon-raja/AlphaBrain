@@ -115,3 +115,10 @@ CPU 学习器；规范/多视角组使用同机四个采样worker，原生组已
 加载与等待占比及峰值显存；GPU 利用率是辅助观测，不能替代吞吐或一致性结果。
 
 扩规模的工程顺序、任务覆盖与草案预算见[连续训练协议](../dsol_paper1/protocols/continuous_training_zh.md#完整训练收尾与扩规模准备规划不启动)。工程可并行开发，运行切换须新清单准入；不以等待全量评测为由搁置CPU准备，也不以完成通用队列为由跳过模型/环境验收。
+
+
+2026-10-23：新增连续评测分块适配器 `benchmarks/LIBERO/continuous_evaluation_fleet.py`。
+科学块/配额在 `dsol/data`，跨机许可/失败/重启截止在 `dsol/execution`，W&B汇总在
+`reports/paper1/continuous_fleet_tracking.py`。复用标准队列，三机各自评测一个操作模型；
+不是跨机联合PPO。CPU已覆盖串行/分块数组比较；真实容量、跨机与轨迹准入仍待执行。
+当前仍继承RoboCasa的通用进程实现，后端归属技术债保留，不复制第三份控制器。

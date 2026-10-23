@@ -411,3 +411,14 @@ def test_thin_cli_help_works_outside_repo_without_side_effects(tmp_path):
     assert result.returncode == 0, result.stderr
     assert 'recover' in result.stdout
     assert not list(tmp_path.iterdir())
+
+
+def test_planned_drain_keeps_inflight_and_never_starts_pending(tmp_path,plan):
+    root=tmp_path/'queue';prepare(plan,root);backend=FakeBackend()
+    state=run(root,backend,poll_seconds=0,allow_dispatch=lambda:len(backend.launched)<2)
+    assert state['status']=='INTERRUPTED'
+    assert len(backend.launched)==2 and not backend.cancelled
+    assert sum(x['status']=='COMPLETE' for x in state['tasks'].values())==2
+    assert sum(x['status']=='PENDING' for x in state['tasks'].values())==4
+    recover(root,backend);run(root,backend,poll_seconds=0)
+    assert len(backend.launched)==6

@@ -163,7 +163,7 @@ def recover(root, backend):
 
 
 def run(root, backend, *, poll_seconds=1.0, timeout_seconds=3600.0,
-        clock=time.monotonic, sleep=time.sleep):
+        clock=time.monotonic, sleep=time.sleep, allow_dispatch=None):
     """Outcome-independent FIFO drain across configured, admitted idle slots."""
     if not math.isfinite(poll_seconds) or not math.isfinite(timeout_seconds) or poll_seconds < 0 or timeout_seconds <= 0:
         raise ValueError('Invalid polling interval or timeout')
@@ -200,8 +200,13 @@ def run(root, backend, *, poll_seconds=1.0, timeout_seconds=3600.0,
                     _save(root, state, 'completed', key=task['key'])
                 occupied = {(t['slot']['host'], t['slot']['id']) for t in state['tasks'].values()
                             if t['status'] in ('LAUNCHING', 'RUNNING')}
+                dispatching = allow_dispatch is None or allow_dispatch()
+                if not dispatching and not occupied and any(t['status'] != 'COMPLETE' for t in state['tasks'].values()):
+                    state['status']='INTERRUPTED'
+                    _save(root,state,'planned_drain',reason='dispatch cutoff; no owned workers remain')
+                    return state
                 from .resources import dispatch_guard
-                for slot in plan['slots']:
+                for slot in plan['slots'] if dispatching else []:
                     if (slot['host'], slot['id']) in occupied:
                         continue
                     task = next((t for t in plan['tasks'] if state['tasks'][t['key']]['status'] == 'PENDING'), None)

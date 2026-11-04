@@ -24,16 +24,17 @@ def run_model_case(case):
 def make_model_case(root, *, claim=True, transport=None, checkpoint=None, slots=None, checks=2, resident=False, task_count=3, persistent_inspection=False, parallel_launches=1, benchmark="libero"):
     worker_source_identity=source_identity;controller_prepare=prepare_controller;make_plans=plans
     agent='benchmarks.LIBERO.continuous_authority';schema='LIBERO_LIVE_BINDING_V1'
-    if benchmark in ('gr1','gr1_trial','gr1_block'):
+    if benchmark in ('gr1','gr1_trial','gr1_block','gr1_prepared'):
         from benchmarks.Robocasa_tabletop import continuous_authority as gr1
         worker_source_identity=gr1.source_identity;controller_prepare=gr1.prepare_controller;make_plans=gr1.plans
         agent='benchmarks.Robocasa_tabletop.continuous_authority';schema='GR1_CPU_BINDING_V1'
     elif benchmark!='libero':raise ValueError('Unknown CPU fixture benchmark')
     root=Path(root);base=make_case(root/'fixture',peers=['fresh'],task_count=task_count)
     budget=base['ledger'].read()[0]
-    if benchmark=='gr1_block':
-        budget['limits'].update(calls=8*task_count, episodes=2*task_count)
-        for task in budget['tasks']:task['limits'].update(calls=8,episodes=2)
+    if benchmark in ('gr1_block','gr1_prepared'):
+        calls=36 if benchmark=='gr1_prepared' else 8
+        budget['limits'].update(calls=calls*task_count, episodes=2*task_count)
+        for task in budget['tasks']:task['limits'].update(calls=calls,episodes=2)
     if benchmark=='gr1_trial':
         budget['limits']['calls']=4*task_count
         for task in budget['tasks']:task['limits']['calls']=4
@@ -43,7 +44,7 @@ def make_model_case(root, *, claim=True, transport=None, checkpoint=None, slots=
     if transport is not None:node=deepcopy(transport['node'])
     specs={t['key']:dict(addresses=t['addresses'],output=t['output'],host='fresh',stage='admission',
         identity_experiment_id=base['plan']['experiment_id'],eligible_slots=base['plan']['slots'],
-        request=({'synthetic_block':True} if benchmark=='gr1_block' else {'synthetic_trial':True} if benchmark=='gr1_trial' else dict(synthetic=True)),
+        request=({'synthetic_prepared':True} if benchmark=='gr1_prepared' else {'synthetic_block':True} if benchmark=='gr1_block' else {'synthetic_trial':True} if benchmark=='gr1_trial' else dict(synthetic=True)),
         limits=next(b['limits'] for b in budget['tasks'] if b['key']==t['key']))
         for t in base['plan']['tasks']}
     binding=dict(schema=schema,mode='cpu_contract',campaign=str(root/'fixture/protocol.json'),

@@ -45,7 +45,16 @@ class EpisodeExecutor(Protocol):
         ...
 
 
-def run_block(episodes, output, *, binding_sha256, call_limit, guard, execute: EpisodeExecutor):
+def run_block(
+    episodes,
+    output,
+    *,
+    binding_sha256,
+    call_limit,
+    guard,
+    execute: EpisodeExecutor,
+    binding_manifest=None,
+):
     episodes = tuple(episodes)
     if (
         not episodes
@@ -54,6 +63,8 @@ def run_block(episodes, output, *, binding_sha256, call_limit, guard, execute: E
         or call_limit < 1
     ):
         raise ValueError("Frozen binding and bounded nonempty block required")
+    if binding_manifest is not None and digest(binding_manifest) != binding_sha256:
+        raise ValueError("Block manifest differs from bound identity")
     for episode in episodes:
         episode.validate()
     if len({e.episode_id for e in episodes}) != len(episodes):
@@ -75,6 +86,8 @@ def run_block(episodes, output, *, binding_sha256, call_limit, guard, execute: E
     path = output / "block-state.json"
     _durable_write(path, state)
     try:
+        if binding_manifest is not None:
+            _durable_write(output / "binding.json", binding_manifest)
         for spec in episodes:
             guard()
             directory = output / spec.episode_id

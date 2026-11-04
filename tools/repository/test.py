@@ -44,6 +44,7 @@ def main():
         "tests/dsol_paper1/runtime/test_gr1_snapshot_io.py",
         "tests/dsol_paper1/runtime/test_gr1_trial_runtime.py",
         "tests/dsol_paper1/runtime/test_gr1_block_runtime.py",
+        "tests/dsol_paper1/runtime/test_gr1_prepared_execution.py",
         "tests/dsol_paper1/runtime/test_gr1_head_control.py",
         "tests/dsol_paper1/execution/test_worker_gpu.py",
         "tests/dsol_paper1/execution/test_dispatch_policy.py",

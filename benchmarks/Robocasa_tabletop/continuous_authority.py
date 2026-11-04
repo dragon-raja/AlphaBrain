@@ -63,6 +63,7 @@ def execute_cpu_contract(binding, launch, guard, *, cache=None):
         ({"synthetic": True}, 2, 1),
         ({"synthetic_trial": True}, 4, 1),
         ({"synthetic_block": True}, 8, 2),
+        ({"synthetic_prepared": True}, 36, 2),
     ]
     choice = next(
         ((calls, episodes) for request, calls, episodes in options if spec["request"] == request),
@@ -72,7 +73,10 @@ def execute_cpu_contract(binding, launch, guard, *, cache=None):
         raise ValueError("Exact synthetic GR1 query budget required")
     output = Path(spec["output"])
     output.mkdir(parents=True, exist_ok=False)
-    if choice[1] == 2:
+    if spec["request"] == {"synthetic_prepared": True}:
+        from .cpu_prepared import run
+        result = run(guard, output=output)
+    elif choice[1] == 2:
         result = run_trial_block(guard, episode_id=launch["key"], output=output / "block")
     elif choice[0] == 4:
         result = run_trial(guard, episode_id=launch["key"], output=output)

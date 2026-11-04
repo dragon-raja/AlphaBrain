@@ -32,6 +32,7 @@ class TaskPorts:
         guard,
         render_guard,
         clock,
+        expected_process_fingerprint=None,
     ):
         if not spec.active_head:
             raise ValueError("Search requires explicit active head extension")
@@ -49,6 +50,7 @@ class TaskPorts:
                 guard=guard,
                 controller_config=controller_config,
                 allowed_empty_categories=allowed_empty_categories,
+                expected_process_fingerprint=expected_process_fingerprint,
             )
             env = self.env
             m, d = env.sim.model._model, env.sim.data._data

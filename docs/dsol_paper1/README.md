@@ -22,7 +22,7 @@
 
 - U12/U3 三种子长续训与开发评测：`runs/unified-core-long-confirmation-20261104/`。
 - 查询预算/成本、评分反馈与 STOP 筛查：`runs/unified-core-mechanism-screen-20261104/`，按已批准资源交接执行。
-- GR1 CPU 准备：`runs/gr1-cpu-preparation-20261104/r14/`；后续框架与块执行测试见 `runs/framework-cleanup-20261104/`。
+- GR1 CPU 准备：`runs/gr1-cpu-preparation-20261104/r15/`（整块输入预检、authority 接入与实际任务 CPU 组合）；早期重放和模型加载证据在同级 `r14/`。
 - 框架整理前审查：`runs/framework-maintainability-audit-20261104/`。
 - 共同核心对外协作索引：`runs/parallel-sim-real-plan-20261104/core-release/`。
 

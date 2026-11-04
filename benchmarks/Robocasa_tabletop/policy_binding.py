@@ -100,6 +100,30 @@ def checkpoint_envelope(policy, binding):
     return dict(binding=b, binding_sha256=digest(b), state_dict=deepcopy(policy.state_dict()))
 
 
+def policy_state_identity(policy):
+    """Bind actual Actor/Critic tensors, not only compatible shapes or metadata."""
+    import hashlib
+    import torch
+
+    entries = {}
+    for name, value in sorted(policy.state_dict().items()):
+        if not torch.is_tensor(value):
+            if not name.endswith("_extra_state") or not isinstance(value, dict):
+                raise ValueError("Unsupported policy state payload")
+            # UnifiedActorCritic stores its semantic identity alongside tensors.
+            json.dumps(value, allow_nan=False)
+            entries[name] = dict(extra_state_sha256=digest(value))
+            continue
+        tensor = value.detach().cpu().contiguous()
+        raw = tensor.reshape(-1).view(torch.uint8).numpy().tobytes()
+        entries[name] = dict(
+            shape=list(tensor.shape),
+            dtype=str(tensor.dtype),
+            sha256=hashlib.sha256(raw).hexdigest(),
+        )
+    return digest(entries)
+
+
 def load_policy(envelope, expected_binding):
     b = validate(expected_binding)
     if (

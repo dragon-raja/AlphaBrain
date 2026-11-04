@@ -107,3 +107,18 @@ def test_gr1_actual_agent_runs_two_trial_block(tmp_path):
         gr1.verify_completed(c['binding'],row)
     finally:
         c['backend'].close_channels()
+
+
+def test_gr1_actual_agent_preflights_bound_plans_and_settles_only_actual_calls(tmp_path):
+    pytest.importorskip('torch')
+    pytest.importorskip('gymnasium')
+    c=make_model_case(tmp_path, benchmark='gr1_prepared', task_count=1)
+    try:
+        run_model_case(c)
+        row=json.loads(next((c['worker']/'tasks').glob('*.json')).read_text())
+        assert row['launch']['limits']==dict(calls=36,episodes=2)
+        assert row['receipt']['budget_consumed']==dict(calls=8,episodes=2)
+        assert row['status']=='COMPLETE' and row['receipt']['simulation_only'] is True
+        gr1.verify_completed(c['binding'],row)
+    finally:
+        c['backend'].close_channels()

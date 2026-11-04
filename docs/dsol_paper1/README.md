@@ -30,6 +30,8 @@
 实验状态必须同时核对账本、结果和所属活进程；旧 RUNNING 文件不能证明仍在运行。
 当前开发树不是在途实验源码。结构选择完成后另冻版本，旧结果不得改标为统一结构。
 
+本轮实现与验证见[框架整理回执](history/framework_cleanup_20261104_zh.md)。
+
 ## 历史与恢复
 
 [history](history/) 保留既有协议演进和审计记录。[本次归档](../../archive/repository/20261104/framework-cleanup/README.txt) 保存整理前导航与退役源码原字节；更早迁移见 `archive/repository/`。

@@ -24,6 +24,8 @@ def wait_barrier(path, timeout=600):
 
 
 def run(config_path, output, *, execute=False):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/search_capacity.py:run')
     if not execute:
         raise ValueError('Explicit --execute required')
     config = read(config_path); output = Path(output)

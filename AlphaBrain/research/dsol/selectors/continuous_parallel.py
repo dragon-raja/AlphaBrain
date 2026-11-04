@@ -1,13 +1,28 @@
 """Host-independent rollout RNG and verified, ordered PPO batch ingestion."""
+import math
 import random
 import numpy as np
 import torch
 from ..execution.manifest import digest, file_digest
 from ..data.continuous_training_store import numpy_tree, rng_state, restore_rng
 from ..data.local_search_rollouts import complete_update
+from ..data.online_reward import validate_raw
 from .continuous_ppo import collect_episode, batch_observations
 
 RNG_RULE='per_source_episode_sha256_v1'
+
+
+def _same_log_probability(recomputed, stored):
+    """Allow at most four binary64 ULPs for CPU transcendental roundoff.
+
+    Cross-host log/softplus evaluation can differ by one ULP even when the
+    frozen parameters, value and transformed action match exactly. This is
+    deliberately not an absolute/relative epsilon; neither nonfinite values
+    nor a changed policy are admitted by this check. Keep the collector's
+    original log probability for PPO; do not rewrite the rollout.
+    """
+    return (math.isfinite(recomputed) and math.isfinite(stored)
+            and abs(recomputed-stored) <= 4*max(math.ulp(recomputed), math.ulp(stored)))
 
 
 def episode_seed(seed, row):
@@ -24,6 +39,13 @@ def seeded_episode(policy, backend, row, output, *, version, seed, source_kind):
 
 def validate_rollout(policy, payload, row, version):
     episode=numpy_tree(payload['episode']);m=payload['metrics']
+    if hasattr(policy,'feature_contract_sha256') and (episode.get('feature_contract_sha256')!=policy.feature_contract_sha256
+            or m.get('feature_contract_sha256')!=policy.feature_contract_sha256):
+        raise ValueError('Rollout native feature contract differs from the learner')
+    if hasattr(policy,'operation_model_hashes') and m.get('operation_model_sha256')!=policy.operation_model_hashes[row['suite']]:
+        raise ValueError('Rollout operation model differs from target learner')
+    if hasattr(policy,'training_protocol_sha256') and m.get('training_protocol_sha256')!=policy.training_protocol_sha256:
+        raise ValueError('Rollout native training/preprocessing protocol differs')
     if (episode['policy_update']!=version or m['policy_update']!=version
             or m['initial_identity']!=row or m['episode']!=row['episode']
             or not 1<=m['queries']<=8 or m['scoring_trajectories']!=m['queries']*2
@@ -37,7 +59,8 @@ def validate_rollout(policy, payload, row, version):
         with torch.no_grad():
             d=policy.distribution(obs);prob=float(d.log_prob(stop,z)[0]);value=float(policy.value(obs)[0])
             delta=np.zeros(2) if stop[0] else d.transform(z)[0].numpy()
-        if (prob!=t['log_prob'] or value!=t['value'] or not np.array_equal(delta,t['action']['delta_deg'])):
+        if (not _same_log_probability(prob,t['log_prob']) or value!=t['value']
+                or not np.array_equal(delta,t['action']['delta_deg'])):
             raise ValueError('Rollout probability/value/action differs from frozen policy')
     return episode,m
 
@@ -53,6 +76,7 @@ def ingest(trainer, records):
         ref=records[row['episode']]
         if file_digest(ref['path'])!=ref['sha256']:raise ValueError('Worker rollout artifact changed')
         payload=torch.load(ref['path'],map_location='cpu',weights_only=True)
+        if trainer.reward_config is not None:validate_raw(numpy_tree(payload['episode']),payload['metrics'])
         verified.append(validate_rollout(trainer.policy,payload,row,trainer.update))
     # Committed episodes after a crash are loaded by ContinuousPPO._restore;
     # skip only that verified prefix, never resample or count it twice.

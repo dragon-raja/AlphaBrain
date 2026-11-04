@@ -6,6 +6,7 @@
 
 - `motion.py`：位姿、运动边界、轨迹与预算。
 - `inputs.py`：允许传入选择器的观测与输入约束。
+- `flow_trace.py`：只读记录原生Euler流采样的中间状态与速度，不增加模型调用或改动作；`TokenTimeFlowTrace`另支持显式浮点逐动作token时间网格，拒绝RTC前缀时间混入和嵌套读取。RNG隔离、实际执行窗口、动作有效维度和评分定义由调用方显式提供；此读取器仅用于串行eager、无引导的采样，不支持CUDA graph重放。CPU模拟采样器或原版循环配合合成部件的测试不等于真实模型GPU准入。
 - `executor.py`：端点获取执行、匹配等待、控制器适配。
 - `protocol.py`：获取实验协议声明。
 - `observation_loop.py`：新主动观察框架的纯 CPU 事件状态转换，记录实际获取/失败、操作历史、时钟与噪声索引；不包含仿真或训练。数据协议在 `data/active_observation.py`，可替换规划接口在 `selectors/observation_planning.py`，统一设计见 `docs/dsol_paper1/planning/outcome_active_observation_20260918_zh.md`。

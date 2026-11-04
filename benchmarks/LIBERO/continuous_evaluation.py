@@ -77,9 +77,11 @@ class EvaluationCalls:
         self.stage = None
         self.identity = {}
 
-    def infer(self, example, noise, identity, capture=True):
+    def infer(self, example, noise, identity, capture=True, *, warmup=False,native_request=None,feature_capture=True):
         from AlphaBrain.research.dsol.data.flow_noise import tensor_sha256
-        if self.guard is not None:self.guard()
+        if self.guard is not None:
+            with self.timing.measure('authority_wait'):
+                self.guard()
         stage = self.stage
         if stage not in self.counts or self.counts[stage] >= self.limits[stage]:
             raise ValueError('Stage call budget exhausted')
@@ -90,47 +92,162 @@ class EvaluationCalls:
             stage_index=self.counts[stage], unix_time=time.time(), identity=address,
             input_sha256=input_identity(example), noise_sha256=tensor_sha256(noise)))
         with self.timing.measure(stage+'_inference'):
-            value = self.runtime.infer(example, noise, address, capture=capture)
+            extra={'warmup':True} if warmup else {}
+            if native_request is not None:extra['native_request']=native_request
+            if not feature_capture:extra['feature_capture']=False
+            value = self.runtime.infer(example, noise, address, capture=capture,**extra)
         if self.runtime.calls != sum(self.counts.values()):
             raise ValueError('Runtime and durable ledger diverged')
         return value
 
 
-def actor_action(actor, observation):
+def actor_action(actor, observation, *, task_features=None):
     import torch
     from AlphaBrain.research.dsol.acquisition.continuous_search_gym import continuous_observation
-    obs = continuous_observation(observation)
+    if hasattr(actor,'feature_contract_sha256'):
+        from AlphaBrain.research.dsol.acquisition.native_search import padded_native_observation
+        obs=padded_native_observation(observation)
+    else:obs=continuous_observation(observation)
+    if task_features is not None:obs=dict(obs,task_features=task_features)
     tensor = {k:torch.as_tensor(v[None]) for k,v in obs.items()}
     with torch.inference_mode():
         value = actor.distribution(tensor).sample(deterministic=True)
     return dict(stop=bool(value['stop'][0]), delta_deg=value['delta_deg'][0].numpy())
 
 
-def search(row, request, calls, noises, directory, actor, scale):
+def search(row, request, calls, noises, directory, actor, scale,*,native_policy=None,native_model_sha256=None,confirmation_noises=None):
     from .local_view_runtime import RenderedViewSource
     from AlphaBrain.research.dsol.acquisition.local_view_search import LocalViewSearch
     from AlphaBrain.research.dsol.acquisition.continuous_search import ContinuousSearch
-    from AlphaBrain.research.dsol.acquisition.local_view_gym import local_baseline_action
-    source = RenderedViewSource(request, calls, noises, directory)
-    source.move_angles(row['angles_deg']); first = source.query()
+    if row['method']=='random_acquisition':
+        from AlphaBrain.research.dsol.acquisition.random_acquisition import UniformIncrementAcquisition
+        if actor is not None:raise ValueError('Independent random acquisition cannot use an actor')
+        acquisition=UniformIncrementAcquisition(row['acquisition_seed'])
+    if row['method']=='local_near_best_accel':
+        from AlphaBrain.research.dsol.acquisition.local_view_gym import local_baseline_action
+    shifted='mount_yaw_offset_deg' in row
+    if shifted:
+        full=row.get('coordinate_family')=='heldout_installation_v1'
+        allowed=(-15.,0.,15.) if full else (-5.,0.,5.)
+        methods=('continuous_ppo','local_near_best_accel','stay','fixed_home') if full else ('continuous_ppo',)
+        if (row['method'] not in methods or row['mount_yaw_offset_deg'] not in allowed
+                or row['search_yaw_limit_deg']!=(15. if full else 25.)
+                or row.get('coordinate_family') not in (None,'heldout_installation_v1')):
+            raise ValueError('Unsupported explicit mounting experiment')
+    native_policy=native_policy or getattr(actor,'native_spec',None)
+    if native_policy is not None:
+        from .native_view_source import NativeRenderedViewSource
+        from AlphaBrain.research.dsol.acquisition.native_search import NativeLocalSearch,NativeContinuousSearch
+        from AlphaBrain.research.dsol.data.native_features import read_layout
+        from AlphaBrain.research.dsol.execution.manifest import digest
+        if native_model_sha256 is None:raise ValueError('Independent target model identity required for native evaluation')
+        source=NativeRenderedViewSource(request,calls,noises,directory,expected_model_sha256=native_model_sha256,expected_producer_sha256=native_policy['producer_sha256'])
+        cls=NativeLocalSearch if row['method']=='local_near_best_accel' else NativeContinuousSearch
+    else:
+        source = RenderedViewSource(request, calls, noises, directory)
+        cls = LocalViewSearch if row['method']=='local_near_best_accel' else ContinuousSearch
+    mount,initial=source.mount,row['angles_deg']
+    if shifted:
+        from dataclasses import replace
+        from AlphaBrain.research.dsol.acquisition.local_view_search import PanTiltMount
+        offset=row['mount_yaw_offset_deg']
+        mount=PanTiltMount(source.mount.pose([offset,0.]),replace(source.mount.config,yaw_limit_deg=row['search_yaw_limit_deg']))
+        initial=np.asarray(initial)-[offset,0.]
+    if shifted and full:
+        # Every visit, including the initial view and a later return to it,
+        # uses identical matrix composition. All paired methods share this.
+        for point in mount.route(np.asarray(source.current)-[offset,0.],initial):
+            source.move(mount.pose(point))
+    else:
+        source.move_angles(row['angles_deg'])
+    first = source.query()
+    if row['method']=='fixed_home':
+        if not shifted or not full:raise ValueError('Explicit full mechanism home control required')
+        for point in mount.route(initial,[0.,0.]):source.move(mount.pose(point))
+        selected=source.query()
+        return dict(status='COMPLETE',reason='fixed_home',queries=source.queries,visited=2,
+            selected_angles=[offset,0.],current_angles=[offset,0.],mechanical_selected_angles=[0.,0.],
+            mount_yaw_offset_deg=offset,search_yaw_limit_deg=row['search_yaw_limit_deg'],
+            coordinate_family=row['coordinate_family'],event_angle_frame='shifted_mount_mechanical',
+            initial_accel=first.value.accel_mean,best_accel=min(first.value.accel_mean,selected.value.accel_mean),
+            selected_accel=selected.value.accel_mean,selection_rule='mechanical_home_ignores_scores',
+            events=[dict(kind='initial',angles=initial.tolist()),dict(kind='fixed_home',angles=[0.,0.])]),source.last_example
+    if row['method'] != 'stay' and row['query_cap'] != 8:
+        from dataclasses import replace
+        from AlphaBrain.research.dsol.acquisition.local_view_search import PanTiltMount
+        spec=getattr(actor,'mechanism',{})
+        if spec.get('query_cap')!=row['query_cap'] or row['query_cap'] not in (4,6):
+            raise ValueError('Reduced query cap requires the bound deployment mechanism')
+        mount=PanTiltMount(mount.reference,replace(mount.config,query_budget=row['query_cap']))
     original, pending = source.query, [first]
     source.query = lambda: pending.pop() if pending else original()
-    cls = LocalViewSearch if row['method']=='local_near_best_accel' else ContinuousSearch
-    core = cls(source.mount, source, initial_angles=row['angles_deg'],
-        physical_state_id=source.physical, wrist=source.last_values[0]['wrist'],
+    core = cls(mount, source, initial_angles=initial,
+        physical_state_id=source.physical, **(dict(streams=read_layout(native_policy['layout']),producer_sha256=native_policy['producer_sha256'],feature_layout=native_policy['layout']) if native_policy is not None else dict(wrist=source.last_values[0]['wrist'])),
         score_scale=scale, seed=row['proposal_seed'])
     obs = core.start()
+    task_features=None
+    if getattr(actor,'task_condition',None) is not None:
+        from AlphaBrain.research.dsol.data.task_condition import task_vector
+        task_features=task_vector(actor.task_condition,source.last_example['lang'])
     while core.status == 'ACTIVE':
         if row['method'] == 'stay': action = dict(stop=True, delta_deg=np.zeros(2))
-        elif row['method'] == 'continuous_ppo': action = actor_action(actor, obs)
+        elif row['method'] == 'continuous_ppo':
+            action = actor_action(actor,obs) if task_features is None else actor_action(actor,obs,task_features=task_features)
+        elif row['method'] == 'random_acquisition': action = acquisition.action(obs['delta_low'],obs['delta_high'])
         else: action = local_baseline_action(core)
         obs, _, _, _, _ = core.step(action)
+        if confirmation_noises is not None:
+            from .terminal_confirmation import finish_and_confirm
+            finish_and_confirm(core,confirmation_noises)
     info = core.info()
     if info['queries'] != source.queries or info['queries'] > row['query_cap']:
         raise ValueError('Query accounting differs from frozen cap')
     info.update(initial_accel=core.records[0][1].accel_mean,
                 best_accel=core.records[core.best][1].accel_mean, events=core.events)
+    if confirmation_noises is not None:info['terminal_confirmation']=core.terminal_confirmation
+    if row['method']=='random_acquisition':
+        info.update(acquisition_rule='uniform_legal_increment',acquisition_seed=row['acquisition_seed'],
+            selection_rule='minimum_visited',budget_comparison='same_cap_not_same_realized_queries')
+    if shifted:
+        # Downstream execution/validation retains the original physical camera
+        # coordinate system. Preserve both frames rather than relabel history.
+        info['mechanical_selected_angles']=info['selected_angles']
+        info['mount_yaw_offset_deg']=offset
+        info['search_yaw_limit_deg']=row['search_yaw_limit_deg']
+        if full:info['coordinate_family']=row['coordinate_family']
+        info['selected_angles']=(np.asarray(info['selected_angles'])+[offset,0.]).tolist()
+        info['current_angles']=(np.asarray(info['current_angles'])+[offset,0.]).tolist()
+        info['event_angle_frame']='shifted_mount_mechanical'
     return info, source.last_example
+
+
+def move_to_search_selection(source, info):
+    """Replay the search frame exactly; avoid a second float Euler composition.
+
+    Ordinary campaigns keep their original path. The mounting diagnostic must
+    use the same requested pose matrix for scoring and manipulation; algebraic
+    equality after changing frames does not guarantee bitwise render identity.
+    """
+    if 'mount_yaw_offset_deg' not in info:
+        source.move_angles(info['selected_angles'])
+        return
+    from dataclasses import replace
+    from AlphaBrain.research.dsol.acquisition.local_view_search import PanTiltMount
+    offset = info['mount_yaw_offset_deg']
+    full=info.get('coordinate_family')=='heldout_installation_v1'
+    if (offset not in ((-15.,0.,15.) if full else (-5.,0.,5.))
+            or info['search_yaw_limit_deg'] != (15. if full else 25.)
+            or info.get('coordinate_family') not in (None,'heldout_installation_v1')):
+        raise ValueError('Unsupported selection mounting frame')
+    target = np.asarray(info['mechanical_selected_angles'], dtype=float)
+    physical = target + [offset, 0.]
+    if not np.array_equal(physical, info['selected_angles']):
+        raise ValueError('Mechanical and physical selection disagree')
+    mount = PanTiltMount(source.mount.pose([offset, 0.]),
+        replace(source.mount.config, yaw_limit_deg=info['search_yaw_limit_deg']))
+    for point in mount.route(source.current - [offset, 0.], target):
+        source.move(mount.pose(point))
+    source.current = physical.copy()
 
 
 def verify_actor(actor, controls):
@@ -159,6 +276,8 @@ def audit_block(tasks, searches):
 
 
 def run(config_path, output, *, execute=False, block_index=None, guard=None):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/continuous_evaluation.py:run')
     if not execute or read(config_path).get('authorization') != 'EXPLICIT_PAIRED_EVALUATION_ONLY':
         raise ValueError('Explicit paired evaluation authorization required')
     output = Path(output); output.mkdir(parents=True, exist_ok=False)

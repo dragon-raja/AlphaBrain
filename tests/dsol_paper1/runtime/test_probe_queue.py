@@ -47,6 +47,8 @@ def test_monitoring_error_blocks_instead_of_treating_gpu_as_idle(tmp_path,monkey
 
 
 def test_start_rechecks_and_refuses_without_launch_gap(tmp_path,monkeypatch):
+    from tests.dsol_paper1.helpers.dispatch_policy import allow_synthetic_boundaries
+    allow_synthetic_boundaries(monkeypatch, 'AlphaBrain/research/dsol/execution/process_backend.py:LocalProcessBackend.start')
     backend=ProbeBackend(dict(runtime={}),tmp_path)
     backend.worker_command=lambda task:['unused']
     availability=iter([True,False])

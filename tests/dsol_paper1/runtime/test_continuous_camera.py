@@ -6,6 +6,8 @@ import pytest
 
 from benchmarks.LIBERO.continuous_camera import ContinuousCamera
 from benchmarks.LIBERO.local_view_runtime import RenderedViewSource
+from AlphaBrain.research.dsol.acquisition.local_view_search import LocalViewConfig, PanTiltMount
+from AlphaBrain.research.dsol.data.native_view_panel import views
 
 
 def rotation(q):
@@ -48,6 +50,50 @@ def test_parent_transform_and_native_zero_roundtrip():
     np.testing.assert_array_equal(sim.model.cam_pos,p)
 
 
+@pytest.mark.parametrize('seed', range(12))
+def test_full_panel_inverse_with_rotated_reference(seed):
+    rng = np.random.default_rng(seed)
+    quaternion = rng.normal(size=4)
+    quaternion /= np.linalg.norm(quaternion)
+    reference = np.eye(4)
+    reference[:3, :3] = rotation(quaternion)
+    reference[:3, 3] = rng.normal(size=3)
+    cam = ContinuousCamera.__new__(ContinuousCamera)
+    cam.mount = PanTiltMount(reference)
+    for angles in views():
+        pose = cam.mount.pose(angles)
+        decoded = cam.angles_for_pose(pose)
+        np.testing.assert_allclose(decoded, angles, rtol=0, atol=1e-12)
+        # Interior points keep exactly the previous inverse computation.
+        if abs(angles[0]) < 30 and abs(angles[1]) < 20:
+            r = reference[:3, :3].T @ pose[:3, :3]
+            old = np.rad2deg([np.arctan2(-r[2, 0], r[0, 0]),
+                             np.arctan2(-r[1, 2], r[1, 1])])
+            np.testing.assert_array_equal(decoded, old)
+
+
+@pytest.mark.parametrize('axis,limit', [(0, 30.), (1, 20.)])
+@pytest.mark.parametrize('sign', [-1, 1])
+def test_inverse_does_not_admit_outside_angles(axis, limit, sign):
+    _, cam = camera()
+    outside = np.zeros(2)
+    outside[axis] = sign * (limit + 1e-8)
+    wider = PanTiltMount(cam.mount.reference, LocalViewConfig(yaw_limit_deg=31, pitch_limit_deg=21))
+    with pytest.raises(ValueError, match='outside mount limits'):
+        cam.angles_for_pose(wider.pose(outside))
+    outside[axis] = sign * np.nextafter(limit, np.inf)
+    with pytest.raises(ValueError, match='outside mount limits'):
+        cam.mount.pose(outside)
+
+
+def test_camera_reaches_every_panel_boundary_via_legal_steps():
+    _, cam = camera()
+    for target in views():
+        for waypoint in cam.mount.route(cam.current, target):
+            cam.move(cam.mount.pose(waypoint))
+        np.testing.assert_allclose(cam.current, target, rtol=0, atol=1e-12)
+
+
 @pytest.mark.parametrize('kind',['too_far','translated','roll','geometry_changed'])
 def test_reject_invalid_move(kind):
     sim,cam=camera();p=cam.mount.pose([3.,0.])
@@ -85,3 +131,20 @@ def test_source_roundtrip_accounts_actual_queries_and_blocks_retry(tmp_path):
     before=len(calls)
     with pytest.raises(ValueError):source.query()
     assert len(calls)==before
+
+
+def test_source_reattach_uses_verified_current_position(tmp_path):
+    _,cam=camera()
+    def request(cmd):
+        if cmd['kind']=='continuous_info':return dict(reference=cam.mount.reference,receipt=cam.receipt())
+        assert cmd['kind']=='move_pose'
+        return dict(receipt=cam.move(cmd['camera_to_world']))
+    source=RenderedViewSource(request,None,np.zeros((2,10,7)),tmp_path)
+    source.move_angles([-20.,13.333333333333334])
+    with pytest.raises(ValueError,match='Resumed source position'):
+        RenderedViewSource(request,None,np.zeros((2,10,7)),tmp_path,current_angles=[0.,0.])
+    resumed=RenderedViewSource(request,None,np.zeros((2,10,7)),tmp_path,
+        current_angles=[-20.,13.333333333333334])
+    resumed.move_angles([20.,-13.333333333333334])
+    np.testing.assert_allclose(cam.current,[20.,-13.333333333333334],atol=1e-12)
+    assert resumed.moves==4 and resumed.queries==0

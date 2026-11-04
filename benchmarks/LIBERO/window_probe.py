@@ -29,18 +29,18 @@ def later_noise(pair_key, repeat, replan):
 
 def simulator(config_file, initial, model, output, socket_path):
     config = read(config_file); inputs = read(config['inputs']); record = inputs['records'][initial]
-    from scripts.dsol_paper1.runtime.audit_libero_hdf5_restore import _configure_runtime
-    from scripts.dsol_paper1.runtime.evaluate_dsol_libero_hdf5_views import configure_imports, masked_policy_observation
-    from scripts.dsol_paper1.runtime.standard_initialization_v1 import load_initial
+    from benchmarks.LIBERO.simulation_inputs import _configure_runtime
+    from benchmarks.LIBERO.simulation_inputs import configure_imports, masked_policy_observation
+    from benchmarks.LIBERO.simulation_inputs import load_initial
     from .initialization import initialize, capture_model_reference
-    from scripts.dsol_paper1.runtime.render_bridge_common_v1 import render_protocol
-    from scripts.dsol_paper1.runtime.scan_libero_hdf5_views import _restore_reference
+    from benchmarks.LIBERO.simulation_inputs import render_protocol
+    from benchmarks.LIBERO.simulation_inputs import _restore_reference
     configure_imports(); connection = Client(socket_path, family='AF_UNIX')
     with tempfile.TemporaryDirectory(prefix='dsol-libero-probe-sim-') as temporary:
         _configure_runtime(Path(config['runtime']), Path(config['dataset']), Path(temporary))
         from libero.libero.envs import OffScreenRenderEnv
-        from libero_camera_pose import capture_camera_reference, install_camera_pose
-        from evaluate_pi05_libero_plus_views import agentview_camera_calibration
+        from AlphaBrain.common.camera_pose import capture_camera_reference, install_camera_pose
+        from benchmarks.LIBERO.simulation_inputs import agentview_camera_calibration
         spec = record['state']; physical = load_initial(spec)
         native_plus = config.get('candidate_source') == 'native_plus'
         if native_plus:

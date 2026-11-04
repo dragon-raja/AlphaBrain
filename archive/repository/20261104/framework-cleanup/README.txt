@@ -1,0 +1,1 @@
+Exact pre-cleanup documents and retired runtime sources. The old paths in manifest.json are provenance, not live entrypoints. Restore in a separate checkout when reproducing historical releases. Never import this archive from current code. Current module/navigation replacements may exist at the old document paths. Frozen experiments on shared storage are unchanged.

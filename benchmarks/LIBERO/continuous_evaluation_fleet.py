@@ -1,7 +1,7 @@
 """Host-local standard queues, shared campaign stop, disjoint bounded evaluation blocks.
 
-Preparation imports no policy or simulator. Real execution requires an explicit
-permit separate from the frozen campaign. No automatic retry or partial replay.
+Preparation imports no policy or simulator. This working release refuses real
+execution even with a historical permit. No automatic retry or partial replay.
 """
 import argparse
 import json
@@ -12,7 +12,7 @@ from AlphaBrain.research.dsol.data.continuous_evaluation_blocks import blocks,ST
 from AlphaBrain.research.dsol.execution.manifest import file_digest,task_key,validate
 from AlphaBrain.research.dsol.execution.queue import prepare,run as run_queue,_durable_write,MissingResult
 from AlphaBrain.research.dsol.execution.campaign_control import CampaignGuard
-from benchmarks.Robocasa365.probe_queue import ProbeBackend
+from AlphaBrain.research.dsol.execution.process_backend import LocalProcessBackend
 
 
 def inventory(campaign):
@@ -102,6 +102,8 @@ def prior_stages(campaign,stage):
 
 
 def worker(request_path,output,*,execute=False):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/continuous_evaluation_fleet.py:worker')
     req=read(request_path)
     if not execute:raise ValueError('Explicit block execution required')
     if file_digest(req['campaign'])!=req['campaign_sha256'] or req!=request_for(req['campaign'],req['model'],req['block']['index']):
@@ -124,7 +126,7 @@ def worker(request_path,output,*,execute=False):
         guard.fail(error);raise
 
 
-class BlockBackend(ProbeBackend):
+class BlockBackend(LocalProcessBackend):
     def __init__(self,plan,root):
         super().__init__(plan,root)
         self.guard=CampaignGuard(self.runtime['campaign'],self.runtime['host'],self.runtime['stage'])
@@ -136,6 +138,8 @@ class BlockBackend(ProbeBackend):
         return self.gpu_available(slot)
 
     def start(self,task,slot,attempt):
+        from AlphaBrain.research.dsol.execution import dispatch_policy
+        dispatch_policy.reject_production('benchmarks/LIBERO/continuous_evaluation_fleet.py:BlockBackend.start')
         if not self.guard.check(dispatch=True):raise RuntimeError('Dispatch cutoff reached')
         return super().start(task,slot,attempt)
 
@@ -181,6 +185,8 @@ def build(campaign,model,stage,directory):
 
 
 def run_phase(plan_path,control,*,execute=False):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/continuous_evaluation_fleet.py:run_phase')
     plan=read(plan_path);r=plan['runtime'];guard=CampaignGuard(r['campaign'],r['host'],r['stage'])
     if not execute:raise ValueError('No execution without explicit flag')
     def interrupt(_signal,_frame):raise KeyboardInterrupt('Coordinator stop requested')

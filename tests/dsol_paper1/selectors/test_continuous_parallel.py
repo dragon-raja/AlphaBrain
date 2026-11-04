@@ -1,6 +1,8 @@
 """Real four-process CPU sampling, synthetic query backend, no VLA/simulator."""
 from concurrent.futures import ProcessPoolExecutor
 from contextlib import contextmanager
+import copy
+import math
 import multiprocessing as mp
 import numpy as np
 import pytest
@@ -41,6 +43,38 @@ def equal(a,b):
         assert len(a)==len(b)
         for x,y in zip(a,b):equal(x,y)
     else:assert a==b
+
+
+@pytest.mark.parametrize('steps,accepted', [(1,True),(4,True),(5,False)])
+def test_rollout_log_density_roundoff_boundary_preserves_original(steps,accepted):
+    torch.set_num_threads(1);torch.manual_seed(71)
+    p=ContinuousActorCritic(4,width=16)
+    row=dict(episode=0,initial=0,proposal_seed=100)
+    payload=collect((p.state_dict(),row))
+    original=payload['episode']['transitions'][0]['log_prob']
+    changed=original
+    for _ in range(steps):changed=math.nextafter(changed, math.inf)
+    payload['episode']['transitions'][0]['log_prob']=changed
+    if accepted:
+        episode,_=validate_rollout(p,payload,row,0)
+        assert episode['transitions'][0]['log_prob']==changed
+    else:
+        with pytest.raises(ValueError,match='probability'):validate_rollout(p,payload,row,0)
+
+
+@pytest.mark.parametrize('field',['value','delta','nan','inf','policy'])
+def test_probability_roundoff_does_not_relax_other_invariants(field):
+    torch.set_num_threads(1);torch.manual_seed(71)
+    p=ContinuousActorCritic(4,width=16)
+    row=dict(episode=0,initial=0,proposal_seed=100)
+    payload=copy.deepcopy(collect((p.state_dict(),row)))
+    t=payload['episode']['transitions'][0]
+    if field=='value':t['value']=math.nextafter(t['value'],math.inf)
+    elif field=='delta':t['action']['delta_deg'][0]+=1e-12
+    elif field in ('nan','inf'):t['log_prob']=float(field)
+    else:
+        with torch.no_grad():p.stop_head.bias.add_(0.1)
+    with pytest.raises(ValueError):validate_rollout(p,payload,row,0)
 
 
 def test_serial_and_four_processes_exact_then_one_update_and_resume(tmp_path):

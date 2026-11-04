@@ -14,7 +14,7 @@ import time
 
 from AlphaBrain.research.dsol.data.artifacts import read, write
 from AlphaBrain.research.dsol.execution.queue import prepare, run
-from benchmarks.Robocasa365.probe_queue import process_identity
+from AlphaBrain.research.dsol.execution.process_backend import process_identity
 from .search_queue import SearchBackend
 
 
@@ -91,6 +91,8 @@ channel already used for launch also writes the unique local stop marker.
 
 
 def capacity(config_path, *, execute=False):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/search_fleet.py:capacity')
     if not execute:
         raise ValueError('Explicit --execute required')
     config=read(config_path);phase=Path(config['phase'])
@@ -158,6 +160,8 @@ def capacity(config_path, *, execute=False):
 
 def evaluation(config_path, *, execute=False):
     """Supervise independent standard queues; fail-stop without automatic retry."""
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/search_fleet.py:evaluation')
     if not execute:raise ValueError('Explicit --execute required')
     config=read(config_path);phase=Path(config['phase'])
     if config.get('mode')!='full_tasks':raise ValueError('Explicit full-task fleet required')

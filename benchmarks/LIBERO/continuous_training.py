@@ -81,7 +81,7 @@ class DurableScoring:
         self.episode=None
         self.global_budget=global_budget
 
-    def infer(self,example,noise,identity,capture=True):
+    def infer(self,example,noise,identity,capture=True,*,native_request=None,warmup=False):
         from AlphaBrain.research.dsol.data.flow_noise import tensor_sha256
         from .local_search_rollout import input_identity
         if self.calls>=self.limit:raise ValueError('Global scoring budget exhausted')
@@ -93,7 +93,10 @@ class DurableScoring:
             row['global_index']=budget.attempt(f'{prefix}:{self.episode}',owner,version,identity['query'],identity['member'])
         with self.path.open('a') as stream:
             stream.write(json.dumps(row,allow_nan=False)+'\n');stream.flush();os.fsync(stream.fileno())
-        try:value=self.runtime.infer(example,noise,address,capture=capture)
+        extra={}
+        if native_request is not None:extra['native_request']=native_request
+        if warmup:extra['warmup']=True
+        try:value=self.runtime.infer(example,noise,address,capture=capture,**extra)
         except BaseException as error:
             if self.global_budget is not None:self.global_budget[0].fail(error)
             raise
@@ -103,11 +106,21 @@ class DurableScoring:
 
 class LiveEpisodes:
     """Lazy persistent VLA; fresh simulator per search; explicit fixed state/noise."""
-    def __init__(self,cfg,plan,output,*,expected_calls=0,global_budget=None,runtime=None):
+    def __init__(self,cfg,plan,output,*,expected_calls=0,global_budget=None,runtime=None,
+                 reward_scale=None,simulator_pool=None):
+        from AlphaBrain.research.dsol.execution import dispatch_policy
+        dispatch_policy.reject_production('benchmarks/LIBERO/continuous_training.py:LiveEpisodes.__init__')
         self.cfg,self.plan,self.output=cfg,plan,Path(output)
         self.expected_calls=expected_calls;self.scoring=None
         self.global_budget=global_budget
         self.runtime=runtime
+        self.simulator_pool=simulator_pool
+        if reward_scale is not None and (isinstance(reward_scale,bool)
+                or not np.isscalar(reward_scale) or not np.isfinite(reward_scale) or reward_scale<=0):
+            raise ValueError('Explicit finite positive reward scale required')
+        # A new controller must bind the training-only calibration receipt.
+        # Legacy run() supplies no override and retains its frozen denominator.
+        self.reward_scale=reward_scale
         self.timings=[]
 
     @contextmanager
@@ -131,16 +144,40 @@ class LiveEpisodes:
         with np.load(sim['anchors'],allow_pickle=False) as z:
             noises=z['first_score_noise'][row['initial'],:2].copy()
         simulator_started=time.perf_counter()
-        with simulator(self.cfg['sim_config'],sim,row['initial'],output) as request:
+        open_simulator=simulator if self.simulator_pool is None else self.simulator_pool.session
+        with open_simulator(self.cfg['sim_config'],sim,row['initial'],output) as request:
             simulator_seconds=time.perf_counter()-simulator_started
-            source=RenderedViewSource(request,self.scoring,noises,output)
+            native=self.cfg.get('native_policy')
+            if native is not None:
+                from .native_view_source import NativeRenderedViewSource
+                from AlphaBrain.research.dsol.execution.manifest import digest
+                source=NativeRenderedViewSource(request,self.scoring,noises,output,
+                    expected_model_sha256=sim['models'][sim['operation_model']]['weights_sha256'],expected_producer_sha256=digest(sim['native_features']))
+            else:source=RenderedViewSource(request,self.scoring,noises,output)
             source.move_angles(row['angles_deg']);first=source.query()
             original=source.query;pending=[first]
             source.query=lambda: pending.pop() if pending else original()
-            core=ContinuousSearch(source.mount,source,initial_angles=row['angles_deg'],
-                physical_state_id=source.physical,wrist=source.last_values[0]['wrist'],
-                score_scale=self.plan['actor']['score_scale'],seed=row['proposal_seed'])
-            yield ContinuousSearchGym(4608),{'session':core}
+            common=dict(initial_angles=row['angles_deg'],physical_state_id=source.physical,
+                score_scale=self.plan['actor']['score_scale'],seed=row['proposal_seed'],
+                reward_scale=self.reward_scale)
+            if native is not None:
+                from AlphaBrain.research.dsol.data.native_features import read_layout
+                from AlphaBrain.research.dsol.acquisition.native_search import NativeContinuousSearch,native_gym
+                streams=read_layout(native['layout']);core=NativeContinuousSearch(source.mount,source,streams=streams,producer_sha256=native['producer_sha256'],feature_layout=native['layout'],**common)
+                env=native_gym(streams,producer_sha256=native['producer_sha256'],feature_layout=native['layout'])
+            else:
+                core=ContinuousSearch(source.mount,source,wrist=source.last_values[0]['wrist'],**common)
+                env=ContinuousSearchGym(4608)
+            if self.cfg.get('task_condition') is not None:
+                from AlphaBrain.research.dsol.data.task_condition import task_vector
+                from AlphaBrain.research.dsol.acquisition.task_condition import TaskConditionedEnv
+                env=TaskConditionedEnv(env,task_vector(self.cfg['task_condition'],source.last_example['lang']))
+            if self.cfg.get('confirmation_noise') is not None:
+                from .terminal_confirmation import ConfirmedEnv
+                with np.load(self.cfg['confirmation_noise'],allow_pickle=False) as archive:
+                    held=archive['noise'][row['episode']].copy()
+                env=ConfirmedEnv(env,held)
+            yield env,{'session':core}
             if core.info()['queries']!=source.queries:raise ValueError('Core/source accounting mismatch')
             write_json(output/'search.json',dict(info=core.info(),events=core.events,
                 physical_state_id=source.physical,noise_members=2,manipulation_actions=0,
@@ -151,6 +188,8 @@ class LiveEpisodes:
 
 def run(config_path,output,*,execute=False,resume=False):
     # Approval guard precedes input/model loading. Draft manifests remain inert.
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/continuous_training.py:run')
     cfg=read(config_path)
     if not execute or cfg.get('authorization')!='EXPLICIT_TRAINING_ONLY':
         raise ValueError('Prepared launch is not authorization to train')

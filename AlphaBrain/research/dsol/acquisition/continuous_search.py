@@ -28,6 +28,14 @@ class CameraKinematics(Protocol):
 
 
 class ContinuousSearch(LocalViewSearch):
+    def __init__(self, *args, reward_scale=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Observation units stay frozen when calibrating only the reward.
+        value = self.scale if reward_scale is None else reward_scale
+        if isinstance(value, bool) or not np.isscalar(value) or not np.isfinite(value) or value <= 0:
+            raise ValueError('Finite positive fixed reward scale required')
+        self.reward_scale = float(value)
+
     def _move(self, target):
         start = time.perf_counter()
         try:
@@ -70,7 +78,10 @@ class ContinuousSearch(LocalViewSearch):
                 target = self.mount.angles(self.current + delta)
                 self._move(target)
                 value = self._query('search')
-                self.records.append((target.copy(), value))
+                # Exact virtual mounts leave current == target. Articulated
+                # adapters may report measured arrival; never label that frame
+                # with a commanded pose the hardware did not actually reach.
+                self.records.append((self.current.copy(), value))
                 if value.accel_mean < self.records[self.best][1].accel_mean:
                     self.best = len(self.records) - 1
                 self.decision += 1
@@ -80,6 +91,6 @@ class ContinuousSearch(LocalViewSearch):
             self.status, self.reason = 'FAILED', 'backend_or_verification'
             raise
         self.events.append(dict(kind='decision_elapsed', seconds=time.perf_counter()-start))
-        reward = (before - self.records[self.best][1].accel_mean) / self.scale
+        reward = (before - self.records[self.best][1].accel_mean) / self.reward_scale
         reward -= self.config.query_cost * (self.queries - old_queries)
         return self.observation(), float(reward), self.status == 'COMPLETE', False, self.info()

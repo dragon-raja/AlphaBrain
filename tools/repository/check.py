@@ -53,6 +53,16 @@ def check(root=ROOT):
                 if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("tests.dsol_paper1."):
                     if node.module.rsplit(".", 1)[-1].startswith("test_"):
                         errors.append(f"Shared fixtures must live in helpers, not another test: {rel}:{node.lineno}")
+        if rel.parts[:2] in {("benchmarks", "LIBERO"), ("benchmarks", "Robocasa_tabletop")}:
+            owner = ".".join(rel.parts[:2])
+            for node in ast.walk(tree):
+                modules = ([a.name for a in node.names] if isinstance(node, ast.Import)
+                           else [node.module or ""] if isinstance(node, ast.ImportFrom) and not node.level else [])
+                for module in modules:
+                    if module.startswith(("scripts.", "archive.")) or (
+                        module.startswith("benchmarks.") and not module.startswith(owner + ".") and module != owner
+                    ):
+                        errors.append(f"Benchmark depends on another adapter or script: {rel}:{node.lineno}: {module}")
         if rel.parts[0] != "AlphaBrain":
             continue
         for n in ast.walk(tree):

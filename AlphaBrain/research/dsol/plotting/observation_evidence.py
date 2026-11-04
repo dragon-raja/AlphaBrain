@@ -6,9 +6,15 @@ from PIL import Image,ImageDraw,ImageFont
 from ..data.artifacts import read,sha
 
 
-def build(panel_path):
+def build(panel_path, *, font_path=None):
     panel=read(panel_path);output=Path(panel_path).parent/'contact-sheets';output.mkdir(exist_ok=True)
-    font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',15)
+    if font_path is not None:
+        font = ImageFont.truetype(str(font_path), 15)
+    else:
+        try:
+            font = ImageFont.truetype('DejaVuSans.ttf', 15)
+        except OSError:
+            font = ImageFont.load_default()
     for benchmark,spec in panel['benchmarks'].items():
         assert sha(spec['payload'])==spec['payload_sha256']
         images=np.load(spec['payload'])['images'];records=spec['records']

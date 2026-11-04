@@ -9,7 +9,7 @@ import hashlib
 import numpy as np
 
 from AlphaBrain.research.dsol.acquisition.local_view_search import PanTiltMount, rigid_pose
-from scripts.vla_shared.libero_camera_pose import rotation_matrix_to_wxyz
+from AlphaBrain.common.camera_pose import rotation_matrix_to_wxyz
 
 
 def scene_identity(sim):
@@ -35,8 +35,17 @@ class ContinuousCamera:
     def angles_for_pose(self, value):
         pose = rigid_pose(value)
         r = self.mount.reference[:3, :3].T @ pose[:3, :3]
-        angles = self.mount.angles(np.rad2deg([np.arctan2(-r[2, 0], r[0, 0]),
-                                             np.arctan2(-r[1, 2], r[1, 1])]))
+        angles = np.rad2deg([np.arctan2(-r[2, 0], r[0, 0]),
+                            np.arctan2(-r[1, 2], r[1, 1])])
+        # A legal endpoint can round a few ulps outside the mount after the
+        # matrix roundtrip. Correct only inverse-decoding roundoff; explicit
+        # requested angles and the forward pose comparison remain strict.
+        bounds = np.array([self.mount.config.yaw_limit_deg, self.mount.config.pitch_limit_deg])
+        tolerance = 64 * np.finfo(np.float64).eps * np.maximum(1., bounds)
+        excess = np.abs(angles) - bounds
+        at_boundary = (excess > 0) & (excess <= tolerance)
+        angles[at_boundary] = np.copysign(bounds[at_boundary], angles[at_boundary])
+        angles = self.mount.angles(angles)
         if not np.allclose(self.mount.pose(angles), pose, atol=1e-9, rtol=0):
             raise ValueError('Pose is not on the fixed-centre yaw/pitch mount')
         return angles

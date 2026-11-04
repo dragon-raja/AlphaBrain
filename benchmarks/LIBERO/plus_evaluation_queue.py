@@ -9,7 +9,7 @@ import numpy as np
 
 from AlphaBrain.research.dsol.data.artifacts import read, sha, write
 from AlphaBrain.research.dsol.execution.queue import MissingResult
-from benchmarks.Robocasa365.probe_queue import ProbeBackend
+from AlphaBrain.research.dsol.execution.process_backend import LocalProcessBackend
 
 
 def validate_result(config_file, initial, model, output):
@@ -43,7 +43,7 @@ def validate_result(config_file, initial, model, output):
     return dict(status='PASS', status_sha256=sha(output/'status.json'), episodes_sha256=sha(output/'episodes.json'), episodes=len(rows))
 
 
-class PlusEvaluationBackend(ProbeBackend):
+class PlusEvaluationBackend(LocalProcessBackend):
     def admit(self, slot):
         if slot['host'] != self.runtime['host']:
             raise ValueError('Wrong host coordinator')

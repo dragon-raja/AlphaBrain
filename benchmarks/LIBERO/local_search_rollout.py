@@ -43,11 +43,49 @@ def rollout_local_episode(request, infer, example, bank, state_key, repeat, iden
     op = plan['operation_policy']
     if (op['predicted_actions'], op['executed_actions_per_replan'], op['clip']) != (10, 5, [-1, 1]):
         raise ValueError('Frozen ten-action/five-executed contract required')
+    return _rollout(request,infer,example,bank,state_key,repeat,identity,record=record,
+                    horizon=horizon,predicted=10,executed_per_replan=5,
+                    prediction_key='actions',clip=True)
+
+
+def rollout_fastwam_episode(request,infer,example,bank,state_key,repeat,identity,
+                             *,contract,suite,record,reference_single_step=False):
+    """Native 32-action prediction, ten executed; no added action clipping.
+
+    The independent reference path submits actions individually, matching the
+    upstream pending-action loop. Both preserve per-step success termination.
+    """
+    from AlphaBrain.research.dsol.data.operation_contract import validate_fastwam
+    validate_fastwam(contract)
+    if repeat not in contract['execution_repeat_ids'] or not callable(record):
+        raise ValueError('Declared paired repeat and durable recorder required')
+    return _rollout(request,infer,example,bank,state_key,repeat,identity,record=record,
+                    horizon=contract['horizons'][suite],predicted=32,executed_per_replan=10,
+                    prediction_key='full_actions',clip=False,
+                    reference_single_step=reference_single_step)
+
+
+def rollout_groot_episode(request,infer,example,bank,state_key,repeat,identity,
+                          *,contract,suite,record,reference_single_step=False):
+    """Native ten-action chunk and suite horizon, using the common step recorder."""
+    from AlphaBrain.research.dsol.data.operation_contract import validate_groot
+    validate_groot(contract)
+    if repeat not in contract['execution_repeat_ids'] or not callable(record):
+        raise ValueError('Declared paired repeat and durable recorder required')
+    return _rollout(request,infer,example,bank,state_key,repeat,identity,record=record,
+                    horizon=contract['horizons'][suite],predicted=10,executed_per_replan=10,
+                    prediction_key='actions',clip=False,
+                    reference_single_step=reference_single_step)
+
+
+def _rollout(request,infer,example,bank,state_key,repeat,identity,*,record,horizon,
+             predicted,executed_per_replan,prediction_key,clip,reference_single_step=False):
     calibration = {k: np.array(example[k], copy=True) for k in ('camera_intrinsics', 'camera_to_world_opencv')}
     steps = replans = 0
     success = False
     chunks, executed, input_hashes, noise_hashes, offsets = [], [], [], [], []
     native_traces,native_noises=[],[]
+    physics_hashes=[]
     while steps < horizon and not success:
         noise = bank.get(state_key, repeat, replans)
         if np.asarray(noise['noise']).shape != (10, 7) or not np.isfinite(noise['noise']).all():
@@ -57,17 +95,29 @@ def rollout_local_episode(request, infer, example, bank, state_key, repeat, iden
         record(dict(kind='inference_attempt', identity=address, input_sha256=digest,
                     noise_sha256=noise['noise_sha256'], action_offset=steps))
         result = infer(example, noise['noise'], address, capture=False)
-        prediction = np.asarray(result['actions'])
+        prediction = np.asarray(result[prediction_key])
         if 'full_trace' in result:
             native_traces.append(np.array(result['full_trace'],copy=True))
             native_noises.append(np.array(result['full_noise'],copy=True))
-        if prediction.shape != (10, 7) or not np.isfinite(prediction).all():
-            raise ValueError('Full finite 10x7 action block required')
-        full = np.clip(prediction, -1, 1)
-        chunk = full[:min(5, horizon - steps)].copy()
-        record(dict(kind='prediction', identity=address, full_clipped_actions=full.copy(),
+        if prediction.shape != (predicted, 7) or not np.isfinite(prediction).all():
+            raise ValueError('Full finite action block required')
+        full = np.clip(prediction, -1, 1) if clip else prediction.copy()
+        chunk = full[:min(executed_per_replan, horizon - steps)].copy()
+        record(dict(kind='prediction', identity=address,
+                    **{'full_clipped_actions' if clip else 'full_decoded_actions':full.copy()},
                     robot_state=np.array(example['state'], copy=True), input_sha256=digest))
-        response = request(dict(kind='step', actions=chunk))
+        if reference_single_step:
+            count=0
+            for action in chunk:
+                response=request(dict(kind='step',actions=action[None,...]))
+                if (type(response['executed']) is not int or response['executed']!=1
+                        or type(response['success']) is not bool):
+                    raise ValueError('Reference action did not execute exactly once')
+                count+=1
+                if response['success']:break
+            response=dict(response,executed=count)
+        else:
+            response = request(dict(kind='step', actions=chunk))
         count = response['executed']
         done = response['success']
         if (type(count) is not int or not 1 <= count <= len(chunk) or type(done) is not bool
@@ -75,17 +125,20 @@ def rollout_local_episode(request, infer, example, bank, state_key, repeat, iden
             raise ValueError('Partial execution without successful termination is invalid')
         record(dict(kind='executed', identity=address, actions=chunk[:count].copy(), success=done))
         example = response['example']
+        if 'physics' in response:physics_hashes.append(response['physics'])
         if any(not np.array_equal(example[k], value) for k, value in calibration.items()):
             raise ValueError('External camera changed during manipulation')
         offsets.append(steps)
         chunks.append(full.copy()); executed.extend(chunk[:count])
         input_hashes.append(digest); noise_hashes.append(noise['noise_sha256'])
         steps += count; replans += 1; success = done
-    arrays=dict(full_clipped_action_chunks=np.asarray(chunks), actions=np.asarray(executed),
+    arrays=dict(actions=np.asarray(executed),
                 replan_action_offsets=np.asarray(offsets))
+    arrays['full_clipped_action_chunks' if clip else 'full_decoded_action_chunks']=np.asarray(chunks)
     if native_traces:
         if len(native_traces)!=replans:raise ValueError('Missing native full execution trace')
         arrays.update(native_full_velocity_traces=np.asarray(native_traces),native_full_noises=np.asarray(native_noises))
     return dict(success=success, steps=steps, replans=replans, horizon=horizon,
                 repeat=repeat, state_key=state_key, input_sha256=input_hashes,
-                execution_noise_sha256=noise_hashes), arrays
+                execution_noise_sha256=noise_hashes,
+                final_input_sha256=input_identity(example),physics_after_replan=physics_hashes), arrays

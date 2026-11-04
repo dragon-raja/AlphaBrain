@@ -9,12 +9,12 @@ from AlphaBrain.research.dsol.data.artifacts import read, write
 def diagnose(config_file, initial, output, count=16, restore=False):
     cfg=read(config_file); record=read(cfg['inputs'])['records'][initial]; spec=record['state']
     output=Path(output); output.mkdir(parents=True,exist_ok=False)
-    from scripts.dsol_paper1.runtime.audit_libero_hdf5_restore import _configure_runtime
-    from scripts.dsol_paper1.runtime.evaluate_dsol_libero_hdf5_views import configure_imports, masked_policy_observation
-    from scripts.dsol_paper1.runtime.standard_initialization_v1 import load_initial
+    from benchmarks.LIBERO.simulation_inputs import _configure_runtime
+    from benchmarks.LIBERO.simulation_inputs import configure_imports, masked_policy_observation
+    from benchmarks.LIBERO.simulation_inputs import load_initial
     from .initialization import initialize, capture_model_reference
-    from scripts.dsol_paper1.runtime.scan_libero_hdf5_views import _restore_reference
-    from scripts.dsol_paper1.runtime.render_bridge_common_v1 import render_protocol
+    from benchmarks.LIBERO.simulation_inputs import _restore_reference
+    from benchmarks.LIBERO.simulation_inputs import render_protocol
     configure_imports()
     with np.load(record['observation_cache']['path'],allow_pickle=False) as z: cache={k:z[k].copy() for k in z.files}
     candidates=read(cfg['release'])['protocol']['state_blocks'][initial]['candidates']
@@ -22,8 +22,8 @@ def diagnose(config_file, initial, output, count=16, restore=False):
     with tempfile.TemporaryDirectory(prefix='dsol-first-frame-') as temporary:
         _configure_runtime(Path(cfg['runtime']),Path(cfg['dataset']),Path(temporary))
         from libero.libero.envs import OffScreenRenderEnv
-        from libero_camera_pose import capture_camera_reference,install_camera_pose
-        from evaluate_pi05_libero_plus_views import agentview_camera_calibration
+        from AlphaBrain.common.camera_pose import capture_camera_reference,install_camera_pose
+        from benchmarks.LIBERO.simulation_inputs import agentview_camera_calibration
         def compare(env,j,phase,receipt):
             env.env._update_observables(force=True)
             example,_,_=masked_policy_observation(env.env._get_observations(),prompt=spec['prompt'],resize_size=224,

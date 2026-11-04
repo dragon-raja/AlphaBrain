@@ -1,133 +1,19 @@
-# 🚀 LIBERO Evaluation
+# LIBERO 搜索后端
 
-## Paper 1 bounded prefix diagnostics
+当前三模型主线：π0.5、GR00T N1.5、RLDX-1。共享核心与 PPO 在 `AlphaBrain/research/dsol`，不在这里复制网络或训练算法。
 
-`prefix_replay.py` reuses the `window_probe.py` private batch16 policy bridge for
-explicitly frozen initial/view/noise subsets. It verifies all saved flow, action
-and Accel prefixes exactly, retaining failed checks; it records observations and
-realized simulator motion without additional renders. It is not a new full-task
-evaluation or an online camera-control method. Shared read-only recording lives
-in `AlphaBrain/research/dsol/data/prefix_telemetry.py`; analysis and plotting live
-in the corresponding `analysis/prefix_replay.py` and `plotting/prefix_replay.py`.
-Imports do not start execution; the runtime requires an explicit config and `--execute`.
+| 接入点 | 职责 |
+|---|---|
+| `continuous_authority.py` | 绑定校验，受控科学入口，复用共享 model_agent/model_plan |
+| `prefix_campaign.py` / `prefix_continuation.py` / `prefix_evaluation.py` | 实验阶段组合及匹配预算的训练/评测 |
+| `model_adapters.py` | 目标模型适配表；π0.5 既有入口在 search_runtime |
+| `native_feature_runtime.py` / `native_view_source.py` | 原生特征合同和采集 |
+| `simulation_inputs.py` / `initialization.py` / `continuous_camera.py` | 仿真输入、初态与相机；不反向 import scripts |
+| `search_simulator.py` / `simulator_session.py` | 显式环境构造与生命周期 |
+| `legacy/` | 排除主线的历史模型兼容，不作为新实验默认选择 |
 
-This document provides instructions for reproducing our **experimental results** with LIBERO.  
-The evaluation process consists of two main parts:  
+安装与无 GPU 验证见[复现指南](../../docs/architecture/reproduction_zh.md)。权重、任务数据、环境与运行许可须使用具体冻结清单，安装代码不授予执行许可。
 
-1. Setting up the `LIBERO` environment and dependencies.  
-2. Running the evaluation by launching services in both `AlphaBrain` and `LIBERO` environments.  
+`baseline_dispatch.py` 是关闭的历史入口；其实现与两个旧静态运行脚本已归档。原上游训练/评测使用说明及早期接入状态保存在[维护归档](../../archive/repository/20261104/framework-cleanup/README.txt)。历史默认成功率不等于本论文扰动条件下的 Stay。
 
-We have verified that this workflow runs successfully on both **NVIDIA A100** and **RTX 4090** GPUs.  
-
----
-
-
-## ⬇️ 0. Download Checkpoints
-
-
-We provide a collection of pretrained checkpoints on Hugging Face to make community evaluation easier: [🤗 AlphaBrain/bench-libero](https://huggingface.co/collections/AlphaBrain/bench-libero). Their corresponding results on LIBERO are summarized in the table below.
-
-### 📊 Experimental Results
-
-| Model               | Steps | Epochs | Spatial | Object | Goal | Long  | Avg   |
-|---------------------|-------|--------|---------|--------|------|-------|-------|
-| $\pi_0$+FAST | -     | -      | 96.4    | 96.8   | 88.6 | 60.2  | 85.5  |
-| $\pi_0$             | -     | -      | 96.8    | 98.8   | 95.8 | 85.2  | 94.1  |
-| GR00T-N1.5 | 20K   | 203    | 92.0    | 92.0   | 86.0 | 76.0  | 86.5  |
-| **Qwen2.5-VL-FAST** | 30K   | 9.54   | 97.3    | 97.2   | 96.1 | 90.2  | 95.2  |
-| **Qwen2.5-VL-OFT**  | 30K   | 9.54   | 97.4    | 98.0   | 96.8 | 92.0  | 96.1  |
-| **Qwen2.5-VL-GR00T**| 30K   | 9.54   | 97.8    | 98.2   | 94.6 | 90.8  | 95.4  |
-| **Qwen3-VL-FAST**   | 30K   | 9.54   | 97.3    | 97.4   | 96.3 | 90.6  | 95.4  |
-| **Qwen3-VL-OFT**    | 30K   | 9.54   | 97.8    | 98.6   | 96.2 | 93.8  | 96.6  |
-| **Qwen3-VL-GR00T**  | 30K   | 9.54   | 97.8    | 98.8   | 97.4 | 92.0  | 96.5  |
-
-We train one policy for all 4 suites. All
-scores are averaged over 500 trials for each task suite (10 tasks × 50 episodes).
-
----
-
-
-## 📦 1. Environment Setup
-
-To set up the environment, please first follow the official [LIBERO repository](https://github.com/Lifelong-Robot-Learning/LIBERO) to install the base `LIBERO` environment.  
-
-⚠️ **Common issue:** LIBERO defaults to Python 3.8, but the syntax updates between 3.8 and 3.10 are substantial. **We verified that using Python 3.10 avoids many issues**. 
-
-
-Afterwards, inside the `LIBERO` environment, install the following dependencies:  
-
-```bash
-pip install tyro matplotlib mediapy websockets msgpack
-pip install numpy==1.24.4
-```
-
----
-
-## 🚀 2. Evaluation Workflow
-
-The evaluation should be run **from the repository root** using **two separate terminals**, one for each environment:  
-
-- **AlphaBrain environment**: runs the inference server.  
-- **LIBERO environment**: runs the simulation.  
-
-### Step 1. Start the server (AlphaBrain environment)
-
-In the first terminal, activate the `AlphaBrain` conda environment and run:  
-
-```bash
-bash benchmarks/LIBERO/eval/run_policy_server.sh
-```
-
-⚠️ **Note:** Please ensure that you specify the correct checkpoint path in `benchmarks/LIBERO/eval/run_policy_server.sh`  
-
-
----
-
-### Step 2. Start the simulation (LIBERO environment)
-
-In the second terminal, activate the `LIBERO` conda environment and run:  
-
-```bash
-bash benchmarks/LIBERO/eval/eval_libero.sh
-```
-⚠️ **Note:** Please ensure that you specify the correct checkpoint path in `eval_libero.sh` to load action unnormalization stats. 
-
-Also ensure the environment variables at the top of `eval_libero.sh` are correctly set.
-
-Finally, each result will also save a video for visualization, as shown below:
-
-![Example](example.gif)
-
----
-
-
-# 🚀 LIBERO Training
-
-## 📦 Step 0: Download the training dataset
-Download the datasets to the playground/Datasets/LEROBOT_LIBERO_DATA directory:
-- [LIBERO-spatial](https://huggingface.co/datasets/IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot)
-- [LIBERO-object](https://huggingface.co/datasets/IPEC-COMMUNITY/libero_object_no_noops_1.0.0_lerobot)
-- [LIBERO-goal](https://huggingface.co/datasets/IPEC-COMMUNITY/libero_goal_no_noops_1.0.0_lerobot)
-- [LIBERO-10](https://huggingface.co/datasets/IPEC-COMMUNITY/libero_10_no_noops_1.0.0_lerobot)
-
-And move `modality.json` to each `$LEROBOT_LIBERO_DATA/subset/meta/modality.json`.
-
-You could quickly prepare these by running:
-```bash
-# Set DEST to the directory where you want to store the data
-export DEST=/path/to/your/data/directory
-bash benchmarks/LIBERO/data_preparation.sh
-```
-
-
-## 🚀 Step1: Start Training
-
-Most of the required training files have been organized in [train_files](train_files).  
-
-Please run the following command to start training:
-
-```bash
-bash benchmarks/LIBERO/train/run_libero_train.sh
-```
-⚠️ **Note:** Please ensure that you specify the correct path in `benchmarks/LIBERO/train/run_libero_train.sh`
-
+当前状态、原始结果与论文入口见[Paper 1](../../docs/dsol_paper1/README.md)。开发树改动不自动应用到在途 frozen source。

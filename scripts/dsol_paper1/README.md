@@ -6,9 +6,12 @@
 
 | 要做什么 | 位置 |
 | --- | --- |
+| 借用研究节点只读健康监控 | [显式监控入口](operations/watch_research_node.py)；复用可信GPU／保活身份检查，center本地状态接入授权；失败锁存HOLD，不自动重启保活或重发任务 |
 | XR-1已完成矩阵的绘图尾项 | [CPU补图入口](analysis/render_xr1_completed_panel.py)；只消费既有数组／统计，独立输出并留存原失败，不重跑仿真 |
 | XR-1固定位置校准对照 | [只读诊断入口](analysis/analyze_xr1_seen_rules.py)；仅seen标签选位、heldout评价，探索性对照，不是主动搜索方法 |
-| 新实验的标准动态队列与恢复 | [统一执行入口](operations/manage_work_queue.py)；`prepare/status`不导入后端，`run/recover`必须显式`--execute`；接口和实际接入边界见[执行管理协议](../../docs/dsol_paper1/protocols/execution_management_zh.md) |
+| 新实验的标准动态队列与恢复 | [统一执行入口](operations/manage_work_queue.py)；`prepare/status`不导入后端，本版本`run/recover/audit-results`动态后端全部拒绝，`--execute`不能解锁；接口和实际接入边界见[执行管理协议](../../docs/dsol_paper1/protocols/execution_management_zh.md) |
+| 新三机模型执行入口 | [固定模型队列入口](operations/manage_model_queue.py)；`inspect/prepare`仅CPU准备，真实执行需要独立新绑定、当前阶段许可及`--execute`，旧队列/fleet不能借此解锁；复用冻结科学循环 |
+| Center账本接入的CPU验证 | [受账本约束的队列入口](operations/manage_controlled_queue.py)；复用标准队列，独立许可与owner/epoch校验；当前仅允许内置模拟后端，`--execute`一律拒绝，旧入口仍未全局隔离 |
 | 更强RoboCasa模型推理与Accel采集验收 | [XR-1显式工程探针](diagnostics/robocasa_xr1_probe.py)；真实缓存初态，不推进仿真，需完整资源收据，非闭环成绩 |
 | 更强模型有界闭环诊断 | [冻结与启动](operations/launch_robocasa_xr1_panel.py) · [worker](runtime/robocasa_xr1_worker.py)；先160条规范基线，扰动阶段另行放行，不修改P0执行器 |
 | 已完成三模型全视角面板的3D与任务分层诊断 | [只读分析入口](analysis/analyze_view_landscape.py)；只消费冻结数组，新建独立输出目录，不重跑模型、不替换原报告 |

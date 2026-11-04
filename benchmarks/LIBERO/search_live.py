@@ -58,6 +58,8 @@ def check_simulator_dependencies(config):
 
 @contextmanager
 def simulator(config_path,config,initial,output):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    dispatch_policy.reject_production('benchmarks/LIBERO/search_live.py:simulator')
     child=None
     with tempfile.TemporaryDirectory(prefix='dsol-live-search-') as temporary:
         address=str(Path(temporary)/'sim.sock')
@@ -106,6 +108,8 @@ def simulator(config_path,config,initial,output):
 
 
 def run(config_path,output,*,execute=False):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/search_live.py:run')
     if not execute:
         raise ValueError('Explicit --execute required')
     import torch

@@ -137,15 +137,22 @@ class LocalViewSearch:
     back, retries, or silently chooses another view.
     """
 
-    def __init__(self, mount, source, *, initial_angles, physical_state_id, wrist,
-                 score_scale, seed):
+    def __init__(self, mount, source, *, initial_angles, physical_state_id, wrist=None,
+                 score_scale, seed, visual_dim=None):
         self.mount, self.source, self.config = mount, source, mount.config
         self.initial = mount.angles(initial_angles)
         self.current = self.initial.copy()
         self.physical = physical_state_id
-        self.wrist = np.array(wrist, dtype=float, copy=True)
+        self.wrist = None if wrist is None else np.array(wrist, dtype=float, copy=True)
+        if self.wrist is None:
+            if type(visual_dim) is not int or visual_dim<1:raise ValueError('Explicit acquired feature dimension required')
+            self.visual_dim=visual_dim
+        else:
+            if self.wrist.ndim!=1 or len(self.wrist)==0 or not np.isfinite(self.wrist).all():
+                raise ValueError('Finite real wrist features required')
+            if visual_dim is not None:raise ValueError('Legacy wrist and native feature layouts cannot be mixed')
+            self.visual_dim=len(self.wrist)
         if (not isinstance(physical_state_id, str) or not physical_state_id
-                or self.wrist.ndim != 1 or len(self.wrist) == 0 or not np.isfinite(self.wrist).all()
                 or not np.isfinite(score_scale) or score_scale <= 0
                 or type(seed) is not int or seed < 0):
             raise ValueError('Explicit physical identity, wrist features, scale and seed required')
@@ -177,12 +184,15 @@ class LocalViewSearch:
         self._check_receipt(measurement.receipt, self.mount.pose(self.current))
         value = measurement.value
         visual = np.array(value.visual, dtype=float, copy=True)
-        if (visual.shape != self.wrist.shape or not np.isfinite(visual).all()
+        if (visual.shape != (self.visual_dim,) or not np.isfinite(visual).all()
                 or not np.isfinite([value.accel_mean, value.accel_std]).all()
                 or min(value.accel_mean, value.accel_std) < 0
                 or value.score_samples != self.config.score_samples):
             raise ValueError('Invalid actual view measurement')
-        return QueryResult(visual, float(value.accel_mean), float(value.accel_std), value.score_samples)
+        return self._copy_value(value,visual)
+
+    def _copy_value(self,value,visual):
+        return QueryResult(visual,float(value.accel_mean),float(value.accel_std),value.score_samples)
 
     def _refresh(self):
         self.proposals = self.mount.propose(self.current, [r[0] for r in self.records],
@@ -237,10 +247,13 @@ class LocalViewSearch:
         if not np.array_equal(self.current, target):
             self._move(target)
             actual = self._query('return_verification')
-            if (actual.accel_mean != expected.accel_mean or actual.accel_std != expected.accel_std
-                    or not np.array_equal(actual.visual, expected.visual)):
-                raise ValueError('Return query differs under fixed state/history/noise')
+            self._verify_return(expected,actual)
         self.status, self.reason = 'COMPLETE', reason
+
+    def _verify_return(self,expected,actual):
+        if (actual.accel_mean != expected.accel_mean or actual.accel_std != expected.accel_std
+                or not np.array_equal(actual.visual, expected.visual)):
+            raise ValueError('Return query differs under fixed state/history/noise')
 
     def observation(self):
         """History rows + fresh proposal rows use the existing actor schema.
@@ -259,7 +272,7 @@ class LocalViewSearch:
         geometry = np.zeros((len(angles), 12), dtype=np.float32)
         geometry[:, :3] = (poses[:, :3, 3] - origin[:3, 3]) @ origin[:3, :3] / .1
         geometry[:, 3:] = (origin[:3, :3].T @ poses[:, :3, :3]).reshape(-1, 9)
-        visual = np.zeros((len(angles), len(self.wrist)), dtype=np.float32)
+        visual = np.zeros((len(angles), self.visual_dim), dtype=np.float32)
         scores = np.zeros((len(angles), 2), dtype=np.float32)
         flags = np.zeros((len(angles), 4), dtype=np.float32)
         for i, (angle, value) in enumerate(self.records):
@@ -274,7 +287,7 @@ class LocalViewSearch:
             if self.queries < self.config.query_budget - 1:
                 mask[1 + history:] = 1
         return dict(geometry=geometry, visual=visual, scores=scores, flags=flags,
-                    wrist=unit_vector(self.wrist).astype(np.float32),
+                    **({} if self.wrist is None else dict(wrist=unit_vector(self.wrist).astype(np.float32))),
                     **{'global': np.array([self.queries / 16.,
                         (self.config.query_budget - self.queries) / 16., self.config.query_budget / 16.,
                         self.records[0][1].accel_mean / self.scale,

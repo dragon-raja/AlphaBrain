@@ -52,7 +52,8 @@ def test_attempt_ledger_survives_resume_and_counts_failure(tmp_path):
 
 def test_draft_rejected_before_model_or_asset_load(tmp_path):
     config=tmp_path/'draft.json';config.write_text(json.dumps({'authorization':'NOT_AUTHORIZED'}))
-    with pytest.raises(ValueError,match='not authorization'):run(config,tmp_path/'output',execute=True)
+    from AlphaBrain.research.dsol.execution.dispatch_policy import ProductionDispatchDisabled
+    with pytest.raises(ProductionDispatchDisabled):run(config,tmp_path/'output',execute=True)
     assert not (tmp_path/'output').exists()
     backend=ContinuousTrainingBackend(dict(runtime=dict(mode='continuous_ppo_training',workers_per_gpu=1,
         config=str(config)),slots=[{}],tasks=[{}]),tmp_path)
@@ -68,11 +69,13 @@ def test_old_launch_cannot_silently_select_new_training_math(tmp_path):
     from benchmarks.LIBERO.continuous_training import validate_inputs
     path=tmp_path/'old.json';path.write_text(json.dumps({'authorization':'EXPLICIT_TRAINING_ONLY'}))
     with pytest.raises(ValueError,match='corrected training revision'):validate_inputs(path)
-    with pytest.raises(ValueError,match='corrected training revision'):run(path,tmp_path/'output',execute=True)
+    from AlphaBrain.research.dsol.execution.dispatch_policy import ProductionDispatchDisabled
+    with pytest.raises(ProductionDispatchDisabled):run(path,tmp_path/'output',execute=True)
     assert not (tmp_path/'output').exists()
 
 
-def test_live_episode_adapter_with_4608_model_on_synthetic_renderer(tmp_path,monkeypatch):
+@pytest.mark.parametrize('reward_scale',[None,.125])
+def test_live_episode_adapter_with_4608_model_on_synthetic_renderer(tmp_path,monkeypatch,reward_scale):
     """Exercise actual query/prefetch/return/log wiring, using fake VLA + renderer."""
     torch=pytest.importorskip('torch');pytest.importorskip('gymnasium')
     from contextlib import contextmanager
@@ -107,11 +110,21 @@ def test_live_episode_adapter_with_4608_model_on_synthetic_renderer(tmp_path,mon
         yield request
     monkeypatch.setattr(search_runtime,'create_policy_runtime',FakeVLA)
     monkeypatch.setattr(search_live,'simulator',fake_simulator)
+    from tests.dsol_paper1.helpers.dispatch_policy import allow_synthetic_boundaries
+    allow_synthetic_boundaries(monkeypatch, 'benchmarks/LIBERO/continuous_training.py:LiveEpisodes.__init__')
     anchors=tmp_path/'anchors.npz';np.savez(anchors,first_score_noise=np.zeros((16,2,10,7),dtype=np.float32))
     sim=tmp_path/'sim.json';sim.write_text(json.dumps({'anchors':str(anchors)}))
     cfg=dict(sim_config=str(sim),trajectory_cap=512)
     plan=read(Path(__file__).resolve().parents[3]/'configs/dsol_paper1/search/continuous_search_v1.json')
-    output=tmp_path/'training';live=LiveEpisodes(cfg,plan,output)
+    from AlphaBrain.research.dsol.acquisition import continuous_search
+    original_core=continuous_search.ContinuousSearch
+    class core(original_core):
+        def __init__(self,*args,**kwargs):
+            super().__init__(*args,**kwargs)
+            assert self.scale==plan['actor']['score_scale']
+            assert self.reward_scale==(self.scale if reward_scale is None else reward_scale)
+    monkeypatch.setattr(continuous_search,'ContinuousSearch',core)
+    output=tmp_path/'training';live=LiveEpisodes(cfg,plan,output,reward_scale=reward_scale)
     schedule=[dict(episode=i,initial=i%16,angles_deg=[-17.5,9.5],proposal_seed=i) for i in range(32)]
     policy=ContinuousActorCritic(4608)
     with ContinuousPPO(policy,ContinuousPPOConfig(updates=1),schedule,live,output,

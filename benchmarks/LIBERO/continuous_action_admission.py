@@ -10,6 +10,8 @@ from .search_runtime import PolicyRuntime
 
 
 def run(config_path, output, *, execute=False):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/continuous_action_admission.py:run')
     if not execute: raise ValueError('Explicit engineering authorization required')
     config = read(config_path); output = Path(output); output.mkdir(parents=True, exist_ok=False)
     runtime = None; cases = []

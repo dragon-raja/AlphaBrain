@@ -54,10 +54,10 @@ def simulator(config_file, initial, model, output, socket_path):
     if list(noise.shape) != manifest['shape'] or noise.dtype != np.float32:
         raise ValueError('Execution noise shape mismatch')
     state_index = manifest['state_keys'].index(spec['pair_key'])
-    from scripts.dsol_paper1.runtime.evaluate_dsol_libero_hdf5_views import configure_imports, masked_policy_observation, MAX_STEPS_BY_SUITE
-    from scripts.dsol_paper1.runtime.audit_libero_hdf5_restore import _configure_runtime
-    from scripts.dsol_paper1.runtime.standard_initialization_v1 import initialize, load_initial
-    from scripts.dsol_paper1.runtime.render_bridge_common_v1 import render_protocol
+    from benchmarks.LIBERO.simulation_inputs import configure_imports, masked_policy_observation, MAX_STEPS_BY_SUITE
+    from benchmarks.LIBERO.simulation_inputs import _configure_runtime
+    from benchmarks.LIBERO.simulation_inputs import initialize, load_initial
+    from benchmarks.LIBERO.simulation_inputs import render_protocol
     configure_imports(); connection = Client(socket_path, family='AF_UNIX')
     begin = time.monotonic(); scores = np.empty((len(variants)+1, 8))
     # Same eight initial scoring noises and batch16 execution path as LIBERO.
@@ -94,7 +94,7 @@ def simulator(config_file, initial, model, output, socket_path):
     with tempfile.TemporaryDirectory(prefix='dsol-plus-rollout-') as temporary:
         _configure_runtime(Path(config['runtime']), Path(config['dataset']), Path(temporary))
         from libero.libero.envs import OffScreenRenderEnv
-        from evaluate_pi05_libero_plus_views import agentview_camera_calibration
+        from benchmarks.LIBERO.simulation_inputs import agentview_camera_calibration
         physical = load_initial(spec)
         with render_protocol(0) as contexts:
             for index, j in enumerate(indices):

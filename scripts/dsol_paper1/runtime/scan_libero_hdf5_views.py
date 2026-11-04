@@ -35,12 +35,7 @@ def _atomic_json(path: Path, payload: object) -> None:
     temporary.replace(path)
 
 
-def _restore_reference(env: Any, reference: Mapping[str, Any]) -> None:
-    sim = env.env.sim
-    camera_id = int(reference["camera_id"])
-    sim.model.cam_pos[camera_id] = np.asarray(reference["position"])
-    sim.model.cam_quat[camera_id] = np.asarray(reference["quaternion"])
-    sim.forward()
+from benchmarks.LIBERO.simulation_inputs import _restore_reference
 
 
 def _camera_metadata_from_reference(reference: Mapping[str, Any]) -> dict[str, Any]:

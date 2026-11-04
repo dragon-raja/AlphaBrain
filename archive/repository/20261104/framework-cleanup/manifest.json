@@ -1,0 +1,60 @@
+{
+  "records": [
+    {
+      "old": "docs/dsol_paper1/README.md",
+      "archive": "archive/repository/20261104/framework-cleanup/docs/dsol_paper1/README.md",
+      "sha256": "571193c7814bb9aa42ddbd4f95df9f47d18e8777f6dc5a94e6a530564639daea",
+      "kind": "historical_document"
+    },
+    {
+      "old": "docs/architecture/README.md",
+      "archive": "archive/repository/20261104/framework-cleanup/docs/architecture/README.md",
+      "sha256": "ddaba2c74003f0379395ea416139091846b3905a0755ae1c1ff49805ab2c6581",
+      "kind": "historical_document"
+    },
+    {
+      "old": "docs/architecture/distributed_execution_zh.md",
+      "archive": "archive/repository/20261104/framework-cleanup/docs/architecture/distributed_execution_zh.md",
+      "sha256": "b9ba4a81ecb499414098b7124896ccaf27da79f16f7a7a20ebad6527b6c8b288",
+      "kind": "historical_document"
+    },
+    {
+      "old": "benchmarks/LIBERO/README.md",
+      "archive": "archive/repository/20261104/framework-cleanup/benchmarks/LIBERO/README.md",
+      "sha256": "683210da279d1a208785e23591ea52f21ef89c2c4ba65ec79ac12f76efa6c6df",
+      "kind": "historical_document"
+    },
+    {
+      "old": "benchmarks/Robocasa_tabletop/README.md",
+      "archive": "archive/repository/20261104/framework-cleanup/benchmarks/Robocasa_tabletop/README.md",
+      "sha256": "fdb0a09947cc613bbb021dd07db5df28e0e9444ae5886dab322d8114d5adba58",
+      "kind": "historical_document"
+    },
+    {
+      "old": "benchmarks/LIBERO/baseline_dispatch.py",
+      "archive": "archive/repository/20261104/framework-cleanup/benchmarks/LIBERO/baseline_dispatch.py",
+      "sha256": "637187e987984268f1e33909e3af9fffd5de40e9c80b3d29514c54f2ce910926",
+      "kind": "retired_runtime"
+    },
+    {
+      "old": "benchmarks/LIBERO/baseline_panel.py",
+      "archive": "archive/repository/20261104/framework-cleanup/benchmarks/LIBERO/baseline_panel.py",
+      "sha256": "3e91609044914e0f08050d85626f1d7603842958ceff53b5c8baca48fa18fde5",
+      "kind": "retired_runtime"
+    },
+    {
+      "old": "benchmarks/LIBERO/initialization_dispatch.py",
+      "archive": "archive/repository/20261104/framework-cleanup/benchmarks/LIBERO/initialization_dispatch.py",
+      "sha256": "d49e19279e1f3b6575ed6dd42db403dffe3d714b315e77ed1842cb6289f55f48",
+      "kind": "retired_runtime"
+    },
+    {
+      "old": "benchmarks/LIBERO/eval/model2libero_interface.py",
+      "archive": "archive/repository/20261104/framework-cleanup/benchmarks/LIBERO/eval/model2libero_interface.py",
+      "sha256": "d7403eef400a77b7d35d17f63a139bcafd4c6cb5bdec9254457e287a19d5f7c7",
+      "kind": "retired_runtime"
+    }
+  ],
+  "reason": "Retain exact evidence; current mainline is pi05/groot/rldx on LIBERO/GR1. No active source snapshots moved.",
+  "recovery": "Restore archived files in a separate checkout using old paths; never replay old queue permissions."
+}

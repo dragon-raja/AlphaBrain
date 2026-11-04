@@ -39,6 +39,8 @@ def test_actual_worker_reuses_backend_across_versions_without_changing_rollouts(
                 wrist=np.ones(4608),score_scale=1.,seed=row['proposal_seed'])
             yield ContinuousSearchGym(4608),{'session':core}
     monkeypatch.setattr('benchmarks.LIBERO.continuous_training.LiveEpisodes',FakeLive)
+    from tests.dsol_paper1.helpers.dispatch_policy import allow_synthetic_boundaries
+    allow_synthetic_boundaries(monkeypatch, 'benchmarks/LIBERO/continuous_parallel.py:worker')
     plan=tmp_path/'design.json';plan.write_text(json.dumps(dict(training=dict(seed=0))))
     cfg=tmp_path/'config.json';cfg.write_text(json.dumps(dict(authorization='EXPLICIT_ADMISSION_ONLY',
         design=str(plan),source_kind='SYNTHETIC_CPU_ONLY')))
@@ -93,10 +95,21 @@ def fake(path,output,**kwargs):
  p=Path(output);p.mkdir(parents=True)
  (p/"status.json").write_text(json.dumps(dict(status="COMPLETE",version=r["version"])))
 m.worker=fake
+from AlphaBrain.research.dsol.execution import dispatch_policy
+original=dispatch_policy.reject_production
+dispatch_policy.reject_production=lambda entry: None if entry=='benchmarks/LIBERO/continuous_resident.py:serve' else original(entry)
 m.serve(sys.argv[1],sys.argv[2],execute=True)
 '''
             return [sys.executable,'-c',code,task['payload']['binding'],task['output']]
     monkeypatch.setattr(module,'ResidentBackend',CPUBackend)
+    from tests.dsol_paper1.helpers.dispatch_policy import allow_synthetic_boundaries
+    allow_synthetic_boundaries(monkeypatch,
+        'benchmarks/LIBERO/continuous_resident.py:ResidentPool.__init__',
+        'benchmarks/LIBERO/continuous_resident.py:ResidentPool.start',
+        'benchmarks/LIBERO/continuous_resident.py:ResidentPool.collect',
+        'AlphaBrain/research/dsol/execution/process_backend.py:LocalProcessBackend.start')
+    # Queue-engine/process cleanup test with the explicitly substituted CPU worker.
+    monkeypatch.setattr('AlphaBrain.research.dsol.execution.dispatch_policy.require_queue_scope', lambda *a: None)
     config=tmp_path/'cfg.json';config.write_text('{}')
     runtime=dict(host='cpu',source=str(Path(__file__).resolve().parents[3]),environment={},
         source_artifacts=[],slots=[dict(host='cpu',id=str(i),gpu_id=str(i)) for i in range(workers)],

@@ -14,7 +14,7 @@ from AlphaBrain.research.dsol.data.artifacts import read
 from AlphaBrain.research.dsol.execution.manifest import file_digest,task_key,verify_artifacts
 from AlphaBrain.research.dsol.execution.queue import prepare,run,MissingResult,_durable_write
 from AlphaBrain.research.dsol.execution.resident_mailbox import ResidentMailbox
-from benchmarks.Robocasa365.probe_queue import process_identity
+from AlphaBrain.research.dsol.execution.process_backend import process_identity
 from .continuous_parallel import CollectorBackend,worker
 
 
@@ -37,6 +37,8 @@ class ResidentBackend(CollectorBackend):
 
 
 def serve(binding_path,output,*,execute=False):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/continuous_resident.py:serve')
     binding=read(binding_path)
     if not execute or binding['authorization']!='EXPLICIT_RESIDENT_COLLECTION_ONLY':
         raise ValueError('Resident collection not authorized')
@@ -67,6 +69,8 @@ def serve(binding_path,output,*,execute=False):
 class ResidentPool:
     """One local pool per run. Interrupted/in-flight pools are never auto-resumed."""
     def __init__(self,config,runtime,root,control,*,workers=4):
+        from AlphaBrain.research.dsol.execution import dispatch_policy
+        dispatch_policy.reject_production('benchmarks/LIBERO/continuous_resident.py:ResidentPool.__init__')
         if workers not in (1,4,8):raise ValueError('Unsupported resident worker count')
         self.root,self.control=Path(root),Path(control)
         self.root.mkdir(parents=True,exist_ok=False)
@@ -95,6 +99,8 @@ class ResidentPool:
         prepare(self.plan,self.control)
 
     def start(self):
+        from AlphaBrain.research.dsol.execution import dispatch_policy
+        dispatch_policy.reject_production('benchmarks/LIBERO/continuous_resident.py:ResidentPool.start')
         def sleep(seconds):
             if self.stop_event.wait(seconds):raise RuntimeError('Resident pool stopped by central learner')
         def target():
@@ -110,6 +116,8 @@ class ResidentPool:
         return False
 
     def collect(self,requests):
+        from AlphaBrain.research.dsol.execution import dispatch_policy
+        dispatch_policy.reject_production('benchmarks/LIBERO/continuous_resident.py:ResidentPool.collect')
         if len(requests)!=self.workers:raise ValueError('Resident quota mismatch')
         for box,path in zip(self.mailboxes,requests):box.publish(self.version,path)
         if self.thread is None:self.start()

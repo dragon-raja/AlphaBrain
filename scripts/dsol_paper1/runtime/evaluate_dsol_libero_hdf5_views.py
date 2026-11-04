@@ -42,43 +42,7 @@ def configure_imports() -> None:
             sys.path.insert(0, value)
 
 
-def masked_policy_observation(
-    observation: Mapping[str, Any],
-    *,
-    prompt: str,
-    resize_size: int,
-    eval_seed: int,
-    camera_calibration: Mapping[str, Any],
-    sensor_control: str,
-    explicit_noise: np.ndarray | None = None,
-    noise_sha256: str | None = None,
-) -> tuple[dict[str, Any], np.ndarray, np.ndarray]:
-    from evaluate_pi05_libero_plus_views import prepare_policy_observation
-
-    example, agent, wrist = prepare_policy_observation(
-        observation,
-        prompt=prompt,
-        resize_size=resize_size,
-        eval_seed=eval_seed,
-        camera_calibration=camera_calibration,
-    )
-    if sensor_control == "external_only":
-        wrist = np.zeros_like(wrist)
-        example["observation/wrist_image"] = wrist
-    elif sensor_control == "wrist_only":
-        agent = np.zeros_like(agent)
-        example["observation/image"] = agent
-    elif sensor_control == "all_blackout":
-        agent = np.zeros_like(agent)
-        wrist = np.zeros_like(wrist)
-        example["observation/image"] = agent
-        example["observation/wrist_image"] = wrist
-    elif sensor_control != "both":
-        raise ValueError(f"unsupported sensor control: {sensor_control}")
-    if explicit_noise is not None:
-        example["_eval_noise"] = np.ascontiguousarray(explicit_noise, dtype=np.float32)
-        example["_eval_noise_sha256"] = str(noise_sha256)
-    return example, agent, wrist
+from benchmarks.LIBERO.simulation_inputs import masked_policy_observation
 
 
 def deployed_camera_names(sensor_control: str) -> tuple[str, ...]:

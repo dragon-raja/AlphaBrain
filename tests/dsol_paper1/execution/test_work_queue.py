@@ -13,6 +13,17 @@ from AlphaBrain.research.dsol.execution.queue import MissingResult, exclusive, l
 from tests.dsol_paper1.paths import ROOT
 
 
+@pytest.fixture(autouse=True)
+def isolate_queue_engine(monkeypatch):
+    """Exercise engine mechanics with in-memory fakes, not public admission.
+
+    Unpatched public-entry rejection and integrated ledger tests live in
+    test_dispatch_policy.py and test_controlled_queue.py respectively.
+    """
+    monkeypatch.setattr('AlphaBrain.research.dsol.execution.dispatch_policy.require_queue_scope',
+                        lambda *args: None)
+
+
 @pytest.fixture
 def plan(tmp_path):
     protocol = tmp_path / 'protocol.json'
@@ -86,6 +97,37 @@ def execute(root, backend, **kwargs):
     return run(root, backend, poll_seconds=0, sleep=lambda _: None, **kwargs)
 
 
+def test_startup_services_running_workers_before_next_launch(plan, tmp_path):
+    plan['slots'] = [dict(host='local', id=str(i)) for i in range(24)]
+    for task in plan['tasks']:
+        task['payload']['length'] = 20
+    class HeartbeatBackend(FakeBackend):
+        def __init__(self):
+            super().__init__()
+            self.awaiting_poll = set()
+        def start(self, task, slot, attempt):
+            assert not self.awaiting_poll, 'Slow launch batch starved running workers'
+            handle = super().start(task, slot, attempt)
+            self.awaiting_poll = {k for k, row in self.records.items() if row['alive']}
+            return handle
+        def poll(self, handle):
+            self.awaiting_poll.discard(handle['key'])
+            return super().poll(handle)
+    root = tmp_path / 'startup'
+    prepare(plan, root)
+    assert execute(root, HeartbeatBackend())['status'] == 'COMPLETE'
+
+
+def test_exhausted_host_does_not_block_other_eligible_slots(plan, tmp_path):
+    for task in plan['tasks']:
+        task['eligible_slots'] = [plan['slots'][1]]
+    root = tmp_path / 'host_eligibility'
+    prepare(plan, root)
+    backend = FakeBackend()
+    assert execute(root, backend)['status'] == 'COMPLETE'
+    assert len(backend.launched) == len(plan['tasks'])
+
+
 def test_dynamic_two_host_drain_preserves_trial_addresses(plan, tmp_path):
     before = deepcopy(plan)
     root = tmp_path / 'run'
@@ -124,7 +166,7 @@ def test_physical_gpu_drain_does_not_cancel_and_resumes(plan, tmp_path):
 
     def sleep(_):
         ticks.append(1)
-        if len(ticks) == 1:
+        if len(ticks) == 2:
             set_drain(root, 'local', '0', reason='capacity test')
         if len(ticks) == 5:
             info = resource_status(root)['devices'][0]
@@ -356,38 +398,14 @@ def test_state_slot_outside_manifest_rejected(plan, tmp_path):
         load(root)
 
 
-def test_explicit_cli_uses_only_fingerprinted_adapter(plan, tmp_path, monkeypatch, capsys):
-    from pathlib import Path
-    from types import SimpleNamespace
-    from AlphaBrain.research.dsol.execution import cli
-
-    def factory(_plan, _root):
-        return FakeBackend()
-
-    source = Path(__file__).resolve()
-    plan['artifacts'].append(dict(path=str(source), sha256=file_digest(source)))
-    root = tmp_path / 'run'
-    prepare(plan, root)
-    monkeypatch.setattr(cli.importlib, 'import_module', lambda _: SimpleNamespace(factory=factory))
-    assert main(['run', '--root', str(root), '--poll-seconds', '0', '--execute']) == 0
-    assert 'COMPLETE' in capsys.readouterr().out
-
-
-def test_unfingerprinted_factory_is_never_called(plan, tmp_path, monkeypatch):
-    from types import SimpleNamespace
-    from AlphaBrain.research.dsol.execution import cli
-    called = []
-
-    def factory(_plan, _root):
-        called.append(True)
-        return FakeBackend()
-
-    root = tmp_path / 'run'
-    prepare(plan, root)
-    monkeypatch.setattr(cli.importlib, 'import_module', lambda _: SimpleNamespace(factory=factory))
-    with pytest.raises(ValueError, match='fingerprinted'):
-        main(['run', '--root', str(root), '--execute'])
-    assert not called
+@pytest.mark.parametrize('action', ['run', 'recover', 'audit-results'])
+def test_legacy_cli_never_loads_adapter_even_with_execute(action, tmp_path, capsys):
+    root = tmp_path / 'absent-queue'
+    with pytest.raises(SystemExit) as error:
+        main([action, '--root', str(root), '--execute'])
+    assert error.value.code == 2
+    assert 'disabled' in capsys.readouterr().err
+    assert not root.exists()
 
 
 def test_failed_atomic_write_keeps_previous_state_and_removes_temporary(tmp_path, monkeypatch):
@@ -422,3 +440,18 @@ def test_planned_drain_keeps_inflight_and_never_starts_pending(tmp_path,plan):
     assert sum(x['status']=='PENDING' for x in state['tasks'].values())==4
     recover(root,backend);run(root,backend,poll_seconds=0)
     assert len(backend.launched)==6
+
+
+def test_explicit_eligible_slots_prevent_cross_model_reassignment(plan,tmp_path):
+    original={t['key'] for t in plan['tasks']}
+    expected={}
+    for i,task in enumerate(plan['tasks']):
+        slot=plan['slots'][i%2]
+        task['eligible_slots']=[slot];task['identity_experiment_id']='experiment'
+        expected[task['key']]=slot['host']
+    plan['experiment_id']='new-control-only-namespace'
+    validate(plan)
+    root=tmp_path/'bound-queue';prepare(plan,root);backend=FakeBackend()
+    assert execute(root,backend)['status']=='COMPLETE'
+    assert {key for key,_,_,_ in backend.launched}==original
+    assert all(host==expected[key] for key,host,_,_ in backend.launched)

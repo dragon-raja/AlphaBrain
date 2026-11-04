@@ -10,6 +10,75 @@ PALIGEMMA_IMAGE_TOKENS_PER_VIEW = 256
 _NEG_INF_ADDITIVE = -2.3819763e38
 
 
+class StandaloneSiglipFeatures:
+    """Frozen two-view tower using the same capture/pooling as native Pi0.5.
+
+    Accepts explicitly preprocessed pixels. It does not resize, normalize, fill
+    missing cameras, load a manipulation model, or certify cross-model transfer.
+    Caller admission must compare these pixels and features with the source
+    policy on real observations before this bridge is used in an experiment.
+    """
+    def __init__(self, tower):
+        self.tower=tower.eval().requires_grad_(False)
+
+    @torch.inference_mode()
+    def __call__(self, pixels):
+        names=('external','wrist')
+        if set(pixels)!=set(names):
+            raise ValueError('Both real external and wrist views are required')
+        for name in names:
+            value=pixels[name]
+            if (not isinstance(value,torch.Tensor) or tuple(value.shape)!=(1,3,224,224)
+                    or value.dtype!=torch.float32 or not torch.isfinite(value).all()
+                    or value.min() < -1 or value.max() > 1):
+                raise ValueError('Explicit float32 [-1,1] source-policy pixels required')
+        tap=SiglipFeatureCapture(self.tower,patch_grid=(16,16),view_names=names)
+        with tap:
+            for name in names:self.tower(pixel_values=pixels[name])
+        features=tap.features()
+        if any(tuple(v.shape)!=(1,4,1152) for v in features.values()):
+            raise ValueError('Source actor requires the admitted 4608-dimensional tower')
+        return {k:v.reshape(1,4608) for k,v in features.items()}
+
+
+def load_standalone_siglip(checkpoint, *, expected_sha256, vision_config, device):
+    """Load only the vision subtree; no language/action expert or downloads.
+
+    Configuration and implementation identity are supplied by the binding.
+    Loading weights is not numerical admission and performs no model forward.
+    """
+    import hashlib
+    from safetensors import safe_open
+    from transformers import SiglipVisionConfig, SiglipVisionModel
+    h=hashlib.sha256()
+    with open(checkpoint,'rb') as stream:
+        for chunk in iter(lambda:stream.read(8*1024*1024),b''):h.update(chunk)
+    if h.hexdigest()!=expected_sha256:
+        raise ValueError('Source visual checkpoint changed')
+    prefix='paligemma_with_expert.paligemma.model.vision_tower.'
+    with safe_open(checkpoint,framework='pt',device='cpu') as archive:
+        state={k[len(prefix):]:archive.get_tensor(k) for k in archive.keys() if k.startswith(prefix)}
+    with torch.device('meta'):
+        tower=SiglipVisionModel(SiglipVisionConfig(**vision_config))
+    tower.load_state_dict(state,strict=True,assign=True)
+    # Transformers omits deterministic position_ids from state_dict. Restore
+    # that buffer explicitly; assign=True cannot materialize meta buffers.
+    embeddings=tower.vision_model.embeddings
+    embeddings.position_ids=torch.arange(embeddings.num_positions,device='cpu').expand((1,-1))
+    if any(b.is_meta for b in tower.buffers()):
+        raise ValueError('Unrecognized meta buffer in source visual architecture')
+    # Match the *resolved native runtime*, not the checkpoint dtype alone.
+    # NativePolicyRuntime explicitly calls to_bfloat16_for_selected_params
+    # after loading, rounding even the float32 checkpoint embeddings through
+    # bf16 before restoring their compute dtype. Preserving their original
+    # precision here changes the frozen actor's input features (CPU load audit).
+    tower=tower.to(device=device,dtype=torch.bfloat16)
+    for name,param in tower.named_parameters():
+        if name.startswith('vision_model.embeddings.'):
+            param.data=param.data.float()
+    return StandaloneSiglipFeatures(tower)
+
+
 class SiglipFeatureCapture:
     """Capture 2x2 pooled tokens during an existing eager policy forward.
 

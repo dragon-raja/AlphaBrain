@@ -7,11 +7,11 @@ from pathlib import Path
 
 from AlphaBrain.research.dsol.data.artifacts import read, sha
 from AlphaBrain.research.dsol.execution.queue import MissingResult
-from benchmarks.Robocasa365.probe_queue import ProbeBackend
+from AlphaBrain.research.dsol.execution.process_backend import LocalProcessBackend
 from .plus_render import validate_output
 
 
-class PlusRenderBackend(ProbeBackend):
+class PlusRenderBackend(LocalProcessBackend):
     def admit(self, slot):
         if slot['host'] != self.runtime['host']:
             raise ValueError('Host-local queue ownership mismatch')

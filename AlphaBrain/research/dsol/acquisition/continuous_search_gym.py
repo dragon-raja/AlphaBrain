@@ -31,18 +31,23 @@ class ContinuousSearchGym(gym.Env):
         self.visual_dim, self.core = visual_dim, None
 
     def reset(self, *, seed=None, options=None):
-        from .continuous_search import ContinuousSearch
         if self.core is not None and self.core.status != 'COMPLETE':
             raise ValueError('Cannot discard an active/failed search')
         core = (options or {}).get('session')
-        if (not isinstance(core, ContinuousSearch) or core.status != 'NEW'
-                or core.config.query_budget != 8 or len(core.wrist) != self.visual_dim):
-            raise ValueError('Explicit fresh continuous session required')
+        self._validate_session(core)
         super().reset(seed=seed); self.core = core
-        return continuous_observation(core.start()), core.info()
+        return self._observation(core.start()), core.info()
+
+    def _validate_session(self,core):
+        from .continuous_search import ContinuousSearch
+        if (not isinstance(core,ContinuousSearch) or core.status!='NEW'
+                or core.config.query_budget!=8 or core.wrist is None or len(core.wrist)!=self.visual_dim):
+            raise ValueError('Explicit fresh continuous session required')
+
+    def _observation(self,obs):return continuous_observation(obs)
 
     def step(self, action):
         if self.core is None or not self.action_space.contains(action):
             raise ValueError('Reset first and provide a valid continuous action')
         obs, reward, done, truncated, info = self.core.step(dict(stop=bool(action['stop']), delta_deg=action['delta_deg']))
-        return continuous_observation(obs), reward, done, truncated, info
+        return self._observation(obs), reward, done, truncated, info

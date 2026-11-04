@@ -34,23 +34,7 @@ def array_identity(value):
 
 def cell_key(spec): return (spec['pair_key'],spec['selected_candidate_id'],int(spec['policy_repeat_id']))
 
-@contextmanager
-def render_protocol(offsamples):
-    if offsamples not in (0,4): raise ValueError('Only preregistered AA0/AA4 protocols are permitted')
-    from robosuite.utils.binding_utils import MjRenderContext
-    original=MjRenderContext._set_mujoco_context_and_buffers
-    contexts=[]
-    def initialize(context):
-        if offsamples==4 and int(context.model.vis.quality.offsamples)!=4:
-            raise ValueError('Historical XML does not have the expected default MSAA4 setting')
-        context.model.vis.quality.offsamples=offsamples
-        result=original(context)
-        if int(context.con.offSamples)!=offsamples: raise ValueError('Actual framebuffer sample count differs')
-        contexts.append(int(context.con.offSamples))
-        return result
-    MjRenderContext._set_mujoco_context_and_buffers=initialize
-    try: yield contexts
-    finally: MjRenderContext._set_mujoco_context_and_buffers=original
+from benchmarks.LIBERO.simulation_inputs import render_protocol
 
 def verify_release():
     release=read(ROOT/'release.json')

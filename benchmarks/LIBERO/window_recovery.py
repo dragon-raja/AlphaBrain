@@ -63,12 +63,12 @@ def prepare(config_file,host,phase):
 
 def run(config_file,host):
     from AlphaBrain.research.dsol.execution.cli import main
-    from benchmarks.Robocasa365.probe_queue import ProbeBackend
+    from AlphaBrain.research.dsol.execution.process_backend import LocalProcessBackend
     cfg=read(config_file); root=Path(read(cfg['worker_config'])['root']); deadline=time.monotonic()+cfg['timeout_seconds']
     status=root/f'window-recovery-{host}.json'
     oldroot=Path(cfg['old_controls'][host]); plan=read(oldroot/'manifest.json'); state=read(oldroot/'state.json')
     if state['status']!='FAILED':raise ValueError('Expected stopped original queue')
-    backend=ProbeBackend(plan,oldroot)
+    backend=LocalProcessBackend(plan,oldroot)
     for row in state['tasks'].values():
         if row.get('handle') and backend.alive(row['handle']):raise RuntimeError('Old worker still alive')
     def execute(phase):

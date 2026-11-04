@@ -2,6 +2,33 @@
 import math
 
 
+def assign_pending_blocks(blocks, capacity, *, cost):
+    """Deterministic cost-first placement before queue creation only.
+
+    The input is unlaunched campaign blocks, not live queue state. The supplied
+    cost uses frozen work bounds or admitted timing, never outcomes. Return
+    copies with new resource host/index fields; scientific rows are untouched.
+    """
+    from copy import deepcopy
+    if not blocks or not capacity or any(type(v) not in (int,float) or not math.isfinite(v) or v<=0 for v in capacity.values()):
+        raise ValueError('Nonempty blocks and positive finite admitted capacity required')
+    weighted=[]
+    for index, block in enumerate(blocks):
+        if any(k in block for k in ('handle','attempt','status')):
+            raise ValueError('Live or attempted work cannot be reassigned')
+        weight=cost(block)
+        if type(weight) not in (int,float) or not math.isfinite(weight) or weight<=0:
+            raise ValueError('Positive finite work estimate required')
+        weighted.append((index,weight,block))
+    loads={host:0. for host in capacity};result=[]
+    for _,weight,block in sorted(weighted,key=lambda item:(-item[1],item[0])):
+        host=min(capacity,key=lambda h:((loads[h]+weight)/capacity[h],loads[h]/capacity[h],h))
+        item=deepcopy(block);item.update(host=host,index=len(result));result.append(item);loads[host]+=weight
+    return dict(blocks=result,estimated_work=loads,
+                estimated_finish={h:loads[h]/capacity[h] for h in capacity},
+                status='PRE_DISPATCH_RESOURCE_PLAN',dispatch_authority=False)
+
+
 def plan_allocation(work, current, total_gpus, *, qualified, minimum_gain=.15):
     """work is remaining GPU-seconds at the admitted workers/GPU setting.
 

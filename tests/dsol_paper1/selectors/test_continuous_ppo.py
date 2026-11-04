@@ -42,6 +42,17 @@ def equal(a,b):
     else:assert a==b
 
 
+def test_legacy_actor_protocol_survives_real_collector_and_ingest_validation(tmp_path):
+    from AlphaBrain.research.dsol.selectors.continuous_ppo import collect_episode
+    from AlphaBrain.research.dsol.selectors.continuous_parallel import validate_rollout
+    torch.set_num_threads(1);torch.manual_seed(5)
+    policy=ContinuousActorCritic(4,width=16).eval();policy.training_protocol_sha256='a'*64
+    row=dict(episode=0,initial=0,proposal_seed=17,angles_deg=[0,0])
+    episode,metrics=collect_episode(policy,backend,row,tmp_path,policy_update=0,source_kind='SYNTHETIC_CPU_NO_MODEL')
+    assert metrics['training_protocol_sha256']=='a'*64
+    validate_rollout(policy,dict(episode=episode,metrics=metrics),row,0)
+
+
 @pytest.mark.parametrize('pause',[7,32,39])
 def test_full_training_and_exact_resume(tmp_path,pause):
     with trainer(tmp_path/'whole') as full:

@@ -138,6 +138,24 @@ def test_worker_restart_requires_new_fresh_consistent_status(case):
     assert result['status']=='PASS' and result['attempts']==2 and result['keepalive']['pid']==12
 
 
+@pytest.mark.parametrize('stable_after', [2, 3, None])
+def test_membership_churn_has_bounded_fresh_sampling_not_task_retry(case, stable_after):
+    c, snapshot = case; observations = []; sleeps = []
+    def sample(_):
+        observations.append(1)
+        if stable_after is None or len(observations) < stable_after:
+            raise TransientMonitorError('GPU ownership changed during preflight')
+        return deepcopy(snapshot)
+    result = preflight(c, collector=sample, sleep=sleeps.append)
+    assert len(observations) == (stable_after or 3)
+    assert len(sleeps) == len(observations) - 1
+    if stable_after is None:
+        assert result['status'] == 'MONITOR_ERROR' and result['model_calls'] == 0
+        assert all(not row['allowed'] for row in result['rows'])
+    else:
+        assert result['status'] == 'PASS' and result['attempts'] == stable_after
+
+
 def test_mixed_same_named_foreign_process_blocks_only_occupied_gpu(case):
     c,s=case
     s['apps'].append(dict(gpu_uuid='GPU-3',pid=99,used_mib=50))
@@ -203,3 +221,102 @@ def test_loading_peer_peak_is_reserved_before_actual_gpu_allocation(case):
 def test_nonfinite_memory_threshold_never_bypasses_admission(case,field):
     c,s=case;c[field]=float('nan')
     assert preflight(c,collector=lambda _:s)['status']=='MONITOR_ERROR'
+
+
+def test_resident_continuation_retains_two_peaks_without_charging_a_third(case):
+    c,s=case;owners=[]
+    for pid in (20,21):
+        leader=dict(s['worker'],pid=pid,ppid=1,pgid=pid,sid=pid,start_ticks=50000+pid)
+        s['processes'][pid]=leader
+        s['apps'].append(dict(gpu_uuid='GPU-0',pid=pid,used_mib=8000))
+        owners.append(dict(pid=pid,start=str(50000+pid),boot='boot',group=pid,gpu_uuid='GPU-0'))
+    s['gpus'][0]['free_mib']=16000
+    cold=classify(c,s,owners)['rows'][0]
+    warm=classify(c,s,owners,continuing_pid=20)['rows'][0]
+    assert cold['category']=='INSUFFICIENT_MEMORY' and cold['required_free_mib']==26548
+    assert warm['allowed'] and warm['required_free_mib']==13048
+    assert warm['peer_peak_reserve_mib']==11000 and warm['resident_continuation']
+    s['gpus'][0]['free_mib']=13047
+    assert not classify(c,s,owners,continuing_pid=20)['rows'][0]['allowed']
+    with pytest.raises(MonitorError):classify(c,s,owners,continuing_pid=999)
+    s['gpus'][0]['free_mib']=31000
+    s['apps'].append(dict(gpu_uuid='GPU-0',pid=99,used_mib=1));s['processes'][99]=dict(s['worker'],pid=99)
+    assert classify(c,s,owners,continuing_pid=20)['rows'][0]['category']=='UNKNOWN_OCCUPANCY'
+
+
+@pytest.mark.parametrize('after_state,allowed',[
+    ('PROTECTED_ASSIST',True),('WORKER_THRESHOLD_LOW',True),
+    ('YIELD_MEMORY_PRESSURE',False),('WORKER_STARTING',False)])
+def test_collector_checks_fresh_health_instead_of_freezing_utilization_state(case,monkeypatch,after_state,allowed):
+    from AlphaBrain.research.dsol.execution import gpu_guard as guard
+    c,s=case;after=deepcopy(s['status'])
+    after.update(state=after_state,continuous_worker=True,checked_at=s['now'])
+    reports=iter([json.dumps(s['status']),json.dumps(after)])
+    def read(path,*args,**kwargs):
+        values={'/proc/sys/kernel/random/boot_id':'boot','/state/profile':'fresh',
+                '/proc/10/task/10/children':'11'}
+        return next(reports) if str(path)==c['status_path'] else values[str(path)]
+    monkeypatch.setattr(Path,'read_text',read)
+    monkeypatch.setattr(guard,'telemetry',lambda:(deepcopy(s['gpus']),deepcopy(s['apps'])))
+    monkeypatch.setattr(guard,'process',lambda pid:deepcopy({10:s['supervisor'],11:s['worker']}[pid]))
+    monkeypatch.setattr(guard,'sha_file',lambda path:s['release_hashes'][Path(path).name])
+    monkeypatch.setattr(guard,'holds_supervisor_lock',lambda *a:True)
+    monkeypatch.setattr(guard.socket,'gethostname',lambda:'node')
+    monkeypatch.setattr(guard.time,'time',lambda:s['now'])
+    monkeypatch.setattr(guard.time,'clock_gettime',lambda _:s['boottime'])
+    monkeypatch.setattr(guard.os,'sysconf',lambda _:s['clock_ticks'])
+    if allowed:
+        result=guard.classify(c,guard.collect(c))
+        assert result['status']=='PASS'
+        assert result['keepalive']['supervisor_state']==after_state
+        assert result['keepalive']['status_age_seconds']==0
+    else:
+        with pytest.raises(TransientMonitorError,match='not in an admitted live state'):
+            guard.collect(c)
+
+
+@pytest.mark.parametrize('field,value',[('worker_pid',12),('worker_gpu',0),('boot_id','other'),
+                                     ('release','untrusted'),('process_identity',{})])
+def test_status_transition_cannot_replace_worker_identity(case,field,value):
+    from AlphaBrain.research.dsol.execution.gpu_guard import reconcile_status
+    _,s=case;after=deepcopy(s['status']);after[field]=value
+    with pytest.raises(TransientMonitorError,match=field):reconcile_status(s,after)
+
+
+@pytest.mark.parametrize('target,changed_gpu,allowed',[
+    ('GPU-0','GPU-3',True),('GPU-0','GPU-0',False),(None,'GPU-3',False)])
+def test_actual_collector_scopes_cuda_membership_churn(case,monkeypatch,target,changed_gpu,allowed):
+    from AlphaBrain.research.dsol.execution import gpu_guard as guard
+    c,s=case
+    def read(path,*args,**kwargs):
+        values={'/proc/sys/kernel/random/boot_id':'boot','/state/profile':'fresh',
+                '/proc/10/task/10/children':'11',c['status_path']:json.dumps(s['status'])}
+        return values[str(path)]
+    samples=iter([(deepcopy(s['gpus']),deepcopy(s['apps'])),
+        (deepcopy(s['gpus']),deepcopy(s['apps'])+[dict(gpu_uuid=changed_gpu,pid=99,used_mib=1)])])
+    monkeypatch.setattr(Path,'read_text',read)
+    monkeypatch.setattr(guard,'telemetry',lambda:next(samples))
+    monkeypatch.setattr(guard,'process',lambda pid:deepcopy({10:s['supervisor'],11:s['worker']}[pid]))
+    monkeypatch.setattr(guard,'sha_file',lambda path:s['release_hashes'][Path(path).name])
+    monkeypatch.setattr(guard,'holds_supervisor_lock',lambda *a:True)
+    monkeypatch.setattr(guard.socket,'gethostname',lambda:'node')
+    monkeypatch.setattr(guard.time,'time',lambda:s['now'])
+    monkeypatch.setattr(guard.time,'clock_gettime',lambda _:s['boottime'])
+    monkeypatch.setattr(guard.os,'sysconf',lambda _:s['clock_ticks'])
+    if allowed:
+        snapshot=guard.collect(c,target_gpu_uuid=target)
+        result=guard.classify(c,snapshot)
+        assert result['status']=='PASS' and [r['uuid'] for r in result['rows']]==['GPU-0']
+        assert result['keepalive']['pid']==11
+    else:
+        with pytest.raises(TransientMonitorError,match='ownership changed'):
+            guard.collect(c,target_gpu_uuid=target)
+
+
+def test_scoped_snapshot_still_rejects_unknown_target_occupant(case):
+    c,s=case;s['target_gpu_uuid']='GPU-0'
+    s['apps'].append(dict(gpu_uuid='GPU-0',pid=99,used_mib=1));s['processes'][99]=dict(s['worker'],pid=99)
+    result=classify(c,s)
+    assert len(result['rows'])==1 and result['rows'][0]['category']=='UNKNOWN_OCCUPANCY'
+    s['worker']['executable_sha256']='changed'
+    with pytest.raises(MonitorError,match='trusted release anchor'):classify(c,s)

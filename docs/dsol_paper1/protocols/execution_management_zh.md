@@ -2,6 +2,10 @@
 
 适用于后续评测、渲染和有明确独立工作单元的训练编排。分布式训练的一个协同进程组视为一个工作单元，不把FSDP/DDP的rank随意拆成独立任务。本标准不修改研究问题、任务范围、初始化、噪声预算或成功判据。
 
+当前能力、模块合同、恢复操作与扩展边界统一见[分布式执行维护手册](../../architecture/distributed_execution_zh.md)。
+下面按日期保留接管到准入的演进记录；早期“生产关闭”指当时版本，不代表随后已获独立许可的模型入口仍不可执行。
+当前CPU入口为 `manage_controlled_queue.py`，已注册LIBERO模型组合入口为 `manage_model_queue.py`；原 `manage_work_queue.py` 动态执行仍关闭。
+
 ## 实现与职责
 
 | 内容 | 唯一实现／位置 |
@@ -12,6 +16,31 @@
 | 标准命令入口 | `scripts/dsol_paper1/operations/manage_work_queue.py` |
 | 模型、仿真、SSH、进程与结果校验 | 相应`benchmarks/`或运行适配层的`Backend`实现 |
 | CPU故障及恢复验证 | `tests/dsol_paper1/execution/test_work_queue.py`，纳入portable CI |
+
+2026-10-23后续收口：当前工作树的旧CLI run/recover/audit-results 不再动态导入任何后端；
+通用queue.run/recover只接受新入口建立的CPU受控作用域。连续fleet、worker、模型runtime与共享ProbeBackend.start均拒绝生产执行，
+无环境变量或旧permit解锁路径。历史冻结源码和远端旧副本仍可能绕过，必须在正式执行前收口并审计，不能声称全局隔离。
+见[防绕过及Fresh恢复状态](../history/center_dispatch_hardening_20261023_zh.md)。以下历史接口描述不授予执行许可。
+
+2026-10-23 center新增受账本约束的组合入口 `operations/manage_controlled_queue.py`，复用本标准队列，
+在启动边界接入owner/epoch、独立许可和预算预留。目前仅允许内置CPU模拟后端，生产执行硬关闭；
+本页原入口不自动受新账本约束。接入、显式恢复和旧入口绕过范围见
+[Center调度接入记录](../history/center_scheduler_integration_20261023_zh.md)。
+
+2026-10-23环境恢复后，真实CPU启动入口进一步接入独立worker检查与一次性启动意图。
+controller预留后释放事务锁，worker重新取得同一锁并核验owner/epoch、独立许可、预算、任务、槽位及全部peer，
+随后才进入模拟backend.start，避免controller持锁等待worker造成死锁。未知消耗保留预留，不重发。
+同机检查不能用于NFS授权：现场跨机flock互斥成立，但另一主机可能读到原子替换前的账本内容。
+后续已通过 `--authority-config` 将SSH CPU假后端接入同一个实际入口：唯一center的本地账本/许可为权威，
+预留与GRANTED状态先fsync到共享盘不可变检查点，再经当前SSH会话发送GO；远端只读本地一次性意图，不读共享JSON授权。
+固定节点/源码/store身份、会话nonce及任务哈希拒绝旧会话和重复交付；本地账本禁止网络文件系统，
+center或remote存储身份变更均须人工核对，没有自动failover。共享盘失败或断联停止后续派发；
+GO之后已经授权的有界动作可能完成，丢ACK仍保留预算，完整远端凭证核对后才可显式恢复至新epoch；部分/未知任务不退款不重发。
+此通道只含固定CPU合成动作，不能加载真实后端、模型或任意命令。真实SSH故障测试和恢复证据见
+[center实时授权检查](../history/center_authority_handshake_20261023_zh.md)。不修改NFS挂载或Mac基础服务。
+
+
+新模型入口`manage_model_queue.py`复用同一ledger与GO事务，持有SSH通道并在每次模型调用前要求CHECK/CONTINUE。冻结科学循环只在绑定worker的进程/线程作用域中开放；旧fleet、训练与直接CLI不开放。模型任务保留原identity_experiment_id/key及地址，eligible_slots显式限制原节点，不能把Fresh任务转派。完成须核对完整块、调用账本、文件哈希和远端进程组退出；部分块无退款/重发。实际GPU运行仍需独立阶段许可，本轮CPU准备不签发许可。
 
 队列通过接口接收后端对象，不反向import `benchmarks`、`scripts`或报告。CLI仅在明确`--execute`且冻结资产核验后加载配置指定的受信任适配器，工厂函数源码必须在文件指纹清单中。工厂只构建对象，不启动进程；真实资源启动发生在取得协调器锁后的`start`。不得使用陌生清单执行任意后端模块。
 
@@ -78,11 +107,9 @@ coordinator.lock     单协调器排他锁
 ```bash
 python scripts/dsol_paper1/operations/manage_work_queue.py prepare --manifest PLAN.json --root NEW_CONTROL_DIR
 python scripts/dsol_paper1/operations/manage_work_queue.py status --root CONTROL_DIR
-python scripts/dsol_paper1/operations/manage_work_queue.py run --root CONTROL_DIR --timeout-seconds 86400 --execute
-python scripts/dsol_paper1/operations/manage_work_queue.py recover --root CONTROL_DIR --execute
 ```
 
-`prepare`新建控制目录但不导入后端；`status`只读。`run/recover`可启动或管理进程，必须明确授权且显式执行。计划由相应实验准备适配器生成，不能将本文示例命令直接套到活跃实验目录。最终聚合仅消费全部已核验的完成收据；PDF发布属于独立报告步骤，不能因调度维护自动覆盖当前报告。
+`prepare`新建控制目录但不导入后端；`status`只读。当前版本`run/recover`一律拒绝；仅独立模拟账本可经新受控入口做CPU验证。计划由相应实验准备适配器生成，不能将本文示例命令直接套到活跃实验目录。最终聚合仅消费全部已核验的完成收据；PDF发布属于独立报告步骤，不能因调度维护自动覆盖当前报告。
 
 ## 2026-09-30 落实范围与迁移门槛
 
@@ -150,7 +177,6 @@ python scripts/dsol_paper1/operations/manage_work_queue.py cluster-status --conf
 python scripts/dsol_paper1/operations/manage_work_queue.py resources --root CONTROL_DIR
 python scripts/dsol_paper1/operations/manage_work_queue.py drain --root CONTROL_DIR --host video --gpu 0 --reason 'isolated capacity benchmark' --execute
 python scripts/dsol_paper1/operations/manage_work_queue.py resume --root CONTROL_DIR --host video --gpu 0 --reason 'benchmark finished' --execute
-python scripts/dsol_paper1/operations/manage_work_queue.py audit-results --root CONTROL_DIR --per-status 2 --include-running --output NEW_AUDIT.json
 python -m benchmarks.Robocasa365.capacity_benchmark --config CAPACITY_TEST.json --execute
 ```
 

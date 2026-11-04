@@ -31,6 +31,8 @@ def nominal_rows(plan,rows):
 
 
 def run(config_path,output,*,execute=False,block_index=None,guard=None):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/continuous_nominal.py:run')
     cfg=read(config_path)
     if not execute or cfg.get('authorization')!='EXPLICIT_NOMINAL_EVALUATION_ONLY':
         raise ValueError('Nominal execution not authorized')

@@ -72,12 +72,12 @@ Here the first official start is an engineering bridge per physical initial;
 this is not a simulated camera movement or a new success-rate measurement.
 """
     from libero.libero.envs import OffScreenRenderEnv
-    from libero_camera_pose import capture_camera_reference, install_camera_pose
-    from evaluate_pi05_libero_plus_views import agentview_camera_calibration, physics_state_sha256
-    from scripts.dsol_paper1.runtime.standard_initialization_v1 import load_initial
+    from AlphaBrain.common.camera_pose import capture_camera_reference, install_camera_pose
+    from benchmarks.LIBERO.simulation_inputs import agentview_camera_calibration, physics_state_sha256
+    from benchmarks.LIBERO.simulation_inputs import load_initial
     from .initialization import initialize, capture_model_reference
-    from scripts.dsol_paper1.runtime.scan_libero_hdf5_views import _restore_reference
-    from scripts.dsol_paper1.runtime.evaluate_dsol_libero_hdf5_views import masked_policy_observation
+    from benchmarks.LIBERO.simulation_inputs import _restore_reference
+    from benchmarks.LIBERO.simulation_inputs import masked_policy_observation
     spec = record['state']; physical = load_initial(spec); envs = []
     if sha(record['observation_cache']['path']) != record['observation_cache']['sha256']:
         raise ValueError('Original97 cached observations changed')

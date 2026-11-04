@@ -26,6 +26,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+search-cpu = ["numpy>=1.26,<2", "scipy>=1.14,<2", "torch>=2.6,<3", "gymnasium==0.29.1", "pillow", "pyyaml"]
+search-test = ["pytest>=8,<9", "numpy>=1.26,<2", "scipy>=1.14,<2", "torch>=2.6,<3", "gymnasium==0.29.1", "matplotlib", "pillow", "pyyaml"]
+
 paper1-analysis = [
     "numpy",
     "scipy",
@@ -52,10 +55,16 @@ sagemaker = [
 ]
 
 
+[tool.setuptools]
+include-package-data = false
+
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["AlphaBrain*"]
+include = ["AlphaBrain*", "benchmarks", "benchmarks.LIBERO*", "benchmarks.Robocasa_tabletop*"]
 exclude = [
+    "archive*", "artifacts*", "docs*", "reports*", "scripts*", "tests*", "tools*",
+    "deployment*", "configs*", "third_party*", "benchmarks.Robocasa365*", "benchmarks.RoboTwin*",
+    "benchmarks.SimplerEnv*", "benchmarks.CALVIN*",
     "tests",         # test directory
     "cache",         # cache directory
     "playground",

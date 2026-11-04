@@ -15,20 +15,42 @@ from AlphaBrain.research.dsol.data.artifacts import sha
 from AlphaBrain.research.dsol.data.native_policy_noise import bound_noise, NOISE_RULE
 
 
+TRACE_TRANSFERS = ('per_step_cpu', 'deferred_cpu')
+
+
 @contextmanager
-def velocity_capture(model):
-    """Observe actual denoising outputs; restore the original method on failure."""
+def velocity_capture(model, *, transfer='per_step_cpu'):
+    """Observe outputs without changing the sampler or its return tensors.
+
+    The default retains the admitted per-step transfer. The opt-in candidate
+    owns a detached float32 copy on the source device at each step and transfers
+    the stack once after successful sampling. Consumers read the NumPy list
+    after context exit. Device copies must own storage: samplers may reuse or
+    mutate a returned buffer before the next step. No CUDA work occurs on import.
+    """
+    if transfer not in TRACE_TRANSFERS:
+        raise ValueError('Unknown native trace transfer mode')
     original = model.denoise_step
     previous = model.__dict__.get('denoise_step')
     had_override = 'denoise_step' in model.__dict__
     values = []
     def observed(*args, **kwargs):
         result = original(*args, **kwargs)
-        values.append(result.detach().float().cpu().numpy().copy())
+        value = result.detach().float()
+        values.append(value.cpu().numpy().copy() if transfer == 'per_step_cpu'
+                      else value.clone())
         return result
     model.denoise_step = observed
     try:
         yield values
+        if transfer == 'deferred_cpu' and values:
+            import torch
+            host = torch.stack(values, dim=0).cpu().numpy()
+            values[:] = [host[i].copy() for i in range(len(values))]
+    except BaseException:
+        if transfer == 'deferred_cpu':
+            values.clear()
+        raise
     finally:
         if had_override:
             model.denoise_step = previous
@@ -48,6 +70,11 @@ def observation(example):
 
 class NativePolicyRuntime:
     def __init__(self, config, output, limit):
+        from AlphaBrain.research.dsol.execution import dispatch_policy
+        dispatch_policy.reject_production('benchmarks/LIBERO/native_search_runtime.py:NativePolicyRuntime.__init__')
+        self.trace_transfer = config.get('native_trace_transfer', 'per_step_cpu')
+        if self.trace_transfer not in TRACE_TRANSFERS:
+            raise ValueError('Unknown native trace transfer mode')
         import torch
         from openpi.training.config import get_config
         from openpi.policies.policy import Policy
@@ -89,6 +116,8 @@ class NativePolicyRuntime:
         self.model = model
 
     def infer(self, example, noise, identity, capture=True, *, instrument=True):
+        from AlphaBrain.research.dsol.execution import dispatch_policy
+        dispatch_policy.reject_production('benchmarks/LIBERO/native_search_runtime.py:NativePolicyRuntime.infer')
         from AlphaBrain.model.pi05_features import SiglipFeatureCapture
         from AlphaBrain.research.dsol.metrics.accel import compute_accel_scores
         from AlphaBrain.research.dsol.data.flow_noise import tensor_sha256
@@ -105,7 +134,8 @@ class NativePolicyRuntime:
         torch.cuda.synchronize(); started = time.perf_counter()
         if capture and not instrument:
             raise ValueError('Native uninstrumented control cannot return features')
-        with torch.inference_mode(), (tap if capture else nullcontext()), (velocity_capture(self.model) if instrument else nullcontext()) as velocities:
+        with torch.inference_mode(), (tap if capture else nullcontext()), (velocity_capture(
+                self.model, transfer=self.trace_transfer) if instrument else nullcontext()) as velocities:
             pred = self.policy.infer(observation(example),noise=full_noise)
         torch.cuda.synchronize()
         actions = np.asarray(pred['actions'],dtype=np.float32)

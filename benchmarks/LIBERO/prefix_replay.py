@@ -20,18 +20,18 @@ def simulator(config_file,initial,model,output,socket_path):
     with np.load(record['observation_cache']['path']) as z:cached={k:z[k].copy() for k in z.files}
     with np.load(config['anchors']) as z:first_noise=z['first_score_noise'][initial].copy()
     candidates=read(config['release'])['protocol']['state_blocks'][initial]['candidates']
-    from scripts.dsol_paper1.runtime.audit_libero_hdf5_restore import _configure_runtime
-    from scripts.dsol_paper1.runtime.evaluate_dsol_libero_hdf5_views import configure_imports,masked_policy_observation
-    from scripts.dsol_paper1.runtime.standard_initialization_v1 import load_initial,initialize
-    from scripts.dsol_paper1.runtime.render_bridge_common_v1 import render_protocol
-    from scripts.dsol_paper1.runtime.scan_libero_hdf5_views import _restore_reference
+    from benchmarks.LIBERO.simulation_inputs import _configure_runtime
+    from benchmarks.LIBERO.simulation_inputs import configure_imports,masked_policy_observation
+    from benchmarks.LIBERO.simulation_inputs import load_initial,initialize
+    from benchmarks.LIBERO.simulation_inputs import render_protocol
+    from benchmarks.LIBERO.simulation_inputs import _restore_reference
     configure_imports();connection=Client(socket_path,family='AF_UNIX');out=Path(output)
     complete=[];physical=load_initial(spec)
     with tempfile.TemporaryDirectory(prefix='dsol-prefix-sim-') as temp:
         _configure_runtime(Path(config['runtime']),Path(config['dataset']),Path(temp))
         from libero.libero.envs import OffScreenRenderEnv
-        from libero_camera_pose import capture_camera_reference,install_camera_pose
-        from evaluate_pi05_libero_plus_views import agentview_camera_calibration
+        from AlphaBrain.common.camera_pose import capture_camera_reference,install_camera_pose
+        from benchmarks.LIBERO.simulation_inputs import agentview_camera_calibration
         with render_protocol(0):
             for view in case['views']:
                 j=old['views'].tolist().index(view)

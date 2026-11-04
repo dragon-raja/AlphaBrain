@@ -127,6 +127,8 @@ def recover(root, backend):
     Missing outputs return to PENDING. Corrupt outputs stop recovery. No
     success-based filtering and no automatic retry of a failed experiment.
     """
+    from .dispatch_policy import require_queue_scope
+    require_queue_scope(root, backend, 'recover')
     with exclusive(root):
         if (Path(root)/'retired.json').exists(): raise ValueError('Retired queue must not restart')
         plan, old = load(root)
@@ -165,6 +167,8 @@ def recover(root, backend):
 def run(root, backend, *, poll_seconds=1.0, timeout_seconds=3600.0,
         clock=time.monotonic, sleep=time.sleep, allow_dispatch=None):
     """Outcome-independent FIFO drain across configured, admitted idle slots."""
+    from .dispatch_policy import require_queue_scope
+    require_queue_scope(root, backend, 'run')
     if not math.isfinite(poll_seconds) or not math.isfinite(timeout_seconds) or poll_seconds < 0 or timeout_seconds <= 0:
         raise ValueError('Invalid polling interval or timeout')
     with exclusive(root):
@@ -181,15 +185,37 @@ def run(root, backend, *, poll_seconds=1.0, timeout_seconds=3600.0,
         state['status'] = 'RUNNING'
         _save(root, state, 'started')
         started = clock()
+        parallel = getattr(backend, 'parallel_launches', 1)
+        if type(parallel) is not int or not 1 <= parallel <= 32:
+            raise ValueError('Bounded launch concurrency required')
         try:
             while any(t['status'] != 'COMPLETE' for t in state['tasks'].values()):
                 if clock() - started > timeout_seconds:
                     raise TimeoutError('Queue deadline exceeded')
-                for task in plan['tasks']:
+                if parallel > 1:
+                    for task in plan['tasks']:
+                        row = state['tasks'][task['key']]
+                        if row['status'] == 'LAUNCHING':
+                            handle = backend.poll_start(row['handle'])
+                            if handle is not None:
+                                if not isinstance(handle, dict) or not handle:
+                                    raise ValueError('Durable JSON launch handle required')
+                                digest(handle)
+                                row.update(status='RUNNING', handle=deepcopy(handle))
+                                _save(root, state, 'launched', key=task['key'])
+                running = [t for t in plan['tasks'] if state['tasks'][t['key']]['status'] == 'RUNNING']
+                handles = [state['tasks'][t['key']]['handle'] for t in running]
+                batch_poll = getattr(backend, 'poll_many', None)
+                codes = batch_poll(handles) if batch_poll and handles else [backend.poll(h) for h in handles]
+                if len(codes) != len(running):
+                    raise RuntimeError('Batched poll lost worker coverage')
+                # Reject a failed sibling before doing slow receipt IO. With
+                # parallel workers, a large DONE burst must not starve CHECKs
+                # or pending READY/ACK frames for an entire validation sweep.
+                if parallel > 1 and any(code not in (None, 0) for code in codes):
+                    raise RuntimeError('Worker failed during parallel collection')
+                for task, code in zip(running, codes):
                     row = state['tasks'][task['key']]
-                    if row['status'] != 'RUNNING':
-                        continue
-                    code = backend.poll(row['handle'])
                     if code is None:
                         continue
                     if code != 0:
@@ -198,6 +224,8 @@ def run(root, backend, *, poll_seconds=1.0, timeout_seconds=3600.0,
                         raise RuntimeError('Worker exit reported with live owned children')
                     row.update(status='COMPLETE', receipt=_receipt(backend, task))
                     _save(root, state, 'completed', key=task['key'])
+                    if parallel > 1:
+                        break  # Re-service all live channels between receipts.
                 occupied = {(t['slot']['host'], t['slot']['id']) for t in state['tasks'].values()
                             if t['status'] in ('LAUNCHING', 'RUNNING')}
                 dispatching = allow_dispatch is None or allow_dispatch()
@@ -207,23 +235,30 @@ def run(root, backend, *, poll_seconds=1.0, timeout_seconds=3600.0,
                     return state
                 from .resources import dispatch_guard
                 for slot in plan['slots'] if dispatching else []:
+                    if parallel > 1 and sum(t['status'] == 'LAUNCHING' for t in state['tasks'].values()) >= parallel:
+                        break
                     if (slot['host'], slot['id']) in occupied:
                         continue
-                    task = next((t for t in plan['tasks'] if state['tasks'][t['key']]['status'] == 'PENDING'), None)
+                    task = next((t for t in plan['tasks'] if state['tasks'][t['key']]['status'] == 'PENDING'
+                                 and slot in t.get('eligible_slots', plan['slots'])), None)
                     if task is None:
-                        break
+                        continue
                     with dispatch_guard(root,plan,slot) as allowed:
                         if not allowed or not backend.admit(deepcopy(slot)):
                             continue
                         row = state['tasks'][task['key']]
                         row.update(status='LAUNCHING', slot=slot, attempt=row['attempt'] + 1)
                         _save(root, state, 'launch_intent', key=task['key'], slot=slot, attempt=row['attempt'])
-                        handle = backend.start(deepcopy(task), deepcopy(slot), row['attempt'])
+                        start = backend.begin_start if parallel > 1 else backend.start
+                        handle = start(deepcopy(task), deepcopy(slot), row['attempt'])
                         if not isinstance(handle, dict) or not handle:
                             raise ValueError('Durable JSON launch handle required')
                         digest(handle)
-                        row.update(status='RUNNING', handle=deepcopy(handle))
-                        _save(root, state, 'launched', key=task['key'])
+                        row.update(status='LAUNCHING' if parallel > 1 else 'RUNNING', handle=deepcopy(handle))
+                        _save(root, state, 'preparing' if parallel > 1 else 'launched', key=task['key'])
+                        # A start may be slow. Service existing workers before
+                        # admitting the next slot, including live grant checks.
+                        break
                 sleep(poll_seconds)
             verify_artifacts(plan)
             if digest(load(root)[0]) != state['manifest_sha256']:

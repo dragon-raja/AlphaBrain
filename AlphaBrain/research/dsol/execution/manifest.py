@@ -59,10 +59,13 @@ def validate(plan):
             if identity in addresses:
                 raise ValueError('Duplicate trial ownership')
             addresses.add(identity)
-        expected = task_key(plan['experiment_id'], fingerprint, task['addresses'])
+        expected = task_key(task.get('identity_experiment_id', plan['experiment_id']), fingerprint, task['addresses'])
         if task.get('key') != expected or expected in keys:
             raise ValueError('Changed or duplicate block identity')
         keys.add(expected)
+        if 'eligible_slots' in task and (not task['eligible_slots']
+                or any(s not in plan['slots'] for s in task['eligible_slots'])):
+            raise ValueError('Task needs explicit slots from this plan')
         output = Path(task['output'])
         if not output.is_absolute() or '..' in output.parts or output == Path(output.anchor):
             raise ValueError('Task output requires an explicit, non-root absolute path')

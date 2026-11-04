@@ -1,6 +1,6 @@
 """Explicit static-model restoration around the immutable official reset path."""
 import numpy as np
-from scripts.dsol_paper1.runtime.standard_initialization_v1 import initialize as official_initialize
+from benchmarks.LIBERO.simulation_inputs import initialize as official_initialize
 
 
 def capture_model_reference(env):
@@ -28,4 +28,8 @@ class _StaticModelReset:
 
 def initialize(env,spec,physical,*,model_reference=None):
     wrapped=env if model_reference is None else _StaticModelReset(env,model_reference)
-    return official_initialize(wrapped,spec,physical)
+    observation,receipt=official_initialize(wrapped,spec,physical)
+    # The immutable legacy helper executes the configured count but reports a
+    # literal 10. Correct the new adapter's receipt, preserving its old source
+    # and all physics operations (the native 10-step receipt is unchanged).
+    return observation,dict(receipt,settle_steps=int(spec['initialization']['settle_steps']))

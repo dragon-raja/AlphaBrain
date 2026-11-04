@@ -57,6 +57,8 @@ def test_32_task_nominal_driver_synthetic_backend_no_scoring(tmp_path,monkeypatc
             return dict(example=example,receipt=dict(camera_to_world=np.eye(4)))
         yield request
     monkeypatch.setattr('benchmarks.LIBERO.search_live.simulator',simulator)
+    from tests.dsol_paper1.helpers.dispatch_policy import allow_synthetic_boundaries
+    allow_synthetic_boundaries(monkeypatch, 'benchmarks/LIBERO/continuous_nominal.py:run')
     run(cfg,tmp_path/'result',execute=True)
     result=json.loads((tmp_path/'result/status.json').read_text())
     assert result['completed_tasks']==32 and result['calls']=={'execution':32}

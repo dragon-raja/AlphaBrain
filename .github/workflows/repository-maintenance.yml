@@ -24,3 +24,23 @@ jobs:
       - run: python tools/paper1/check_layout.py
       - run: python tools/repository/test.py --profile portable
       - run: python -m pip wheel . --no-deps --wheel-dir /tmp/repository-wheel
+
+  search-cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install '.[search-test]'
+      - run: python -m pytest -q tests/dsol_paper1/selectors/test_unified_search_policy.py tests/dsol_paper1/selectors/test_task_conditioned_policy.py tests/dsol_paper1/runtime/test_gr1_trial_runtime.py tests/dsol_paper1/runtime/test_gr1_block_runtime.py tests/dsol_paper1/execution/test_gr1_authority.py
+        env:
+          CUDA_VISIBLE_DEVICES: ''
+          WANDB_MODE: disabled
+          OMP_NUM_THREADS: '1'
+      - run: python -m pip wheel . --no-deps --wheel-dir /tmp/repository-wheel
+      - run: python -m venv /tmp/wheel-check
+      - run: /tmp/wheel-check/bin/python -m pip install /tmp/repository-wheel/*.whl numpy
+      - run: cd /tmp && /tmp/wheel-check/bin/python -I "$GITHUB_WORKSPACE/tests/repository/installed_smoke.py"

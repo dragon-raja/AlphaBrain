@@ -36,7 +36,8 @@ def test_disjoint_handoff_adopts_running_without_restart(tmp_path):
     assert s['tasks'][plan['tasks'][0]['key']]==state['tasks'][plan['tasks'][0]['key']]
     assert a['tasks']+b['tasks']==plan['tasks']
     assert read(tmp_path/'old/state.json')==state
-    with pytest.raises(ValueError,match='Retired'):run(tmp_path/'old',None)
+    from AlphaBrain.research.dsol.execution.dispatch_policy import ProductionDispatchDisabled
+    with pytest.raises(ProductionDispatchDisabled):run(tmp_path/'old',None)
 
 
 def test_drain_survives_controller_replacement(tmp_path):

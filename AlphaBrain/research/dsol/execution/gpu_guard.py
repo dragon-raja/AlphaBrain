@@ -158,13 +158,22 @@ def verify_status(config, snapshot):
         supervisor_state=s['state'])
 
 
-def collect(config):
+def collect(config, *, target_gpu_uuid=None):
     """Double-read live identities and membership; a restart triggers bounded retry."""
     status_path=Path(config['status_path'])
     status=json.loads(status_path.read_text());release=status['release']
     if release not in config['trusted_releases']:
         raise MonitorError('Untrusted keepalive release')
     gpus,apps=telemetry()
+    # Other devices can legitimately acquire CUDA contexts while this device
+    # is admitted. Still verify the complete UUID inventory and the trusted
+    # anchor; inspect ownership only on the requested device and anchor device.
+    scope=None
+    if target_gpu_uuid is not None:
+        inventory={g['index']:g['uuid'] for g in config['devices']}
+        if target_gpu_uuid not in inventory.values():raise MonitorError('Unknown target GPU UUID')
+        scope=lambda a:a['gpu_uuid']==target_gpu_uuid or a['pid']==status['worker_pid']
+        apps=[a for a in apps if scope(a)]
     sup=process(status['pid']);worker=process(status['worker_pid'])
     hashes={name:sha_file(Path(release)/name) for name in config['trusted_releases'][release]['files']}
     snapshot=dict(status=status,gpus=gpus,apps=apps,supervisor=sup,worker=worker,
@@ -176,10 +185,9 @@ def collect(config):
     verify_status(config,snapshot)
     processes={a['pid']:process(a['pid']) for a in apps}
     gpus_after,apps_after=telemetry()
+    if scope is not None:apps_after=[a for a in apps_after if scope(a)]
     after=json.loads(status_path.read_text())
-    for key in ('profile','pid','boot_id','release','state','worker_pid','worker_gpu','process_identity'):
-        if status[key]!=after[key]:
-            raise TransientMonitorError('Supervisor/worker changed during preflight')
+    reconcile_status(snapshot, after)
     if ({(a['gpu_uuid'],a['pid']) for a in apps}!={(a['gpu_uuid'],a['pid']) for a in apps_after}
             or {(g['index'],g['uuid']) for g in gpus}!={(g['index'],g['uuid']) for g in gpus_after}):
         raise TransientMonitorError('GPU ownership changed during preflight')
@@ -194,10 +202,26 @@ def collect(config):
     snapshot['now']=time.time()
     snapshot['boottime']=time.clock_gettime(time.CLOCK_BOOTTIME)
     verify_status(config,snapshot)
+    if target_gpu_uuid is not None:snapshot['target_gpu_uuid']=target_gpu_uuid
     return snapshot
 
 
-def classify(config, snapshot, owned=()):
+def reconcile_status(snapshot, after):
+    """Accept a fresh healthy report of the SAME live supervisor and worker.
+
+    Utilization states may change while models load. They are not process
+    identities: both reports must independently pass the complete admission
+    checks, while a changed birth/device/release still requires a new snapshot.
+    """
+    before=snapshot['status']
+    fields=('profile','pid','boot_id','release','worker_pid','worker_gpu','process_identity')
+    changed=[key for key in fields if before[key]!=after[key]]
+    if changed:
+        raise TransientMonitorError('Supervisor/worker changed during preflight: '+','.join(changed))
+    snapshot['status']=after
+
+
+def classify(config, snapshot, owned=(), *, continuing_pid=None):
     known=verify_status(config,snapshot)
     required=max(config['minimum_free_mib'],config['worker_peak_mib']+config['safety_margin_mib'])
     rows=[]
@@ -207,7 +231,11 @@ def classify(config, snapshot, owned=()):
         if (owner['boot']==snapshot['boot_id'] and leader
                 and str(leader['start_ticks'])==str(owner['start']) and leader['pgid']==owner['group']):
             valid_owners.append((owner,leader))
+    continuing=[owner for owner,leader in valid_owners if owner['pid']==continuing_pid]
+    if continuing_pid is not None and (type(continuing_pid) is not int or len(continuing)!=1):
+        raise MonitorError('Continuing resident needs one live, proven owner')
     for gpu in snapshot['gpus']:
+        if snapshot.get('target_gpu_uuid') not in (None,gpu['uuid']):continue
         occupants=[a['pid'] for a in snapshot['apps'] if a['gpu_uuid']==gpu['uuid']]
         unknown=[];coexisting=[];owned_pids=[]
         for pid in occupants:
@@ -227,16 +255,23 @@ def classify(config, snapshot, owned=()):
             # A peer still loading its model can have almost no NVML allocation.
             # Keep its remaining peak reservation instead of treating it as free.
             reserve+=max(0,config['worker_peak_mib']-allocated)
-        category=('UNKNOWN_OCCUPANCY' if unknown else 'INSUFFICIENT_MEMORY' if gpu['free_mib']<required+reserve
+        # Existing owners already retain their full remaining peak reservations.
+        # A sequential continuation adds no new model: charging another full
+        # loading peak here would count the same resident twice. Keep the same
+        # peak bound for EVERY owner, plus the unchanged safety margin.
+        continuation=bool(continuing and continuing[0]['gpu_uuid']==gpu['uuid'])
+        required_here=config['safety_margin_mib'] if continuation else required
+        category=('UNKNOWN_OCCUPANCY' if unknown else 'INSUFFICIENT_MEMORY' if gpu['free_mib']<required_here+reserve
                   else 'KNOWN_KEEPALIVE' if coexisting else 'AVAILABLE')
         rows.append(dict(gpu,category=category,allowed=category in ('AVAILABLE','KNOWN_KEEPALIVE'),
-            required_free_mib=required+reserve,peer_peak_reserve_mib=reserve,
+            required_free_mib=required_here+reserve,peer_peak_reserve_mib=reserve,
+            resident_continuation=continuation,
             coexisting_pids=coexisting,unknown_pids=unknown,owned_pids=owned_pids))
     return dict(status='PASS' if all(r['allowed'] for r in rows) else 'BLOCKED',rows=rows,
         keepalive=known,checked_at=snapshot['now'],model_calls=0)
 
 
-def preflight(config, *, owned=(), collector=collect, sleep=time.sleep):
+def preflight(config, *, owned=(), continuing_pid=None, target_gpu_uuid=None, collector=collect, sleep=time.sleep):
     """At most three fresh snapshots; no cached PASS and no infinite waiting."""
     attempts=config.get('attempts',3);delay=config.get('retry_delay_seconds',1.)
     try:
@@ -248,14 +283,14 @@ def preflight(config, *, owned=(), collector=collect, sleep=time.sleep):
             raise MonitorError('Invalid bounded admission configuration')
         for attempt in range(1,attempts+1):
             try:
-                snapshot=collector(config)
+                snapshot=collector(config) if target_gpu_uuid is None else collector(config,target_gpu_uuid=target_gpu_uuid)
                 for owner in owned:
                     if owner['pid'] not in snapshot['processes']:
                         try:
                             snapshot['processes'][owner['pid']]=process(owner['pid'])
                         except TransientMonitorError:
                             pass  # Dead leader confers no ownership on surviving GPU children.
-                result=classify(config,snapshot,owned)
+                result=classify(config,snapshot,owned,continuing_pid=continuing_pid)
                 result['attempts']=attempt
                 return result
             except TransientMonitorError:

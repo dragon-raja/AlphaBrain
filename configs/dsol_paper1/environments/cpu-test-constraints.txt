@@ -1,0 +1,10 @@
+# Tested CPU engineering environment; install CPU Torch from the CPU wheel index.
+# This is a direct-dependency constraint set, not a full transitive/GPU lock.
+numpy==1.26.4
+scipy==1.14.1
+torch==2.6.0+cpu
+gymnasium==0.29.1
+pytest==8.3.4
+pillow==11.0.0
+matplotlib==3.9.2
+pyyaml==6.0.2

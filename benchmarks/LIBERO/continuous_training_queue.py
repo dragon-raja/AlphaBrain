@@ -1,15 +1,15 @@
 """One persistent continuous-training worker on the standard fail-closed queue.
 
 This is not a discrete catalog evaluator or a multi-worker PPO collector.
-GPU ownership, keepalive identity and the pre-start recheck reuse ProbeBackend.
+GPU ownership, keepalive identity and the pre-start recheck reuse LocalProcessBackend.
 """
 from pathlib import Path
 from AlphaBrain.research.dsol.data.artifacts import read,sha
 from AlphaBrain.research.dsol.execution.queue import MissingResult
-from benchmarks.Robocasa365.probe_queue import ProbeBackend
+from AlphaBrain.research.dsol.execution.process_backend import LocalProcessBackend
 
 
-class ContinuousTrainingBackend(ProbeBackend):
+class ContinuousTrainingBackend(LocalProcessBackend):
     def _scope(self):
         if (self.runtime['mode']!='continuous_ppo_training' or self.runtime.get('workers_per_gpu')!=1
                 or len(self.plan['slots'])!=1 or len(self.plan['tasks'])!=1):

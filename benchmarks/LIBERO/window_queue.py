@@ -12,7 +12,7 @@ import numpy as np
 
 from AlphaBrain.research.dsol.data.artifacts import read, sha, write
 from AlphaBrain.research.dsol.execution.queue import MissingResult
-from benchmarks.Robocasa365.probe_queue import ProbeBackend
+from AlphaBrain.research.dsol.execution.process_backend import LocalProcessBackend
 
 
 def block_assignment():
@@ -40,7 +40,7 @@ def validate_block(config_file, model, initial, output):
     return dict(status='PASS', receipt_sha256=sha(output/'status.json'))
 
 
-class WindowBackend(ProbeBackend):
+class WindowBackend(LocalProcessBackend):
     def admit(self, slot):
         if slot['host'] != self.runtime['host']:
             raise ValueError('Wrong host coordinator')

@@ -2,10 +2,10 @@
 from pathlib import Path
 from AlphaBrain.research.dsol.data.artifacts import read, sha
 from AlphaBrain.research.dsol.execution.queue import MissingResult
-from benchmarks.Robocasa365.probe_queue import ProbeBackend
+from AlphaBrain.research.dsol.execution.process_backend import LocalProcessBackend
 
 
-class ContinuousEvaluationBackend(ProbeBackend):
+class ContinuousEvaluationBackend(LocalProcessBackend):
     def _scope(self):
         cfg = read(self.runtime['config'])
         if (self.runtime['mode']!='continuous_paired_evaluation' or len(self.plan['slots'])!=1

@@ -3,10 +3,10 @@ from pathlib import Path
 
 from AlphaBrain.research.dsol.data.artifacts import read, sha
 from AlphaBrain.research.dsol.execution.queue import MissingResult
-from benchmarks.Robocasa365.probe_queue import ProbeBackend
+from AlphaBrain.research.dsol.execution.process_backend import LocalProcessBackend
 
 
-class SearchBackend(ProbeBackend):
+class SearchBackend(LocalProcessBackend):
     def admit(self, slot):
         if slot['host'] != self.runtime['host']:
             raise ValueError('Wrong host coordinator')

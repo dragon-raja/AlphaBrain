@@ -50,3 +50,36 @@ def test_head_backend_refuses_missing_calibration():
         validate_head_calibration(world_from_base=np.eye(4),head_from_camera=None,intrinsics=np.eye(3))
     with pytest.raises(ValueError):
         validate_head_calibration(world_from_base=np.eye(4),head_from_camera=np.eye(4),intrinsics=None)
+
+
+def test_reward_calibration_changes_only_gain_units_not_observations_or_costs():
+    from dataclasses import replace
+    sessions=[]
+    for reward_scale in (1., .1):
+        old,source=synthetic_session()
+        original=source.query
+        def query(original=original):
+            measurement=original()
+            return replace(measurement,value=replace(measurement.value,
+                accel_mean=3.-measurement.value.accel_mean))
+        source.query=query
+        core=ContinuousSearch(old.mount,source,initial_angles=[0,0],physical_state_id='synthetic',
+            wrist=np.ones(4),score_scale=1.,reward_scale=reward_scale,seed=19)
+        core.start();sessions.append(core)
+    outputs=[c.step(dict(stop=False,delta_deg=[3.,0])) for c in sessions]
+    for key in outputs[0][0]:np.testing.assert_array_equal(outputs[0][0][key],outputs[1][0][key])
+    assert outputs[0][1]==pytest.approx(1.-.01)
+    assert outputs[1][1]==pytest.approx(10.-.01)
+    for c in sessions:
+        _,cost,_,_,info=c.step(dict(stop=False,delta_deg=[1.,0]))
+        assert cost==pytest.approx(-.01)
+        _,cost,done,_,info=c.step(dict(stop=True,delta_deg=[0.,0]))
+        assert done and cost==pytest.approx(-.01) and info['queries']==4
+
+
+@pytest.mark.parametrize('scale',[0,-1,float('nan'),float('inf'),True])
+def test_invalid_reward_scale_rejected(scale):
+    old,source=synthetic_session()
+    with pytest.raises(ValueError):
+        ContinuousSearch(old.mount,source,initial_angles=[0,0],physical_state_id='synthetic',
+            wrist=np.ones(4),score_scale=1.,reward_scale=scale,seed=19)

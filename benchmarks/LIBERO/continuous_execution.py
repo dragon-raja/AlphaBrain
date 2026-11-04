@@ -24,3 +24,19 @@ class ContinuousExecutionGate:
     def begin(self):
         self.allow('begin_execution')
         self.executing = True
+
+
+class FixedOperationCamera:
+    """Avoid side-effectful sim.forward calibration reads during manipulation.
+
+    Search/initial observation refreshes the fixed external camera. Once actions
+    start, the execution gate forbids camera movement, so its calibration can be
+    reused without changing MuJoCo's contact solver state between action steps.
+    """
+    def __init__(self):self.value=None
+
+    def read(self,reader,*,refresh):
+        from copy import deepcopy
+        if refresh:self.value=deepcopy(reader())
+        if self.value is None:raise ValueError('Execution camera was not frozen before manipulation')
+        return deepcopy(self.value)

@@ -17,6 +17,17 @@ def device(slot):
     return str(slot.get('gpu_id', slot['id']))
 
 
+def worker_slots(host, gpu_ids, *, workers_per_gpu=1):
+    """Bind slot multiplicity separately from scientific identities."""
+    devices = [str(g) for g in gpu_ids]
+    if (type(workers_per_gpu) is not int or workers_per_gpu not in (1, 2, 3)
+            or not devices or len(set(devices)) != len(devices)
+            or any(not g.isdigit() for g in devices)):
+        raise ValueError('Unique physical devices and one/two/three workers required')
+    return [dict(host=host, id=g if worker == 0 else g+':'+str(worker), gpu_id=g)
+            for worker in range(workers_per_gpu) for g in devices]
+
+
 def controls(root, plan):
     path = Path(root) / 'resource-control.json'
     if not path.exists():

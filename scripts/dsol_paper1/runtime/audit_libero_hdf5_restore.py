@@ -47,32 +47,10 @@ def _write_json_atomic(path: Path, payload: dict[str, Any]) -> None:
     temporary.replace(path)
 
 
-def _runtime_config(runtime: Path, dataset_root: Path) -> dict[str, str]:
-    benchmark_root = runtime / "libero" / "libero"
-    return {
-        "assets": str(benchmark_root / "assets"),
-        "bddl_files": str(benchmark_root / "bddl_files"),
-        "benchmark_root": str(benchmark_root),
-        "datasets": str(dataset_root),
-        "init_states": str(benchmark_root / "init_files"),
-    }
+from benchmarks.LIBERO.simulation_inputs import _runtime_config
 
 
-def _configure_runtime(runtime: Path, dataset_root: Path, config_root: Path) -> None:
-    config_root.mkdir(parents=True, exist_ok=True)
-    (config_root / "config.yaml").write_text(
-        json.dumps(
-            _runtime_config(runtime=runtime, dataset_root=dataset_root),
-            indent=2,
-            sort_keys=True,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
-    os.environ["LIBERO_CONFIG_PATH"] = str(config_root)
-    os.environ.setdefault("MUJOCO_GL", "egl")
-    os.environ.setdefault("PYOPENGL_PLATFORM", "egl")
-    sys.path.insert(0, str(runtime))
+from benchmarks.LIBERO.simulation_inputs import _configure_runtime
 
 
 def _decode(value: Any) -> str:

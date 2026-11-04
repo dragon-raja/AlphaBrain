@@ -339,73 +339,16 @@ def build_episode_specs(
     return specs
 
 
-def prepare_policy_observation(
-    observation: Mapping[str, Any],
-    *,
-    prompt: str,
-    resize_size: int,
-    eval_seed: int,
-    camera_calibration: Mapping[str, Any],
-) -> tuple[dict[str, Any], np.ndarray, np.ndarray]:
-    from openpi_client import image_tools
-
-    agent = np.ascontiguousarray(np.asarray(observation["agentview_image"])[::-1, ::-1])
-    wrist = np.ascontiguousarray(np.asarray(observation["robot0_eye_in_hand_image"])[::-1, ::-1])
-    agent = image_tools.convert_to_uint8(image_tools.resize_with_pad(agent, resize_size, resize_size))
-    wrist = image_tools.convert_to_uint8(image_tools.resize_with_pad(wrist, resize_size, resize_size))
-    state = np.concatenate(
-        (
-            np.asarray(observation["robot0_eef_pos"]),
-            quat_to_axis_angle(np.asarray(observation["robot0_eef_quat"])),
-            np.asarray(observation["robot0_gripper_qpos"]),
-        )
-    )
-    return (
-        {
-            "observation/image": agent,
-            "observation/wrist_image": wrist,
-            "observation/state": state,
-            "prompt": str(prompt),
-            "_eval_seed": int(eval_seed),
-            "camera_intrinsics": np.asarray(
-                camera_calibration["camera_intrinsics"], dtype=np.float64
-            ),
-            "camera_to_world_opencv": np.asarray(
-                camera_calibration["camera_to_world_opencv"], dtype=np.float64
-            ),
-        },
-        agent,
-        wrist,
-    )
+from benchmarks.LIBERO.simulation_inputs import prepare_policy_observation
 
 
-def agentview_camera_calibration(env: Any) -> dict[str, np.ndarray]:
-    calibration = mujoco_camera_calibration(
-        env,
-        camera_name="agentview",
-        height=POLICY_CAMERA_RESOLUTION,
-        width=POLICY_CAMERA_RESOLUTION,
-    )
-    return {
-        "camera_intrinsics": np.asarray(calibration["intrinsics"], dtype=np.float64),
-        "camera_to_world_opencv": np.asarray(
-            calibration["camera_to_world_opencv"], dtype=np.float64
-        ),
-    }
+from benchmarks.LIBERO.simulation_inputs import agentview_camera_calibration
 
 
-def quat_to_axis_angle(quaternion: np.ndarray) -> np.ndarray:
-    quat = np.asarray(quaternion, dtype=np.float64).copy()
-    quat[3] = np.clip(quat[3], -1.0, 1.0)
-    denominator = math.sqrt(max(0.0, 1.0 - quat[3] * quat[3]))
-    if math.isclose(denominator, 0.0):
-        return np.zeros(3, dtype=np.float64)
-    return quat[:3] * (2.0 * math.acos(quat[3]) / denominator)
+from benchmarks.LIBERO.simulation_inputs import quat_to_axis_angle
 
 
-def physics_state_sha256(env: Any) -> tuple[str, int]:
-    state = np.asarray(env.env.sim.get_state().flatten(), dtype=np.float64)
-    return hashlib.sha256(state.tobytes()).hexdigest(), int(state.size)
+from benchmarks.LIBERO.simulation_inputs import physics_state_sha256
 
 
 def probe_action_variance(

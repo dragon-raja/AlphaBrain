@@ -1,0 +1,60 @@
+{
+  "records": [
+    {
+      "old": "scripts/vla_shared/libero_camera_pose.py",
+      "new": "scripts/vla_shared/libero_camera_pose.py",
+      "before": "archive/repository/20261104/framework-cleanup/runtime-before/scripts/vla_shared/libero_camera_pose.py",
+      "before_sha256": "a749d3e86031e3ba47ebe987f272b3aef9d8514bf22a96584a23660436b8c5f0",
+      "after_sha256": "f38bf779dd499f023b4f317439f5548a7865144b1c7a87cca83f4d89f6320dbc",
+      "reason": "Numerical functions extracted into owned package; old API forwards to same implementation"
+    },
+    {
+      "old": "scripts/vla_shared/evaluate_pi05_libero_plus_views.py",
+      "new": "scripts/vla_shared/evaluate_pi05_libero_plus_views.py",
+      "before": "archive/repository/20261104/framework-cleanup/runtime-before/scripts/vla_shared/evaluate_pi05_libero_plus_views.py",
+      "before_sha256": "8eba4399d16102f5a0a2492cbfa53ed1eaaa43b8d66c8470541149a89ee2b29b",
+      "after_sha256": "8c6a0dcf75a1d0e3b534ea1d4f38c4456cedb6a0d00f43ea8a468485370bcd89",
+      "reason": "Numerical functions extracted into owned package; old API forwards to same implementation"
+    },
+    {
+      "old": "scripts/dsol_paper1/runtime/audit_libero_hdf5_restore.py",
+      "new": "scripts/dsol_paper1/runtime/audit_libero_hdf5_restore.py",
+      "before": "archive/repository/20261104/framework-cleanup/runtime-before/scripts/dsol_paper1/runtime/audit_libero_hdf5_restore.py",
+      "before_sha256": "a0c5e1e7ccf1d4ab4add0a6abf8cbb6aa33568194d60bd3663459c5d09a58194",
+      "after_sha256": "1598746c207f4375c1c9b9ca69677c5465a354f51870d0432f031186d521f163",
+      "reason": "Numerical functions extracted into owned package; old API forwards to same implementation"
+    },
+    {
+      "old": "scripts/dsol_paper1/runtime/scan_libero_hdf5_views.py",
+      "new": "scripts/dsol_paper1/runtime/scan_libero_hdf5_views.py",
+      "before": "archive/repository/20261104/framework-cleanup/runtime-before/scripts/dsol_paper1/runtime/scan_libero_hdf5_views.py",
+      "before_sha256": "3d21b87900c75d098a3f2578d461f4e4612333b2fd13735f9e83637b25dc1918",
+      "after_sha256": "813edd7a9ab70a0a71f38cb688c2ea397fb1a91d44107d3a448468abdf9e5a49",
+      "reason": "Numerical functions extracted into owned package; old API forwards to same implementation"
+    },
+    {
+      "old": "scripts/dsol_paper1/runtime/evaluate_dsol_libero_hdf5_views.py",
+      "new": "scripts/dsol_paper1/runtime/evaluate_dsol_libero_hdf5_views.py",
+      "before": "archive/repository/20261104/framework-cleanup/runtime-before/scripts/dsol_paper1/runtime/evaluate_dsol_libero_hdf5_views.py",
+      "before_sha256": "1fa440477c6f339d75ff37182ad50dbadcd2aeb78cd8c2ff4ed3fdd29ed850a3",
+      "after_sha256": "4082fe293be9abd00df0a5c5f67085e9c369037279e6d371a1413c8e7bcfd3d1",
+      "reason": "Numerical functions extracted into owned package; old API forwards to same implementation"
+    },
+    {
+      "old": "scripts/dsol_paper1/runtime/render_bridge_common_v1.py",
+      "new": "scripts/dsol_paper1/runtime/render_bridge_common_v1.py",
+      "before": "archive/repository/20261104/framework-cleanup/runtime-before/scripts/dsol_paper1/runtime/render_bridge_common_v1.py",
+      "before_sha256": "682e62825747644d61babbabb25c9f13f3ccafc8b10f847b38bd050c778dd57e",
+      "after_sha256": "24c63272cead3aed1704c9d5f96aed6879b6467ad37022fb6e66624509719ac6",
+      "reason": "Numerical functions extracted into owned package; old API forwards to same implementation"
+    },
+    {
+      "old": "scripts/dsol_paper1/runtime/standard_initialization_v1.py",
+      "new": "scripts/dsol_paper1/runtime/standard_initialization_v1.py",
+      "before": "archive/repository/20261104/framework-cleanup/runtime-before/scripts/dsol_paper1/runtime/standard_initialization_v1.py",
+      "before_sha256": "297ed6b8d70b1968a886815fae2b615f20cd1d10f8263910d1ff81becc529cb9",
+      "after_sha256": "ed721f9e7d13d97f2c23f1300948d7e06d6158522cb2784bf2b83921336d738e",
+      "reason": "Numerical functions extracted into owned package; old API forwards to same implementation"
+    }
+  ]
+}

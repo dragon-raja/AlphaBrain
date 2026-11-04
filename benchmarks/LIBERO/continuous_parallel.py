@@ -14,10 +14,10 @@ from AlphaBrain.research.dsol.data.artifacts import read
 from AlphaBrain.research.dsol.execution.manifest import digest,file_digest,task_key,verify_artifacts
 from AlphaBrain.research.dsol.execution.queue import prepare,run as run_queue,MissingResult
 from AlphaBrain.research.dsol.execution.rollout_budget import RolloutBudget
-from benchmarks.Robocasa365.probe_queue import ProbeBackend
+from AlphaBrain.research.dsol.execution.process_backend import LocalProcessBackend
 
 
-class CollectorBackend(ProbeBackend):
+class CollectorBackend(LocalProcessBackend):
     def admit(self,slot):
         if (self.runtime['mode']!='continuous_parallel_collection' or self.runtime['workers_per_gpu']!=1
                 or slot['host']!=self.runtime['host']):raise ValueError('Single-host distinct-GPU collectors only')
@@ -47,6 +47,8 @@ def factory(plan,root):return CollectorBackend(plan,root)
 
 
 def worker(request_path,output,*,execute=False,shared_runtime=None):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/continuous_parallel.py:worker')
     req=read(request_path)
     if not execute or req.get('authorization')!='EXPLICIT_COLLECTION_ONLY':raise ValueError('Collection not authorized')
     if file_digest(req['policy'])!=req['policy_sha256']:raise ValueError('Policy snapshot changed')
@@ -88,6 +90,8 @@ def worker(request_path,output,*,execute=False,shared_runtime=None):
 
 def collect_batch(cfg, runtime, policy, rows, version, batch_root, query_root, control_root, budget, *, workers=4,resident=None,call_caps=None):
     """Freeze actor once; admit the complete declared quota, never fastest-N."""
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    dispatch_policy.reject_production('benchmarks/LIBERO/continuous_parallel.py:collect_batch')
     import torch
     from AlphaBrain.research.dsol.data.continuous_training_store import atomic_file,write_json
     root=Path(batch_root);control=Path(control_root)
@@ -172,6 +176,8 @@ def completed_batch(control_root):
 
 
 def admission(config_path,execution_path,output,control_root,*,execute=False):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/continuous_parallel.py:admission')
     cfg=read(config_path)
     if not execute or cfg.get('authorization')!='EXPLICIT_ADMISSION_ONLY':raise ValueError('Admission not authorized')
     from .continuous_training import validate_inputs
@@ -252,6 +258,8 @@ def admission(config_path,execution_path,output,control_root,*,execute=False):
 
 
 def train(config_path,execution_path,output,control_root,*,execute=False,resume=False):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/continuous_parallel.py:train')
     cfg=read(config_path)
     if not execute or cfg.get('authorization')!='EXPLICIT_TRAINING_ONLY':raise ValueError('Training not authorized')
     from .continuous_training import validate_inputs
@@ -338,6 +346,8 @@ def train(config_path,execution_path,output,control_root,*,execute=False,resume=
 
 def capacity_admission(config_path,execution_path,output,control_root,*,execute=False):
     """Reuse the four-state serial reference for two exact eight-worker rounds."""
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/continuous_parallel.py:capacity_admission')
     import numpy as np
     import torch
     from .continuous_training import validate_inputs

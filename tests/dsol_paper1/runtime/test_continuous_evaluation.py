@@ -75,7 +75,26 @@ def test_attempts_are_durable_and_stage_caps_separate(tmp_path):
     with pytest.raises(ValueError):calls.infer({},np.ones((10,7)),{},True)
 
 
-@pytest.mark.parametrize('method',METHODS)
+def test_authority_wait_is_measured_without_spending_on_denial(tmp_path):
+    from AlphaBrain.research.dsol.execution.phase_timing import PhaseTiming
+    class Runtime:
+        calls=0
+        def infer(self,*args,**kwargs):
+            raise AssertionError('Denied request must not reach the model')
+    def denied():
+        raise RuntimeError('authority disconnected')
+    ticks=iter([2.,5.])
+    calls=EvaluationCalls(Runtime(),tmp_path,{'score':1},guard=denied)
+    calls.timing=PhaseTiming(clock=lambda:next(ticks))
+    calls.stage='score'
+    with pytest.raises(RuntimeError,match='disconnected'):
+        calls.infer({},np.ones((10,7)),{})
+    assert calls.timing.rows['authority_wait']==dict(seconds=3.,count=1)
+    assert calls.counts=={'score':0} and calls.runtime.calls==0
+    assert not (tmp_path/'model-attempts.jsonl').exists()
+
+
+@pytest.mark.parametrize('method',list(METHODS)+['random_acquisition'])
 def test_search_real_source_lifecycle_without_models(method,tmp_path,monkeypatch):
     pytest.importorskip('gymnasium')
     # Actual RenderedViewSource + core logic; injected CPU renderer/inference.
@@ -100,7 +119,7 @@ def test_search_real_source_lifecycle_without_models(method,tmp_path,monkeypatch
     if method=='continuous_ppo':
         monkeypatch.setattr('benchmarks.LIBERO.continuous_evaluation.actor_action',
             lambda *args:dict(stop=False,delta_deg=np.array([1.125,-.25])))
-    row=dict(method=method,angles_deg=[-17.5,9.5],proposal_seed=7,query_cap=1 if method=='stay' else 8)
+    row=dict(method=method,angles_deg=[-17.5,9.5],proposal_seed=7,acquisition_seed=173,query_cap=1 if method=='stay' else 8)
     runtime=Runtime()
     info,example=search(row,request,runtime,np.zeros((2,10,7)),tmp_path,None,1.)
     assert info['status']=='COMPLETE' and runtime.calls==2*info['queries']
@@ -163,6 +182,8 @@ def test_complete_192_task_driver_with_injected_cpu_backend(tmp_path,monkeypatch
             return dict(example=example,receipt=receipt)
         yield request
     monkeypatch.setattr('benchmarks.LIBERO.search_live.simulator',simulator)
+    from tests.dsol_paper1.helpers.dispatch_policy import allow_synthetic_boundaries
+    allow_synthetic_boundaries(monkeypatch, 'benchmarks/LIBERO/continuous_evaluation.py:run')
     output=tmp_path/'results';run(path,output,execute=True)
     status=json.loads((output/'status.json').read_text())
     assert status['tasks']==192 and status['searches']==48 and status['training_updates']==0

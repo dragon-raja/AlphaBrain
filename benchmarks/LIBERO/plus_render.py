@@ -36,16 +36,16 @@ def render(config_file, initial, output):
     output = Path(output); output.mkdir(parents=True, exist_ok=False)
     started = time.monotonic()
     write(output/'status.json', dict(status='RUNNING', initial=initial, scope='render_only'))
-    from scripts.dsol_paper1.runtime.audit_libero_hdf5_restore import _configure_runtime
-    from scripts.dsol_paper1.runtime.render_bridge_common_v1 import render_protocol, array_identity
-    from scripts.dsol_paper1.runtime.standard_initialization_v1 import initialize, load_initial
-    from scripts.dsol_paper1.runtime.evaluate_dsol_libero_hdf5_views import configure_imports, masked_policy_observation
+    from benchmarks.LIBERO.simulation_inputs import _configure_runtime
+    from benchmarks.LIBERO.simulation_inputs import render_protocol, array_identity
+    from benchmarks.LIBERO.simulation_inputs import initialize, load_initial
+    from benchmarks.LIBERO.simulation_inputs import configure_imports, masked_policy_observation
     configure_imports()
     try:
         with tempfile.TemporaryDirectory(prefix='dsol-plus-native-') as temporary:
             _configure_runtime(Path(config['runtime']), Path(config['dataset']), Path(temporary))
             from libero.libero.envs import OffScreenRenderEnv
-            from evaluate_pi05_libero_plus_views import agentview_camera_calibration, physics_state_sha256
+            from benchmarks.LIBERO.simulation_inputs import agentview_camera_calibration, physics_state_sha256
             physical = load_initial(record['state'])
             observations = []; references = []; physics = None; wrist = None
             variants = [('canonical', record['state']['bddl_file'])] + [

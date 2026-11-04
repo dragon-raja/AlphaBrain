@@ -8,7 +8,7 @@ from pathlib import Path
 from AlphaBrain.research.dsol.data.artifacts import read,sha,write
 from AlphaBrain.research.dsol.execution.queue import load
 from AlphaBrain.research.dsol.execution.repartition import repartition
-from benchmarks.Robocasa365.probe_queue import process_identity
+from AlphaBrain.research.dsol.execution.process_backend import process_identity
 
 
 def resume(config_file):

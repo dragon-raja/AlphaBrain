@@ -1,13 +1,9 @@
-"""Safe queue navigation; execution adapters are imported only with --execute."""
+"""Legacy queue navigation; dynamic adapter actions are disabled in this release."""
 import argparse
-import importlib
-import inspect
 import json
 from pathlib import Path
-import signal
 
-from .queue import load, prepare, recover, run, summary
-from .manifest import file_digest, verify_artifacts
+from .queue import prepare, summary
 
 
 def main(argv=None):
@@ -26,6 +22,8 @@ def main(argv=None):
     parser.add_argument('--include-running',action='store_true')
     parser.add_argument('--output',type=Path)
     args = parser.parse_args(argv)
+    if args.action in ('run', 'recover', 'audit-results'):
+        parser.error('Legacy dynamic backend actions disabled; use the ledger-controlled CPU simulation entry')
     if args.action == 'cluster-status':
         if args.config is None:parser.error('cluster-status requires --config')
         from .cluster import inspect_cluster
@@ -47,33 +45,6 @@ def main(argv=None):
             parser.error('prepare requires --manifest')
         prepare(json.loads(args.manifest.read_text()), args.root)
         result = summary(args.root)
-    else:
-        if args.action != 'audit-results' and not args.execute:
-            parser.error('run/recover require explicit --execute; adapters can start/manage processes')
-        plan, _ = load(args.root)
-        verify_artifacts(plan)
-        module = importlib.import_module(plan['backend']['module'])
-        factory = getattr(module, plan['backend']['factory'])
-        source = Path(inspect.getfile(factory)).resolve()
-        if not any(Path(a['path']).resolve() == source and a['sha256'] == file_digest(source)
-                   for a in plan['artifacts']):
-            raise ValueError('Execution adapter source must be explicitly fingerprinted')
-        backend = factory(plan, args.root)
-        if args.action == 'audit-results':
-            from .audit import audit_results
-            result=audit_results(args.root,backend,per_status=args.per_status,include_running=args.include_running)
-        elif args.action == 'run':
-            def interrupt(_signal, _frame):
-                raise KeyboardInterrupt('Coordinator stop requested')
-            previous = {s: signal.signal(s, interrupt) for s in (signal.SIGTERM, signal.SIGHUP)}
-            try:
-                run(args.root, backend, poll_seconds=args.poll_seconds, timeout_seconds=args.timeout_seconds)
-            finally:
-                for signum, handler in previous.items():
-                    signal.signal(signum, handler)
-        else:
-            recover(args.root, backend)
-        if args.action != 'audit-results':result = summary(args.root)
     if args.output is not None:
         if args.output.exists():raise FileExistsError(args.output)
         from .queue import _durable_write

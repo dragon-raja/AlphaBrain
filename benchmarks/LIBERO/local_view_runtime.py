@@ -21,7 +21,7 @@ TARGETS = [[0., 0.], [7.125, -4.375], [-9.625, 6.25], [29.5, 19.5]]
 
 
 class RenderedViewSource:
-    def __init__(self, request, runtime, noises, output):
+    def __init__(self, request, runtime, noises, output, *, current_angles=None):
         self.request, self.runtime = request, runtime
         self.noises = np.array(noises, copy=True)
         if self.noises.shape != (2, 10, 7) or not np.isfinite(self.noises).all():
@@ -30,7 +30,11 @@ class RenderedViewSource:
         info = request(dict(kind='continuous_info'))
         self.mount = PanTiltMount(info['reference'])
         self.physical = info['receipt']['physical_state_id']
-        self.current = np.zeros(2)
+        self.current = np.zeros(2) if current_angles is None else self.mount.angles(current_angles)
+        if current_angles is not None:
+            receipt = self._receipt(info['receipt'])
+            if not np.allclose(receipt.camera_to_world, self.mount.pose(self.current), atol=1e-9, rtol=0):
+                raise ValueError('Resumed source position differs from renderer receipt')
         self.queries = 0
         self.references = {}
         self.moves = 0
@@ -85,7 +89,7 @@ class RenderedViewSource:
             for m,value in enumerate(values):
                 for field in ('actions','trace','external','wrist','score'):
                     saved[f'{field}_{m}']=value[field]
-                for field in ('full_trace','full_noise'):
+                for field in ('full_trace','full_noise','full_actions','timesteps','deltas'):
                     if field in value:saved[f'{field}_{m}']=value[field]
             np.savez_compressed(self.output/f'query-{self.queries:02d}.npz',**saved)
             self.last_example,self.last_values=example,values

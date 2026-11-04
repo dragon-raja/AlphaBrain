@@ -82,6 +82,8 @@ def rollout_episode(request,infer,example,bank,state_key,repeat,identity,*,horiz
 
 
 def run(config_path,block_path,output,*,execute=False):
+    from AlphaBrain.research.dsol.execution import dispatch_policy
+    if execute: dispatch_policy.reject_production('benchmarks/LIBERO/search_rollout.py:run')
     if not execute:raise ValueError('Explicit --execute required')
     config=read(config_path);block=validate_block(read(block_path));output=Path(output)
     output.mkdir(parents=True,exist_ok=False);runtime=None;tasks=[];searches=[];begin=time.time()

@@ -58,6 +58,35 @@ class RLDXReference:
         return dict(actions=value['actions'],normalized_actions=value['normalized_actions'],seed=seed,native_input_sha256=stamp,trace=value['velocities'][:,0,:8,:7].copy())
 
 
+class CapacityProbeActor:
+    """Engineering-only full-history probe; never a scientific policy result.
+
+    Evaluate the real actor at every history length, then apply a deterministic
+    legal small move instead of its STOP decision. Model inputs, score noise,
+    source accounting and final return verification use the real search entry.
+    The wrapped checkpoint is not modified. This is capacity admission only.
+    """
+    def __init__(self, actor):
+        self.actor=actor
+        self.mechanism=actor.mechanism
+        self.maximum_history=0
+
+    def distribution(self, obs):
+        import torch
+        from types import SimpleNamespace
+        self.maximum_history=max(self.maximum_history,int((obs['flags'][0,:,0]>.5).sum()))
+        native=self.actor.distribution(obs)
+        def sample(**kwargs):
+            result=native.sample(**kwargs)
+            if not torch.isfinite(result['delta_deg']).all():raise ValueError('Nonfinite long-history actor')
+            low,high=obs['delta_low'],obs['delta_high']
+            delta=torch.zeros_like(low)
+            delta[:,0]=torch.where(high[:,0]>=.125,.125,-.125)
+            if ((delta<low)|(delta>high)).any():raise ValueError('Capacity move outside legal limits')
+            return dict(stop=torch.zeros_like(result['stop'],dtype=torch.bool),delta_deg=delta)
+        return SimpleNamespace(sample=sample)
+
+
 def run(c,cell,b,output,guard,pool):
     from .search_runtime import create_policy_runtime
     from .score_prefix_runtime import PrefixRuntime
@@ -128,9 +157,13 @@ def run(c,cell,b,output,guard,pool):
             folder=output/'deployment-smoke';folder.mkdir()
             testrow=dict(row,method='continuous_ppo',proposal_seed=0,query_cap=cell['mechanism']['query_cap'])
             with open_sim(b['sim_config'],sim,row['initial'],folder) as query:
-                info,_=search(testrow,query,calls,query_noise,folder,actor,cell['observation_scale'])
+                probe=CapacityProbeActor(actor) if testrow['query_cap']>8 else actor
+                info,_=search(testrow,query,calls,query_noise,folder,probe,cell['observation_scale'])
             if info['status']!='COMPLETE' or info['queries']>testrow['query_cap']:raise ValueError('Deployment query-cap check failed')
-            write(output/'collector-smoke.json',dict(status='PASS_DEPLOYMENT_ENTRY',queries=info['queries'],optimizer_updates=0,training_episode=False))
+            if testrow['query_cap']>8 and (info['reason']!='budget' or info['queries']<testrow['query_cap']-1 or probe.maximum_history<=8):
+                raise ValueError('Long-cap admission did not exercise the source/history boundary')
+            write(output/'collector-smoke.json',dict(status='PASS_DEPLOYMENT_ENTRY',queries=info['queries'],optimizer_updates=0,training_episode=False,
+                engineering_forced_motion=testrow['query_cap']>8,maximum_history=getattr(probe,'maximum_history',None)))
         else:
             live=LiveEpisodes(dict(sim_config=b['sim_config'],trajectory_cap=b['limits']['score'],**({'native_policy':cell['native_policy']} if cell['native_policy'] is not None else {}),
                 **({'task_condition':cell['task_condition']} if cell.get('task_condition') else {})),

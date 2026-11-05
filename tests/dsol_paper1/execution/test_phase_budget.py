@@ -1,3 +1,4 @@
+from pathlib import Path
 import json
 import pytest
 from AlphaBrain.research.dsol.execution.phase_budget import PhaseBudget
@@ -68,3 +69,37 @@ def test_resource_grants_never_reactivate_leased_or_previously_granted_cards():
         with pytest.raises(ValueError):pool.grant('a',[1],evidence_sha256='a'*64)
     pool.grant('a',[2,3],evidence_sha256='b'*64)
     assert len(pool.snapshot()['available']['a'])==4
+
+
+def test_explicit_surplus_cannot_double_spend_or_release_unknown(tmp_path):
+    a=tmp_path/'auth.json';a.write_text(json.dumps(dict(status='EXPLICIT_USER_APPROVAL',total_model_call_limit=20)))
+    c=tmp_path/'phase.json';c.write_text(json.dumps(dict(limits=dict(score=10,paired_execution=0,nominal_execution=0))))
+    recovery=tmp_path/'recovery.json';recovery.write_text(json.dumps(dict(limits=dict(score=6,paired_execution=0,nominal_execution=0))))
+    b=PhaseBudget(tmp_path/'parent',tmp_path/'mirror',a,authorization_sha256=file_digest(a))
+    b.reserve('complete',c);b.reserve('unknown',c)
+    with pytest.raises(ValueError,match='complete settlements'):b.delegate_settled_surplus('invalid',recovery,['unknown'])
+    b.settle('complete',dict(status='COMPLETE',actual_model_calls=4))
+    before=file_digest(b.root/'complete.json');unknown=file_digest(b.root/'unknown.json')
+    allocation=b.delegate_settled_surplus('repair',recovery,['complete'])
+    row=json.loads(Path(allocation['path']).read_text())
+    assert row['combined_maximum_consumption']==20
+    assert file_digest(b.root/'complete.json')==before and file_digest(b.root/'unknown.json')==unknown
+    assert b.status()['reserved']==20 and b.status()['held_unsettled']==10
+    child=PhaseBudget(tmp_path/'child',tmp_path/'child-mirror',a,authorization_sha256=file_digest(a),allocation=allocation)
+    child.reserve('repair',recovery)
+    with pytest.raises(ValueError):child.reserve('again',recovery)
+    with pytest.raises(ValueError,match='already delegated'):b.delegate_settled_surplus('second',recovery,['complete'])
+    with pytest.raises(ValueError,match='already exists'):b.delegate_settled_surplus('repair',recovery,['complete'])
+
+
+def test_surplus_checks_evidence_and_never_obstructs_parent_lock(tmp_path):
+    from AlphaBrain.research.dsol.execution.queue import exclusive
+    a=tmp_path/'auth.json';a.write_text(json.dumps(dict(status='EXPLICIT_USER_APPROVAL',total_model_call_limit=10)))
+    c=tmp_path/'phase.json';c.write_text(json.dumps(dict(limits=dict(score=10,paired_execution=0,nominal_execution=0))))
+    recovery=tmp_path/'recovery.json';recovery.write_text(json.dumps(dict(limits=dict(score=4,paired_execution=0,nominal_execution=0))))
+    b=PhaseBudget(tmp_path/'parent',tmp_path/'mirror',a,authorization_sha256=file_digest(a))
+    b.reserve('complete',c);b.settle('complete',dict(status='COMPLETE',actual_model_calls=7))
+    with pytest.raises(ValueError,match='Insufficient'):b.delegate_settled_surplus('too-much',recovery,['complete'])
+    recovery.write_text(json.dumps(dict(limits=dict(score=3,paired_execution=0,nominal_execution=0))))
+    with exclusive(b.root):allocation=b.delegate_settled_surplus('exact',recovery,['complete'])
+    assert json.loads(Path(allocation['path']).read_text())['combined_maximum_consumption']==10

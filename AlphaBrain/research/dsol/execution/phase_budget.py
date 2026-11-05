@@ -53,6 +53,58 @@ class PhaseBudget:
             row.update(status='COMPLETE',actual_model_calls=calls,settlement=result,settled_unix=time.time())
             _durable_write(target,row);_durable_write(self.mirror/target.name,row)
 
+    def delegate_settled_surplus(self,key,campaign,phase_keys):
+        """Explicitly allocate unused *settled* reservations to one recovery owner.
+
+        Old owners still count their original reservations, so they cannot reuse
+        this credit. Unknown phases are ineligible. Each settled phase can back
+        only one allocation; a failed child keeps its entire allocation. This
+        works while an immutable older owner is running without changing its
+        budget semantics or refunding an interrupted task.
+        """
+        if (Path(key).name!=key or key in ('','.','..') or not phase_keys
+                or len(phase_keys)!=len(set(phase_keys))):
+            raise ValueError('Explicit unique surplus allocation required')
+        folder=self.root/'surplus-allocations';folder.mkdir(exist_ok=True)
+        # COMPLETE rows are immutable. Use a separate allocation lock so an
+        # older live parent's nonblocking reservation lock is never obstructed.
+        with self.lock,exclusive(folder):
+            if file_digest(self.authorization)!=self.auth_hash:raise ValueError('Changed authorization')
+            target=folder/(key+'.json')
+            if target.exists():raise ValueError('Allocation already exists; never replay')
+            used={p['key'] for f in folder.glob('*.json') for p in read(f)['settled_phases']}
+            c=read(campaign);cap=sum(c['limits'][k] for k in ('score','paired_execution','nominal_execution'))
+            if type(cap) is not int or cap<=0:raise ValueError('Positive integer allocation required')
+            phases=[];surplus=0
+            for name in phase_keys:
+                if Path(name).name!=name or name in ('','.','..') or name in used:
+                    raise ValueError('Invalid or already delegated phase')
+                path=self.root/(name+'.json');row=read(path);settlement=row.get('settlement',{})
+                calls=row.get('actual_model_calls');reserved=row['reserved_model_calls']
+                if (row['status']!='COMPLETE' or row['authorization_sha256']!=self.auth_hash
+                        or settlement.get('status')!='COMPLETE' or type(calls) is not int
+                        or settlement.get('actual_model_calls')!=calls or not 0<=calls<=reserved
+                        or file_digest(row['campaign'])!=row['campaign_sha256']):
+                    raise ValueError('Only unchanged complete settlements can fund recovery')
+                original=read(row['campaign'])
+                if sum(original['limits'][k] for k in ('score','paired_execution','nominal_execution'))!=reserved:
+                    raise ValueError('Settlement reservation differs from its campaign')
+                surplus+=reserved-calls
+                phases.append(dict(key=name,path=str(path),sha256=file_digest(path),
+                    reserved_model_calls=reserved,actual_model_calls=calls,unused=reserved-calls))
+            if surplus<cap:raise ValueError('Insufficient verified settled surplus')
+            row=dict(key=key,status='RESERVED_BEFORE_DISPATCH',campaign=str(campaign),
+                campaign_sha256=file_digest(campaign),reserved_model_calls=cap,
+                authorization_sha256=self.auth_hash,settled_phases=phases,
+                settled_unused_credit=surplus,parent_hard_limit=self.limit,
+                combined_maximum_consumption=self.limit-surplus+cap,
+                accounting='Explicit settled surplus; parent reservations stay unchanged',
+                automatic_retry=False,unknown_refund=False,time_unix=time.time())
+            _durable_write(target,row)
+            (self.mirror/'surplus-allocations').mkdir(exist_ok=True)
+            _durable_write(self.mirror/'surplus-allocations'/target.name,row)
+            return dict(path=str(target),sha256=file_digest(target))
+
     def status(self):
         with self.lock:
             rows=[read(p) for p in self.root.glob('*.json')]

@@ -121,7 +121,8 @@ class PrefixCampaign:
         return execute_update(command,log,self.root/'publications',run=name,version=version,final_version=self.protocol['updates'])
 
     def admission(self,family,host):
-        names=[n for n,c in self.protocol['cells'].items() if c['family']==family and c['seed']==min(self.protocol['seeds'])]
+        names=[n for n,c in self.protocol['cells'].items() if c['family']==family and c['seed']==min(self.protocol['seeds'])
+            and n in self.cfg.get('active_cells',self.protocol['cells'])]
         if self.protocol['schema']!='UNIFIED_CORE_PILOT_V1':names=names[:1]
         for name in names:self.admit_cell(name,family,host)
 

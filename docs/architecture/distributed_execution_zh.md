@@ -45,3 +45,11 @@ GR1：复用同一 model_agent/model_plan；`trial_runtime.py` 连接搜索与�
 CPU 测试不启动模型/渲染或科学任务。实际新后端还需模型输出/特征数值、完整轨迹和容量验收。旧冻结目录不受开发树入口防护控制，不能声称全局隔离。
 
 完整科学约束见 [执行管理协议](../dsol_paper1/protocols/execution_management_zh.md)；原有详细沿革在维护归档，不再作为当前能力说明。
+
+## 显式恢复的已结算额度与隔离卡
+
+`PhaseBudget.delegate_settled_surplus` 只在人工审计后的恢复中调用：完整结算、实际消耗已知的阶段，其未用预留可以为一个独立恢复 owner 提供额度。原预留记录不修改，旧 owner 仍按原预留上限运行；每个阶段的剩余额度只能分配一次。子 owner 另用标准 PhaseBudget 硬限额，父上限减去已证明未用额度再加子额度不得超过原授权。未知/失败阶段的预留不可作为来源。分配记录在父账本的 `surplus-allocations/`，使用独立锁，避免阻塞旧 owner 的非阻塞派发锁。
+
+隔离卡交接不是“看到空闲就使用”：必须确认原阶段授权已 HALTED、dispatch=false、无完整结果可重复纳入、原 owner 的失败分支不会重试或重新释放该隔离租约，并实时核查节点、GPU UUID、可信保活和旧 worker 已退出。新 owner 只绑定明确移交的卡，用原有 PrefixCampaign/实时授权链执行；不得把隔离卡同时恢复到旧池。原失败证据与保守预留保留，新结果另目录并建立恢复索引。
+
+长查询准入必须覆盖长历史边界。`prefix_admission.CapacityProbeActor` 仅用于工程准入：每步真实计算冻结 actor，然后用明确标记的合法小步替代 STOP，保证超过第八次查询。不会修改权重，也不作为策略效果、科学轨迹或训练样本。科学评测继续使用原冻结 actor 的 STOP 与运动输出。

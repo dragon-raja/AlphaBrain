@@ -76,3 +76,31 @@ def test_unbound_long_cap_rejected_before_sensor_or_model_access(tmp_path):
     def forbidden(*args,**kwargs):pytest.fail('Unbound budget reached sensor/model')
     with pytest.raises(ValueError,match='bound deployment'):
         search(dict(query_cap=16),forbidden,forbidden,None,tmp_path,SimpleNamespace(),1.)
+
+
+def test_capacity_admission_forces_full_history_even_when_actor_stops(tmp_path):
+    torch=pytest.importorskip('torch')
+    from benchmarks.LIBERO.prefix_admission import CapacityProbeActor
+    from AlphaBrain.research.dsol.data.core_mechanism import mechanism_spec
+    calls=[]
+    def distribution(obs):
+        calls.append(True)
+        return SimpleNamespace(sample=lambda **kw:dict(stop=torch.tensor([True]),delta_deg=torch.zeros((1,2))))
+    actor=SimpleNamespace(mechanism=mechanism_spec('Q16'),distribution=distribution)
+    probe=CapacityProbeActor(actor)
+    obs=dict(flags=torch.ones((1,15,4)),delta_low=torch.tensor([[-1.,-1.]]),delta_high=torch.tensor([[1.,1.]]))
+    value=probe.distribution(obs).sample(deterministic=True)
+    assert len(calls)==1 and probe.maximum_history==15 and not value['stop'].item()
+    assert value['delta_deg'][0,0].item()==.125
+    assert actor.distribution(obs).sample()['stop'].item()
+
+
+def test_recovery_admits_only_explicit_active_variants():
+    from benchmarks.LIBERO.prefix_campaign import PrefixCampaign
+    co=PrefixCampaign.__new__(PrefixCampaign)
+    co.protocol=dict(schema='UNIFIED_CORE_PILOT_V1',seeds=[0,1,2],cells={
+        'old':dict(family='pi05',seed=0),'repair':dict(family='pi05',seed=0)})
+    co.cfg=dict(active_cells=['repair']);calls=[]
+    co.admit_cell=lambda *a:calls.append(a)
+    co.admission('pi05','node')
+    assert calls==[('repair','pi05','node')]

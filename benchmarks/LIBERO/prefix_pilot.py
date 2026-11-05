@@ -48,19 +48,21 @@ def cell_for(c):
     return p,cell
 
 
-def limits(rows, sim, kind, family, *, stay=False,collector_smoke=False):
+def limits(rows, sim, kind, family, *, stay=False,collector_smoke=False,query_cap=8):
+    if type(query_cap) is not int or query_cap not in (4,6,8,16):
+        raise ValueError('Unbound query cap')
     warm=int(family=='groot_n15')
     if kind=='admission':
         n=(90 if family=='rldx' else (read(sim['pilot_execution_plan'])['evaluation']['horizons'][rows[0]['suite']]+4)//5 if family=='pi05'
             else (sim['operation_contract']['horizons'][rows[0]['suite']]+9)//10)
-        return dict(episodes=0,score=2*n+3+warm+(16 if family=='rldx' or collector_smoke else 0),paired_execution=0,nominal_execution=0)
+        return dict(episodes=0,score=2*n+3+warm+(2*query_cap if family=='rldx' or collector_smoke else 0),paired_execution=0,nominal_execution=0)
     if kind=='training':return dict(episodes=len(rows),score=16*len(rows)+warm,paired_execution=0,nominal_execution=0)
     if family=='rldx':cost=90*2*len(rows)
     else:
         horizons=(read(sim['pilot_execution_plan'])['evaluation']['horizons'] if family=='pi05' else sim['operation_contract']['horizons'])
         step=5 if family=='pi05' else 10
         cost=sum(2*((horizons[r['suite']]+step-1)//step) for r in rows)
-    return dict(episodes=2*len(rows),score=0 if stay else 16*len(rows)+warm,paired_execution=cost,nominal_execution=0)
+    return dict(episodes=2*len(rows),score=0 if stay else sum(2*r.get('query_cap',8) for r in rows)+warm,paired_execution=cost,nominal_execution=0)
 
 
 def validate_campaign(path):
@@ -93,7 +95,7 @@ def validate_campaign(path):
         stage='training' if c['kind'] in ('training','admission') else 'evaluation'
         if b['sim_config']!=cell[stage+'_routes'][b['rows'][0]['suite']]:raise ValueError('Wrong native route')
         states=read(sim['inputs'])['records']
-        if b['limits']!=limits(b['rows'],sim,c['kind'],cell['family'],stay=c.get('stay',False),collector_smoke=mainline):
+        if b['limits']!=limits(b['rows'],sim,c['kind'],cell['family'],stay=c.get('stay',False),collector_smoke=mainline,query_cap=cell.get('mechanism',{}).get('query_cap',8)):
             raise ValueError('Changed stage budget')
         for r in b['rows']:
             state=states[r['initial']]['state']
@@ -282,8 +284,8 @@ def learner_step(config_path,*,records_path=None):
     if c.get('stage_resume'):
         origin=read(root/'stage-origin.json')
         expected=cell.get('continuation',{})
-        if (protocol.get('design_stage')!='long_continuation' or origin['source']!=expected.get('source_training')
-                or origin['update']!=16 or origin['checkpoint']['sha256']!=expected.get('checkpoint_sha256')):
+        if (protocol.get('design_stage') not in ('long_continuation','core_confirmation') or origin['source']!=expected.get('source_training')
+                or origin['update']!=protocol['start_update'] or origin['checkpoint']['sha256']!=expected.get('checkpoint_sha256')):
             raise ValueError('Continuation must use the audited complete stage fork')
     if root.exists()!=resume:raise ValueError('Clean init/update boundary required; no replay')
     def no_live(*args):raise RuntimeError('CPU learner cannot render or infer')

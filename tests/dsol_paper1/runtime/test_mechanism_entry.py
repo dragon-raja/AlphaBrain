@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from tests.dsol_paper1.helpers.local_search import synthetic_session
 
-@pytest.mark.parametrize('cap',[4,6,8])
+@pytest.mark.parametrize('cap',[4,6,8,16])
 def test_actual_search_enforces_cap_and_charges_return(tmp_path,monkeypatch,cap):
     from benchmarks.LIBERO import continuous_evaluation as entry,local_view_runtime
     from AlphaBrain.research.dsol.data.core_mechanism import mechanism_spec

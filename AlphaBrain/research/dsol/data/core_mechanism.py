@@ -4,12 +4,13 @@ from .score_prefix import contract
 from .reward_pilot import reward_config
 
 VARIANTS = ('cost005', 'cost020', 'no_score', 'fixed_query', 'Q4', 'Q6')
+DEPLOYMENT_VARIANTS = ('Q4', 'Q6', 'Q16')
 
 def mechanism_spec(name):
-    if name not in VARIANTS: raise ValueError('Unknown mechanism condition')
+    if name not in (*VARIANTS, *DEPLOYMENT_VARIANTS): raise ValueError('Unknown mechanism condition')
     return dict(schema='SEARCH_MECHANISM_V1', name=name,
         explicit_score=name!='no_score', learned_stop=name!='fixed_query',
-        query_cap=int(name[1:]) if name in ('Q4','Q6') else 8,
+        query_cap=int(name[1:]) if name in DEPLOYMENT_VARIANTS else 8,
         query_cost={'cost005':.005,'cost020':.02}.get(name,.01))
 
 def reward_for(spec):

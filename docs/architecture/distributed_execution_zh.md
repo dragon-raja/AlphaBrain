@@ -21,6 +21,8 @@ PPO：中央学习器发布一个策略版本，采集器返回完整同版本�
 
 当前这条 PPO 链不是通用 DDP/FSDP，也不等于批推理后端。若以后接入，须单独实现进程组资源、同步和失败合同，不能对外标成已支持。
 
+`PrefixCampaign` 可通过冻结资源配置中的 `training_slots` 和 `evaluation_slots_max` 限制每阶段租用的物理卡数，默认保持历史 4/8；这只改变执行并行度，不改变完整 32 回合 PPO 屏障。早期已保存检查点评测和新尾段评测使用同一预算、租约与异步开发评测路径。某阶段失败时保留不明消耗并隔离所属卡，不自动重发。
+
 ## benchmark 适配
 
 LIBERO：`continuous_authority.py` 提供科学适配，`prefix_campaign/continuation/evaluation.py` 组合实验；原生模型实现通过明确合同绑定。

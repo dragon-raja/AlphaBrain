@@ -81,7 +81,7 @@ class PrefixCampaign:
             if kind!='admission':required.add(c['admission_proofs'][host+'/'+suite])
             size=1 if kind=='admission' else 2
             for i in range(0,len(selected),size):
-                pair=selected[i:i+size];b=dict(index=len(c['blocks']),host=host,rows=pair,sim_config=route,limits=limits(pair,sim,kind,cell['family'],stay=stay,collector_smoke=True))
+                pair=selected[i:i+size];b=dict(index=len(c['blocks']),host=host,rows=pair,sim_config=route,limits=limits(pair,sim,kind,cell['family'],stay=stay,collector_smoke=True,query_cap=cell.get('mechanism',{}).get('query_cap',8)))
                 if kind=='training':
                     actor=self.publication(name,version);required.add(str(actor))
                     b.update(version=version,policy=str(actor),policy_sha256=sha(actor),run=name,arm='G',seed=cell['seed'])
@@ -96,14 +96,17 @@ class PrefixCampaign:
 
     def execute(self,name,kind,schedule,*,version=None,stay=False,host_only=None):
         family=self.protocol['cells'][name]['family'];hosts=[host_only] if host_only else self.cfg['hosts'][family]
-        count=4 if kind=='training' else self.cfg.get('admission_slots',4) if kind=='admission' else 2
+        count=self.cfg.get('training_slots',4) if kind=='training' else self.cfg.get('admission_slots',4) if kind=='admission' else 2
+        if type(count) is not int or not 1<=count<=8:raise ValueError('Invalid phase slot count')
         if kind=='evaluation':
             suites={r['suite'] for r in read(schedule)}
             spec=self.protocol['cells'][name].get('core_spec')
             proofs=self.variant_proofs.get(admission_identity(self.protocol['cells'][name]),{}) if spec else self.proofs.get(family,{})
             hosts=[h for h in hosts if all(h+'/'+s in proofs for s in suites)]
             if not hosts:raise ValueError('No host admitted for this exact evaluation suite')
-        with self.pool.lease(name+'-'+Path(schedule).stem,hosts,count=count,max_count=count if kind!='evaluation' else 8) as (host,ids):
+        maximum=self.cfg.get('evaluation_slots_max',8) if kind=='evaluation' else count
+        if type(maximum) is not int or not count<=maximum<=8:raise ValueError('Invalid maximum phase slots')
+        with self.pool.lease(name+'-'+Path(schedule).stem,hosts,count=count,max_count=maximum) as (host,ids):
             path,label=self.build(name,kind,schedule,host,version=version,stay=stay);config=self.execution(name,family,host,ids)
             config_path=self.root/'bindings'/name/(label+'.json');write(config_path,config)
             key=name+'-'+label;self.budget.reserve(key,path);self.status(name if kind=='training' else name+'-'+kind,state='RUNNING',phase=label,host=host,gpu_ids=ids)
@@ -146,15 +149,20 @@ class PrefixCampaign:
         try:
             cell=self.protocol['cells'][name]
             if cell.get('evaluation_only'):
-                if self.protocol.get('design_stage')!='mechanism_screen':raise ValueError('Explicit deployment-only protocol required')
+                if self.protocol.get('design_stage') not in ('mechanism_screen','core_confirmation'):raise ValueError('Explicit deployment-only protocol required')
                 for schedule,meta in cell['evaluation_schedules'].items():self.execute(name,'evaluation',schedule,version=meta['version'])
                 self.status(name,state='COMPLETE',optimizer_updates=0,new_training_episodes=0)
                 return
             start=self.protocol.get('start_update',0)
-            if start and self.protocol.get('design_stage')!='long_continuation':
+            if start and self.protocol.get('design_stage') not in ('long_continuation','core_confirmation'):
                 raise ValueError('Starting later requires an explicit continuation protocol')
             pending=[]
             evaluator=ThreadPoolExecutor(1) if self.cfg.get('async_development',False) else None
+            if self.protocol.get('design_stage')=='core_confirmation':
+                for schedule,meta in cell['evaluation_schedules'].items():
+                    if meta['version']<start:
+                        if evaluator is None:self.execute(name,'evaluation',schedule,version=meta['version'])
+                        else:pending.append(evaluator.submit(self.execute,name,'evaluation',schedule,version=meta['version']))
             for version in range(start,self.protocol['updates']):
                 for future in pending:
                     if future.done():future.result()

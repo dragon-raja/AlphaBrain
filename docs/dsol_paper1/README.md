@@ -22,11 +22,12 @@
 
 - U12/U3 三种子长续训与开发评测：`runs/unified-core-long-confirmation-20261104/`。
 - 查询预算/成本、评分反馈与 STOP 筛查：`runs/unified-core-mechanism-screen-20261104/`，按已批准资源交接执行。
+- 长训尾段、早期曲线与部署预算补证：`runs/unified-core-final-checks-20261105/`；U12/U3 从 3,072 续至 4,096，Q16 仅部署诊断，使用独立 300,000 调用上限。实际准入/启动状态以该目录 `CURRENT.json` 为准。
 - GR1 CPU 准备：`runs/gr1-cpu-preparation-20261104/r15/`（整块输入预检、authority 接入与实际任务 CPU 组合）；早期重放和模型加载证据在同级 `r14/`。
 - 框架整理前审查：`runs/framework-maintainability-audit-20261104/`。
 - 共同核心对外协作索引：`runs/parallel-sim-real-plan-20261104/core-release/`。
 
-本轮调用总上限仍为原批准的 600,000；GR1 真实模型调用不包含在内。
+原 600,000 调用包已完成结算；新三项补证独立记账，不复用旧余额。GR1 真实模型调用不包含在内。
 实验状态必须同时核对账本、结果和所属活进程；旧 RUNNING 文件不能证明仍在运行。
 当前开发树不是在途实验源码。结构选择完成后另冻版本，旧结果不得改标为统一结构。
 

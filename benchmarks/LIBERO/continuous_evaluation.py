@@ -107,7 +107,11 @@ def actor_action(actor, observation, *, task_features=None):
     if hasattr(actor,'feature_contract_sha256'):
         from AlphaBrain.research.dsol.acquisition.native_search import padded_native_observation
         obs=padded_native_observation(observation)
-    else:obs=continuous_observation(observation)
+    else:
+        # Preserve the historical seven-row computation for Q4/Q6/Q8.
+        # Longer histories are admitted only by an explicitly bound mechanism.
+        cap=getattr(actor,'mechanism',{}).get('query_cap',8)
+        obs=continuous_observation(observation,query_budget=max(8,cap))
     if task_features is not None:obs=dict(obs,task_features=task_features)
     tensor = {k:torch.as_tensor(v[None]) for k,v in obs.items()}
     with torch.inference_mode():
@@ -176,8 +180,8 @@ def search(row, request, calls, noises, directory, actor, scale,*,native_policy=
         from dataclasses import replace
         from AlphaBrain.research.dsol.acquisition.local_view_search import PanTiltMount
         spec=getattr(actor,'mechanism',{})
-        if spec.get('query_cap')!=row['query_cap'] or row['query_cap'] not in (4,6):
-            raise ValueError('Reduced query cap requires the bound deployment mechanism')
+        if spec.get('query_cap')!=row['query_cap'] or row['query_cap'] not in (4,6,16):
+            raise ValueError('Changed query cap requires the bound deployment mechanism')
         mount=PanTiltMount(mount.reference,replace(mount.config,query_budget=row['query_cap']))
     original, pending = source.query, [first]
     source.query = lambda: pending.pop() if pending else original()

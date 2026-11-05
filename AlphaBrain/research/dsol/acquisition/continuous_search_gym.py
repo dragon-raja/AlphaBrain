@@ -4,9 +4,11 @@ import numpy as np
 from .local_view_gym import padded_observation
 
 
-def continuous_observation(obs):
+def continuous_observation(obs, *, query_budget=8):
+    if type(query_budget) is not int or not 2 <= query_budget <= 16:
+        raise ValueError('Explicit query budget between two and sixteen required')
     extra = {'joint_state', 'delta_low', 'delta_high'}
-    out = padded_observation({k:v for k,v in obs.items() if k not in extra}, 7)
+    out = padded_observation({k:v for k,v in obs.items() if k not in extra}, query_budget - 1)
     out.update({k:np.array(obs[k], copy=True) for k in extra})
     return out
 

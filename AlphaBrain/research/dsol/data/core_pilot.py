@@ -8,6 +8,9 @@ STAGES = {'single_factors': ('U0', 'U1', 'U2', 'U3'),
 
 
 def validate_protocol(p):
+    if p.get('design_stage') == 'core_confirmation':
+        from .core_confirmation import validate_protocol as validate_confirmation
+        return validate_confirmation(p)
     if p.get('design_stage') == 'long_continuation':
         from .core_continuation import validate_protocol as validate_long
         return validate_long(p)

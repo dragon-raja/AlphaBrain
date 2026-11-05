@@ -21,7 +21,12 @@ TARGETS = [[0., 0.], [7.125, -4.375], [-9.625, 6.25], [29.5, 19.5]]
 
 
 class RenderedViewSource:
-    def __init__(self, request, runtime, noises, output, *, current_angles=None):
+    """Rendered queries with an explicit ceiling; legacy admission defaults to eight."""
+
+    def __init__(self, request, runtime, noises, output, *, current_angles=None, query_cap=8):
+        if type(query_cap) is not int or query_cap not in (4, 6, 8, 16):
+            raise ValueError('Explicit supported source query cap required')
+        self.query_cap = query_cap
         self.request, self.runtime = request, runtime
         self.noises = np.array(noises, copy=True)
         if self.noises.shape != (2, 10, 7) or not np.isfinite(self.noises).all():
@@ -64,8 +69,8 @@ class RenderedViewSource:
             self.current = point.copy()
 
     def query(self):
-        if self.failed or self.queries >= 8:
-            raise ValueError('Source failed or eight-query admission budget exhausted')
+        if self.failed or self.queries >= self.query_cap:
+            raise ValueError('Source failed or declared query budget exhausted')
         self.queries += 1
         try:
             response = self.request(dict(kind='query_pose'))

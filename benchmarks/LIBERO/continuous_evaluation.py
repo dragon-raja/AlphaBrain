@@ -123,6 +123,11 @@ def search(row, request, calls, noises, directory, actor, scale,*,native_policy=
     from .local_view_runtime import RenderedViewSource
     from AlphaBrain.research.dsol.acquisition.local_view_search import LocalViewSearch
     from AlphaBrain.research.dsol.acquisition.continuous_search import ContinuousSearch
+    query_cap = 8 if row.get('method') == 'stay' else row.get('query_cap', 8)
+    if query_cap != 8:
+        spec = getattr(actor, 'mechanism', {})
+        if spec.get('query_cap') != query_cap or query_cap not in (4, 6, 16):
+            raise ValueError('Changed query cap requires the bound deployment mechanism')
     if row['method']=='random_acquisition':
         from AlphaBrain.research.dsol.acquisition.random_acquisition import UniformIncrementAcquisition
         if actor is not None:raise ValueError('Independent random acquisition cannot use an actor')
@@ -148,7 +153,8 @@ def search(row, request, calls, noises, directory, actor, scale,*,native_policy=
         source=NativeRenderedViewSource(request,calls,noises,directory,expected_model_sha256=native_model_sha256,expected_producer_sha256=native_policy['producer_sha256'])
         cls=NativeLocalSearch if row['method']=='local_near_best_accel' else NativeContinuousSearch
     else:
-        source = RenderedViewSource(request, calls, noises, directory)
+        source = RenderedViewSource(request, calls, noises, directory,
+                                    **({'query_cap': query_cap} if query_cap != 8 else {}))
         cls = LocalViewSearch if row['method']=='local_near_best_accel' else ContinuousSearch
     mount,initial=source.mount,row['angles_deg']
     if shifted:

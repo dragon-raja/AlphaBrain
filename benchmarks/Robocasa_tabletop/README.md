@@ -5,7 +5,7 @@
 | 层 | 文件 |
 |---|---|
 | 包与动作合同 | `gr1_package.py`、`model_runtime.py`、`task_runtime.py` |
-| 独立模型进程 | `model_process.py`：parent 按调用授权，模型与任务环境隔离 |
+| 独立模型进程 | `model_process.py`：parent 按调用授权，绑定输入/噪声摘要、序号与结果，模型与任务环境隔离 |
 | 头部运动与观测 | `head_layout.py`、`head_geometry.py`、`head_servo.py`、`head_control.py`、`head_io.py` |
 | 原生输入与共享 PPO | `search_runtime.py`、`policy_binding.py`、`episode_runtime.py` |
 | 搜索到操作 | `task_composition.py`、`operation_backend.py`、`operation_rollout.py`、`trial_runtime.py` |
@@ -32,3 +32,5 @@ CPU 测试：`tests/dsol_paper1/runtime/test_gr1_*.py` 与 `tests/dsol_paper1/ex
 [复现指南](../../docs/architecture/reproduction_zh.md) · [当前准备证据入口](../../docs/dsol_paper1/README.md)
 
 原上游操作模型训练说明在[维护归档](../../archive/repository/20261104/framework-cleanup/README.txt)；本项目不以重训操作模型作为搜索后端接入的前置要求。
+
+本地模型 IPC 的 CPU 回归还覆盖实际模型子进程循环（仅替换重型模型构造器）：输入/噪声不匹配、错误或超时 GO、重复调用、结果返回后断联均拒绝接受或重发。完整整块入口继续保持不明消耗；`GR1ModelRuntime.infer` 与 `NativeResources.NATIVE` 的真实生产门禁没有开放。输入摘要是可信本地子进程完整性检查，不是离线执行许可。

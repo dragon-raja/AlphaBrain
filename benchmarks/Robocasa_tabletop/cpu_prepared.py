@@ -72,6 +72,7 @@ def synthetic_resources(plan, prepared, directory, guard):
         sys.executable,
         Path(__file__).resolve().parents[2],
         guard=lambda request: guard(),
+        continuation_guard=guard,
         log_path=directory / "synthetic-model.log",
     ) as runtime:
         runtime.contract = ScoreContract(**prepared["policy_binding"]["score"])

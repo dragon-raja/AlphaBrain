@@ -18,9 +18,56 @@ import sys
 import tempfile
 import time
 
+import numpy as np
+
 
 def source_identity():
     return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+
+
+def call_identity(example, noise, request):
+    """Bind the exact sensor/state/text/noise payload, not only its query label.
+
+    This is a local trusted-child integrity check, not a cryptographic remote
+    capability. The parent still obtains every grant from the existing center.
+    """
+    if (
+        set(request) != {"query_id", "epoch", "member"}
+        or not isinstance(request["query_id"], str)
+        or not request["query_id"]
+        or any(type(request[k]) is not int or request[k] < 0 for k in ("epoch", "member"))
+    ):
+        raise ValueError("Explicit query identity and nonnegative integer epoch/member required")
+    noise = np.asarray(noise)
+    if noise.shape != (16, 32) or noise.dtype != np.float32 or not np.isfinite(noise).all():
+        raise ValueError("Explicit finite float32 model noise required")
+
+    def describe(value):
+        if isinstance(value, np.ndarray):
+            if value.dtype.kind not in "buif" or not np.isfinite(value).all():
+                raise ValueError("Finite numeric observation arrays required")
+            array = np.ascontiguousarray(value)
+            return {"array": {
+                "dtype": array.dtype.str,
+                "shape": list(array.shape),
+                "sha256": hashlib.sha256(array.tobytes()).hexdigest(),
+            }}
+        if isinstance(value, dict) and all(isinstance(k, str) for k in value):
+            return {"mapping": {k: describe(v) for k, v in value.items()}}
+        if type(value) in (str, int, float, bool) or value is None:
+            return {"scalar": value}
+        raise ValueError("Unsupported observation payload type")
+
+    payload = describe(dict(example=example, noise=noise, request=request))
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, allow_nan=False).encode()).hexdigest()
+
+
+def _grant(channel, sequence, request, stamp, timeout):
+    channel.send(dict(kind="AUTHORIZE", sequence=sequence, request=request, call_sha256=stamp))
+    if not channel.poll(timeout):
+        raise TimeoutError("Live parent grant timed out")
+    if channel.recv() != dict(kind="GO", sequence=sequence, call_sha256=stamp):
+        raise PermissionError("Live parent grant differs from model input")
 
 
 class _ModelProcess:
@@ -37,12 +84,14 @@ class _ModelProcess:
         model_config=None,
         import_paths=(),
         load_guard=lambda: None,
+        continuation_guard=lambda: None,
     ):
         if timeout <= 0 or timeout > 300:
             raise ValueError("Bounded local IPC timeout required")
         load_guard()
         self.guard, self.timeout = guard, float(timeout)
         self.load_guard = load_guard
+        self.continuation_guard = continuation_guard
         self.process = None
         self.connection = None
         self.closed = False
@@ -75,7 +124,10 @@ class _ModelProcess:
                         ),
                     )
                     self.process = subprocess.Popen(
-                        [str(python), "-m", __name__, *args, "--socket", address],
+                        [
+                            str(python), "-m", __name__, *args, "--socket", address,
+                            "--grant-timeout", str(self.timeout),
+                        ],
                         cwd=source_root,
                         env=env,
                         stdout=log,
@@ -127,10 +179,13 @@ class _ModelProcess:
                 reject_production(
                     "benchmarks/Robocasa_tabletop/model_runtime.py:GR1ModelRuntime.infer"
                 )
+            stamp = call_identity(example, noise, request)
+            self.continuation_guard()
             self.sequence += 1
             self.connection.send(
                 dict(
                     kind="INFER",
+                    call_sha256=stamp,
                     sequence=self.sequence,
                     example=example,
                     noise=noise,
@@ -138,13 +193,21 @@ class _ModelProcess:
                 )
             )
             intent = self._receive()
-            if intent != {"kind": "AUTHORIZE", "sequence": self.sequence, "request": request}:
+            if intent != dict(
+                kind="AUTHORIZE", sequence=self.sequence, request=request, call_sha256=stamp
+            ):
                 raise RuntimeError("Worker call identity differs")
             self.guard(request)  # The caller's existing authority/ledger owns this grant.
-            self.connection.send(dict(kind="GO", sequence=self.sequence))
+            self.continuation_guard()
+            self.connection.send(dict(kind="GO", sequence=self.sequence, call_sha256=stamp))
             result = self._receive()
-            if result.get("kind") != "RESULT" or result.get("sequence") != self.sequence:
+            if (
+                result.get("kind") != "RESULT"
+                or result.get("sequence") != self.sequence
+                or result.get("call_sha256") != stamp
+            ):
                 raise RuntimeError("Unknown worker result")
+            self.continuation_guard()
             return result["value"]
         except BaseException:
             self.close()
@@ -196,8 +259,14 @@ class _ModelProcess:
 class CPUModelProcess(_ModelProcess):
     """Explicit synthetic worker for cross-interpreter integration/fault tests."""
 
-    def __init__(self, python, source_root, *, guard, log_path, timeout=30.0):
-        super().__init__(python, source_root, guard=guard, log_path=log_path, timeout=timeout)
+    def __init__(
+        self, python, source_root, *, guard, log_path, timeout=30.0,
+        continuation_guard=lambda: None,
+    ):
+        super().__init__(
+            python, source_root, guard=guard, log_path=log_path, timeout=timeout,
+            continuation_guard=continuation_guard,
+        )
 
 
 class GR1ModelProcess(_ModelProcess):
@@ -243,12 +312,11 @@ class GR1ModelProcess(_ModelProcess):
             model_config=config,
             import_paths=import_paths,
             load_guard=load_guard,
+            continuation_guard=load_guard,
         )
 
 
-def _cpu_worker(address):
-    import numpy as np
-
+def _cpu_worker(address, timeout=30.0):
     seen = set()
     sequence = 0
     with Client(address, family="AF_UNIX") as channel:
@@ -263,13 +331,14 @@ def _cpu_worker(address):
                 if row.get("kind") != "INFER" or row.get("sequence") != sequence:
                     raise ValueError("sequence")
                 request = row["request"]
+                stamp = call_identity(row["example"], row["noise"], request)
+                if row.get("call_sha256") != stamp:
+                    raise ValueError("Model input differs from call identity")
                 key = (request["query_id"], request["epoch"], request["member"])
                 if key in seen:
                     raise ValueError("duplicate")
                 seen.add(key)
-                channel.send(dict(kind="AUTHORIZE", sequence=sequence, request=request))
-                if channel.recv() != dict(kind="GO", sequence=sequence):
-                    raise ValueError("grant")
+                _grant(channel, sequence, request, stamp, timeout)
                 state = np.asarray(row["example"]["observation/state"])
                 if state.shape != (29,) or np.asarray(row["noise"]).shape != (16, 32):
                     raise ValueError("shape")
@@ -279,7 +348,7 @@ def _cpu_worker(address):
                     actions=np.zeros((16, 29), np.float32),
                     synthetic=True,
                 )
-                channel.send(dict(kind="RESULT", sequence=sequence, value=value))
+                channel.send(dict(kind="RESULT", sequence=sequence, call_sha256=stamp, value=value))
             except (EOFError, BrokenPipeError):
                 return
             except Exception:
@@ -287,7 +356,7 @@ def _cpu_worker(address):
                 return
 
 
-def _model_worker(address, config):
+def _model_worker(address, config, timeout=30.0):
     from .model_runtime import GR1ModelRuntime, ScoreContract
     import jax
 
@@ -295,9 +364,9 @@ def _model_worker(address, config):
         sequence = 0
 
         def grant(request):
-            channel.send(dict(kind="AUTHORIZE", sequence=sequence, request=request))
-            if channel.recv() != dict(kind="GO", sequence=sequence):
-                raise PermissionError("Live parent grant missing")
+            if request != row["request"]:
+                raise PermissionError("Runtime substituted call identity")
+            _grant(channel, sequence, request, stamp, timeout)
 
         options = dict(config)
         options["score_contract"] = ScoreContract(**options["score_contract"])
@@ -330,12 +399,15 @@ def _model_worker(address, config):
                     channel.send(dict(kind="OBSERVATION_SHAPES", sequence=sequence, shapes=shapes))
                 elif row.get("kind") == "INFER":
                     request = row["request"]
+                    stamp = call_identity(row["example"], row["noise"], request)
+                    if row.get("call_sha256") != stamp:
+                        raise ValueError("Model input differs from call identity")
                     key = (request["query_id"], request["epoch"], request["member"])
                     if key in seen:
                         raise ValueError("duplicate")
                     seen.add(key)
                     value = runtime.infer(row["example"], row["noise"], request=request)
-                    channel.send(dict(kind="RESULT", sequence=sequence, value=value))
+                    channel.send(dict(kind="RESULT", sequence=sequence, call_sha256=stamp, value=value))
                 else:
                     raise ValueError("Unknown worker operation")
             except (EOFError, BrokenPipeError):
@@ -351,11 +423,14 @@ def main():
     mode.add_argument("--cpu-contract", action="store_true")
     mode.add_argument("--model-config", type=Path)
     parser.add_argument("--socket", required=True)
+    parser.add_argument("--grant-timeout", type=float, default=30.0)
     args = parser.parse_args()
+    if not 0 < args.grant_timeout <= 300:
+        parser.error("Bounded grant timeout required")
     if args.cpu_contract:
-        _cpu_worker(args.socket)
+        _cpu_worker(args.socket, args.grant_timeout)
     else:
-        _model_worker(args.socket, json.loads(args.model_config.read_text()))
+        _model_worker(args.socket, json.loads(args.model_config.read_text()), args.grant_timeout)
 
 
 if __name__ == "__main__":

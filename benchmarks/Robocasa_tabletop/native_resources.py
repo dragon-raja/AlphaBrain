@@ -146,6 +146,7 @@ class NativeResources:
                 self.model_python,
                 self.source_root,
                 guard=lambda request: guard(),
+                continuation_guard=guard,
                 log_path=directory / "synthetic-model.log",
             ) as runtime:
                 runtime.contract = ScoreContract(**prepared["policy_binding"]["score"])

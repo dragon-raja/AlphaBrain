@@ -165,7 +165,7 @@ class RLDXRuntime:
         with (self.output/name).open('a') as stream:
             stream.write(json.dumps(row,sort_keys=True)+'\n');stream.flush();os.fsync(stream.fileno())
 
-    def infer(self,history,seed,identity,*,instrument=True,features=False):
+    def infer(self,history,seed,identity,*,instrument=True,features=False,visual_features=False):
         from AlphaBrain.research.dsol.execution.dispatch_policy import reject_production
         reject_production('benchmarks/LIBERO/rldx_runtime.py:RLDXRuntime.infer')
         if self.failed or self.calls>=self.limit:raise RuntimeError('RLDX budget exhausted or prior unknown outcome')
@@ -176,19 +176,28 @@ class RLDXRuntime:
         request=StepRequest(obs=history.observation(),batch_size=1)
         _,states,collated=self.pipeline._prepare_inputs(request)
         trace=TokenTimeFlowTrace(timesteps=SAMPLER['timesteps'],terminal_time=1.,horizon=16,dimensions=64)
+        if features and visual_features:
+            raise ValueError('Choose joint cognition or pre-language visual capture explicitly')
+        capture=None
+        if visual_features:
+            from AlphaBrain.model.rldx_features import RLDXVisualCapture
+            capture=RLDXVisualCapture(self.model.backbone.qwen_model.model,
+                cameras=('external','wrist'),frames=4,selected_frame=3,channels=4096,merge_size=2)
         head=self.model.action_model;started=time.monotonic();self.calls+=1
-        row=dict(index=self.calls,seed=seed,identity=identity,instrument=instrument,features=features)
+        row=dict(index=self.calls,seed=seed,identity=identity,instrument=instrument,features=features,visual_features=visual_features)
         self._append('model-attempts.jsonl',row)
         try:
             with torch.random.fork_rng(devices=[0]):
                 torch.manual_seed(seed);torch.cuda.manual_seed(seed)
-                with trace.capture(head.action_encoder,head.action_decoder) if instrument else nullcontext():
+                with (trace.capture(head.action_encoder,head.action_decoder) if instrument else nullcontext()), (capture if capture is not None else nullcontext()):
                     pred=self.pipeline._forward(collated)
                 normalized=pred['action_pred'].detach().float().cpu().numpy().copy()
                 decoded=self.pipeline._decode(pred['action_pred'].float(),states)
                 rng_cpu=torch.random.get_rng_state().numpy().copy()
                 rng_cuda=torch.cuda.get_rng_state().cpu().numpy().copy()
                 result=dict(normalized_actions=normalized,actions=simulator_actions(decoded),rng_cpu=rng_cpu,rng_cuda=rng_cuda)
+                if capture is not None:
+                    result['visual_features']={k:v.float().cpu().numpy().copy() for k,v in capture.features().items()}
                 if features:
                     for k in ('backbone_features','state_features'):
                         x=pred[k].detach().float().cpu().numpy().copy()

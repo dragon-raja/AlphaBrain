@@ -65,6 +65,7 @@ def main():
         "tests/dsol_paper1/runtime/test_prefix_runtime.py",
         "tests/dsol_paper1/runtime/test_prefix_continuation.py",
         "tests/dsol_paper1/runtime/test_prefix_resumption.py",
+        "tests/dsol_paper1/runtime/test_unified_mainline.py",
         "tests/dsol_paper1/execution/test_phase_budget.py",
         "tests/dsol_paper1/data/test_prefix_protocol.py",
         "tests/dsol_paper1/data/test_core_pilot.py",

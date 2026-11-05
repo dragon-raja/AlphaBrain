@@ -18,12 +18,16 @@ MAINLINE='CONTROLLED_PREFIX_MAINLINE_V1'
 MAINLINE_PROTOCOL='PREFIX_MAINLINE_V1'
 SCHEMAS=(SCHEMA,MAINLINE)
 CORE_PROTOCOL='UNIFIED_CORE_PILOT_V1'
+UNIFIED_MAINLINE='UNIFIED_LIBERO_MAINLINE_V1'
 
 
 def cell_for(c):
     p=read(c['protocol'])
-    mainline=p['schema']==MAINLINE_PROTOCOL
-    if p['schema']==CORE_PROTOCOL:
+    mainline=p['schema'] in (MAINLINE_PROTOCOL,UNIFIED_MAINLINE)
+    if p['schema']==UNIFIED_MAINLINE:
+        from AlphaBrain.research.dsol.data.unified_mainline import validate_protocol
+        validate_protocol(p)
+    elif p['schema']==CORE_PROTOCOL:
         from AlphaBrain.research.dsol.data.core_pilot import validate_protocol
         validate_protocol(p)
     elif mainline:
@@ -43,7 +47,7 @@ def cell_for(c):
         if (c['input_hashes'].get(binding['cache'])!=binding['cache_sha256']
                 or file_digest(binding['cache'])!=binding['cache_sha256']):
             raise ValueError('Unbound or changed task encoder cache')
-    if p['schema']!=CORE_PROTOCOL and cell.get('core_spec') is not None:
+    if p['schema'] not in (CORE_PROTOCOL,UNIFIED_MAINLINE) and cell.get('core_spec') is not None:
         raise ValueError('A core change requires its separately authorized protocol')
     return p,cell
 
@@ -55,7 +59,8 @@ def limits(rows, sim, kind, family, *, stay=False,collector_smoke=False,query_ca
     if kind=='admission':
         n=(90 if family=='rldx' else (read(sim['pilot_execution_plan'])['evaluation']['horizons'][rows[0]['suite']]+4)//5 if family=='pi05'
             else (sim['operation_contract']['horizons'][rows[0]['suite']]+9)//10)
-        return dict(episodes=0,score=2*n+3+warm+(2*query_cap if family=='rldx' or collector_smoke else 0),paired_execution=0,nominal_execution=0)
+        visual=int((sim.get('native_features') or {}).get('schema')=='RLDX_RESET_VISUAL_FEATURE_V1')
+        return dict(episodes=0,score=2*n+3+visual+warm+(2*query_cap if family=='rldx' or collector_smoke else 0),paired_execution=0,nominal_execution=0)
     if kind=='training':return dict(episodes=len(rows),score=16*len(rows)+warm,paired_execution=0,nominal_execution=0)
     if family=='rldx':cost=90*2*len(rows)
     else:
@@ -67,7 +72,7 @@ def limits(rows, sim, kind, family, *, stay=False,collector_smoke=False,query_ca
 
 def validate_campaign(path):
     c=read(path);p,cell=cell_for(c)
-    mainline=p['schema'] in (MAINLINE_PROTOCOL,CORE_PROTOCOL)
+    mainline=p['schema'] in (MAINLINE_PROTOCOL,CORE_PROTOCOL,UNIFIED_MAINLINE)
     if c['schema']!=(MAINLINE if mainline else SCHEMA) or c['kind'] not in ('training','evaluation','admission'):raise ValueError('Explicit prefix stage required')
     for f,h in c['input_hashes'].items():
         if file_digest(f)!=h:raise ValueError('Changed prefix input: '+f)
@@ -107,7 +112,10 @@ def validate_campaign(path):
                         or c['schedule']!=cell['training_schedule']):raise ValueError('Wrong on-policy training boundary')
                 versions.add(b['version'])
             elif c['kind']=='evaluation':
-                if p['schema']==CORE_PROTOCOL:
+                if p['schema']==UNIFIED_MAINLINE:
+                    from AlphaBrain.research.dsol.data.unified_mainline import validate_evaluation
+                    validate_evaluation(c,cell,r,state)
+                elif p['schema']==CORE_PROTOCOL:
                     from AlphaBrain.research.dsol.data.core_pilot import validate_evaluation
                     validate_evaluation(c,cell,r,state)
                 elif mainline:
@@ -137,7 +145,14 @@ def policy_for(c, cell, payload=None, *, version=0):
     import torch
     from AlphaBrain.research.dsol.selectors.continuous_search_policy import ContinuousActorCritic
     from AlphaBrain.research.dsol.selectors.search_policy_factory import create_search_policy
-    if cell.get('core_spec') is not None:
+    if cell.get('core_spec') is not None and cell.get('native_policy') is not None:
+        spec=cell['native_policy']
+        if (spec.get('schema')!='UNIFIED_NATIVE_CONTINUOUS_POLICY_V1'
+                or spec['core']!=cell['core_spec'] or cell.get('mechanism') is not None
+                or spec.get('task_spec')!=cell.get('task_condition',{}).get('spec')):
+            raise ValueError('Native adapter must use the declared shared core and task contract')
+        policy=create_search_policy(spec)
+    elif cell.get('core_spec') is not None:
         from AlphaBrain.research.dsol.selectors.unified_search_policy import UnifiedActorCritic
         factory=UnifiedActorCritic;extra={}
         if cell.get('mechanism') is not None:
@@ -291,7 +306,7 @@ def learner_step(config_path,*,records_path=None):
     def no_live(*args):raise RuntimeError('CPU learner cannot render or infer')
     with ContinuousPPO(policy,ContinuousPPOConfig(updates=protocol['updates'],seed=seed),read(cell['training_schedule']),no_live,root,
             binding=dict(config_sha256=file_digest(config_path),source_kind='LIVE_RENDER_BATCH1_TWO_NOISES',
-                         **({'retained_checkpoint_updates':protocol.get('retained_checkpoint_updates',[4,8,16])} if protocol['schema']==CORE_PROTOCOL else {})),resume=resume,
+                         **({'retained_checkpoint_updates':protocol.get('retained_checkpoint_updates',[4,8,16])} if protocol['schema'] in (CORE_PROTOCOL,UNIFIED_MAINLINE) else {})),resume=resume,
             reward_config=reward,warm_start=initial if 'policy' in initial and not resume else None) as trainer:
         if records_path is not None:
             batch=read(records_path)

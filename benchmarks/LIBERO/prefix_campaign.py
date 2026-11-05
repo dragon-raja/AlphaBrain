@@ -24,6 +24,23 @@ def admission_identity(cell):
     return digest({key:cell.get(key) for key in ('core_spec','task_condition','feature_producer','model_hashes','score_contract','mechanism')})
 
 
+def assign_runtime_hosts(blocks,capacity):
+    """Deterministic pre-dispatch placement; scientific rows/addresses unchanged."""
+    groups=defaultdict(list)
+    for block in blocks:groups[digest(read(block['sim_config']))].append(block)
+    slots=[h for h,ids in sorted(capacity.items()) for _ in ids]
+    keys=sorted(groups)
+    if len(slots)<len(keys):raise ValueError('One resident slot per immutable runtime required')
+    assigned={key:[slots[i]] for i,key in enumerate(keys)}
+    for host in slots[len(keys):]:
+        eligible=[key for key in keys if len(assigned[key])<len(groups[key])]
+        if not eligible:break
+        key=min(eligible,key=lambda key:((len(assigned[key])+1)/len(groups[key]),key))
+        assigned[key].append(host)
+    for key,rows in groups.items():
+        for i,block in enumerate(rows):block['host']=assigned[key][i%len(assigned[key])]
+
+
 class PrefixCampaign:
     def __init__(self,path):
         self.config_path=Path(path);self.cfg=read(path);self.root=Path(self.cfg['output']);self.local=Path(self.cfg['local_root'])
@@ -51,7 +68,7 @@ class PrefixCampaign:
         root=Path(self.cfg.get('actor_publications',{}).get(name,self.root/'training'/name/'publications'))
         return root/f'policy-{version:04d}.pt'
 
-    def build(self,name,kind,schedule,host,*,version=None,stay=False):
+    def build(self,name,kind,schedule,host,*,version=None,stay=False,capacity=None):
         p=self.protocol;cell=p['cells'][name];rows=read(schedule)
         if kind=='training':rows=rows[32*version:32*(version+1)]
         c=dict(schema=MAINLINE,kind=kind,cell=name,protocol=self.cfg['protocol'],native_policy=cell['native_policy'],source_identity=self.manifest['source_identity'],
@@ -63,6 +80,9 @@ class PrefixCampaign:
         if cell.get('task_condition') is not None:required.add(cell['task_condition']['cache'])
         if kind=='evaluation':
             c['evaluation_version']=version
+            if cell['evaluation_schedules'][schedule]['version']=='selected':
+                c['selection']=str(self.root/'selection'/(cell['family']+'.json'))
+                required.add(c['selection'])
             required.update([cell['score_noise'],cell['execution_noise'],read(cell['execution_noise'])['noise_file']])
             if not stay:
                 pub=self.publication(name,version);c['actor']=dict(path=str(pub),sha256=sha(pub));required.add(str(pub))
@@ -88,6 +108,11 @@ class PrefixCampaign:
                     b['addresses']=[dict(model=name,task=r['task'],initial=r['state_key'],view='episode-'+str(r['episode']),stream='score',repeat=0,noise='two-fixed-members') for r in pair]
                 else:b['addresses']=[dict(model=name,task=r['task'],initial=r['state_key'],view=str(r.get('start','admission'))+':'+r.get('method',kind),stream='score' if kind=='admission' else 'execution',repeat=n,noise='admission' if kind=='admission' else f'paired-{n}') for r in pair for n in ([0] if kind=='admission' else [0,1])]
                 c['blocks'].append(b)
+        if capacity is not None:
+            assign_runtime_hosts(c['blocks'],capacity)
+            c['hosts']=c['execution_hosts']=sorted({b['host'] for b in c['blocks']})
+            if kind!='admission':
+                required.update(c['admission_proofs'][b['host']+'/'+b['rows'][0]['suite']] for b in c['blocks'])
         c['limits']={k:sum(b['limits'][k] for b in c['blocks']) for k in c['blocks'][0]['limits']};c['input_hashes']={x:sha(x) for x in sorted(required)}
         label=f'train-{version:04d}' if kind=='training' else 'admission-'+host+('-'+Path(schedule).stem if self.cfg.get('separate_admission_suites') else '') if kind=='admission' else Path(schedule).stem+f'-v{version:04d}'
         path=self.root/'campaigns'/name/(label+'.json')
@@ -97,6 +122,12 @@ class PrefixCampaign:
     def execute(self,name,kind,schedule,*,version=None,stay=False,host_only=None):
         family=self.protocol['cells'][name]['family'];hosts=[host_only] if host_only else self.cfg['hosts'][family]
         count=self.cfg.get('training_slots',4) if kind=='training' else self.cfg.get('admission_slots',4) if kind=='admission' else 2
+        rows=read(schedule)
+        if kind=='training':rows=rows[32*version:32*(version+1)]
+        cell=self.protocol['cells'][name]
+        if cell.get('native_policy') is not None:
+            route='training_routes' if kind=='admission' else kind+'_routes'
+            count=max(count,len({digest(read(cell[route][r['suite']])) for r in rows}))
         if type(count) is not int or not 1<=count<=8:raise ValueError('Invalid phase slot count')
         if kind=='evaluation':
             suites={r['suite'] for r in read(schedule)}
@@ -106,11 +137,20 @@ class PrefixCampaign:
             if not hosts:raise ValueError('No host admitted for this exact evaluation suite')
         maximum=self.cfg.get('evaluation_slots_max',8) if kind=='evaluation' else count
         if type(maximum) is not int or not count<=maximum<=8:raise ValueError('Invalid maximum phase slots')
-        with self.pool.lease(name+'-'+Path(schedule).stem,hosts,count=count,max_count=maximum) as (host,ids):
-            path,label=self.build(name,kind,schedule,host,version=version,stay=stay);config=self.execution(name,family,host,ids)
+        distributed=self.cfg.get('distributed_phases',False)
+        lease=(self.pool.lease_distributed if distributed else self.pool.lease)
+        with lease(name+'-'+Path(schedule).stem,hosts,count=count,max_count=maximum) as allocation:
+            capacity=allocation if distributed else {allocation[0]:allocation[1]}
+            host=next(iter(capacity));ids=capacity[host]
+            path,label=self.build(name,kind,schedule,host,version=version,stay=stay,capacity=capacity if distributed else None);config=self.execution(name,family,host,ids)
+            config['capacity']={h:dict(gpu_ids=v,workers_per_gpu=1) for h,v in capacity.items()}
             config_path=self.root/'bindings'/name/(label+'.json');write(config_path,config)
             key=name+'-'+label;self.budget.reserve(key,path);self.status(name if kind=='training' else name+'-'+kind,state='RUNNING',phase=label,host=host,gpu_ids=ids)
-            result=run_stage(config,label,path,kind='training' if kind in ('training','admission') else 'target_recovery',cpu=False)
+            stage_kind='training' if kind in ('training','admission') else 'target_recovery'
+            if self.cfg.get('isolate_frozen_phases',False):
+                from .prefix_continuation import frozen_stage
+                result=frozen_stage(self.manifest['release'],config_path,label,path,self.root/'phase-logs'/name/(label+'.log'),kind=stage_kind)
+            else:result=run_stage(config,label,path,kind=stage_kind,cpu=False)
             self.budget.settle(key,result);write(self.root/'settlements'/name/(label+'.json'),result)
             return config,path,label
 
@@ -150,7 +190,7 @@ class PrefixCampaign:
         try:
             cell=self.protocol['cells'][name]
             if cell.get('evaluation_only'):
-                if self.protocol.get('design_stage') not in ('mechanism_screen','core_confirmation'):raise ValueError('Explicit deployment-only protocol required')
+                if self.protocol.get('design_stage') not in ('mechanism_screen','core_confirmation','unified_mainline'):raise ValueError('Explicit deployment-only protocol required')
                 for schedule,meta in cell['evaluation_schedules'].items():self.execute(name,'evaluation',schedule,version=meta['version'])
                 self.status(name,state='COMPLETE',optimizer_updates=0,new_training_episodes=0)
                 return
@@ -180,7 +220,7 @@ class PrefixCampaign:
             write(self.root/'training-completions'/(name+'.json'),dict(status='COMPLETE',episodes=32*updates,updates=updates,operation_model_updates=0))
             for future in pending:future.result()
             for schedule,meta in cell['evaluation_schedules'].items():
-                if meta['purpose']=='final':self.execute(name,'evaluation',schedule,version=updates)
+                if meta['purpose']=='final' and meta['version']!='selected':self.execute(name,'evaluation',schedule,version=updates)
             self.status(name,state='COMPLETE',optimizer_updates=updates,episodes=32*updates)
         except BaseException as error:
             with self.lock:self.failures[name]=repr(error)
@@ -194,6 +234,27 @@ class PrefixCampaign:
         for schedule,meta in self.protocol['cells'][name]['evaluation_schedules'].items():
             if meta['purpose']=='baseline':self.execute(name,'evaluation',schedule,version=64,stay=True)
 
+    def selected_final(self,family):
+        """All seed curves close before selection; no test-dependent decisions."""
+        from .prefix_selection import publish_selection
+        names=[n for n,c in self.protocol['cells'].items() if c['family']==family]
+        if any(n in self.failures or self.states.get(n,{}).get('state')!='COMPLETE' for n in names):
+            raise ValueError('All model seeds must complete before selection')
+        _,selection=publish_selection(self.root,self.cfg['protocol'],family)
+        def final(name):
+            for schedule,meta in self.protocol['cells'][name]['evaluation_schedules'].items():
+                if meta['purpose']=='final':self.execute(name,'evaluation',schedule,version=selection['version'])
+            self.status(name,state='FINAL_COMPLETE',selected_version=selection['version'])
+        with ThreadPoolExecutor(len(names)) as pool:
+            for future in as_completed([pool.submit(final,n) for n in names]):future.result()
+
+    def unified_family(self,family,active):
+        names=[n for n in active if self.protocol['cells'][n]['family']==family]
+        if len(names)!=3:raise ValueError('Common selection needs all three model seeds')
+        with ThreadPoolExecutor(3) as pool:
+            for future in as_completed([pool.submit(self.cell,n) for n in names]):future.result()
+        if family!='pi05':self.selected_final(family)
+
     def run(self):
         owner=self.local/'coordinator-owner';owner.mkdir(parents=True,exist_ok=False)
         with exclusive(owner):
@@ -206,6 +267,17 @@ class PrefixCampaign:
             from .prefix_admission import peer_numerical_proof
             write(self.root/'peer-numerical-proof.json',peer_numerical_proof(self.proofs,self.cfg.get('reference_proofs')))
             write(self.root/'admission-completion.json',dict(status='PASS_ALL_MODEL_HOST_SUITE_ENTRIES',proofs=self.proofs,budget=self.budget.status()))
+            if self.protocol.get('design_stage')=='unified_mainline':
+                # A ready model can enter final evaluation without waiting for
+                # another model's long final panel. One owner and resource pool.
+                with ThreadPoolExecutor(len(families)) as pool:
+                    futures={pool.submit(self.unified_family,f,active):f for f in families}
+                    for future in as_completed(futures):
+                        try:future.result()
+                        except BaseException as error:
+                            with self.lock:self.failures[futures[future]]=repr(error)
+                write(self.root/'completion.json',dict(status='COMPLETE' if not self.failures else 'PARTIAL_HOLD',failures=self.failures,budget=self.budget.status(),dispatch_enabled=False,automatic_retry=False))
+                return
             with ThreadPoolExecutor(max(1,len(active)+int(self.cfg.get('run_baseline',True)))) as pool:
                 futures={pool.submit(self.cell,name):name for name in active}
                 if self.cfg.get('run_baseline',True):futures[pool.submit(self.baseline)]='rldx-baseline'

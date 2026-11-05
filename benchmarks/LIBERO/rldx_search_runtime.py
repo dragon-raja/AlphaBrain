@@ -31,14 +31,27 @@ def feature_spec():
                 camera_ids=['external','wrist'], camera_roles=['movable','context'])]))
 
 
+def visual_feature_spec():
+    """Current-frame native spatial tokens before any language-layer fusion."""
+    return dict(schema='RLDX_RESET_VISUAL_FEATURE_V1',family='rldx',
+        tap='backbone.qwen_model.model.get_image_features',
+        history='native_reset_padded_four_frames',video_deltas=[-6,-4,-2,0],
+        frame_order='frame_major_camera_minor',selected_frame=3,frames=4,merge_size=2,
+        native_camera_keys=['front_view','left_wrist_view'],
+        temporal_receptive_field='native_motion_module_preserved',
+        layout=dict(schema='NATIVE_SEARCH_FEATURE_LAYOUT_V1',pooling='explicit_spatial_2x2',
+            streams=[dict(name=c,channels=4096,fusion_scope='per_view',camera_ids=[c],camera_roles=[role])
+                     for c,role in [('external','movable'),('wrist','context')]]))
+
+
 class RLDXSearchRuntime:
     search_history_rule = 'native_reset_padded_four_frames'
 
     def __init__(self, config, output, limit):
         from AlphaBrain.research.dsol.execution.dispatch_policy import reject_production
         reject_production('benchmarks/LIBERO/rldx_search_runtime.py:RLDXSearchRuntime.__init__')
-        if config['native_features'] != feature_spec(): raise ValueError('Unreviewed cognition/history mapping')
-        self.spec = feature_spec(); self.output=Path(output); self.limit=limit; self.calls=0; self.failed=False
+        if config['native_features'] not in (feature_spec(),visual_feature_spec()): raise ValueError('Unreviewed feature/history mapping')
+        self.spec = config['native_features']; self.output=Path(output); self.limit=limit; self.calls=0; self.failed=False
         m=config['models'][config['operation_model']]
         c=validate_contract(m['runtime_contract'], m['runtime_contract_sha256'])
         if m['weights_sha256'] != digest(c['checkpoint_shards']): raise ValueError('Joint checkpoint identity differs')
@@ -76,13 +89,16 @@ class RLDXSearchRuntime:
         from .controlled_rldx_operation import input_stamp
         stamp=input_stamp(history)
         self.calls+=1; self.failed=True; seed=noise_seed(noise)
-        value=self.native.infer(history,seed,identity,instrument=True,features=capture)
+        visual=self.spec==visual_feature_spec()
+        value=self.native.infer(history,seed,identity,instrument=True,features=capture and not visual,
+                                **({'visual_features':True} if capture and visual else {}))
         result=dict(actions=value['actions'], normalized_actions=value['normalized_actions'],
             trace=value['velocities'][:,0,:8,:7].copy(), seed=seed, scores=value['scores'],native_input_sha256=stamp)
         if capture:
-            features=pool_four_query_groups(value['backbone_features'],queries=64,channels=4096)
+            features=(tuple(value['visual_features'][camera].reshape(-1) for camera in ('external','wrist')) if visual else
+                      (pool_four_query_groups(value['backbone_features'],queries=64,channels=4096),))
             packet=NativeFeatures(self.spec['layout'],native_request['query_id'],native_request['input_sha256'],
-                native_request['history_sha256'],self.model_sha256,(features,),digest(self.spec))
+                native_request['history_sha256'],self.model_sha256,features,digest(self.spec))
             result.update(native_features=to_wire(packet),score=result['scores']['3'])
         with (self.output/'calls.jsonl').open('a') as stream:
             stream.write(json.dumps(dict(index=self.calls,**identity,seed=str(seed)))+'\n');stream.flush()

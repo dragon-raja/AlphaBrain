@@ -29,6 +29,12 @@ def validate_admission(c,cell,b):
         raise ValueError('Wrong source, host, suite, model or stale admission')
     if cell.get('core_spec'):
         from ..execution.manifest import digest
+        if (cell.get('native_policy') or {}).get('schema')=='UNIFIED_NATIVE_CONTINUOUS_POLICY_V1':
+            if (p.get('native_policy_sha256')!=digest(cell['native_policy'])
+                    or p.get('feature_producer_sha256')!=digest(cell['feature_producer'])):
+                raise ValueError('Native feature producer/core adapter admission differs')
+            if cell['family']=='rldx' and p.get('visual_capture_equal') is not True:
+                raise ValueError('Pre-language capture lacks capture-free numeric admission')
         if p.get('search_core_sha256')!=digest(cell['core_spec']):
             raise ValueError('Core variant has not passed its actual-entry collector admission')
         expected_mechanism=digest(cell['mechanism']) if cell.get('mechanism') else None

@@ -116,6 +116,15 @@ def run(c,cell,b,output,guard,pool):
     if not equal_rng(states[0],states[1]) or not equal_rng(states[1],states[2]):raise ValueError('Prefix changed RNG')
     if values[0]['score']!=values[1]['score'] or values[2]['score']!=score(values[0]['trace'],full.score_contract):raise ValueError('Prefix score mismatch')
     if family!='pi05':from_wire(values[2]['native_features'])
+    visual_capture_equal=None
+    if (sim.get('native_features') or {}).get('schema')=='RLDX_RESET_VISUAL_FEATURE_V1':
+        # Capture-free native forward must match the SAME sensor input, action
+        # trace and RNG. Comparing three wrappers using the same hook is not enough.
+        restore(state);calls.runtime=RLDXReference(raw,LiberoHistory(example))
+        reference_value=calls.infer(example,noise,dict(phase='visual-capture-free-reference'),capture=False)
+        compare({k:v for k,v in values[0].items() if k!='native_features'},reference_value)
+        if not equal_rng(states[0],rng_state()):raise ValueError('Visual capture changed native RNG')
+        visual_capture_equal=True
     np.savez_compressed(output/'numerical.npz',trace=values[0]['trace'],actions=values[0]['actions'])
     write(output/'numerical.json',dict(p3=values[1]['score'],full=values[2]['score'],identical_actions=True,identical_rng=True))
     bank=ExplicitFlowNoiseBank(Path(c['execution_noise']));ep=output/'trajectory';ep.mkdir();comparisons=[]
@@ -155,10 +164,11 @@ def run(c,cell,b,output,guard,pool):
             calls.runtime=full if cell['prefix']!=3 else p3
             with np.load(sim['anchors'],allow_pickle=False) as z:query_noise=z['first_score_noise'][row['initial'],:2].copy()
             folder=output/'deployment-smoke';folder.mkdir()
-            testrow=dict(row,method='continuous_ppo',proposal_seed=0,query_cap=cell['mechanism']['query_cap'])
+            testrow=dict(row,method='continuous_ppo',proposal_seed=0,query_cap=cell.get('mechanism',{}).get('query_cap',8))
             with open_sim(b['sim_config'],sim,row['initial'],folder) as query:
                 probe=CapacityProbeActor(actor) if testrow['query_cap']>8 else actor
-                info,_=search(testrow,query,calls,query_noise,folder,probe,cell['observation_scale'])
+                info,_=search(testrow,query,calls,query_noise,folder,probe,cell['observation_scale'],
+                    native_policy=cell['native_policy'],native_model_sha256=cell['model_hashes'][row['suite']])
             if info['status']!='COMPLETE' or info['queries']>testrow['query_cap']:raise ValueError('Deployment query-cap check failed')
             if testrow['query_cap']>8 and (info['reason']!='budget' or info['queries']<testrow['query_cap']-1 or probe.maximum_history<=8):
                 raise ValueError('Long-cap admission did not exercise the source/history boundary')
@@ -179,6 +189,8 @@ def run(c,cell,b,output,guard,pool):
         **({'search_core_sha256':digest(cell['core_spec'])} if cell.get('core_spec') else {}),
         **({'mechanism_sha256':digest(cell['mechanism'])} if cell.get('mechanism') else {}),
         **({'task_condition_sha256':digest(cell['task_condition'])} if cell.get('task_condition') else {}),
+        native_policy_sha256=digest(cell['native_policy']),feature_producer_sha256=digest(cell.get('feature_producer')),
+        visual_capture_equal=visual_capture_equal,
         admitted_host=b['host'],admitted_suite=row['suite'],complete_trajectory=True,replans=result['replans'],steps=result['steps'],calls=calls.counts,all_replans_native_equal=True,
         rldx_independent_per_action_history=family=='rldx',score_prefixes=[3,full.score_contract['prefix']]))
 

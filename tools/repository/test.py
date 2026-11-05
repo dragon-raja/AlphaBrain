@@ -70,6 +70,7 @@ def main():
         "tests/dsol_paper1/data/test_core_pilot.py",
         "tests/dsol_paper1/data/test_task_condition.py",
         "tests/dsol_paper1/analysis/test_core_selection.py",
+        "tests/dsol_paper1/analysis/test_core_decision.py",
         "tests/dsol_paper1/selectors/test_task_conditioned_policy.py",
         "tests/dsol_paper1/selectors/test_unified_search_policy.py",
         "tests/dsol_paper1/execution/test_libero_release.py",

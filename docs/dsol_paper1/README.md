@@ -23,6 +23,7 @@
 - U12/U3 三种子长续训与开发评测：`runs/unified-core-long-confirmation-20261104/`。
 - 查询预算/成本、评分反馈与 STOP 筛查：`runs/unified-core-mechanism-screen-20261104/`，按已批准资源交接执行。
 - 长训尾段、早期曲线与部署预算补证：`runs/unified-core-final-checks-20261105/`；U12/U3 从 3,072 续至 4,096，Q16 仅部署诊断，使用独立 300,000 调用上限。实际准入/启动状态以该目录 `CURRENT.json` 为准。
+- 主配置决策证据：`runs/shared-core-decision-20261105/`。合并11组短训筛选、0–4096曲线与同权重Q4/Q6/Q8/Q16；建议与最终授权/发布分别记录，不修改历史结果标签。
 - GR1 CPU 准备：`runs/gr1-cpu-preparation-20261104/r16/`（逐调用输入绑定与断联回归；整块预检、authority 和实际任务 CPU 组合见 `r15/`）；早期重放和模型加载证据在同级 `r14/`。
 - 框架整理前审查：`runs/framework-maintainability-audit-20261104/`。
 - 共同核心对外协作索引：`runs/parallel-sim-real-plan-20261104/core-release/`。

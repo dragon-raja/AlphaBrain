@@ -53,3 +53,5 @@ CPU 测试不启动模型/渲染或科学任务。实际新后端还需模型输
 隔离卡交接不是“看到空闲就使用”：必须确认原阶段授权已 HALTED、dispatch=false、无完整结果可重复纳入、原 owner 的失败分支不会重试或重新释放该隔离租约，并实时核查节点、GPU UUID、可信保活和旧 worker 已退出。新 owner 只绑定明确移交的卡，用原有 PrefixCampaign/实时授权链执行；不得把隔离卡同时恢复到旧池。原失败证据与保守预留保留，新结果另目录并建立恢复索引。
 
 长查询准入必须覆盖长历史边界。`prefix_admission.CapacityProbeActor` 仅用于工程准入：每步真实计算冻结 actor，然后用明确标记的合法小步替代 STOP，保证超过第八次查询。不会修改权重，也不作为策略效果、科学轨迹或训练样本。科学评测继续使用原冻结 actor 的 STOP 与运动输出。
+
+驻留进程跨套件重新构造模型时，PyTorch inter-op 线程数不能重复设置。`common/torch_runtime.configure_threads` 只在当前值不同于声明值时调用 setter；已开始并行工作后的真实配置冲突仍报错，不吞异常。LIBERO 两个 π0.5 runtime 共用此函数，CPU 测试在同进程执行矩阵运算后再次配置，GPU 准入覆盖少于套件数的 worker 顺序处理多个套件。

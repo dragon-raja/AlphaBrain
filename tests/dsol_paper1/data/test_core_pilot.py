@@ -113,7 +113,7 @@ def test_admission_identity_separates_task_and_provenance_not_seed():
 
 def test_replication_admission_enumerates_seed_two_not_missing_seed_zero():
     from benchmarks.LIBERO.prefix_campaign import PrefixCampaign
-    co=PrefixCampaign.__new__(PrefixCampaign);co.protocol=replication_protocol();seen=[]
+    co=PrefixCampaign.__new__(PrefixCampaign);co.protocol=replication_protocol();co.cfg={};seen=[]
     co.admit_cell=lambda name,family,host:seen.append((name,family,host))
     co.admission('pi05','synthetic-host')
     assert len(seen)==11 and {x[0] for x in seen}==set(co.protocol['cells'])

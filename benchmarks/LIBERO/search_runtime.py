@@ -86,8 +86,8 @@ class PolicyRuntime:
         from AlphaBrain.model.framework.base_framework import BaseFramework
         self.torch = torch
         self.output, self.limit, self.calls = Path(output), int(limit), 0
-        torch.set_num_threads(2)
-        torch.set_num_interop_threads(1)
+        from AlphaBrain.common.torch_runtime import configure_threads
+        configure_threads(torch, intra=2, interop=1)
         checkpoint = selected_checkpoint(config)
         if sha(Path(checkpoint['path'])/'model.safetensors') != checkpoint['weights_sha256']:
             raise ValueError('Frozen manipulation policy changed')

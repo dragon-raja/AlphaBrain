@@ -93,8 +93,8 @@ class NativePolicyRuntime:
         norm = path/'assets/physical-intelligence/libero/norm_stats.json'
         if sha(norm) != checkpoint['normalization_sha256']:
             raise ValueError('Native quantile normalization changed')
-        torch.set_num_threads(2)
-        torch.set_num_interop_threads(1)
+        from AlphaBrain.common.torch_runtime import configure_threads
+        configure_threads(torch, intra=2, interop=1)
         cfg = get_config('pi05_libero')
         cfg = dataclasses.replace(cfg,model=dataclasses.replace(cfg.model,pytorch_compile_mode=None))
         if cfg.model.action_dim != 32 or cfg.model.action_horizon != 10:

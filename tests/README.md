@@ -13,6 +13,8 @@ python tools/repository/test.py --profile portable
 
 `portable` 使用 `pyproject.toml` 的 `test-portable` 依赖，覆盖边界、归档、纯数值方法、兼容性和安全 CLI。CI 使用此配置，不需要私有实验结果。
 
+CI 同时验证 Python 3.10 与 3.12；本地只通过其中一个版本，不代表另一版本兼容。每次推送后须核对该提交的 Actions 结果，记录失败原因或全部通过的运行链接。Git push 成功不等于 CI 通过。矩阵成员独立完成，避免一个版本失败取消另一个版本的诊断。
+
 具备本项目完整依赖时运行：
 
 ```bash

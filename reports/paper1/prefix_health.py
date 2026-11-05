@@ -149,7 +149,7 @@ class Report:
                     seed=int(raw['method'].rsplit('-seed-',1)[1]);key=(raw['state_key'],int(raw['view_id']),int(raw['repeat']))
                     values={k:raw[k]=='True' for k in ['success','stay_success','nominal_success']}
                     if (seed,*key) in self.p3[family]:raise ValueError('Repeated historical PPO outcome')
-                    self.p3[family][seed,*key]=values
+                    self.p3[family][(seed,*key)]=values
 
     def pi_baseline(self,row,*,reference=False):
         view=0 if reference else row['view_id'];refs=self.pi_refs['views'][row['state_key']+'::'+str(view)]

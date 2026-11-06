@@ -76,3 +76,11 @@
 `selection_screen.py --root <closed-rldx-run> --output <new-output>`校验全部受控结果和原始P3选位后，报告有限开发集参考位/固定扰动/最低分终点成功率。核心统计在 `analysis/selection_screen.py`；选定终点复用于两个起点的配对不膨胀独立操作数，不将稀疏操作标签插值成完整三维成功率面。
 
 `rldx_spatial_completion.py --root <completed-run> --output <new-output> --font <CJK-font>`核验复用及新增操作、原始速度评分、输入与噪声身份，完整864条结算后生成任务平均/逐初态空间图和Pearson对照。P4仅离线诊断；有限候选子集与事后最佳位置不冒充PPO或可部署策略。
+
+## 完整开发分析审查
+
+`python -m reports.paper1.core_review --source AUDITED_REPORT --output NEW_DIR`
+消费 `core_decision` 已核验的报告，复核逐条CSV与全部汇总及配对均值，生成含目录的完整PDF、HTML、全表CSV和补充矢量图；不重新评测或改变统计总体。
+需要 NumPy、Matplotlib、PyMuPDF；输出目录必须不存在。统计校验归属 `analysis/core_review.py`，绘图归属 `plotting/core_review.py`。
+当前审查发布物：持久项目根下 `runs/shared-core-review-20261106/`；原始决策报告继续保留在 `runs/shared-core-decision-20261105/report-r2/`。
+
